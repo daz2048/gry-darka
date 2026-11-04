@@ -3666,10 +3666,11 @@
       // zombie
       const zc = zombieColorForWave(wave);
       const goldenWave = Math.floor(effectiveWaveForScaling(wave)) >= 100;
+      const demonMode = difficultyKey === 'super-hard-demon';
       for (const z of zombies) {
         const mini = z.miniType ? CONFIG.miniBoss[z.miniType] : null;
-        const baseFill = goldenWave ? '#ffd54f' : (z.boss ? (mini ? mini.color : '#ff8a65') : zc.fill);
-        const edge = goldenWave ? '#a86f00' : (z.boss ? '#bf4c2b' : zc.stroke);
+        const baseFill = goldenWave ? '#ffd54f' : (demonMode ? (z.boss ? '#c13535' : '#852332') : (z.boss ? (mini ? mini.color : '#ff8a65') : zc.fill));
+        const edge = goldenWave ? '#a86f00' : (demonMode ? '#ff553d' : (z.boss ? '#bf4c2b' : zc.stroke));
         const modelScale = z.boss ? 1.32 : 1.55;
         const walk = Math.sin(nowS * 7.2 + z.x * 0.045);
         const torsoW = z.r * (z.boss ? 1.28 : 1.08);
@@ -3681,9 +3682,17 @@
         ctx.translate(z.x, z.y);
         ctx.scale(modelScale, modelScale);
 
+        if (demonMode) {
+          ctx.strokeStyle = 'rgba(255,54,34,0.42)';
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.arc(0, 0, z.r * 1.08, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
         // Legs first so upper body can overlap and look volumetric.
         ctx.lineCap = 'round';
-        ctx.strokeStyle = 'rgba(36,46,56,0.94)';
+        ctx.strokeStyle = demonMode ? 'rgba(48,13,24,0.98)' : 'rgba(36,46,56,0.94)';
         ctx.lineWidth = z.boss ? 4.2 : 2.8;
         ctx.beginPath();
         ctx.moveTo(-torsoW * 0.28, torsoH * 0.12);
@@ -3695,8 +3704,8 @@
         // Torso with dirty cloth tone and chest shadows.
         const cloth = ctx.createLinearGradient(0, -torsoH * 0.62, 0, torsoH * 0.8);
         cloth.addColorStop(0, baseFill);
-        cloth.addColorStop(0.54, z.boss ? '#5a2f26' : '#465a49');
-        cloth.addColorStop(1, z.boss ? '#28150f' : '#1a232b');
+        cloth.addColorStop(0.54, demonMode ? '#501623' : (z.boss ? '#5a2f26' : '#465a49'));
+        cloth.addColorStop(1, demonMode ? '#1b0711' : (z.boss ? '#28150f' : '#1a232b'));
         ctx.fillStyle = cloth;
         ctx.strokeStyle = edge;
         ctx.lineWidth = z.boss ? 2.8 : 1.9;
@@ -3710,7 +3719,7 @@
         ctx.fillRect(torsoW * 0.05, torsoH * 0.02, torsoW * 0.14, torsoH * 0.44);
 
         // Arms and forearms.
-        ctx.strokeStyle = z.boss ? 'rgba(58,22,20,0.95)' : 'rgba(52,68,55,0.95)';
+        ctx.strokeStyle = demonMode ? 'rgba(74,17,28,0.98)' : (z.boss ? 'rgba(58,22,20,0.95)' : 'rgba(52,68,55,0.95)');
         ctx.lineWidth = z.boss ? 3.9 : 2.6;
         ctx.beginPath();
         ctx.moveTo(-torsoW * 0.52, armY - z.y);
@@ -3722,12 +3731,29 @@
         ctx.stroke();
 
         // Neck and head with skin highlight and cheekbone shadow.
-        ctx.fillStyle = z.boss ? '#7a4f3f' : '#7f9d76';
+        ctx.fillStyle = demonMode ? '#751d2d' : (z.boss ? '#7a4f3f' : '#7f9d76');
         ctx.fillRect(-torsoW * 0.08, -torsoH * 0.68, torsoW * 0.16, torsoH * 0.16);
+        const headY = -torsoH * 0.55;
+        if (demonMode) {
+          ctx.fillStyle = '#260912';
+          ctx.strokeStyle = '#d83c36';
+          ctx.lineWidth = Math.max(0.8, headR * 0.11);
+          ctx.beginPath();
+          ctx.moveTo(-headR * 0.64, headY - headR * 0.42);
+          ctx.quadraticCurveTo(-headR * 1.42, headY - headR * 0.96, -headR * 1.02, headY - headR * 1.48);
+          ctx.quadraticCurveTo(-headR * 0.48, headY - headR * 1.12, -headR * 0.28, headY - headR * 0.68);
+          ctx.closePath();
+          ctx.moveTo(headR * 0.64, headY - headR * 0.42);
+          ctx.quadraticCurveTo(headR * 1.42, headY - headR * 0.96, headR * 1.02, headY - headR * 1.48);
+          ctx.quadraticCurveTo(headR * 0.48, headY - headR * 1.12, headR * 0.28, headY - headR * 0.68);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
         const skin = ctx.createRadialGradient(0, -torsoH * 0.55, headR * 0.25, 0, -torsoH * 0.55, headR * 1.15);
-        skin.addColorStop(0, z.boss ? '#c8947a' : '#b4c89b');
-        skin.addColorStop(0.65, z.boss ? '#8c5a49' : '#7c976d');
-        skin.addColorStop(1, z.boss ? '#523127' : '#4f6651');
+        skin.addColorStop(0, demonMode ? '#ff9270' : (z.boss ? '#c8947a' : '#b4c89b'));
+        skin.addColorStop(0.65, demonMode ? '#bc3540' : (z.boss ? '#8c5a49' : '#7c976d'));
+        skin.addColorStop(1, demonMode ? '#4a1423' : (z.boss ? '#523127' : '#4f6651'));
         ctx.fillStyle = skin;
         ctx.strokeStyle = 'rgba(24,30,36,0.88)';
         ctx.lineWidth = z.boss ? 2.4 : 1.5;
@@ -3739,12 +3765,15 @@
         // Eyes, brows, mouth and scar pass.
         const eyeY = -torsoH * 0.58;
         const eyeX = headR * 0.42;
-        ctx.fillStyle = 'rgba(236,242,226,0.92)';
+        ctx.shadowColor = demonMode ? '#ff2418' : 'transparent';
+        ctx.shadowBlur = demonMode ? 7 : 0;
+        ctx.fillStyle = demonMode ? '#ffb347' : 'rgba(236,242,226,0.92)';
         ctx.beginPath();
         ctx.ellipse(-eyeX, eyeY, headR * 0.18, headR * 0.13, 0, 0, Math.PI * 2);
         ctx.ellipse(eyeX, eyeY + headR * 0.03, headR * 0.18, headR * 0.13, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = 'rgba(23,28,33,0.95)';
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = demonMode ? '#3d0814' : 'rgba(23,28,33,0.95)';
         ctx.beginPath();
         ctx.arc(-eyeX + headR * 0.03, eyeY, headR * 0.06, 0, Math.PI * 2);
         ctx.arc(eyeX + headR * 0.02, eyeY + headR * 0.02, headR * 0.06, 0, Math.PI * 2);
