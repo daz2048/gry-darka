@@ -20,6 +20,7 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 
 - **1000 fal** w grze
 - **Trudność rośnie** — każda fala jest trudniejsza
+- **Super Hard Demon** pozostaje ekstremalnie trudny, ale możliwy do wygrania: zombie są bardzo wytrzymałe i szybkie, a fale nadciągają gęsto.
 - **Mini-bossy** — specjalni zombie z bonusami
 - **Loot** — zbieraj bomby i bonusy z pokonanych bossów
 - **Zombie od fali 100 są złote**
