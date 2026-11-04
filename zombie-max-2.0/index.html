@@ -757,6 +757,7 @@
   }
   body.hell-mode .skinSwatch {
     position: relative;
+    background: linear-gradient(90deg, var(--demon-shadow), var(--demon-accent) 48%, var(--demon-shadow)) !important;
     box-shadow: inset 0 0 8px rgba(80,5,12,.72), 0 0 8px rgba(255,75,25,.22);
   }
   body.hell-mode .skinSwatch::before {
@@ -2715,8 +2716,11 @@
           sw.style.background = 'linear-gradient(90deg,' + sk.fill + ',' + sk.stroke + ')';
 
           const variant = swatchIndex++;
-          sw.style.setProperty('--demon-accent', sk.fill);
-          sw.style.setProperty('--demon-shadow', sk.stroke);
+          const hellHue = (variant * 137.508) % 42;
+          const hellAccent = 'hsl(' + hellHue.toFixed(1) + ', 100%, ' + (55 + variant * 7 % 14) + '%)';
+          const hellShadow = 'hsl(' + ((hellHue + 350) % 360).toFixed(1) + ', 78%, ' + (14 + variant * 3 % 9) + '%)';
+          sw.style.setProperty('--demon-accent', hellAccent);
+          sw.style.setProperty('--demon-shadow', hellShadow);
           sw.style.setProperty('--demon-horn-left', (25 + variant * 31 / skinCount) + '%');
           sw.style.setProperty('--demon-horn-height', (10 + (variant * 7 % 5)) + 'px');
           sw.style.setProperty('--demon-horn-tip-a', (12 + variant * 17 % 25) + '%');
