@@ -746,14 +746,6 @@
   body.hell-mode #ingameHudBottom span { color: rgba(255,194,158,.78); }
   body.hell-mode #ingameHudTop b,
   body.hell-mode #ingameHudBottom b { color: #fff0df; }
-  body.hell-mode .bar {
-    background: #28120e;
-    border-color: rgba(255,143,54,.56);
-  }
-  body.hell-mode .bar > i {
-    background: linear-gradient(90deg, #ffc247, #ff871e 58%, #e34218);
-    box-shadow: 0 0 8px rgba(255,112,25,.66);
-  }
   body.hell-mode .shopBtn,
   body.hell-mode .skinItem,
   body.hell-mode .skinBtn,
@@ -4073,7 +4065,7 @@
           const bw = z.r * 2.1;
           const hpY = z.y - z.r - 10 - (modelScale - 1) * z.r * 1.8;
           ctx.fillStyle = '#0f141b'; ctx.fillRect(z.x - bw / 2, hpY, bw, 5);
-          ctx.fillStyle = goldenWave ? '#ffec8b' : (z.boss ? '#ffb199' : '#8bd450');
+          ctx.fillStyle = goldenWave ? '#ffec8b' : (demonMode ? '#ff9a32' : (z.boss ? '#ffb199' : '#8bd450'));
           ctx.fillRect(z.x - bw / 2, hpY, bw * (z.hp / z.maxhp), 5);
         }
       }
