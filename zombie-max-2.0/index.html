@@ -1219,6 +1219,7 @@
       legend: { fill: '#ffecb3', stroke: '#b71c1c', cost: 1065100, label: 'Legend' }
     };
     let ownedSkins = defaultOwnedSkins();
+    const SKIN_VARIANTS = Object.fromEntries(Object.keys(SKINS).map((key, index) => [key, index]));
     const GUNS = {
       blaster: { label: 'Blaster', desc: 'balanced', cost: 0, body: '#607d8b', barrel: '#cfd8dc', bullet: '#ffe082', fireMul: 1, dmgMul: 1, speedMul: 1, width: 6, length: 18, mode: 'single' },
       goldengun: { label: 'Golden Gun', desc: 'intergalactic singularity cannon', cost: 1e21, body: '#4a148c', barrel: '#80d8ff', bullet: '#e1f5fe', fireMul: 2.0, dmgMul: 10.8, speedMul: 2.35, width: 10, length: 44, mode: 'golden' },
@@ -2410,7 +2411,19 @@
     }
 
     function currentSkin() {
-      return SKINS[skinKey] || SKINS.classic;
+    function demonSkinPalette(variant) {
+      const hellHue = (variant * 137.508) % 42;
+      return {
+        accent: 'hsl(' + hellHue.toFixed(1) + ', 100%, ' + (55 + variant * 7 % 14) + '%)',
+        shadow: 'hsl(' + ((hellHue + 350) % 360).toFixed(1) + ', 78%, ' + (14 + variant * 3 % 9) + '%)'
+      };
+    }
+
+    function currentSkin() {
+      const skin = SKINS[skinKey] || SKINS.classic;
+      if (difficultyKey !== 'super-hard-demon') return skin;
+      const palette = demonSkinPalette(SKIN_VARIANTS[skinKey] || 0);
+      return { ...skin, fill: palette.accent, stroke: palette.shadow };
     }
 
     function currentGun() {
@@ -2716,11 +2729,9 @@
           sw.style.background = 'linear-gradient(90deg,' + sk.fill + ',' + sk.stroke + ')';
 
           const variant = swatchIndex++;
-          const hellHue = (variant * 137.508) % 42;
-          const hellAccent = 'hsl(' + hellHue.toFixed(1) + ', 100%, ' + (55 + variant * 7 % 14) + '%)';
-          const hellShadow = 'hsl(' + ((hellHue + 350) % 360).toFixed(1) + ', 78%, ' + (14 + variant * 3 % 9) + '%)';
-          sw.style.setProperty('--demon-accent', hellAccent);
-          sw.style.setProperty('--demon-shadow', hellShadow);
+          const palette = demonSkinPalette(variant);
+          sw.style.setProperty('--demon-accent', palette.accent);
+          sw.style.setProperty('--demon-shadow', palette.shadow);
           sw.style.setProperty('--demon-horn-left', (25 + variant * 31 / skinCount) + '%');
           sw.style.setProperty('--demon-horn-height', (10 + (variant * 7 % 5)) + 'px');
           sw.style.setProperty('--demon-horn-tip-a', (12 + variant * 17 % 25) + '%');
@@ -4145,7 +4156,7 @@
       ctx.fillStyle = hellMode ? 'rgba(255,75,25,.12)' : 'rgba(79,157,255,.12)';
       ctx.fillRect(CONFIG.breachX, colY - half - 8, W - CONFIG.breachX, (half + 8) * 2);
       // zwarta kupa ekipy
-      const goldSkinActive = skinKey === 'gold';
+      const goldSkinActive = skinKey === 'gold' && !demonMode;
       const goldenGunActive = gunKey === 'goldengun';
       const goldCombo = goldSkinActive && goldenGunActive;
       const goldComboMul = goldCombo ? 10 : 1;
@@ -4307,10 +4318,10 @@
           ctx.fill();
           ctx.globalAlpha = 1;
         } else {
-          ctx.fillStyle = demonMode ? '#a52a2e' : sk.fill;
+          ctx.fillStyle = sk.fill;
         }
         ctx.beginPath(); ctx.arc(x, y, CONFIG.shooter.r * goldComboScale, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = demonMode ? '#ff6038' : (goldSkinActive ? (goldCombo ? '#fff8cf' : '#80d8ff') : sk.stroke);
+        ctx.strokeStyle = goldSkinActive ? (goldCombo ? '#fff8cf' : '#80d8ff') : sk.stroke;
         ctx.lineWidth = goldSkinActive ? (goldCombo ? 2.2 : 2) : 2;
         ctx.stroke();
         // Helmet rim + visor + rank stripe: keeps people distinct and more "pro" than mobs.
