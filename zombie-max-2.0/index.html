@@ -684,6 +684,104 @@
       background: rgba(15,20,27,.05);
     }
   }
+  body.hell-mode {
+    --bg0: #0c0508;
+    --bg1: #1d090d;
+    --bg2: #3b1117;
+    --panel: rgba(37, 10, 15, 0.9);
+    --panel-strong: rgba(53, 12, 17, 0.96);
+    --line: rgba(255, 92, 48, 0.42);
+    --line-soft: rgba(255, 113, 56, 0.28);
+    --text: #fff0df;
+    --soft: #e8ad91;
+    --accent: #ff6845;
+    --accent-hot: #ffd166;
+    background: radial-gradient(900px 560px at 48% 20%, #451319 0%, var(--bg1) 52%, var(--bg0) 100%);
+  }
+  body.hell-mode #stage {
+    border-color: rgba(255, 94, 48, 0.52);
+    box-shadow: 0 0 28px rgba(255, 53, 17, 0.18), 0 18px 48px rgba(0,0,0,.58);
+  }
+  body.hell-mode #hud .stat,
+  body.hell-mode #shop,
+  body.hell-mode #help,
+  body.hell-mode #musicDebugPanel {
+    border-color: var(--line);
+    background: linear-gradient(180deg, rgba(76,23,25,.92), rgba(22,7,12,.97));
+    box-shadow: inset 0 1px 0 rgba(255,170,96,.1), 0 8px 20px rgba(0,0,0,.32);
+  }
+  body.hell-mode #ingameHudTop .stat,
+  body.hell-mode #ingameHudBottom .stat {
+    border-color: rgba(255,100,54,.24);
+    background: rgba(35,7,12,.56);
+  }
+  body.hell-mode #ingameHudTop span,
+  body.hell-mode #ingameHudBottom span { color: rgba(255,194,158,.78); }
+  body.hell-mode #ingameHudTop b,
+  body.hell-mode #ingameHudBottom b { color: #fff0df; }
+  body.hell-mode .shopBtn,
+  body.hell-mode .skinItem,
+  body.hell-mode .skinBtn,
+  body.hell-mode #difficulty,
+  body.hell-mode #musicDebugPanel {
+    border-color: var(--line);
+    background: linear-gradient(180deg, rgba(91,34,32,.92), rgba(37,11,16,.98));
+    color: var(--text);
+  }
+  body.hell-mode .shopBtn:hover,
+  body.hell-mode .skinBtn:hover { border-color: #ff9a3c; }
+  body.hell-mode .shopBtn:disabled { background: #261014; }
+  body.hell-mode .shopSectionTitle,
+  body.hell-mode #shopTitle { color: #ffb05a; }
+  body.hell-mode .shopMiniNote,
+  body.hell-mode #gunCoins,
+  body.hell-mode #skinCoins { color: #e6b29a; }
+  body.hell-mode .gunPreview {
+    border-color: rgba(255,125,65,.4);
+    background: rgba(36,8,14,.8);
+  }
+  body.hell-mode .gunPreview::before {
+    background: #e45732;
+    box-shadow: -16px 0 0 0 #451019;
+  }
+  body.hell-mode .gunPreview::after { background: #ffd166; box-shadow: 0 0 8px #ff5a1f; }
+  body.hell-mode #power900Btn,
+  body.hell-mode #musicBtn,
+  body.hell-mode #musicDebugBtn,
+  body.hell-mode #mobileBombBtn,
+  body.hell-mode #mobileNukeBtn,
+  body.hell-mode #mobileSquadBtn,
+  body.hell-mode #mobilePowerBtn,
+  body.hell-mode #mobileJumpBtn,
+  body.hell-mode #overlay button,
+  body.hell-mode .back {
+    border: 1px solid rgba(255,126,64,.55);
+    background: linear-gradient(180deg, #783124, #321016);
+    color: #ffe4c3;
+    box-shadow: inset 0 1px 0 rgba(255,208,135,.14), 0 5px 16px rgba(0,0,0,.28);
+  }
+  body.hell-mode #power900Btn:hover,
+  body.hell-mode #musicBtn:hover,
+  body.hell-mode #musicDebugBtn:hover,
+  body.hell-mode #overlay button:hover,
+  body.hell-mode .back:hover { background: linear-gradient(180deg, #98402b, #49131a); }
+  body.hell-mode #alert {
+    border-color: rgba(255,150,76,.62);
+    background: linear-gradient(180deg, rgba(91,30,22,.96), rgba(24,7,12,.98));
+    color: #ffd166;
+    box-shadow: 0 0 24px rgba(255,60,14,.32);
+  }
+  body.hell-mode .variant-badge {
+    background: linear-gradient(180deg, rgba(255,92,32,.3), rgba(92,17,22,.72));
+    border-color: #ff7544;
+    color: #ffd1a0;
+    box-shadow: 0 0 18px rgba(255,75,25,.4);
+  }
+  body.hell-mode kbd {
+    border-color: rgba(255,116,56,.42);
+    background: linear-gradient(180deg, #51201f, #260d13);
+    color: #ffe0bc;
+  }
 </style>
 </head>
 <body>
@@ -4703,6 +4801,7 @@
     });
     el.difficulty.addEventListener('change', function () {
       difficultyKey = el.difficulty.value;
+      document.body.classList.toggle('hell-mode', difficultyKey === 'super-hard-demon');
       reset();
     });
     if (el.power900Btn) {
