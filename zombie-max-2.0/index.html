@@ -763,13 +763,13 @@
     content: '';
     position: absolute;
     z-index: 1;
-    top: -5px;
-    left: calc(50% - 7px);
-    width: 14px;
-    height: 9px;
-    background: linear-gradient(180deg, #ffd166, #e34218 72%);
-    clip-path: polygon(0 100%, 20% 0, 38% 100%, 62% 100%, 80% 0, 100% 100%);
-    filter: drop-shadow(0 0 3px rgba(255,75,25,.8));
+    top: -2px;
+    left: var(--demon-horn-left);
+    width: 22px;
+    height: var(--demon-horn-height);
+    background: linear-gradient(180deg, var(--demon-accent), var(--demon-shadow) 72%);
+    clip-path: polygon(0 100%, var(--demon-horn-tip-a) 0, 38% 100%, 62% 100%, var(--demon-horn-tip-b) 0, 100% 100%);
+    filter: drop-shadow(0 0 3px var(--demon-accent));
   }
   body.hell-mode .skinSwatch::after {
     content: '';
@@ -777,8 +777,9 @@
     inset: 0;
     border-radius: inherit;
     background:
-      radial-gradient(ellipse 2px 1.5px at 47% 52%, #fff0a0 75%, transparent 100%),
-      radial-gradient(ellipse 2px 1.5px at 55% 52%, #fff0a0 75%, transparent 100%),
+      radial-gradient(ellipse 2px 1.5px at var(--demon-eye-left) 52%, #fff0a0 75%, transparent 100%),
+      radial-gradient(ellipse 2px 1.5px at var(--demon-eye-right) 52%, #fff0a0 75%, transparent 100%),
+      linear-gradient(var(--demon-mark-angle), transparent 47%, var(--demon-accent) 48%, var(--demon-accent) 50%, transparent 51%),
       linear-gradient(90deg, rgba(52,5,13,.4), rgba(255,86,32,.16), rgba(52,5,13,.4));
   }
   body.hell-mode .shopBtn:hover,
@@ -2704,6 +2705,8 @@
       if (!el.skinList) return;
       if (!el.skinList.children.length) {
         for (const [key, sk] of Object.entries(SKINS)) {
+        const skinCount = Object.keys(SKINS).length;
+        let swatchIndex = 0;
           const card = document.createElement('div');
           card.className = 'skinItem';
 
@@ -2711,6 +2714,16 @@
           sw.className = 'skinSwatch';
           sw.style.background = 'linear-gradient(90deg,' + sk.fill + ',' + sk.stroke + ')';
 
+          const variant = swatchIndex++;
+          sw.style.setProperty('--demon-accent', sk.fill);
+          sw.style.setProperty('--demon-shadow', sk.stroke);
+          sw.style.setProperty('--demon-horn-left', (25 + variant * 31 / skinCount) + '%');
+          sw.style.setProperty('--demon-horn-height', (10 + (variant * 7 % 5)) + 'px');
+          sw.style.setProperty('--demon-horn-tip-a', (12 + variant * 17 % 25) + '%');
+          sw.style.setProperty('--demon-horn-tip-b', (66 + variant * 13 % 25) + '%');
+          sw.style.setProperty('--demon-eye-left', (34 + variant * 11 % 15) + '%');
+          sw.style.setProperty('--demon-eye-right', (52 + variant * 7 % 15) + '%');
+          sw.style.setProperty('--demon-mark-angle', ((variant * 137.508) % 360) + 'deg');
           const meta = document.createElement('div');
           meta.className = 'skinMeta';
 
