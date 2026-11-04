@@ -746,6 +746,14 @@
   body.hell-mode #ingameHudBottom span { color: rgba(255,194,158,.78); }
   body.hell-mode #ingameHudTop b,
   body.hell-mode #ingameHudBottom b { color: #fff0df; }
+  body.hell-mode .bar {
+    background: #28120e;
+    border-color: rgba(255,143,54,.56);
+  }
+  body.hell-mode .bar > i {
+    background: linear-gradient(90deg, #ffc247, #ff871e 58%, #e34218);
+    box-shadow: 0 0 8px rgba(255,112,25,.66);
+  }
   body.hell-mode .shopBtn,
   body.hell-mode .skinItem,
   body.hell-mode .skinBtn,
@@ -757,6 +765,15 @@
   }
   body.hell-mode .shopBtn:hover,
   body.hell-mode .skinBtn:hover { border-color: #ff9a3c; }
+  body.hell-mode #shopSquad,
+  body.hell-mode #mobileSquadBtn {
+    border-color: rgba(255,192,83,.86);
+    background: linear-gradient(180deg, #f28a27, #a93418);
+    color: #fff2d6;
+    box-shadow: inset 0 1px 0 rgba(255,224,153,.32), 0 0 12px rgba(255,105,24,.24);
+  }
+  body.hell-mode #shopSquad:hover,
+  body.hell-mode #mobileSquadBtn:active { background: linear-gradient(180deg, #ffad38, #c3441c); }
   body.hell-mode .shopBtn:disabled { background: #261014; }
   body.hell-mode .shopSectionTitle,
   body.hell-mode #shopTitle { color: #ffb05a; }
@@ -3806,7 +3823,7 @@
         ctx.fillRect(0, 0, W, H);
       }
       // pasy paneli na lewej ścianie
-      drawBand(recruitBand, '#8bd450', 'LUDZIE', recruitHits, recruitNeed);
+      drawBand(recruitBand, hellMode ? '#ff9a32' : '#8bd450', 'LUDZIE', recruitHits, recruitNeed);
       drawBand(powerBand, '#ffb74d', 'MOC', powerHits, powerNeed);
       // linia bazy
       ctx.strokeStyle = 'rgba(255,82,82,.7)'; ctx.lineWidth = 3; ctx.setLineDash([10, 8]);
