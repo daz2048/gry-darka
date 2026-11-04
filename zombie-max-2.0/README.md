@@ -1,10 +1,10 @@
-# 🧟 Napór Zombie — MX (Wariant Maksa)
+# 🧟 Napór Zombie — Max 2.0 (Wariant Maksa)
 
-Wariant rozwijany przez **Maksymiliana Panasiuka**. Oparty na prototypie Vanilla, ewoluuje niezależnie.
+Nowa wersja rozwijana przez **Maksymiliana Panasiuka**. Zaczyna jako osobny wariant oparty na Max 1.0.
 
 ## 🎮 Graj teraz
 
-**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/zombie-mx/)**
+**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/)**
 
 ## 📖 Jak grać
 
@@ -45,7 +45,7 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 - **U** — wyciszenie
 - **ESC / H** — powrót do menu
 
-## ⚡ Skróty specjalne MX
+## ⚡ Skróty specjalne Max 2.0
 
 - **0** — ustaw ekipę na 100
 - **2** — ustaw ekipę na 2000
@@ -89,6 +89,7 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 ## 🔀 Inne warianty
 
 - [Vanilla (1.0)](https://dariusz22p.github.io/gry-darka/zombie-vanilla/) — prototyp bazowy
+- [Max 1.0](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/) — poprzednia wersja
 - [AX](https://dariusz22p.github.io/gry-darka/zombie-ax/) — wariant Aleksa
 - [Daz](https://dariusz22p.github.io/gry-darka/zombie-daz/) — wariant Daza
 - [Jan](https://dariusz22p.github.io/gry-darka/zombie-jan/) — wariant Janka

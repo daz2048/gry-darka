@@ -27,9 +27,13 @@ Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i z
 Oryginalna gra — broń bazę przed falami zombie. Przesuwaj ekipę w pionie, strzelaj prosto, dobieraj ludzi i moc.
 - [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-vanilla/)
 
-#### MX (prowadzony przez Maksa)
-Wariant dla zespołu MX.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-mx/)
+#### Max 1.0 (prowadzony przez Maksa)
+Dotychczasowy wariant Maksa.
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/)
+
+#### Max 2.0 (w przygotowaniu)
+Nowa wersja rozwijana jako osobny wariant.
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/)
 
 #### AX (prowadzony przez Aleksa)
 Wariant dla zespołu AX.
@@ -88,7 +92,7 @@ Wariant osobisty dla Janka.
 ## 👨‍💻 Deweloperzy
 
 - **Dariusz Panasiuk** — Główny autor, GitHub Pages hosting
-- **Maksymilian Panasiuk** — Prowadzący wariant MX
+- **Maksymilian Panasiuk** — Prowadzący warianty Max
 - **Aleksander Panasiuk** — Prowadzący wariant AX
 - **Janek** — Prowadzący wariant Jan, współautor Pojedynku Zamków
 
