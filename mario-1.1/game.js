@@ -176,7 +176,7 @@ const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
 const HERO_SKINS = [
   { id: 'trail', name: 'Szlakowiec', price: 0, palette: { shadow: 0x214f53, mid: 0x2a6562, light: 0x3e9182, trim: 0xe8b458, accent: 0xc9755f } },
   { id: 'grove', name: 'Lesny zwiadowca', price: 30, palette: { shadow: 0x3d552e, mid: 0x57753a, light: 0x83a84c, trim: 0xe3bd61, accent: 0xd17c51 } },
-  { id: 'sunset', name: 'Bursztynowy', price: 55, power: 'Przyciaga wszystkie monety z calego poziomu', palette: { shadow: 0x713e58, mid: 0xb64f53, light: 0xe87955, trim: 0xf3c565, accent: 0xf1ad59 } },
+  { id: 'sunset', name: 'Bursztynowy', price: 55, palette: { shadow: 0x713e58, mid: 0xb64f53, light: 0xe87955, trim: 0xf3c565, accent: 0xf1ad59 } },
   { id: 'crystal', name: 'Krysztalowy', price: 80, palette: { shadow: 0x344c79, mid: 0x566db0, light: 0x829cdb, trim: 0xb9e8d8, accent: 0xdfa1d3 } },
   { id: 'tide', name: 'Nadmorski', price: 110, palette: { shadow: 0x174c60, mid: 0x267d91, light: 0x62c5bd, trim: 0xf2cf76, accent: 0xec8d83 } },
   { id: 'ember', name: 'Pustynny wedrowiec', price: 145, palette: { shadow: 0x70412f, mid: 0xa65c36, light: 0xe58a45, trim: 0xffd06a, accent: 0x7d4958 } },
@@ -186,7 +186,7 @@ const HERO_SKINS = [
   { id: 'berry', name: 'Jagodowy', price: 305, palette: { shadow: 0x693957, mid: 0xa84670, light: 0xdd6f94, trim: 0xf3d07a, accent: 0x87b56a } },
   { id: 'meadow', name: 'Polny odkrywca', price: 355, palette: { shadow: 0x425c34, mid: 0x74944b, light: 0xb3c95c, trim: 0xf4d178, accent: 0xe59057 } },
   { id: 'magma', name: 'Wulkaniczny', price: 410, palette: { shadow: 0x4b3548, mid: 0x843d4b, light: 0xc65345, trim: 0xffc15e, accent: 0x53a9a0 } },
-  { id: 'diamond', name: 'Diamentowy', price: 1000000000000000, priceLabel: '1 biliard monet', power: 'Niezniszczalnosc, szybki i wysoki skok, 3x monety, szczesliwy blok co 12 s', palette: { shadow: 0x4c7580, mid: 0x8bcbd5, light: 0xe4fdff, trim: 0x76ecf2, accent: 0xb7f8df } }
+  { id: 'diamond', name: 'Diamentowy', price: 1000000000000000, priceLabel: '1 biliard monet', power: 'Niezniszczalnosc, szybki i wysoki skok, 3x monety, przyciaga wszystkie monety, szczesliwy blok co 12 s', palette: { shadow: 0x4c7580, mid: 0x8bcbd5, light: 0xe4fdff, trim: 0x76ecf2, accent: 0xb7f8df } }
 ];
 const DIAMOND_AURA_RADIUS = 176;
 const DIAMOND_PULSE_INTERVAL = 1200;
@@ -1068,7 +1068,7 @@ class Quest extends Phaser.Scene {
       this.die();
       if (this.phase !== 'playing') return;
     }
-    if (this.selectedSkin === 'sunset') {
+    if (diamondEquipped) {
       const maxTravel = COIN_MAGNET_SPEED * Math.min(delta, 50) / 1000;
       for (const pickup of this.pickups.getChildren()) {
         if (!pickup.active || pickup.kind !== 'coin') continue;
