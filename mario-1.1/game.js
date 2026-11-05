@@ -176,7 +176,7 @@ const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
 const HERO_SKINS = [
   { id: 'trail', name: 'Szlakowiec', price: 0, palette: { shadow: 0x214f53, mid: 0x2a6562, light: 0x3e9182, trim: 0xe8b458, accent: 0xc9755f } },
   { id: 'grove', name: 'Lesny zwiadowca', price: 30, palette: { shadow: 0x3d552e, mid: 0x57753a, light: 0x83a84c, trim: 0xe3bd61, accent: 0xd17c51 } },
-  { id: 'sunset', name: 'Bursztynowy', price: 55, palette: { shadow: 0x713e58, mid: 0xb64f53, light: 0xe87955, trim: 0xf3c565, accent: 0xf1ad59 } },
+  { id: 'sunset', name: 'Bursztynowy', price: 55, power: 'Przyciaga wszystkie monety z calego poziomu', palette: { shadow: 0x713e58, mid: 0xb64f53, light: 0xe87955, trim: 0xf3c565, accent: 0xf1ad59 } },
   { id: 'crystal', name: 'Krysztalowy', price: 80, palette: { shadow: 0x344c79, mid: 0x566db0, light: 0x829cdb, trim: 0xb9e8d8, accent: 0xdfa1d3 } },
   { id: 'tide', name: 'Nadmorski', price: 110, palette: { shadow: 0x174c60, mid: 0x267d91, light: 0x62c5bd, trim: 0xf2cf76, accent: 0xec8d83 } },
   { id: 'ember', name: 'Pustynny wedrowiec', price: 145, palette: { shadow: 0x70412f, mid: 0xa65c36, light: 0xe58a45, trim: 0xffd06a, accent: 0x7d4958 } },
@@ -191,6 +191,7 @@ const HERO_SKINS = [
 const DIAMOND_AURA_RADIUS = 176;
 const DIAMOND_PULSE_INTERVAL = 1200;
 const DIAMOND_LUCKY_BLOCK_INTERVAL = 12000;
+const COIN_MAGNET_SPEED = 480;
 const SHOP_STORAGE_KEY = 'maks-mario-1.1-shop-v1';
 const LEGACY_SHOP_STORAGE_KEY = 'maks-mario-1.0-shop-v1';
 const OLDER_SHOP_STORAGE_KEY = 'maks-jump-quest-shop-v1';
@@ -1066,6 +1067,19 @@ class Quest extends Phaser.Scene {
       this.nextGoldDamageAt = time + 8000;
       this.die();
       if (this.phase !== 'playing') return;
+    }
+    if (this.selectedSkin === 'sunset') {
+      const maxTravel = COIN_MAGNET_SPEED * Math.min(delta, 50) / 1000;
+      for (const pickup of this.pickups.getChildren()) {
+        if (!pickup.active || pickup.kind !== 'coin') continue;
+        const dx = this.player.x - pickup.x;
+        const dy = this.player.y - pickup.y;
+        const distance = Math.hypot(dx, dy);
+        if (!distance) continue;
+        const travel = Math.min(distance, maxTravel);
+        pickup.setPosition(pickup.x + dx / distance * travel, pickup.y + dy / distance * travel);
+        pickup.body.updateFromGameObject();
+      }
     }
     body.setMaxVelocity(diamondEquipped ? 440 : 310, diamondEquipped ? 1150 : 900);
     const grounded = body.blocked.down || body.touching.down;
