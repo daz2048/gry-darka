@@ -547,9 +547,11 @@ class Quest extends Phaser.Scene {
       for (let offset = 4; offset < count - 2; offset += 3) this.pickups.create((start + offset) * TILE, 438, 'coin').kind = 'coin';
     }
     for (const [column, row] of data.secrets) this.pickups.create(column * TILE, row * TILE, 'star').kind = 'star';
-    const specialCoin = this.pickups.create(data.checkpoint * TILE, 412, 'special-coin').setScale(1.25);
-    specialCoin.kind = 'specialCoin';
-    specialCoin.body.updateFromGameObject();
+    if (data.isGold) {
+      const specialCoin = this.pickups.create(data.checkpoint * TILE, 412, 'special-coin').setScale(1.25);
+      specialCoin.kind = 'specialCoin';
+      specialCoin.body.updateFromGameObject();
+    }
     this.enemies = this.physics.add.group();
     for (const spawn of data.enemies) {
       const { column, type } = spawn;
@@ -954,8 +956,8 @@ class Quest extends Phaser.Scene {
     pickup.destroy();
     this.burst(pickupX, pickupY);
     if (kind === 'specialCoin') {
-      this.addCoins(100, false);
-      notify('Specjalna moneta +100!');
+      this.addCoins(1000, false);
+      notify('Specjalna moneta +1000!');
       playSound('star');
     }
     else if (kind === 'shield') { this.shielded = true; notify('Tarcza zdobyta!'); playSound('shield'); }
