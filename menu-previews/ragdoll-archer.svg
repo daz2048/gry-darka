@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" role="img" aria-labelledby="title desc">
+  <title id="title">Ragdoll Archers</title>
+  <desc id="desc">A physics archer aims across a dark arena, with an orange bow, dotted arrow path and upgrade panels.</desc>
+  <defs>
+    <linearGradient id="arena" x2="0" y2="1">
+      <stop stop-color="#424242"/>
+      <stop offset="1" stop-color="#303030"/>
+    </linearGradient>
+    <linearGradient id="bow" x2="1" y2="1">
+      <stop stop-color="#ffd254"/>
+      <stop offset="1" stop-color="#ed8612"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="320" fill="url(#arena)"/>
+  <g fill="#a3a3a3" opacity=".45">
+    <circle cx="70" cy="42" r="2"/><circle cx="155" cy="84" r="1.7"/><circle cx="210" cy="35" r="2.3"/>
+    <circle cx="282" cy="72" r="1.5"/><circle cx="486" cy="48" r="2"/><circle cx="570" cy="102" r="1.6"/>
+    <circle cx="110" cy="230" r="2"/><circle cx="422" cy="268" r="2.4"/><circle cx="514" cy="218" r="1.8"/>
+  </g>
+  <rect x="12" y="46" width="206" height="258" rx="8" fill="#363636"/>
+  <text x="115" y="76" fill="#f2f1ec" font-family="Arial,sans-serif" font-size="17" font-weight="900" text-anchor="middle" letter-spacing="1">CONTROL AREA</text>
+  <text x="30" y="108" fill="#d7d7d7" font-family="Arial,sans-serif" font-size="11" font-weight="700">HOLD AND RELEASE</text>
+  <path d="M20 184 98 140" stroke="#bdbdbd" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="104" cy="137" r="13" fill="#f0f0ef"/>
+  <path d="M114 142 C159 144 202 154 253 170" fill="none" stroke="#e8e8e8" stroke-width="3" stroke-dasharray="1 8" stroke-linecap="round"/>
+  <path d="M283 255h151v40H283z" fill="#707070"/>
+  <path d="M307 234h105v22H307z" fill="#858585"/>
+  <g stroke="#f1f1ef" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="354" cy="163" r="15" fill="#f5f4ef" stroke="none"/>
+    <path d="m350 180-10 45 13 27m-13-27-20 28m17-50 24 11 19 29m-36-38 30-7" stroke-width="13"/>
+    <path d="m357 185 19-9" stroke-width="7"/>
+  </g>
+  <path d="M376 169 Q423 193 378 228" fill="none" stroke="url(#bow)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M376 169 377 228" stroke="#fff0c8" stroke-width="1.5"/>
+  <path d="M367 178 449 194" stroke="#f3f2ef" stroke-width="3"/>
+  <path d="m449 194-13-8 2 12z" fill="#fff"/>
+  <path d="M454 196 Q488 198 527 206" fill="none" stroke="#f4f3ef" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round" opacity=".8"/>
+  <g font-family="Arial,sans-serif" font-weight="900">
+    <text x="245" y="35" fill="#f4f2ee" font-size="12">1 PLAYER</text>
+    <text x="318" y="35" fill="#9d9d9d" font-size="12">|</text>
+    <text x="337" y="35" fill="#f4f2ee" font-size="12">PVP</text>
+    <text x="376" y="35" fill="#9d9d9d" font-size="12">|</text>
+    <text x="395" y="35" fill="#f4f2ee" font-size="12">2 PLAYERS</text>
+  </g>
+  <g font-family="Arial,sans-serif" font-weight="900" font-size="10">
+    <rect x="456" y="62" width="120" height="24" rx="4" fill="#e6e6e4"/>
+    <text x="466" y="78" fill="#444">☠ 10</text><text x="505" y="78" fill="#ff5a50">ARMOR +0</text>
+    <rect x="456" y="92" width="120" height="24" rx="4" fill="#e6e6e4"/>
+    <text x="466" y="108" fill="#444">☠ 10</text><text x="505" y="108" fill="#ff5a50">HEALTH +0</text>
+    <rect x="456" y="122" width="120" height="24" rx="4" fill="#e6e6e4"/>
+    <text x="466" y="138" fill="#444">☠ 10</text><text x="505" y="138" fill="#70a7ff">STAMINA +0</text>
+    <rect x="456" y="152" width="120" height="24" rx="4" fill="#e6e6e4"/>
+    <text x="466" y="168" fill="#444">☠ 50</text><text x="505" y="168" fill="#f6b548">ARROW SLOTS</text>
+  </g>
+  <rect x="588" y="55" width="42" height="224" rx="5" fill="#292929"/>
+  <g font-family="Arial,sans-serif" font-size="9" font-weight="900" text-anchor="middle">
+    <rect x="593" y="64" width="32" height="35" rx="4" fill="#f4b545"/><text x="609" y="86" fill="#292929">FIRE</text>
+    <rect x="593" y="106" width="32" height="35" rx="4" fill="#737373"/><text x="609" y="128" fill="#ececea">SHOT</text>
+    <rect x="593" y="148" width="32" height="35" rx="4" fill="#737373"/><text x="609" y="170" fill="#ececea">GUN</text>
+    <rect x="593" y="190" width="32" height="35" rx="4" fill="#737373"/><text x="609" y="212" fill="#ececea">HOOK</text>
+    <rect x="593" y="232" width="32" height="35" rx="4" fill="#737373"/><text x="609" y="254" fill="#ececea">MACE</text>
+  </g>
+</svg>
