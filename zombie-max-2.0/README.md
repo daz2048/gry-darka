@@ -51,6 +51,7 @@ The nightmare scenes add cracked, candlelit memorials and hanging lichen in Easy
 - **Hard** adds a grated ventilation turbine, service stairs, roller conveyor, reflective workwear, and hard hats.
 - **Super Hard Demon** adds shattered arches, hanging chains, braziers, basalt paving, and plated enemy armor.
 - All modes include ground tracks, spent casings, enemy contact shadows, mini-boss equipment emblems, and radio packs on squad specialists.
+- Mobs have more human proportions, jointed knees and elbows, hands, worn boots, shaped jaws, recessed eyes, and muted directional skin lighting. Cloth folds and curved, shaded armor replace the flat oval bodies and boxy shoulder plates. Boss markings, difficulty outfits, and golden-wave accents remain recognizable. Added gait motion stops during pauses, game-over states, and hidden tabs; reduced motion uses a still pose. Health, speed, hitboxes, and damage are unchanged.
 - Loot diamonds have highlighted edges and symbols for their effect families, covering all 18 drop types. These details do not change statistics, collisions, or controls.
 
 ## Horror Atmosphere

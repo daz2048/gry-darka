@@ -1038,6 +1038,11 @@
         'super-hard-demon': { spawnEveryMul: 0.55, burstAdd: 4, burstCap: 19, bossEveryAdd: -7, zombieHpMul: 3.2, zombieSpeedMul: 1.7, bossHpMul: 3.6, bossDmgMul: 2.7, rampHpMul: 2.7, rampSpeedMul: 1.8 }
       }
     };
+    const ZOMBIE_PALETTES = {
+      easy: { clothMid: '#515c52', clothDark: '#252d2a', limb: 'rgba(49,60,53,0.94)', skinLight: '#b7bda0', skinMid: '#829078', skinDark: '#4e594d', eye: 'rgba(224,218,191,0.92)', glow: 'transparent', pupil: 'rgba(23,28,33,0.95)' },
+      normal: { clothMid: '#465a49', clothDark: '#1a232b', limb: 'rgba(52,68,55,0.95)', skinLight: '#b4c89b', skinMid: '#7c976d', skinDark: '#4f6651', eye: 'rgba(236,242,226,0.92)', glow: 'transparent', pupil: 'rgba(23,28,33,0.95)' },
+      hard: { clothMid: '#51363d', clothDark: '#241318', limb: 'rgba(66,39,45,0.96)', skinLight: '#c4a49a', skinMid: '#89646a', skinDark: '#50343b', eye: 'rgba(255,218,208,0.96)', glow: 'rgba(190,18,40,0.72)', pupil: '#5d0715' }
+    };
     const W = CONFIG.W, H = CONFIG.H;
     const recruitBand = { top: CONFIG.wallTop, bot: CONFIG.wallTop + CONFIG.panel.bandH };
     const powerBand = { top: CONFIG.wallBottom - CONFIG.panel.bandH, bot: CONFIG.wallBottom };
@@ -5790,8 +5795,13 @@
         ctx.fillStyle = '#e3d6a5';
         ctx.fillRect(-headR * 0.15, headY - headR * 0.87, headR * 0.3, headR * 0.5);
       } else {
-        ctx.fillStyle = golden ? '#a98b43' : '#563543';
-        ctx.strokeStyle = golden ? '#ffe4a0' : '#bd7650';
+        const plate = ctx.createLinearGradient(-torsoW * 0.5, 0, torsoW * 0.5, torsoH * 0.2);
+        plate.addColorStop(0, golden ? '#c2ae73' : '#8c817b');
+        plate.addColorStop(0.35, golden ? '#887347' : '#544d52');
+        plate.addColorStop(1, golden ? '#4b4130' : '#262a34');
+        ctx.fillStyle = plate;
+        ctx.strokeStyle = golden ? '#bbab7d' : '#8e8170';
+        ctx.lineWidth = Math.max(0.3, torsoW * 0.045);
         ctx.beginPath();
         ctx.moveTo(-torsoW * 0.49, -torsoH * 0.34);
         ctx.lineTo(0, -torsoH * 0.17);
@@ -5810,14 +5820,26 @@
         ctx.stroke();
       }
       if (zombie.boss) {
-        ctx.fillStyle = golden ? '#e5c773' : (demon ? '#a16b68' : '#8c9c96');
-        ctx.strokeStyle = '#202a2d';
+        const shoulderPlate = ctx.createLinearGradient(-torsoW, -torsoH * 0.4, torsoW, -torsoH * 0.2);
+        shoulderPlate.addColorStop(0, golden ? '#b7a16e' : (demon ? '#9a8880' : '#8b9890'));
+        shoulderPlate.addColorStop(1, golden ? '#5b5039' : '#353f43');
+        ctx.fillStyle = shoulderPlate;
+        ctx.strokeStyle = '#a1a292';
+        ctx.lineWidth = Math.max(0.3, torsoW * 0.04);
         for (const shoulder of [-1, 1]) {
-          ctx.fillRect(shoulder * torsoW * 0.67 - torsoW * 0.2, -torsoH * 0.35, torsoW * 0.4, torsoH * 0.25);
-          ctx.strokeRect(shoulder * torsoW * 0.67 - torsoW * 0.2, -torsoH * 0.35, torsoW * 0.4, torsoH * 0.25);
+          const shoulderX = shoulder * torsoW * 0.49;
+          ctx.beginPath();
+          ctx.moveTo(shoulderX - torsoW * 0.15, -torsoH * 0.34);
+          ctx.quadraticCurveTo(shoulderX, -torsoH * 0.43, shoulderX + torsoW * 0.18, -torsoH * 0.32);
+          ctx.lineTo(shoulderX + torsoW * 0.13, -torsoH * 0.19);
+          ctx.quadraticCurveTo(shoulderX, -torsoH * 0.22, shoulderX - torsoW * 0.16, -torsoH * 0.2);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
         }
-        ctx.strokeStyle = golden ? '#fff1b3' : '#e5d7ac';
-        ctx.lineWidth = Math.max(0.9, torsoW * 0.1);
+        ctx.scale(0.68, 0.68);
+        ctx.strokeStyle = golden ? '#cfc194' : '#ada78c';
+        ctx.lineWidth = Math.max(0.4, torsoW * 0.055);
         if (zombie.miniType === 'charger') {
           ctx.beginPath();
           ctx.moveTo(torsoW * 0.15, -torsoH * 0.15);
@@ -6200,16 +6222,22 @@
       const zc = zombieColorForWave(wave);
       const goldenWave = Math.floor(effectiveWaveForScaling(wave)) >= 100;
       const demonMode = difficultyKey === 'super-hard-demon';
+      const difficultyPalette = ZOMBIE_PALETTES[difficultyKey] || ZOMBIE_PALETTES.normal;
+      const creatureTime = reduceMotion || state !== 'play' || document.hidden ? 0 : nowS;
       for (const z of zombies) {
         const mini = z.miniType ? CONFIG.miniBoss[z.miniType] : null;
         const baseFill = goldenWave ? '#ffd54f' : (demonMode ? (z.boss ? '#c13535' : '#852332') : (z.boss ? (mini ? mini.color : '#ff8a65') : zc.fill));
         const edge = goldenWave ? '#a86f00' : (demonMode ? '#ff553d' : (z.boss ? '#bf4c2b' : zc.stroke));
         const modelScale = z.boss ? 1.32 : 1.55;
-        const walk = Math.sin(nowS * 7.2 + z.x * 0.045);
-        const torsoW = z.r * (z.boss ? 1.28 : 1.08);
-        const torsoH = z.r * (z.boss ? 1.85 : 1.5);
-        const headR = z.r * (z.boss ? 0.74 : 0.6);
-        const armY = z.y - torsoH * 0.2;
+        const appearanceSeed = Number.isFinite(z.maxhp) ? z.maxhp % 97 : z.r * 7;
+        const walk = reduceMotion ? 0 : Math.sin(creatureTime * (z.miniType === 'charger' ? 8.2 : 5.1) + appearanceSeed * 0.13);
+        const torsoW = z.r * (z.boss ? 1.42 : 1.04);
+        const torsoH = z.r * (z.boss ? 2.05 : 2.1);
+        const headR = z.r * (z.boss ? 0.44 : 0.37);
+        const variant = Math.abs(Math.round(appearanceSeed) + Math.round((z.bloody || 0) * 17)) % 3;
+        const skinLight = goldenWave ? '#ded0a5' : (demonMode ? '#b7aca0' : ['#b4b6a2', '#b9aa98', '#a8b2ad'][variant]);
+        const skinMid = demonMode ? '#80716f' : ['#7b8276', '#8e7c6d', '#75817e'][variant];
+        const skinDark = demonMode ? '#3d3039' : '#3d4845';
 
         ctx.save();
         ctx.translate(z.x, z.y);
@@ -6219,62 +6247,122 @@
         ctx.beginPath();
         ctx.ellipse(1, torsoH * 0.9, torsoW * 0.9, Math.max(1.5, headR * 0.3), 0, 0, Math.PI * 2);
         ctx.fill();
-        if (demonMode) {
-          ctx.strokeStyle = 'rgba(255,54,34,0.42)';
-          ctx.lineWidth = 1.4;
+        ctx.rotate(0.055 + walk * 0.018 + (z.miniType === 'charger' ? 0.07 : 0));
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        for (const side of [-1, 1]) {
+          const stride = walk * side * torsoW * 0.22;
+          const kneeX = side * torsoW * 0.25 + stride * 0.5;
+          const kneeY = torsoH * 0.61 - Math.max(0, walk * side) * torsoH * 0.04;
+          const ankleX = side * torsoW * 0.28 + stride;
+          const ankleY = torsoH * 0.87 - Math.max(0, -walk * side) * torsoH * 0.055;
+          ctx.strokeStyle = side < 0 ? '#263237' : '#394247';
+          ctx.lineWidth = torsoW * 0.34;
           ctx.beginPath();
-          ctx.arc(0, 0, z.r * 1.08, 0, Math.PI * 2);
+          ctx.moveTo(side * torsoW * 0.24, torsoH * 0.27);
+          ctx.lineTo(kneeX, kneeY);
+          ctx.lineTo(ankleX, ankleY);
+          ctx.stroke();
+          ctx.strokeStyle = '#747972';
+          ctx.lineWidth = Math.max(0.3, torsoW * 0.055);
+          ctx.beginPath();
+          ctx.moveTo(side * torsoW * 0.24 - torsoW * 0.06, torsoH * 0.34);
+          ctx.lineTo(kneeX - torsoW * 0.06, kneeY);
+          ctx.lineTo(ankleX - torsoW * 0.05, ankleY - torsoH * 0.05);
+          ctx.stroke();
+          ctx.fillStyle = '#202a2d';
+          ctx.beginPath();
+          ctx.ellipse(ankleX + torsoW * 0.07, ankleY + torsoH * 0.025, torsoW * 0.23, torsoH * 0.055, -0.07, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#867c69';
+          ctx.lineWidth = Math.max(0.3, torsoW * 0.06);
+          ctx.beginPath();
+          ctx.moveTo(ankleX - torsoW * 0.1, ankleY + torsoH * 0.055);
+          ctx.lineTo(ankleX + torsoW * 0.23, ankleY + torsoH * 0.055);
           ctx.stroke();
         }
 
-        // Legs first so upper body can overlap and look volumetric.
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = demonMode ? 'rgba(48,13,24,0.98)' : 'rgba(36,46,56,0.94)';
-        ctx.lineWidth = z.boss ? 4.2 : 2.8;
-        ctx.beginPath();
-        ctx.moveTo(-torsoW * 0.28, torsoH * 0.12);
-        ctx.lineTo(-torsoW * 0.36 + walk * 1.8, torsoH * 0.84);
-        ctx.moveTo(torsoW * 0.2, torsoH * 0.14);
-        ctx.lineTo(torsoW * 0.28 - walk * 1.6, torsoH * 0.86);
-        ctx.stroke();
-
-        // Torso with dirty cloth tone and chest shadows.
-        const cloth = ctx.createLinearGradient(0, -torsoH * 0.62, 0, torsoH * 0.8);
-        cloth.addColorStop(0, baseFill);
-        cloth.addColorStop(0.54, demonMode ? '#501623' : (z.boss ? '#5a2f26' : '#465a49'));
-        cloth.addColorStop(1, demonMode ? '#1b0711' : (z.boss ? '#28150f' : '#1a232b'));
+        const cloth = ctx.createLinearGradient(-torsoW * 0.55, -torsoH * 0.3, torsoW * 0.65, torsoH * 0.38);
+        cloth.addColorStop(0, goldenWave ? '#b6a16c' : (demonMode ? '#746366' : '#7b8174'));
+        cloth.addColorStop(0.3, goldenWave ? '#82714d' : (demonMode ? '#473840' : difficultyPalette.clothMid));
+        cloth.addColorStop(1, demonMode ? '#241f2a' : difficultyPalette.clothDark);
         ctx.fillStyle = cloth;
-        ctx.strokeStyle = edge;
-        ctx.lineWidth = z.boss ? 2.8 : 1.9;
+        ctx.strokeStyle = '#202b30';
+        ctx.lineWidth = Math.max(0.35, torsoW * 0.055);
         ctx.beginPath();
-        ctx.ellipse(0, -torsoH * 0.05, torsoW * 0.66, torsoH * 0.74, 0, 0, Math.PI * 2);
+        ctx.moveTo(-torsoW * 0.18, -torsoH * 0.43);
+        ctx.quadraticCurveTo(-torsoW * 0.47, -torsoH * 0.4, -torsoW * 0.57, -torsoH * 0.28);
+        ctx.lineTo(-torsoW * 0.42, torsoH * 0.06);
+        ctx.lineTo(-torsoW * 0.38, torsoH * 0.36);
+        ctx.lineTo(-torsoW * 0.13, torsoH * 0.39);
+        ctx.lineTo(0, torsoH * 0.34);
+        ctx.lineTo(torsoW * 0.16, torsoH * 0.39);
+        ctx.lineTo(torsoW * 0.4, torsoH * 0.34);
+        ctx.lineTo(torsoW * 0.34, torsoH * 0.04);
+        ctx.lineTo(torsoW * 0.53, -torsoH * 0.29);
+        ctx.quadraticCurveTo(torsoW * 0.36, -torsoH * 0.4, torsoW * 0.17, -torsoH * 0.42);
+        ctx.closePath();
         ctx.fill();
         ctx.stroke();
-
-        ctx.fillStyle = 'rgba(25,32,40,0.75)';
-        ctx.fillRect(-torsoW * 0.2, -torsoH * 0.08, torsoW * 0.16, torsoH * 0.5);
-        ctx.fillRect(torsoW * 0.05, torsoH * 0.02, torsoW * 0.14, torsoH * 0.44);
-
-        // Arms and forearms.
-        ctx.strokeStyle = demonMode ? 'rgba(74,17,28,0.98)' : (z.boss ? 'rgba(58,22,20,0.95)' : 'rgba(52,68,55,0.95)');
-        ctx.lineWidth = z.boss ? 3.9 : 2.6;
+        ctx.strokeStyle = 'rgba(185,185,158,0.25)';
+        ctx.lineWidth = Math.max(0.3, torsoW * 0.045);
         ctx.beginPath();
-        ctx.moveTo(-torsoW * 0.52, armY - z.y);
-        ctx.lineTo(-torsoW * 0.18, -torsoH * 0.18);
-        ctx.lineTo(-torsoW * 0.48 + walk * 1.7, torsoH * 0.22);
-        ctx.moveTo(torsoW * 0.5, armY - z.y);
-        ctx.lineTo(torsoW * 0.18, -torsoH * 0.16);
-        ctx.lineTo(torsoW * 0.46 - walk * 1.5, torsoH * 0.26);
+        ctx.moveTo(-torsoW * 0.38, -torsoH * 0.26);
+        ctx.lineTo(-torsoW * 0.19, -torsoH * 0.07);
+        ctx.lineTo(-torsoW * 0.29, torsoH * 0.17);
+        ctx.moveTo(torsoW * 0.32, -torsoH * 0.23);
+        ctx.lineTo(torsoW * 0.09, -torsoH * 0.06);
+        ctx.moveTo(torsoW * 0.27, torsoH * 0.12);
+        ctx.lineTo(torsoW * 0.08, torsoH * 0.28);
         ctx.stroke();
-
-        // Neck and head with skin highlight and cheekbone shadow.
-        ctx.fillStyle = demonMode ? '#751d2d' : (z.boss ? '#7a4f3f' : '#7f9d76');
-        ctx.fillRect(-torsoW * 0.08, -torsoH * 0.68, torsoW * 0.16, torsoH * 0.16);
+        ctx.strokeStyle = goldenWave ? edge : baseFill;
+        ctx.globalAlpha = 0.35;
+        ctx.beginPath();
+        ctx.moveTo(-torsoW * 0.47, -torsoH * 0.32);
+        ctx.lineTo(-torsoW * 0.26, -torsoH * 0.38);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        for (const side of [-1, 1]) {
+          const elbowX = side * torsoW * 0.66;
+          const elbowY = -torsoH * 0.02 + walk * side * torsoH * 0.035;
+          const wristX = side * torsoW * 0.57 + walk * side * torsoW * 0.12;
+          const wristY = torsoH * (side < 0 ? 0.2 : 0.27);
+          ctx.strokeStyle = side < 0 ? '#35413e' : (demonMode ? '#53434b' : difficultyPalette.clothMid);
+          ctx.lineWidth = torsoW * 0.3;
+          ctx.beginPath();
+          ctx.moveTo(side * torsoW * 0.47, -torsoH * 0.29);
+          ctx.lineTo(elbowX, elbowY);
+          ctx.stroke();
+          ctx.strokeStyle = skinDark;
+          ctx.lineWidth = torsoW * 0.23;
+          ctx.beginPath();
+          ctx.moveTo(elbowX, elbowY);
+          ctx.lineTo(wristX, wristY);
+          ctx.stroke();
+          ctx.strokeStyle = skinMid;
+          ctx.lineWidth = torsoW * 0.13;
+          ctx.beginPath();
+          ctx.moveTo(elbowX - torsoW * 0.035, elbowY);
+          ctx.lineTo(wristX - torsoW * 0.035, wristY);
+          ctx.stroke();
+          ctx.fillStyle = skinMid;
+          ctx.beginPath();
+          ctx.ellipse(wristX, wristY + torsoH * 0.045, torsoW * 0.12, torsoH * 0.065, -side * 0.15, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = skinDark;
+          ctx.lineWidth = Math.max(0.25, torsoW * 0.035);
+          ctx.beginPath();
+          ctx.moveTo(wristX - torsoW * 0.025, wristY + torsoH * 0.04);
+          ctx.lineTo(wristX - torsoW * 0.025, wristY + torsoH * 0.09);
+          ctx.stroke();
+        }
         const headY = -torsoH * 0.55;
+        ctx.fillStyle = skinMid;
+        ctx.fillRect(-headR * 0.27, headY + headR * 0.58, headR * 0.6, headR * 0.65);
         if (demonMode) {
-          ctx.fillStyle = '#260912';
-          ctx.strokeStyle = '#d83c36';
-          ctx.lineWidth = Math.max(0.8, headR * 0.11);
+          ctx.fillStyle = '#3c3438';
+          ctx.strokeStyle = '#93877b';
+          ctx.lineWidth = Math.max(0.3, headR * 0.1);
           ctx.beginPath();
           ctx.moveTo(-headR * 0.64, headY - headR * 0.42);
           ctx.quadraticCurveTo(-headR * 1.42, headY - headR * 0.96, -headR * 1.02, headY - headR * 1.48);
@@ -6287,53 +6375,77 @@
           ctx.fill();
           ctx.stroke();
         }
-        const skin = ctx.createRadialGradient(0, -torsoH * 0.55, headR * 0.25, 0, -torsoH * 0.55, headR * 1.15);
-        skin.addColorStop(0, demonMode ? '#ff9270' : (z.boss ? '#c8947a' : '#b4c89b'));
-        skin.addColorStop(0.65, demonMode ? '#bc3540' : (z.boss ? '#8c5a49' : '#7c976d'));
-        skin.addColorStop(1, demonMode ? '#4a1423' : (z.boss ? '#523127' : '#4f6651'));
-        ctx.fillStyle = skin;
-        ctx.strokeStyle = 'rgba(24,30,36,0.88)';
-        ctx.lineWidth = z.boss ? 2.4 : 1.5;
+        ctx.fillStyle = skinMid;
         ctx.beginPath();
-        ctx.ellipse(0, -torsoH * 0.55, headR * 1.02, headR * 0.92, -0.05, 0, Math.PI * 2);
+        ctx.ellipse(-headR * 0.82, headY + headR * 0.06, headR * 0.15, headR * 0.27, -0.1, 0, Math.PI * 2);
+        ctx.ellipse(headR * 0.81, headY + headR * 0.11, headR * 0.13, headR * 0.24, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        const skin = ctx.createLinearGradient(-headR * 0.8, headY - headR * 0.7, headR, headY + headR * 0.55);
+        skin.addColorStop(0, skinLight);
+        skin.addColorStop(0.46, skinMid);
+        skin.addColorStop(1, skinDark);
+        ctx.fillStyle = skin;
+        ctx.strokeStyle = '#35403e';
+        ctx.lineWidth = Math.max(0.25, headR * 0.08);
+        ctx.beginPath();
+        ctx.moveTo(-headR * 0.78, headY - headR * 0.38);
+        ctx.bezierCurveTo(-headR * 0.85, headY - headR * 1.24, headR * 0.7, headY - headR * 1.16, headR * 0.79, headY - headR * 0.39);
+        ctx.lineTo(headR * 0.71, headY + headR * 0.35);
+        ctx.lineTo(headR * 0.4, headY + headR * 0.86);
+        ctx.quadraticCurveTo(headR * 0.05, headY + headR, -headR * 0.34, headY + headR * 0.8);
+        ctx.lineTo(-headR * 0.7, headY + headR * 0.3);
+        ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
-        // Eyes, brows, mouth and scar pass.
-        const eyeY = -torsoH * 0.58;
-        const eyeX = headR * 0.42;
-        ctx.shadowColor = demonMode ? '#ff2418' : 'transparent';
-        ctx.shadowBlur = demonMode ? 7 : 0;
-        ctx.fillStyle = demonMode ? '#ffb347' : 'rgba(236,242,226,0.92)';
+        const eyeY = headY - headR * 0.1;
+        const eyeX = headR * 0.36;
+        ctx.fillStyle = 'rgba(26,35,35,0.72)';
         ctx.beginPath();
-        ctx.ellipse(-eyeX, eyeY, headR * 0.18, headR * 0.13, 0, 0, Math.PI * 2);
-        ctx.ellipse(eyeX, eyeY + headR * 0.03, headR * 0.18, headR * 0.13, 0, 0, Math.PI * 2);
+        ctx.ellipse(-eyeX, eyeY, headR * 0.29, headR * 0.21, 0.12, 0, Math.PI * 2);
+        ctx.ellipse(eyeX, eyeY + headR * 0.06, headR * 0.25, headR * 0.19, -0.1, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
-        ctx.fillStyle = demonMode ? '#3d0814' : 'rgba(23,28,33,0.95)';
+        ctx.fillStyle = demonMode ? '#c18b5f' : '#c1c3ac';
         ctx.beginPath();
-        ctx.arc(-eyeX + headR * 0.03, eyeY, headR * 0.06, 0, Math.PI * 2);
-        ctx.arc(eyeX + headR * 0.02, eyeY + headR * 0.02, headR * 0.06, 0, Math.PI * 2);
+        ctx.ellipse(-eyeX, eyeY, headR * 0.16, headR * 0.075, 0.12, 0, Math.PI * 2);
+        ctx.ellipse(eyeX, eyeY + headR * 0.06, headR * 0.15, headR * 0.065, -0.1, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = 'rgba(20,22,24,0.86)';
-        ctx.lineWidth = Math.max(0.8, z.boss ? 1.7 : 1.1);
+        ctx.fillStyle = '#263331';
+        ctx.fillRect(-eyeX + headR * 0.015, eyeY - headR * 0.065, headR * 0.055, headR * 0.13);
+        ctx.fillRect(eyeX + headR * 0.015, eyeY, headR * 0.055, headR * 0.12);
+        ctx.strokeStyle = skinDark;
+        ctx.lineWidth = Math.max(0.25, headR * 0.09);
         ctx.beginPath();
-        ctx.moveTo(-eyeX - headR * 0.22, eyeY - headR * 0.2);
-        ctx.lineTo(-eyeX + headR * 0.22, eyeY - headR * 0.12);
-        ctx.moveTo(eyeX - headR * 0.22, eyeY - headR * 0.12);
-        ctx.lineTo(eyeX + headR * 0.24, eyeY - headR * 0.2);
+        ctx.moveTo(-headR * 0.59, eyeY - headR * 0.22);
+        ctx.lineTo(-headR * 0.17, eyeY - headR * 0.16);
+        ctx.moveTo(headR * 0.16, eyeY - headR * 0.13);
+        ctx.lineTo(headR * 0.57, eyeY - headR * 0.18);
+        ctx.moveTo(headR * 0.06, eyeY - headR * 0.06);
+        ctx.lineTo(-headR * 0.015, eyeY + headR * 0.36);
+        ctx.lineTo(headR * 0.18, eyeY + headR * 0.4);
+        ctx.moveTo(-headR * 0.29, headY + headR * 0.56);
+        ctx.quadraticCurveTo(headR * 0.05, headY + headR * 0.48, headR * 0.33, headY + headR * 0.59);
         ctx.stroke();
-        ctx.strokeStyle = 'rgba(58,20,20,0.92)';
-        ctx.lineWidth = Math.max(0.9, z.boss ? 1.8 : 1.2);
+        ctx.strokeStyle = skinLight;
+        ctx.globalAlpha = 0.45;
+        ctx.lineWidth = Math.max(0.2, headR * 0.055);
         ctx.beginPath();
-        ctx.moveTo(-headR * 0.26, eyeY + headR * 0.38);
-        ctx.lineTo(headR * 0.34, eyeY + headR * 0.34 + Math.sin(nowS * 10 + z.y * 0.05) * 0.3);
+        ctx.moveTo(-headR * 0.59, headY + headR * 0.27);
+        ctx.lineTo(-headR * 0.32, headY + headR * 0.34);
+        ctx.moveTo(headR * 0.16, eyeY + headR * 0.06);
+        ctx.lineTo(headR * 0.2, eyeY + headR * 0.3);
+        ctx.moveTo(-headR * 0.19, headY + headR * 0.71);
+        ctx.lineTo(headR * 0.13, headY + headR * 0.74);
         ctx.stroke();
-        ctx.strokeStyle = 'rgba(142,34,34,0.86)';
-        ctx.lineWidth = Math.max(0.8, z.boss ? 1.4 : 1);
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = '#4c534b';
+        ctx.lineWidth = Math.max(0.2, headR * 0.07);
         ctx.beginPath();
-        ctx.moveTo(-headR * 0.5, eyeY + headR * 0.16);
-        ctx.lineTo(-headR * 0.08, eyeY + headR * 0.48);
+        ctx.moveTo(-headR * 0.61, headY - headR * 0.51);
+        ctx.lineTo(-headR * 0.47, headY - headR * 0.88);
+        ctx.moveTo(-headR * 0.31, headY - headR * 0.79);
+        ctx.lineTo(-headR * 0.2, headY - headR * 0.99);
         ctx.stroke();
 
         drawZombieOutfit(z, torsoW, torsoH, headR, goldenWave);
