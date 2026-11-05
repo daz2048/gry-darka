@@ -51,6 +51,8 @@ const touch = { left: false, right: false, jump: false };
 let scene;
 let audio;
 let audioOutput;
+let musicOutput;
+let musicTimer;
 let muted = false;
 let noticeTimer;
 let storageWarningShown = false;
@@ -73,9 +75,15 @@ const SOUNDS = {
   land: [[95, .055, 'triangle', 0, 50]],
   resume: [[440, .08, 'triangle'], [660, .1, 'triangle', .08]]
 };
+const MUSIC = {
+  step: .18,
+  melody: [587, 0, 698, 784, 0, 698, 523, 0, 659, 0, 784, 880, 784, 0, 698, 0, 523, 0, 659, 784, 0, 880, 784, 659, 587, 0, 698, 880, 0, 784, 659, 523],
+  bass: [131, 147, 165, 196, 175, 156, 147, 131]
+};
 
 function disableSound() {
   muted = true;
+  stopMusic();
   if (audioOutput) audioOutput.gain.value = 0;
   ui.sound.setAttribute('aria-pressed', 'false');
   ui.sound.style.opacity = '.45';
@@ -111,6 +119,56 @@ function tone(frequency, duration = .1, type = 'square', delay = 0, endFrequency
 
 function playSound(name) {
   for (const note of SOUNDS[name]) tone(...note);
+}
+
+function stopMusic() {
+  if (musicTimer) clearInterval(musicTimer);
+  musicTimer = null;
+}
+
+function startMusic() {
+  if (muted || musicTimer || !audio || !audioOutput) return;
+  try {
+    if (!musicOutput) {
+      musicOutput = audio.createGain();
+      musicOutput.gain.value = .72;
+      musicOutput.connect(audioOutput);
+    }
+    if (audio.state === 'suspended') audio.resume().catch(disableSound);
+    let step = 0;
+    let nextTime = audio.currentTime + .04;
+    const scheduleNote = (frequency, startTime, duration, type, volume) => {
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      gain.gain.setValueAtTime(.001, startTime);
+      gain.gain.linearRampToValueAtTime(volume, startTime + .012);
+      gain.gain.exponentialRampToValueAtTime(.001, startTime + duration);
+      oscillator.connect(gain).connect(musicOutput);
+      oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+    const schedule = () => {
+      try {
+        if (audio.state !== 'running') return;
+        while (nextTime < audio.currentTime + .14) {
+          const melodyNote = MUSIC.melody[step % MUSIC.melody.length];
+          if (melodyNote) scheduleNote(melodyNote, nextTime, .14, 'square', .022);
+          if (step % 2 === 0) scheduleNote(MUSIC.bass[Math.floor(step / 4) % MUSIC.bass.length], nextTime, .3, 'triangle', .018);
+          step++;
+          nextTime += MUSIC.step;
+        }
+      } catch (error) {
+        disableSound();
+      }
+    };
+    musicTimer = window.setInterval(schedule, 25);
+    schedule();
+  } catch (error) {
+    disableSound();
+  }
 }
 
 function notify(message) {
@@ -602,6 +660,7 @@ class Quest extends Phaser.Scene {
     ui.pause.setAttribute('aria-pressed', 'false');
     this.syncHud();
     playSound(resuming ? 'resume' : 'start');
+    startMusic();
   }
 
   clearInput() {
@@ -740,9 +799,13 @@ class Quest extends Phaser.Scene {
 function toggleSound() {
   muted = !muted;
   if (audioOutput) audioOutput.gain.value = muted ? 0 : 1;
+  if (muted) stopMusic();
   ui.sound.setAttribute('aria-pressed', String(!muted));
   ui.sound.style.opacity = muted ? '.45' : '1';
-  if (!muted) playSound('resume');
+  if (!muted) {
+    playSound('resume');
+    startMusic();
+  }
 }
 
 ui.primary.addEventListener('click', () => scene?.primary());

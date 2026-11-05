@@ -6,10 +6,11 @@ Three worlds, coins, hidden star bonuses, three stompable enemy types (mosslings
 beetles, and flying moths), shield blocks,
 moving platforms, checkpoints, and a final gate. No Nintendo assets or levels.
 
-Original synthesized chiptune effects accompany jumps, landings, coins, bonuses,
-shield blocks, enemy hits, checkpoints, extra lives, and deaths. Short jingles
-play at the start, level completion, game over, and victory. Audio starts after
-interaction; M or the sound button mutes all effects immediately.
+An original looping chiptune soundtrack plays alongside synthesized effects
+for jumps, landings, coins, bonuses, shield blocks, enemy hits, checkpoints,
+extra lives, and deaths. Short jingles play at the start, level completion,
+game over, and victory. Audio starts after interaction; M or the sound button
+mutes the music and effects immediately.
 
 Open `index.html` directly in a modern browser, or use the collection's main
 menu. No build step, package installation, or server is required. The engine is
