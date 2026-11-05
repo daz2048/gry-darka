@@ -962,10 +962,16 @@ class Quest extends Phaser.Scene {
     else if (kind === 'coin') {
       this.addCoins(1);
       playSound('coin');
+    } else if (kind === 'star') {
+      this.score += 500;
+      if (this.selectedSkin === 'diamond') {
+        this.addCoins(10);
+        notify('Sekretny bonus +500 i 30 monet!');
+      } else notify('Sekretny bonus +500');
+      playSound('star');
     } else {
       this.score += 500;
-      playSound(kind === 'star' ? 'star' : 'coin');
-      if (kind === 'star') notify('Sekretny bonus +500');
+      playSound('coin');
     }
     this.syncHud();
   }
@@ -1087,7 +1093,7 @@ class Quest extends Phaser.Scene {
     if (diamondEquipped) {
       const maxTravel = COIN_MAGNET_SPEED * Math.min(delta, 50) / 1000;
       for (const pickup of this.pickups.getChildren()) {
-        if (!pickup.active || (pickup.kind !== 'coin' && pickup.kind !== 'specialCoin')) continue;
+        if (!pickup.active) continue;
         const dx = this.player.x - pickup.x;
         const dy = this.player.y - pickup.y;
         const distance = Math.hypot(dx, dy);
