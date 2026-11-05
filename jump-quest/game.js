@@ -43,8 +43,11 @@ const HERO_SKINS = [
   { id: 'cloud', name: 'Lodowy', price: 260, palette: { shadow: 0x586579, mid: 0xa7b9ca, light: 0xe5eee0, trim: 0xd8ad64, accent: 0x7da9ba } },
   { id: 'berry', name: 'Jagodowy', price: 305, palette: { shadow: 0x693957, mid: 0xa84670, light: 0xdd6f94, trim: 0xf3d07a, accent: 0x87b56a } },
   { id: 'meadow', name: 'Polny odkrywca', price: 355, palette: { shadow: 0x425c34, mid: 0x74944b, light: 0xb3c95c, trim: 0xf4d178, accent: 0xe59057 } },
-  { id: 'magma', name: 'Wulkaniczny', price: 410, palette: { shadow: 0x4b3548, mid: 0x843d4b, light: 0xc65345, trim: 0xffc15e, accent: 0x53a9a0 } }
+  { id: 'magma', name: 'Wulkaniczny', price: 410, palette: { shadow: 0x4b3548, mid: 0x843d4b, light: 0xc65345, trim: 0xffc15e, accent: 0x53a9a0 } },
+  { id: 'diamond', name: 'Diamentowy', price: 1000000000000000, priceLabel: '1 biliard monet', power: 'Niezniszczalnosc + aura 176 px', palette: { shadow: 0x4c7580, mid: 0x8bcbd5, light: 0xe4fdff, trim: 0x76ecf2, accent: 0xb7f8df } }
 ];
+const DIAMOND_AURA_RADIUS = 176;
+const DIAMOND_PULSE_INTERVAL = 1200;
 const SHOP_STORAGE_KEY = 'maks-jump-quest-shop-v1';
 const ui = Object.fromEntries(['coins', 'score', 'lives', 'world', 'level-name', 'overlay', 'eyebrow', 'overlay-title', 'overlay-copy', 'primary', 'pause', 'sound', 'notice', 'footer-status', 'shop', 'shop-grid', 'wallet-count', 'shop-open', 'shop-close'].map(id => [id, document.getElementById(id)]));
 const touch = { left: false, right: false, jump: false };
@@ -378,6 +381,8 @@ class Quest extends Phaser.Scene {
     this.player = this.physics.add.sprite(120, 420, this.heroTexture(0)).setDepth(5);
     this.player.body.setSize(22, 40).setOffset(5, 4).setMaxVelocity(310, 900);
     this.player.setCollideWorldBounds(false);
+    this.diamondAura = this.add.graphics().setDepth(6);
+    this.nextDiamondPulse = 0;
     this.physics.add.collider(this.player, this.solids);
     this.physics.add.collider(this.player, this.blocks, (player, block) => {
       if (player.body.blocked.up && !block.used) {
@@ -612,13 +617,20 @@ class Quest extends Phaser.Scene {
       name.textContent = skin.name;
       const price = document.createElement('span');
       price.className = 'skin-price';
-      price.textContent = skin.price ? `${skin.price} monet` : 'Darmowy';
+      price.textContent = skin.priceLabel || (skin.price ? `${skin.price} monet` : 'Darmowy');
+      const details = skin.power ? document.createElement('span') : null;
+      if (details) {
+        details.className = 'skin-power';
+        details.textContent = skin.power;
+      }
       const action = document.createElement('button');
       action.className = 'skin-action';
       action.disabled = selected || (!owned && !this.unlimitedFunds && this.wallet < skin.price);
       action.textContent = selected ? 'Wybrany' : owned ? 'Wybierz' : !this.unlimitedFunds && this.wallet < skin.price ? `Brakuje ${skin.price - this.wallet}` : 'Kup';
       action.addEventListener('click', () => this.purchaseSkin(skin.id));
-      card.append(preview, name, price, action);
+      card.append(preview, name, price);
+      if (details) card.append(details);
+      card.append(action);
       grid.append(card);
     }
   }
@@ -719,9 +731,13 @@ class Quest extends Phaser.Scene {
 
   hitEnemy(enemy) {
     if (this.phase !== 'playing' || !enemy.active) return;
+    if (this.selectedSkin === 'diamond') {
+      this.defeatEnemy(enemy);
+      return;
+    }
     if (this.player.body.velocity.y > 60 && this.player.body.bottom < enemy.body.top + 19) {
-      this.burst(enemy.x, enemy.y); enemy.destroy();
-      this.player.setVelocityY(-350); this.score += 200; this.syncHud(); playSound('stomp');
+      this.defeatEnemy(enemy);
+      this.player.setVelocityY(-350);
     } else if (this.time.now > this.invincibleUntil) {
       if (this.shielded) {
         this.shielded = false; this.invincibleUntil = this.time.now + 1800;
@@ -730,8 +746,22 @@ class Quest extends Phaser.Scene {
     }
   }
 
+  defeatEnemy(enemy) {
+    this.burst(enemy.x, enemy.y);
+    enemy.destroy();
+    this.score += 200;
+    this.syncHud();
+    playSound('stomp');
+  }
+
   die() {
     if (this.phase !== 'playing') return;
+    if (this.selectedSkin === 'diamond') {
+      this.player.setPosition(this.checkpointOn ? this.checkpointX : 120, 405).setVelocity(0, 0);
+      this.invincibleUntil = this.time.now + 500;
+      notify('Diamentowa skora ochronila Cie!');
+      return;
+    }
     this.lives--; this.shielded = false;
     playSound(this.lives <= 0 ? 'gameOver' : 'death');
     if (this.lives <= 0) {
@@ -776,7 +806,39 @@ class Quest extends Phaser.Scene {
     if (direction) this.player.setFlipX(direction < 0);
     this.player.setTexture(this.heroTexture(grounded && Math.abs(body.velocity.x) > 30 && Math.floor(time / 110) % 2 ? 1 : 0));
     this.player.setAlpha(time < this.invincibleUntil && Math.floor(time / 90) % 2 ? .4 : 1);
-    if (this.shielded) this.player.setTint(0xa8ffe3); else this.player.clearTint();
+    if (this.shielded) this.player.setTint(0xa8ffe3);
+    else if (this.selectedSkin === 'diamond') this.player.setTint(0xc8fbff);
+    else this.player.clearTint();
+    this.diamondAura.clear();
+    if (this.selectedSkin === 'diamond') {
+      const aura = this.diamondAura;
+      const pulse = .48 + (Math.sin(time * .008) + 1) * .16;
+      aura.lineStyle(2, 0x8af5ff, pulse).strokeCircle(this.player.x, this.player.y, DIAMOND_AURA_RADIUS);
+      aura.fillStyle(0xe4fdff, .9);
+      const orbit = time * .0012;
+      for (let point = 0; point < 4; point++) {
+        const angle = orbit + point * Math.PI / 2;
+        const x = this.player.x + Math.cos(angle) * DIAMOND_AURA_RADIUS;
+        const y = this.player.y + Math.sin(angle) * DIAMOND_AURA_RADIUS;
+        aura.fillPoints([{x, y: y - 5}, {x: x + 4, y}, {x, y: y + 5}, {x: x - 4, y}], true);
+      }
+      if (time >= this.nextDiamondPulse) {
+        let nearest = null;
+        let nearestDistance = DIAMOND_AURA_RADIUS;
+        for (const enemy of this.enemies.getChildren()) {
+          if (!enemy.active) continue;
+          const distance = Phaser.Math.Distance.Between(this.player.x, this.player.y, enemy.x, enemy.y);
+          if (distance < nearestDistance) {
+            nearest = enemy;
+            nearestDistance = distance;
+          }
+        }
+        if (nearest) {
+          this.defeatEnemy(nearest);
+          this.nextDiamondPulse = time + DIAMOND_PULSE_INTERVAL;
+        }
+      }
+    }
     this.player.x = Math.max(12, this.player.x);
     this.enemies.children.iterate(enemy => {
       if (!enemy?.active) return;

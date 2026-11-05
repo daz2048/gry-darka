@@ -46,6 +46,7 @@ h1 em { font-style: normal; color: #c45036; }
 .skin-card img { width: 58px; height: 74px; object-fit: contain; filter: drop-shadow(0 4px 2px #173c3626); }
 .skin-name { min-height: 36px; display: grid; place-items: center; font-size: 13px; }
 .skin-price { margin: 2px 0 10px; color: #52635b; font-family: 'VT323', monospace; font-size: 18px; }
+.skin-power { min-height: 30px; margin: -4px 0 8px; color: #277e87; font-size: 10px; font-weight: 700; line-height: 1.3; }
 .skin-action { width: 100%; min-height: 38px; padding: 7px; border: 0; background: var(--ink); color: white; font-weight: 700; }
 .skin-action:hover:not(:disabled) { background: #285d4f; }
 .skin-action:disabled { background: #bac6bb; color: #40524a; cursor: default; }
