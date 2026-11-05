@@ -95,8 +95,8 @@ const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
   const theme = index % LEVEL_BLUEPRINTS.length;
   const round = Math.floor(index / LEVEL_BLUEPRINTS.length);
   const blueprint = LEVEL_BLUEPRINTS[theme];
-  const difficulty = Math.min(8, Math.floor(index / 12));
   const isFinalLevel = index === LEVEL_COUNT - 1;
+  const difficulty = isFinalLevel ? 3 : Math.min(8, Math.floor(index / 12));
   const name = isFinalLevel ? 'Poziom 100 - Zlota Korona' : `Poziom ${String(index + 1).padStart(3, '0')} - ${blueprint.name}`;
   const world = isFinalLevel ? 'ZLOTA KORONA' : blueprint.world;
   const palette = makeScenePalette(index, theme, blueprint);
@@ -130,7 +130,8 @@ const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
     for (let ledge = 0; ledge < ledgeCount; ledge++) {
       ledges.push([start + 2 + randomInt(count - 6), 5 + randomInt(3), 2 + randomInt(3)]);
     }
-    const enemyCount = 1 + Number(random() < .32 + Math.min(.3, difficulty * .03));
+    const extraEnemyChance = isFinalLevel ? .08 : .32 + Math.min(.3, difficulty * .03);
+    const enemyCount = 1 + Number(random() < extraEnemyChance);
     for (let enemyIndex = 0; enemyIndex < enemyCount; enemyIndex++) {
       let column = start + 2 + randomInt(count - 4);
       while (occupiedEnemies.has(column)) column = start + 2 + (column - start - 1) % (count - 4);
@@ -865,7 +866,8 @@ class Quest extends Phaser.Scene {
   }
 
   primary() {
-    if (this.phase === 'won' || this.phase === 'gameover') return this.restartRun();
+    if (this.phase === 'won') return this.restartRun();
+    if (this.phase === 'gameover') return this.dataLevel.isGold ? this.restartFinalLevel() : this.restartRun();
     const resuming = this.phase === 'paused';
     if (this.phase === 'diamondRequired') {
       if (!this.ownedSkins.includes('diamond')) return this.openShop();
@@ -898,6 +900,18 @@ class Quest extends Phaser.Scene {
     this.level = LEVEL_COUNT - 2;
     this.phase = 'levelComplete';
     this.primary();
+  }
+
+  restartFinalLevel() {
+    this.lives = 3;
+    this.selectedSkin = 'diamond';
+    this.phase = 'playing';
+    this.buildLevel();
+    this.physics.resume();
+    ui.overlay.hidden = true;
+    this.clearInput();
+    ui.pause.setAttribute('aria-pressed', 'false');
+    this.syncHud();
   }
 
   clearInput() {
@@ -976,6 +990,10 @@ class Quest extends Phaser.Scene {
       if (this.shielded) {
         this.shielded = false; this.invincibleUntil = this.time.now + 1800;
         this.player.setVelocityY(-250); playSound('shieldBreak'); notify('Tarcza ochronila Cie!');
+      } else if (this.dataLevel.isGold) {
+        this.invincibleUntil = this.time.now + 3000;
+        this.player.setVelocity(this.player.x < enemy.x ? -260 : 260, -320);
+        notify('Odepchniecie! Sprobuj ponownie.');
       } else this.die();
     }
   }
@@ -1045,7 +1063,7 @@ class Quest extends Phaser.Scene {
     const body = this.player.body;
     const diamondEquipped = this.selectedSkin === 'diamond';
     if (this.dataLevel.isGold && !diamondEquipped && time >= this.nextGoldDamageAt) {
-      this.nextGoldDamageAt = time + 2200;
+      this.nextGoldDamageAt = time + 8000;
       this.die();
       if (this.phase !== 'playing') return;
     }
