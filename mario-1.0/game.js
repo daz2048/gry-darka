@@ -170,7 +170,8 @@ const HERO_SKINS = [
 const DIAMOND_AURA_RADIUS = 176;
 const DIAMOND_PULSE_INTERVAL = 1200;
 const DIAMOND_LUCKY_BLOCK_INTERVAL = 12000;
-const SHOP_STORAGE_KEY = 'maks-jump-quest-shop-v1';
+const SHOP_STORAGE_KEY = 'maks-mario-1.0-shop-v1';
+const LEGACY_SHOP_STORAGE_KEY = 'maks-jump-quest-shop-v1';
 const ui = Object.fromEntries(['coins', 'score', 'lives', 'world', 'level-name', 'overlay', 'eyebrow', 'overlay-title', 'overlay-copy', 'primary', 'pause', 'sound', 'notice', 'footer-status', 'shop', 'shop-grid', 'wallet-count', 'shop-open', 'shop-close'].map(id => [id, document.getElementById(id)]));
 const touch = { left: false, right: false, jump: false };
 let scene;
@@ -691,7 +692,8 @@ class Quest extends Phaser.Scene {
 
   loadShopState() {
     try {
-      const saved = JSON.parse(localStorage.getItem(SHOP_STORAGE_KEY) || '{}');
+      const savedText = localStorage.getItem(SHOP_STORAGE_KEY) ?? localStorage.getItem(LEGACY_SHOP_STORAGE_KEY);
+      const saved = JSON.parse(savedText || '{}');
       this.wallet = Number.isSafeInteger(saved.wallet) && saved.wallet > 0 ? saved.wallet : 0;
       this.unlimitedFunds = saved.unlimitedFunds === true;
       this.ownedSkins = Array.isArray(saved.ownedSkins) ? [...new Set(saved.ownedSkins.filter(id => HERO_SKINS.some(skin => skin.id === id)))] : [];

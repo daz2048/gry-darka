@@ -19,8 +19,8 @@ Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
 ### Mario 1.0 (Maks Jump Quest)
 Platformowa przygoda w trzech światach: zielone wzgórza, kryształowe jaskinie i twierdza wiatru. Zbieraj monety, odkrywaj sekrety i pokonuj przeciwników skokiem.
 - **Sterowanie:** strzałki / A i D, skok: spacja / W / strzałka w górę; na telefonie przyciski dotykowe.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/jump-quest/)
-- [Instrukcja i szczegóły](jump-quest/README.md)
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/mario-1.0/)
+- [Instrukcja i szczegóły](mario-1.0/README.md)
 
 ### Mario Vanilla
 Klasyczny wariant platformowej przygody z trzema światami, przeciwnikami, monetami i punktami kontrolnymi.
