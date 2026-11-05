@@ -5,15 +5,31 @@ const LEVELS = [
   { name: 'Pierwszy szlak', world: 'ZIELONE WZGORZA', sky: 0x8fe3f2, dirt: 0x9b6244, top: 0x4ab86f, width: 100,
     ground: [[0, 17], [20, 17], [40, 20], [63, 18], [84, 16]],
     ledges: [[8, 7, 3], [14, 6, 3], [25, 7, 4], [34, 6, 3], [44, 7, 3], [53, 6, 4], [65, 7, 4], [75, 6, 3], [88, 7, 4]],
-    enemies: [12, 27, 46, 56, 70, 91], movers: [[18, 8], [38, 8], [61, 8], [82, 8]], checkpoint: 49, shield: [10, 6], secrets: [[15, 4], [55, 4], [76, 4]] },
+    enemies: [
+      { column: 12, type: 'mossling' }, { column: 24, type: 'beetle' }, { column: 27, type: 'mossling' },
+      { column: 34, type: 'flutter', row: 5 }, { column: 46, type: 'mossling' }, { column: 56, type: 'beetle' },
+      { column: 66, type: 'flutter', row: 5 }, { column: 70, type: 'mossling' }, { column: 91, type: 'beetle' },
+      { column: 95, type: 'mossling' }
+    ], movers: [[18, 8], [38, 8], [61, 8], [82, 8]], checkpoint: 49, shield: [10, 6], secrets: [[15, 4], [55, 4], [76, 4]] },
   { name: 'Krysztalowe jaskinie', world: 'PODZIEMNY SZLAK', sky: 0x263552, dirt: 0x66527c, top: 0x54c4b8, width: 106,
     ground: [[0, 13], [17, 15], [36, 16], [56, 16], [76, 14], [94, 12]],
     ledges: [[7, 7, 3], [20, 7, 3], [28, 6, 3], [38, 7, 4], [48, 6, 3], [59, 7, 4], [68, 6, 3], [80, 7, 3], [97, 7, 4]],
-    enemies: [10, 23, 40, 48, 61, 82, 99], movers: [[14, 8], [33, 8], [53, 8], [73, 8], [91, 8]], checkpoint: 43, shield: [8, 6], secrets: [[29, 4], [49, 4], [69, 4]] },
+    enemies: [
+      { column: 10, type: 'mossling' }, { column: 20, type: 'flutter', row: 5 }, { column: 23, type: 'beetle' },
+      { column: 29, type: 'mossling' }, { column: 40, type: 'beetle' }, { column: 48, type: 'flutter', row: 5 },
+      { column: 50, type: 'mossling' }, { column: 61, type: 'flutter', row: 5 }, { column: 68, type: 'beetle' },
+      { column: 82, type: 'mossling' }, { column: 86, type: 'beetle' }, { column: 99, type: 'flutter', row: 5 }
+    ], movers: [[14, 8], [33, 8], [53, 8], [73, 8], [91, 8]], checkpoint: 43, shield: [8, 6], secrets: [[29, 4], [49, 4], [69, 4]] },
   { name: 'Brama na szczycie', world: 'TWIERDZA WIATRU', sky: 0xffc59c, dirt: 0x805674, top: 0xe6a951, width: 112,
     ground: [[0, 12], [16, 13], [33, 15], [52, 16], [72, 15], [91, 21]],
     ledges: [[6, 7, 3], [19, 7, 3], [26, 6, 3], [36, 7, 3], [44, 6, 3], [55, 7, 3], [64, 6, 3], [75, 7, 3], [83, 6, 3], [95, 7, 3], [103, 6, 3]],
-    enemies: [9, 21, 37, 44, 57, 64, 78, 96, 105], movers: [[13, 8], [30, 8], [49, 8], [69, 8], [88, 8]], checkpoint: 58, shield: [7, 6], secrets: [[27, 4], [65, 4], [104, 4]] }
+    enemies: [
+      { column: 9, type: 'mossling' }, { column: 19, type: 'flutter', row: 5 }, { column: 21, type: 'beetle' },
+      { column: 26, type: 'mossling' }, { column: 37, type: 'beetle' }, { column: 44, type: 'flutter', row: 5 },
+      { column: 57, type: 'mossling' }, { column: 64, type: 'beetle' }, { column: 78, type: 'flutter', row: 5 },
+      { column: 83, type: 'mossling' }, { column: 96, type: 'beetle' }, { column: 101, type: 'flutter', row: 5 },
+      { column: 105, type: 'mossling' }
+    ], movers: [[13, 8], [30, 8], [49, 8], [69, 8], [88, 8]], checkpoint: 58, shield: [7, 6], secrets: [[27, 4], [65, 4], [104, 4]] }
 ];
 const ui = Object.fromEntries(['coins', 'score', 'lives', 'world', 'level-name', 'overlay', 'eyebrow', 'overlay-title', 'overlay-copy', 'primary', 'pause', 'sound', 'notice', 'footer-status'].map(id => [id, document.getElementById(id)]));
 const touch = { left: false, right: false, jump: false };
@@ -144,6 +160,26 @@ class Quest extends Phaser.Scene {
       pen.fillStyle(0xe88d8a).fillEllipse(7, 23, 7, 4).fillEllipse(27, 23, 7, 4);
       pen.fillStyle(0x513b60).fillEllipse(7, 27, 11, 6).fillEllipse(23, 27, 11, 6);
     });
+    texture('beetle', 40, 34, pen => {
+      pen.fillStyle(0x513b60).fillEllipse(3, 10, 34, 22);
+      pen.fillStyle(0x6d9d59).fillEllipse(6, 5, 28, 24);
+      pen.fillStyle(0xa6c96b).fillEllipse(10, 8, 20, 15);
+      pen.fillStyle(0xe4b66a).fillEllipse(27, 16, 11, 12);
+      pen.fillStyle(0xfff0c5).fillEllipse(30, 18, 3, 4).fillEllipse(35, 18, 3, 4);
+      pen.fillStyle(0x38445a).fillEllipse(31, 19, 2, 3).fillEllipse(36, 19, 2, 3);
+      pen.fillStyle(0xe6ca8b).fillCircle(13, 13, 3).fillCircle(23, 20, 3);
+      pen.fillStyle(0x513b60).fillEllipse(5, 27, 11, 6).fillEllipse(23, 27, 11, 6);
+    });
+    texture('flutter', 40, 34, pen => {
+      pen.fillStyle(0xa989cf).fillEllipse(0, 7, 19, 19).fillEllipse(21, 7, 19, 19);
+      pen.fillStyle(0xd2b5ea).fillEllipse(3, 9, 12, 13).fillEllipse(25, 9, 12, 13);
+      pen.fillStyle(0x4c879a).fillEllipse(14, 9, 13, 21);
+      pen.fillStyle(0x72bcc0).fillEllipse(15, 7, 11, 13);
+      pen.fillStyle(0xffe6a1).fillEllipse(17, 12, 3, 4).fillEllipse(23, 12, 3, 4);
+      pen.fillStyle(0x34445b).fillEllipse(18, 13, 2, 3).fillEllipse(24, 13, 2, 3);
+      pen.fillStyle(0xe97f91).fillEllipse(12, 25, 16, 6);
+      pen.fillStyle(0xf3d477).fillCircle(14, 6, 2).fillCircle(27, 6, 2);
+    });
     texture('coin', 20, 24, pen => {
       pen.fillStyle(0xc78232).fillEllipse(1, 0, 18, 24);
       pen.fillStyle(0xffdb63).fillEllipse(3, 2, 14, 20);
@@ -218,13 +254,23 @@ class Quest extends Phaser.Scene {
     }
     for (const [column, row] of data.secrets) this.pickups.create(column * TILE, row * TILE, 'star').kind = 'star';
     this.enemies = this.physics.add.group();
-    for (const column of data.enemies) {
-      const enemy = this.enemies.create(column * TILE, 450, 'enemy');
+    for (const spawn of data.enemies) {
+      const { column, type } = spawn;
+      const enemyTexture = type === 'beetle' || type === 'flutter' ? type : 'enemy';
+      const spawnY = type === 'flutter' ? spawn.row * TILE : 450;
+      const enemy = this.enemies.create(column * TILE, spawnY, enemyTexture);
       const segment = data.ground.find(([start, count]) => column >= start && column < start + count);
+      enemy.kind = type;
       enemy.minX = segment[0] * TILE + 22;
       enemy.maxX = (segment[0] + segment[1]) * TILE - 22;
-      enemy.body.setVelocityX(-65 - this.level * 15);
-      enemy.body.setSize(30, 26).setOffset(3, 4);
+      enemy.speed = (type === 'beetle' ? 38 : type === 'flutter' ? 72 : 62) + this.level * 10;
+      enemy.body.setVelocityX(-enemy.speed);
+      enemy.body.setSize(type === 'flutter' ? 28 : 30, 24).setOffset(5, 6);
+      if (type === 'flutter') {
+        enemy.body.setAllowGravity(false);
+        enemy.baseY = spawnY;
+        enemy.flightPhase = column * .71;
+      }
     }
     this.player = this.physics.add.sprite(120, 420, 'hero0').setDepth(5);
     this.player.body.setSize(22, 40).setOffset(5, 4).setMaxVelocity(310, 900);
@@ -499,9 +545,10 @@ class Quest extends Phaser.Scene {
     this.player.x = Math.max(12, this.player.x);
     this.enemies.children.iterate(enemy => {
       if (!enemy?.active) return;
-      const speed = 65 + this.level * 15;
+      const speed = enemy.speed;
       if (enemy.x <= enemy.minX || enemy.body.blocked.left) enemy.setVelocityX(speed);
       if (enemy.x >= enemy.maxX || enemy.body.blocked.right) enemy.setVelocityX(-speed);
+      if (enemy.kind === 'flutter') enemy.setVelocityY(Math.sin(time * .004 + enemy.flightPhase) * 55);
       enemy.setFlipX(enemy.body.velocity.x > 0);
     });
     this.movers.children.iterate(platform => {

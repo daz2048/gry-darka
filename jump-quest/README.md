@@ -2,7 +2,8 @@
 
 Original side-scrolling platformer inspired by classic run-and-jump games.
 Listed as **Mario 1.0** in the collection's main menu.
-Three worlds, coins, hidden star bonuses, patrolling enemies, shield blocks,
+Three worlds, coins, hidden star bonuses, three stompable enemy types (mosslings,
+beetles, and flying moths), shield blocks,
 moving platforms, checkpoints, and a final gate. No Nintendo assets or levels.
 
 Original synthesized chiptune effects accompany jumps, landings, coins, bonuses,
