@@ -9,6 +9,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e96d53; outline-offs
 .topbar { height: 88px; display: flex; align-items: center; gap: 20px; }
 .brand { font-size: 15px; font-weight: 500; }
 .brand strong { display: block; font-size: 20px; }
+.release-label { display: inline-block; margin-top: 3px; padding: 2px 6px; border: 1px solid #173c3640; border-radius: 3px; background: var(--yellow); color: var(--ink); font-size: 9px; font-weight: 700; line-height: 1.1; white-space: nowrap; }
 .tools { display: flex; gap: 8px; margin-left: auto; }
 .icon { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid #173c3633; background: transparent; border-radius: 6px; text-decoration: none; color: var(--ink); font-size: 24px; }
 .icon:hover { background: #ffffff80; }
