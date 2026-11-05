@@ -710,6 +710,196 @@
       background: rgba(15,20,27,.05);
     }
   }
+  @media (max-width: 767px) and (orientation: portrait) {
+    #stage {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 5px;
+      padding-bottom: 5px;
+      aspect-ratio: auto;
+    }
+    canvas#game {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1000 / 520;
+    }
+    #mobileBombBtn, #mobileNukeBtn, #mobileJumpBtn, #mobileSquadBtn, #mobilePowerBtn {
+      position: static;
+      grid-row: 2;
+      width: 100%;
+      height: 40px;
+      min-width: 0;
+      transform: none;
+      border-radius: 6px;
+      font-size: 11px;
+      letter-spacing: 0;
+    }
+    #mobileBombBtn:active { transform: scale(0.92); }
+    #ingameHudTop, #ingameHudBottom {
+      position: static;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: auto;
+      gap: 3px;
+      margin: 0 5px;
+    }
+    #ingameHudTop { grid-row: 3; }
+    #ingameHudBottom { grid-row: 4; }
+    #ingameHudTop .stat, #ingameHudBottom .stat {
+      min-height: 24px;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 5px;
+    }
+    #ingameHudTop .stat span, #ingameHudBottom .stat span {
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    #ingameHudTop .stat b, #ingameHudBottom .stat b {
+      font-size: 11px;
+      overflow-wrap: anywhere;
+      letter-spacing: 0;
+    }
+    #ingameHudBottom .stat:nth-child(7),
+    #ingameHudBottom .stat:nth-child(8) { grid-column: 1 / -1; }
+    #alert {
+      top: 10px;
+      max-width: calc(100% - 32px);
+      transform: translateX(-50%);
+      padding: 6px 10px;
+      font-size: 11px;
+      letter-spacing: 0;
+      text-align: center;
+    }
+    #stage .variant-badge { display: none; }
+  }
+  body.nightmare-mode {
+    --bg0: #08070a;
+    --bg1: #170a10;
+    --bg2: #2a1018;
+    --panel: rgba(26, 10, 16, 0.94);
+    --panel-strong: rgba(35, 12, 19, 0.97);
+    --line: rgba(177, 64, 69, 0.42);
+    --line-soft: rgba(177, 64, 69, 0.24);
+    --text: #f0e2df;
+    --soft: #c8a9a7;
+    --accent: #c84750;
+    --accent-hot: #ff9b79;
+    background: radial-gradient(900px 560px at 48% 20%, #32121b 0%, var(--bg1) 52%, var(--bg0) 100%);
+  }
+  body.nightmare-mode[data-difficulty="easy"] {
+    --line: rgba(177, 91, 91, 0.34);
+    --line-soft: rgba(177, 91, 91, 0.2);
+    --accent: #bd7774;
+    --accent-hot: #edb79e;
+  }
+  body.nightmare-mode[data-difficulty="hard"] {
+    --line: rgba(220, 48, 62, 0.58);
+    --line-soft: rgba(220, 48, 62, 0.34);
+    --accent: #ec4653;
+    --accent-hot: #ffc0a8;
+    background: radial-gradient(900px 560px at 48% 20%, #3a101b 0%, #15080e 54%, #050407 100%);
+  }
+  body.nightmare-mode::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: .22;
+    background-image:
+      radial-gradient(2px 2px at 18% 82%, rgba(255,145,124,.82) 45%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 62% 74%, rgba(187,66,79,.78) 45%, transparent 100%),
+      radial-gradient(2px 2px at 86% 91%, rgba(220,154,127,.7) 45%, transparent 100%);
+    background-size: 180px 230px, 260px 300px, 330px 280px;
+    animation: nightmareAshDrift 24s linear infinite;
+  }
+  body.nightmare-mode #wrap { position: relative; z-index: 1; }
+  @keyframes nightmareAshDrift {
+    from { background-position: 0 100%, 40px 130%, 100px 100%; }
+    to { background-position: 0 -40%, 40px -70%, 100px -20%; }
+  }
+  @keyframes nightmareStagePulse {
+    0%, 100% { box-shadow: 0 0 22px rgba(181,42,55,.18), 0 18px 48px rgba(0,0,0,.58); }
+    50% { box-shadow: 0 0 42px rgba(205,54,64,.4), 0 18px 48px rgba(0,0,0,.58); }
+  }
+  body.nightmare-mode #stage {
+    border-color: rgba(215, 72, 78, 0.56);
+    box-shadow: 0 0 28px rgba(181, 42, 55, 0.2), 0 18px 48px rgba(0,0,0,.58);
+    animation: nightmareStagePulse 4.8s ease-in-out infinite;
+  }
+  body.nightmare-mode[data-difficulty="easy"] #stage { animation-duration: 7s; }
+  body.nightmare-mode[data-difficulty="hard"] #stage { animation-duration: 3.6s; }
+  body.nightmare-mode[data-difficulty="easy"] #stage::after { animation-duration: 10s; }
+  body.nightmare-mode[data-difficulty="hard"] #stage::after { animation-duration: 6s; }
+  body.nightmare-mode canvas#game { filter: saturate(1.42) contrast(1.16); }
+  body.nightmare-mode #stage::after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    pointer-events: none;
+    opacity: .38;
+    background:
+      radial-gradient(ellipse at 50% 92%, rgba(156,22,38,.2), transparent 56%),
+      linear-gradient(90deg, rgba(70,0,12,.28), transparent 14% 86%, rgba(70,0,12,.28)),
+      linear-gradient(113deg, transparent 0 72%, rgba(255,220,205,.08) 72.06% 72.12%, transparent 72.18%),
+      repeating-linear-gradient(0deg, rgba(255,190,170,.065) 0 1px, transparent 1px 4px);
+    box-shadow: inset 0 0 34px rgba(36,0,8,.62);
+    animation: nightmareFilmFlicker 8s steps(1, end) infinite;
+  }
+  @keyframes nightmareFilmFlicker {
+    0%, 87%, 100% { opacity: .38; }
+    88% { opacity: .52; }
+    89% { opacity: .3; }
+    97% { opacity: .46; }
+    97.2% { opacity: .38; }
+  }
+  body.nightmare-mode #hud .stat,
+  body.nightmare-mode #shop,
+  body.nightmare-mode #help,
+  body.nightmare-mode #musicDebugPanel {
+    border-color: var(--line);
+    background: linear-gradient(180deg, rgba(48,20,27,.94), rgba(15,9,13,.98));
+    box-shadow: inset 0 1px 0 rgba(255,180,158,.08), 0 8px 20px rgba(0,0,0,.32);
+  }
+  body.nightmare-mode #ingameHudTop .stat,
+  body.nightmare-mode #ingameHudBottom .stat { background: rgba(24,7,13,.66); }
+  body.nightmare-mode #difficulty,
+  body.nightmare-mode .shopBtn,
+  body.nightmare-mode .skinItem,
+  body.nightmare-mode .skinBtn {
+    border-color: var(--line);
+    background: linear-gradient(180deg, #44202a, #1a0d14);
+    color: var(--text);
+  }
+  body.nightmare-mode #power900Btn,
+  body.nightmare-mode #musicBtn,
+  body.nightmare-mode #musicDebugBtn,
+  body.nightmare-mode #mobileBombBtn,
+  body.nightmare-mode #mobileNukeBtn,
+  body.nightmare-mode #mobileSquadBtn,
+  body.nightmare-mode #mobilePowerBtn,
+  body.nightmare-mode #mobileJumpBtn,
+  body.nightmare-mode #overlay button,
+  body.nightmare-mode .back {
+    border-color: rgba(194,74,78,.5);
+    background: linear-gradient(180deg, #612832, #261017);
+    color: #f3dfd8;
+  }
+  body.nightmare-mode #overlay {
+    background: radial-gradient(circle at 30% 20%, rgba(72,20,32,.78), rgba(7,6,9,.92));
+  }
+  body.nightmare-mode .shopSectionTitle,
+  body.nightmare-mode #shopTitle { color: #e48a79; }
+  @media (prefers-reduced-motion: reduce) {
+    body.nightmare-mode::before,
+    body.nightmare-mode #stage,
+    body.nightmare-mode #stage::after { animation: none; }
+  }
   body.hell-mode {
     --bg0: #0c0508;
     --bg1: #1d090d;
@@ -885,7 +1075,7 @@
   body[data-horror="off"] #stage::after { opacity: 0; }
 </style>
 </head>
-<body>
+<body class="nightmare-mode" data-difficulty="normal">
   <div id="wrap">
     <div id="layout">
       <div id="stageCol">
@@ -929,6 +1119,7 @@
               <option value="easy">Easy</option>
               <option value="normal" selected>Normal</option>
               <option value="hard">Hard</option>
+              <option value="super-hard-demon">Super Hard Demon</option>
             </select>
           </div>
           <div class="stat"><button id="power900Btn" type="button">MOC 900 (9)</button></div>
@@ -994,9 +1185,9 @@
   (function () {
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // ---- CONFIG: pokrętła balansu (stroimy próbami) ----
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const CONFIG = {
       W: 1000, H: 520,
       wallTop: 0, wallBottom: 520,      // pelna wysokosc planszy, bez pustych pasow
@@ -1061,7 +1252,7 @@
         easy:   { spawnEveryMul: 1.20, burstAdd: -1, burstCap: 9, bossEveryAdd: 3, zombieHpMul: 0.92, zombieSpeedMul: 0.94, bossHpMul: 0.85, bossDmgMul: 0.90, rampHpMul: 0.85, rampSpeedMul: 0.90 },
         normal: { spawnEveryMul: 0.96, burstAdd: 0,  burstCap: 12, bossEveryAdd: 0, zombieHpMul: 1.05, zombieSpeedMul: 1.03, bossHpMul: 1.08, bossDmgMul: 1.06, rampHpMul: 1.07, rampSpeedMul: 1.06 },
         hard:   { spawnEveryMul: 0.82, burstAdd: 1,  burstCap: 15, bossEveryAdd: -2, zombieHpMul: 1.20, zombieSpeedMul: 1.10, bossHpMul: 1.25, bossDmgMul: 1.15, rampHpMul: 1.20, rampSpeedMul: 1.15 },
-        'super-hard-demon': { spawnEveryMul: 0.55, burstAdd: 4, burstCap: 19, bossEveryAdd: -7, zombieHpMul: 3.2, zombieSpeedMul: 1.7, bossHpMul: 3.6, bossDmgMul: 2.7, rampHpMul: 2.7, rampSpeedMul: 1.8 }
+        'super-hard-demon': { spawnEveryMul: 0.42, spawnEveryMin: 0.24, burstAdd: 6, burstCap: 23, bossEveryAdd: -10, zombieHpMul: 4.0, zombieSpeedMul: 2.0, bossHpMul: 4.5, bossDmgMul: 3.2, rampHpMul: 3.2, rampSpeedMul: 2.1 }
       }
     };
     const ZOMBIE_PALETTES = {
@@ -2472,8 +2663,9 @@
       if (!horrorEnabled || reduceMotion || state !== 'play' || document.hidden || dread.cooldown > 0) return;
       dread.cooldown = 8;
       jumpScareKind = kind || 'breach';
-      jumpScareTimer = Math.max(jumpScareTimer, kind === 'boss' ? 0.72 : 0.46);
-      addCameraShake(kind === 'boss' ? 5.4 : 3.6, kind === 'boss' ? 0.3 : 0.18);
+      const scareDuration = jumpScareKind === 'boss' ? 1.05 : 0.8;
+      jumpScareTimer = Math.max(jumpScareTimer, scareDuration * (difficultyKey === 'super-hard-demon' ? 1 : 1.35));
+      if (!reduceMotion) addCameraShake(jumpScareKind === 'boss' ? 10 : 7.5, jumpScareKind === 'boss' ? 0.48 : 0.38);
       sfxJumpScare(jumpScareKind);
     }
 
@@ -3022,7 +3214,6 @@
           const sw = document.createElement('div');
           sw.className = 'skinSwatch';
           sw.style.background = 'linear-gradient(90deg,' + sk.fill + ',' + sk.stroke + ')';
-
           const variant = swatchIndex++;
           const palette = demonSkinPalette(variant);
           sw.style.setProperty('--demon-accent', palette.accent);
@@ -3034,6 +3225,7 @@
           sw.style.setProperty('--demon-eye-left', (34 + variant * 11 % 15) + '%');
           sw.style.setProperty('--demon-eye-right', (52 + variant * 7 % 15) + '%');
           sw.style.setProperty('--demon-mark-angle', ((variant * 137.508) % 360) + 'deg');
+
           const meta = document.createElement('div');
           meta.className = 'skinMeta';
 
@@ -3351,7 +3543,7 @@
       }
       if (type === 'bounty') {
         kills += CONFIG.powerups.bountyKills;
-        waveKills += Math.floor(CONFIG.powerups.bountyKills * 0.35);
+        if (!diff.unwinnable) waveKills += Math.floor(CONFIG.powerups.bountyKills * 0.35);
         showAlert('LOOT: BOUNTY +' + CONFIG.powerups.bountyKills, 1.1);
         return;
       }
@@ -3401,7 +3593,7 @@
     }
 
     function detonate(fraction) {
-      if (zombies.length === 0) return 0;
+      if (diff.unwinnable || zombies.length === 0) return 0;
       let killList;
       if (fraction >= 1) {
         killList = zombies;
@@ -3444,6 +3636,7 @@
     }
 
     function obliterateZombie(index, style) {
+      if (diff.unwinnable) return;
       const deadZombie = zombies[index];
       if (!deadZombie) return;
       zombies.splice(index, 1);
@@ -3478,7 +3671,7 @@
     function startNextWave() {
       waveKills = 0;
       bombs++;
-      spawnEvery = Math.max(0.30, spawnEvery * CONFIG.ramp.spawnMul);
+      spawnEvery = Math.max(diff.spawnEveryMin || 0.30, spawnEvery * CONFIG.ramp.spawnMul);
       zHp += CONFIG.ramp.hpAdd * diff.rampHpMul;
       zSpeed += CONFIG.ramp.speedAdd * diff.rampSpeedMul;
       showAlert('FALA ' + wave + ' | BOMBA +1', 0.9);
@@ -3497,7 +3690,7 @@
       prepTimer = 0;
       warnedBossCycle = -1;
       spawnTimer = 0;
-      spawnEvery = Math.max(0.30, baseSpawnEvery * Math.pow(CONFIG.ramp.spawnMul, ramps));
+      spawnEvery = Math.max(diff.spawnEveryMin || 0.30, baseSpawnEvery * Math.pow(CONFIG.ramp.spawnMul, ramps));
       zHp = baseZombieHp + ramps * CONFIG.ramp.hpAdd * diff.rampHpMul;
       zSpeed = baseZombieSpeed + ramps * CONFIG.ramp.speedAdd * diff.rampSpeedMul;
       zombies = [];
@@ -3676,7 +3869,7 @@
           const bossShots = bossShotsForWave(wave);
           const bossScore = bossScoreForWave(wave);
           const bossRadius = bossRadiusForScore(bossScore);
-          const hpMul = (mini ? mini.hpMul : 1);
+          const hpMul = diff.bossHpMul * (mini ? mini.hpMul : 1);
           const speedMul = CONFIG.boss.speedMul * (mini ? mini.speedMul : 1);
           const dmgMul = CONFIG.boss.dmgMul * diff.bossDmgMul * (mini ? mini.dmgMul : 1);
           zombies.push(makeZombie(-34, y, {
@@ -3738,7 +3931,7 @@
         if (p.x >= CONFIG.breachX) pickups.splice(i, 1);
       }
 
-      const goldSkinVortexActive = skinKey === 'gold';
+      const goldSkinVortexActive = skinKey === 'gold' && !diff.unwinnable;
       const goldComboVortex = goldSkinVortexActive && goldComboActive();
       const vortexCfg = CONFIG.goldSkin;
       const vortexCenterX = CONFIG.breachX - vortexCfg.centerOffset;
@@ -3853,6 +4046,10 @@
             const z = zombies[j];
             const dx = z.x - b.x, dy = z.y - b.y, rr = z.r + 4;
             if (dx * dx + dy * dy <= rr * rr) {
+              if (diff.unwinnable) {
+                dead = true;
+                break;
+              }
               const hitX = z.x;
               const hitY = z.y;
               if (b.isGolden) {
@@ -5977,6 +6174,8 @@
       const nowS = now * 0.001;
       const hellMode = difficultyKey === 'super-hard-demon';
       const horrorPulse = 0.5 + 0.5 * Math.sin(nowS * 0.85);
+      const nightmarePulse = reduceMotion ? 0.5 : 0.5 + 0.5 * Math.sin(nowS * 0.62 + Math.sin(nowS * 0.18) * 0.7);
+      const fearBeat = reduceMotion ? 0.5 : 0.5 + 0.5 * Math.sin(nowS * 1.45 + Math.sin(nowS * 0.31) * 1.1);
       const horrorLevel = 0.25 + Math.min(0.55, (wave || 1) / 220) + horrorPulse * 0.08;
       const shakeNow = cameraShakeTimer > 0 ? cameraShake : 0;
       if (shakeNow > 0.01) {
@@ -6024,13 +6223,29 @@
         ctx.fill();
       }
       if (hellMode) {
-        const hellPulse = 0.72 + 0.28 * Math.sin(nowS * 2.4);
+        const hellPulse = reduceMotion ? 0.72 : 0.72 + 0.28 * Math.sin(nowS * 2.4);
         const eruptionGlow = ctx.createRadialGradient(W * 0.53, H * 0.4, 8, W * 0.53, H * 0.4, W * 0.52);
-        eruptionGlow.addColorStop(0, 'rgba(255,83,18,' + (0.42 * hellPulse) + ')');
-        eruptionGlow.addColorStop(0.42, 'rgba(190,36,22,0.24)');
+        eruptionGlow.addColorStop(0, 'rgba(255,83,18,' + (0.52 * hellPulse) + ')');
+        eruptionGlow.addColorStop(0.42, 'rgba(190,36,22,0.28)');
         eruptionGlow.addColorStop(1, 'rgba(80,10,18,0)');
         ctx.fillStyle = eruptionGlow;
         ctx.fillRect(0, 0, W, H);
+
+        ctx.fillStyle = 'rgba(12,4,9,0.76)';
+        ctx.beginPath();
+        ctx.moveTo(0, H * 0.52);
+        ctx.lineTo(W * 0.12, H * 0.43);
+        ctx.lineTo(W * 0.24, H * 0.5);
+        ctx.lineTo(W * 0.38, H * 0.35);
+        ctx.lineTo(W * 0.49, H * 0.48);
+        ctx.lineTo(W * 0.64, H * 0.33);
+        ctx.lineTo(W * 0.78, H * 0.48);
+        ctx.lineTo(W * 0.91, H * 0.37);
+        ctx.lineTo(W, H * 0.46);
+        ctx.lineTo(W, H * 0.66);
+        ctx.lineTo(0, H * 0.66);
+        ctx.closePath();
+        ctx.fill();
 
         ctx.fillStyle = 'rgba(18,6,10,0.92)';
         ctx.beginPath();
@@ -6080,6 +6295,26 @@
         ctx.lineTo(W * 0.59, H * 0.54);
         ctx.stroke();
         ctx.restore();
+
+        const stormPhase = nowS % 12;
+        const lightningFlash = reduceMotion ? 0 : Math.max(0, 1 - Math.abs(stormPhase - 8.5) / 0.18);
+        if (lightningFlash > 0) {
+          ctx.save();
+          ctx.globalAlpha = 0.25 + lightningFlash * 0.55;
+          ctx.strokeStyle = '#ffd5ce';
+          ctx.shadowColor = '#ff4350';
+          ctx.shadowBlur = 20;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(W * 0.24, 0);
+          ctx.lineTo(W * 0.28, H * 0.12);
+          ctx.lineTo(W * 0.25, H * 0.18);
+          ctx.lineTo(W * 0.36, H * 0.25);
+          ctx.lineTo(W * 0.33, H * 0.33);
+          ctx.lineTo(W * 0.47, H * 0.4);
+          ctx.stroke();
+          ctx.restore();
+        }
       }
       const laneGradient = ctx.createLinearGradient(0, CONFIG.wallTop, 0, CONFIG.wallBottom);
       laneGradient.addColorStop(0, 'rgba(72,24,28,0.18)');
@@ -6115,40 +6350,105 @@
         ctx.globalAlpha = 1;
       }
       const fog = ctx.createLinearGradient(0, H * 0.18, 0, H);
-      fog.addColorStop(0, 'rgba(255,92,92,0.02)');
-      fog.addColorStop(0.55, 'rgba(170,35,35,' + (0.1 + horrorLevel * 0.08) + ')');
-      fog.addColorStop(1, 'rgba(8,8,10,' + (0.3 + horrorLevel * 0.08) + ')');
+      fog.addColorStop(0, hellMode ? 'rgba(255,92,92,0.012)' : 'rgba(255,92,92,0.02)');
+      fog.addColorStop(0.55, hellMode ? 'rgba(170,35,35,' + (0.035 + horrorLevel * 0.025) + ')' : 'rgba(170,35,35,' + (0.075 + nightmarePulse * 0.06) + ')');
+      fog.addColorStop(1, hellMode ? 'rgba(8,8,10,' + (0.22 + horrorLevel * 0.04) + ')' : 'rgba(8,8,10,' + (0.24 + nightmarePulse * 0.08) + ')');
       ctx.fillStyle = fog;
       ctx.fillRect(0, 0, W, H);
-      if (hellMode) {
-        const lavaPulse = 0.62 + 0.22 * Math.sin(nowS * 3.1);
-        ctx.save();
-        const lavaHaze = ctx.createRadialGradient(W * 0.5, H * 0.76, 4, W * 0.5, H * 0.76, W * 0.62);
-        lavaHaze.addColorStop(0, 'rgba(255,73,16,0.32)');
-        lavaHaze.addColorStop(0.42, 'rgba(191,31,16,0.18)');
-        lavaHaze.addColorStop(1, 'rgba(100,12,12,0)');
-        ctx.fillStyle = lavaHaze;
+      if (difficultyKey !== 'super-hard-demon' && !reduceMotion) {
+        const fogDriftX = W * 0.5 + Math.sin(nowS * 0.4) * W * 0.62;
+        const fogDriftY = H * 0.76 + Math.sin(nowS * 0.24) * H * 0.05;
+        const driftingFog = ctx.createRadialGradient(fogDriftX, fogDriftY, 8, fogDriftX, fogDriftY, W * 0.48);
+        driftingFog.addColorStop(0, 'rgba(154,27,42,0.12)');
+        driftingFog.addColorStop(0.52, 'rgba(118,20,34,0.065)');
+        driftingFog.addColorStop(1, 'rgba(118,20,34,0)');
+        ctx.fillStyle = driftingFog;
         ctx.fillRect(0, 0, W, H);
-        ctx.globalAlpha = lavaPulse;
-        ctx.shadowColor = '#ff3b0b';
-        ctx.shadowBlur = 15;
-        ctx.strokeStyle = '#ff4b12';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
+
+        const shadowX = W - fogDriftX;
+        const shadowFog = ctx.createRadialGradient(shadowX, H * 0.84, 6, shadowX, H * 0.84, W * 0.4);
+        shadowFog.addColorStop(0, 'rgba(10,6,9,0.11)');
+        shadowFog.addColorStop(1, 'rgba(10,6,9,0)');
+        ctx.fillStyle = shadowFog;
+        ctx.fillRect(0, 0, W, H);
+
+        const sweepX = (nowS * 54) % (W + 280) - 140;
+        const searchlight = ctx.createLinearGradient(sweepX - 80, 0, sweepX + 100, H);
+        searchlight.addColorStop(0, 'rgba(255,60,78,0)');
+        searchlight.addColorStop(0.5, 'rgba(255,60,78,0.075)');
+        searchlight.addColorStop(1, 'rgba(255,60,78,0)');
+        ctx.fillStyle = searchlight;
+        ctx.fillRect(0, 0, W, H);
+      }
+      if (horrorEnabled && !reduceMotion && difficultyKey !== 'super-hard-demon') {
+        const watcherSway = reduceMotion ? 0 : Math.sin(nowS * 0.34) * W * 0.08;
+        const watcherPulse = reduceMotion ? 0.6 : 0.5 + 0.5 * Math.sin(nowS * 0.72);
+        const watcherLean = reduceMotion ? 0 : Math.sin(nowS * 0.31) * 0.08;
+        const lungePhase = nowS % 20;
+        const lunge = reduceMotion ? 0 : Math.pow(Math.max(0, 1 - Math.abs(lungePhase - 13) / 0.8), 2);
+        const eyeBlink = reduceMotion || Math.sin(nowS * 0.92 + Math.sin(nowS * 0.37) * 1.7) < 0.91 ? 1 : 0.08;
+        const watcherX = W * 0.68 + watcherSway - lunge * W * 0.09;
+        const watcherY = H * 0.42 + Math.sin(nowS * 0.24) * H * 0.035 + lunge * H * 0.05;
+        ctx.save();
+        ctx.translate(watcherX, watcherY);
+        ctx.rotate(watcherLean);
+        ctx.scale(1 + lunge * 0.7, 1 + lunge * 0.7);
+        ctx.globalAlpha = Math.min(0.82, 0.44 + watcherPulse * 0.16 + lunge * 0.18);
+        ctx.fillStyle = 'rgba(5,3,7,0.96)';
+        ctx.shadowColor = 'rgba(125,0,18,0.72)';
+        ctx.shadowBlur = 24;
         ctx.beginPath();
-        ctx.moveTo(W * 0.03, H * 0.78);
-        ctx.lineTo(W * 0.15, H * 0.75);
-        ctx.lineTo(W * 0.2, H * 0.83);
-        ctx.lineTo(W * 0.34, H * 0.86);
-        ctx.moveTo(W * 0.66, H * 0.8);
-        ctx.lineTo(W * 0.75, H * 0.76);
-        ctx.lineTo(W * 0.81, H * 0.86);
-        ctx.lineTo(W * 0.97, H * 0.82);
-        ctx.stroke();
+        ctx.moveTo(-20, -27);
+        ctx.quadraticCurveTo(-24, -61, 0, -64);
+        ctx.quadraticCurveTo(25, -60, 20, -27);
+        ctx.lineTo(30, -4);
+        ctx.lineTo(50, 42);
+        ctx.lineTo(39, 49);
+        ctx.lineTo(15, 20);
+        ctx.lineTo(25, 68);
+        ctx.lineTo(9, 76);
+        ctx.lineTo(-2, 31);
+        ctx.lineTo(-20, 72);
+        ctx.lineTo(-35, 67);
+        ctx.lineTo(-14, 14);
+        ctx.lineTo(-31, 51);
+        ctx.lineTo(-44, 44);
+        ctx.lineTo(-23, -8);
+        ctx.closePath();
+        ctx.fill();
         ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#ffd166';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
+        ctx.globalAlpha = Math.min(1, 0.58 + watcherPulse * 0.34 + lunge * 0.2) * eyeBlink;
+        ctx.fillStyle = '#ff4652';
+        ctx.shadowColor = '#e21f37';
+        ctx.shadowBlur = 12 + watcherPulse * 10;
+        ctx.beginPath();
+        ctx.ellipse(-8, -34, 3.4, 2, -0.15, 0, Math.PI * 2);
+        ctx.ellipse(8, -34, 3.4, 2, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        const distantReveal = reduceMotion ? 0.55 : Math.pow(Math.max(0, Math.sin(nowS * 0.18 + 1.2)), 3);
+        const distantX = W * 0.31 + Math.sin(nowS * 0.2) * W * 0.06;
+        const distantY = H * 0.34 + Math.sin(nowS * 0.22) * H * 0.035;
+        ctx.save();
+        ctx.globalAlpha = 0.12 + distantReveal * 0.78;
+        ctx.fillStyle = '#ff4652';
+        ctx.shadowColor = '#e21f37';
+        ctx.shadowBlur = 8 + distantReveal * 12;
+        ctx.beginPath();
+        ctx.ellipse(distantX - 6, distantY, 3.2, 1.8, -0.1, 0, Math.PI * 2);
+        ctx.ellipse(distantX + 6, distantY, 3.2, 1.8, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      if (hellMode) {
+        ctx.save();
+        const groundFog = ctx.createLinearGradient(0, H * 0.62, 0, H);
+        groundFog.addColorStop(0, 'rgba(190,66,48,0)');
+        groundFog.addColorStop(0.55, 'rgba(190,66,48,0.035)');
+        groundFog.addColorStop(1, 'rgba(5,8,9,0.14)');
+        ctx.fillStyle = groundFog;
+        ctx.fillRect(0, 0, W, H);
         ctx.restore();
       }
       if (gunKey === 'goldengun') {
@@ -6181,44 +6481,67 @@
         ctx.fillRect(CONFIG.breachX - 14, CONFIG.wallTop, W - CONFIG.breachX + 14, CONFIG.wallBottom - CONFIG.wallTop);
       }
       if (jumpScareTimer > 0) {
-        const scareT = Math.min(1, jumpScareTimer / (jumpScareKind === 'boss' ? 0.72 : 0.46));
-        const faceAlpha = Math.min(0.88, 0.18 + scareT * 0.92);
+        const nightmareMode = difficultyKey !== 'super-hard-demon';
+        const scareDuration = (jumpScareKind === 'boss' ? 1.05 : 0.8) * (nightmareMode ? 1.35 : 1);
+        const scareT = Math.min(1, jumpScareTimer / scareDuration);
+        const faceAlpha = Math.min(nightmareMode ? 0.99 : 0.96, 0.28 + scareT * 0.88);
         const eyeAlpha = Math.min(1, 0.4 + scareT * 1.2);
-        const centerX = W * 0.52 + Math.sin(nowS * 30) * 8;
-        const centerY = H * 0.34 + Math.cos(nowS * 24) * 5;
+        const centerX = W * 0.52 + (reduceMotion ? 0 : Math.sin(nowS * 30) * 14);
+        const centerY = H * 0.38 + (reduceMotion ? 0 : Math.cos(nowS * 24) * 9);
+        const faceScale = nightmareMode ? 1.95 : 1.72;
+        const faceWidth = (jumpScareKind === 'boss' ? 178 : 144) * faceScale;
+        const faceHeight = (jumpScareKind === 'boss' ? 136 : 108) * faceScale;
         ctx.save();
+        ctx.fillStyle = 'rgba(125,0,16,' + (0.2 + scareT * 0.3) + ')';
+        ctx.fillRect(0, 0, W, H);
         ctx.globalAlpha = faceAlpha;
-        ctx.fillStyle = jumpScareKind === 'boss' ? 'rgba(18,22,18,0.94)' : 'rgba(12,10,10,0.9)';
+        ctx.fillStyle = 'rgba(5,2,5,0.98)';
         ctx.beginPath();
-        ctx.ellipse(centerX, centerY, jumpScareKind === 'boss' ? 178 : 144, jumpScareKind === 'boss' ? 136 : 108, 0, 0, Math.PI * 2);
+        ctx.moveTo(centerX - faceWidth * 0.48, centerY - faceHeight * 0.48);
+        ctx.lineTo(centerX - faceWidth * 0.78, centerY - faceHeight * 1.16);
+        ctx.lineTo(centerX - faceWidth * 0.14, centerY - faceHeight * 0.62);
+        ctx.closePath();
+        ctx.moveTo(centerX + faceWidth * 0.48, centerY - faceHeight * 0.48);
+        ctx.lineTo(centerX + faceWidth * 0.78, centerY - faceHeight * 1.16);
+        ctx.lineTo(centerX + faceWidth * 0.14, centerY - faceHeight * 0.62);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,56,28,' + Math.min(0.9, eyeAlpha * 0.65) + ')';
+        ctx.lineWidth = 7;
+        ctx.stroke();
+        ctx.fillStyle = jumpScareKind === 'boss' ? 'rgba(18,22,18,0.94)' : 'rgba(12,10,10,0.9)';
+        ctx.shadowColor = nightmareMode ? 'rgba(190,12,28,0.72)' : 'transparent';
+        ctx.shadowBlur = nightmareMode ? 34 : 0;
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY, faceWidth, faceHeight, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = 'rgba(0,0,0,0.92)';
         ctx.beginPath();
-        ctx.ellipse(centerX, centerY + 94, 118, 54, 0, 0, Math.PI, false);
+        ctx.ellipse(centerX, centerY + faceHeight * 0.62, faceWidth * 0.62, faceHeight * 0.28, 0, 0, Math.PI, false);
         ctx.fill();
         ctx.globalAlpha = eyeAlpha;
         ctx.fillStyle = 'rgba(255,32,32,0.96)';
         ctx.beginPath();
-        ctx.moveTo(centerX - 92, centerY - 18);
-        ctx.lineTo(centerX - 30, centerY - 34);
-        ctx.lineTo(centerX - 54, centerY + 12);
+        ctx.moveTo(centerX - faceWidth * 0.48, centerY - faceHeight * 0.06);
+        ctx.lineTo(centerX - faceWidth * 0.16, centerY - faceHeight * 0.14);
+        ctx.lineTo(centerX - faceWidth * 0.28, centerY + faceHeight * 0.08);
         ctx.closePath();
         ctx.fill();
         ctx.beginPath();
-        ctx.moveTo(centerX + 92, centerY - 18);
-        ctx.lineTo(centerX + 30, centerY - 34);
-        ctx.lineTo(centerX + 54, centerY + 12);
+        ctx.moveTo(centerX + faceWidth * 0.48, centerY - faceHeight * 0.06);
+        ctx.lineTo(centerX + faceWidth * 0.16, centerY - faceHeight * 0.14);
+        ctx.lineTo(centerX + faceWidth * 0.28, centerY + faceHeight * 0.08);
         ctx.closePath();
         ctx.fill();
         ctx.strokeStyle = 'rgba(255,240,240,' + Math.min(1, eyeAlpha * 0.92) + ')';
-        ctx.lineWidth = 5;
+        ctx.lineWidth = Math.max(3, faceWidth * 0.035);
         ctx.beginPath();
-        ctx.moveTo(centerX - 58, centerY + 52);
-        ctx.lineTo(centerX - 20, centerY + 86);
-        ctx.lineTo(centerX + 16, centerY + 48);
-        ctx.lineTo(centerX + 62, centerY + 84);
+        ctx.moveTo(centerX - faceWidth * 0.34, centerY + faceHeight * 0.48);
+        ctx.lineTo(centerX - faceWidth * 0.12, centerY + faceHeight * 0.72);
+        ctx.lineTo(centerX + faceWidth * 0.1, centerY + faceHeight * 0.46);
+        ctx.lineTo(centerX + faceWidth * 0.36, centerY + faceHeight * 0.7);
         ctx.stroke();
-        ctx.globalAlpha = Math.min(0.62, scareT * 0.72);
+        ctx.globalAlpha = Math.min(0.3, scareT * 0.34);
         ctx.fillStyle = 'rgba(255,255,255,0.82)';
         for (let sy = 0; sy < H; sy += 10) ctx.fillRect(0, sy, W, 2);
         ctx.restore();
@@ -6943,7 +7266,15 @@
       vignette.addColorStop(1, 'rgba(0,0,0,0.82)');
       ctx.fillStyle = vignette;
       ctx.fillRect(0, 0, W, H);
-      if (horrorPulse > 0.88) {
+      if (hellMode) {
+        const edgePulse = ctx.createRadialGradient(W * 0.5, H * 0.5, H * 0.12, W * 0.5, H * 0.5, Math.max(W, H) * 0.82);
+        edgePulse.addColorStop(0, 'rgba(0,0,0,0)');
+        edgePulse.addColorStop(0.42, 'rgba(70,0,8,0.06)');
+        edgePulse.addColorStop(1, 'rgba(132,5,16,' + (0.18 + fearBeat * 0.2) + ')');
+        ctx.fillStyle = edgePulse;
+        ctx.fillRect(0, 0, W, H);
+      }
+      if (hellMode && horrorPulse > 0.88) {
         ctx.fillStyle = 'rgba(183,28,28,0.09)';
         ctx.fillRect(0, 0, W, H);
       }
@@ -7312,7 +7643,9 @@
     });
     el.difficulty.addEventListener('change', function () {
       difficultyKey = el.difficulty.value;
+      document.body.dataset.difficulty = difficultyKey;
       document.body.classList.toggle('hell-mode', difficultyKey === 'super-hard-demon');
+      document.body.classList.toggle('nightmare-mode', difficultyKey !== 'super-hard-demon');
       reset();
     });
     if (el.power900Btn) {

@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^node -e 'const fs=require\\(\"fs\"\\); const html=fs\\.readFileSync\\(\"zombie-max-2\\.0/index\\.html\",\"utf8\"\\); const scripts=\\[\\.\\.\\.html\\.matchAll\\(/<script\\(\\?:\\\\s\\[\\^>\\]\\*\\)\\?>\\(\\[\\\\s\\\\S\\]\\*\\?\\)<\\\\/script>/gi\\)\\]\\.map\\(m=>m\\[1\\]\\)\\.filter\\(s=>s\\.trim\\(\\)\\); for \\(const script of scripts\\) new Function\\(script\\); const mode=html\\.match\\(/\\\\x27super-hard-demon\\\\x27:\\\\s\\*\\\\\\{\\(\\[\\^\\}\\]\\+\\)\\\\\\}/\\); if\\(!mode\\) throw Error\\(\"demon profile missing\"\\); const p=Object\\.fromEntries\\(\\[\\.\\.\\.mode\\[1\\]\\.matchAll\\(/\\(\\\\w\\+\\):\\\\s\\*\\(\\[\\\\d\\.\\]\\+\\)/g\\)\\]\\.map\\(m=>\\[m\\[1\\],Number\\(m\\[2\\]\\)\\]\\)\\); const interval=0\\.72\\*p\\.spawnEveryMul; const bossEvery=Math\\.max\\(2,12\\+p\\.bossEveryAdd\\); if\\(interval>=0\\.396\\|\\|p\\.spawnEveryMin>=0\\.30\\|\\|p\\.burstCap<=19\\|\\|bossEvery!==2\\) throw Error\\(\"demon tuning did not increase pressure\"\\); console\\.log\\(`Parsed \\$\\{scripts\\.length\\} inline script\\(s\\); demon base spawn \\$\\{interval\\.toFixed\\(3\\)\\}s, floor \\$\\{p\\.spawnEveryMin\\}s, burst cap \\$\\{p\\.burstCap\\}, boss every \\$\\{bossEvery\\} cycles\\.`\\);'$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

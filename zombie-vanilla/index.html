@@ -4,24 +4,65 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Napór Zombie (Vanilla)</title>
-<meta name="theme-color" content="#12181f" />
+<meta name="theme-color" content="#070b14" />
 <style>
+  :root {
+    --bg-0: #070b14;
+    --bg-1: #0d1424;
+    --bg-2: #101c32;
+    --panel: rgba(12, 18, 34, 0.76);
+    --panel-border: rgba(123, 211, 255, 0.28);
+    --panel-shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+    --cyan: #7be6ff;
+    --blue: #51a8ff;
+    --lime: #9dff7a;
+    --amber: #ffc86a;
+    --text: #eef7ff;
+    --muted: #8ca4c2;
+  }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0; padding: 0; overscroll-behavior: none;
-    background: #12181f; color: #e8edf2;
-    font-family: "Segoe UI", system-ui, sans-serif;
-    -webkit-user-select: none; user-select: none;
-    width: 100%; height: 100%;
+    margin: 0;
+    padding: 0;
+    overscroll-behavior: none;
+    background:
+      radial-gradient(circle at top, rgba(84, 171, 255, 0.18), transparent 34%),
+      radial-gradient(circle at 20% 20%, rgba(69, 255, 217, 0.1), transparent 24%),
+      linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 48%, #05070d 100%);
+    color: var(--text);
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
   }
-  #wrap { max-width: 1320px; margin: 0 auto; padding: 0 10px; height: 100%; display: flex; flex-direction: column; }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(123, 230, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(123, 230, 255, 0.05) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(180deg, rgba(255,255,255,0.65), transparent 85%);
+    pointer-events: none;
+  }
+  #wrap {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 18px 14px 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
   #layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 220px;
+    grid-template-columns: minmax(0, 1fr) 240px;
     grid-template-areas: "stage help";
     row-gap: 0;
-    column-gap: 14px;
+    column-gap: 18px;
     align-items: start;
     flex: 1;
     min-height: 0;
@@ -29,13 +70,13 @@
   #sidebar {
     grid-area: help;
     display: grid;
-    gap: 6px;
+    gap: 8px;
     align-content: start;
   }
   #hud {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 4px;
+    gap: 8px;
     font-size: 11px;
     padding: 0;
   }
@@ -45,11 +86,13 @@
     justify-content: space-between;
     gap: 8px;
     min-width: 0;
-    min-height: 24px;
-    padding: 4px 8px;
-    border: 1px solid #2f3d4e;
-    border-radius: 6px;
-    background: #18212c;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(16, 28, 51, 0.92), rgba(8, 14, 27, 0.88));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 12px 24px rgba(0,0,0,.24);
+    backdrop-filter: blur(8px);
   }
   #hud .stat span,
   #hud .stat b,
@@ -61,39 +104,42 @@
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
-  #hud .stat span { font-size: 10px; }
-  #hud .stat b { font-size: 11px; }
-  #hud b { color: #fff; }
-  #hud b.soft { color: #c7d3df; font-weight: 600; }
+  #hud .stat span {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .14em;
+  }
+  #hud .stat b { font-size: 12px; }
+  #hud b { color: var(--text); }
+  #hud b.soft { color: #c8d8ea; font-weight: 600; }
   #ingameHudTop, #ingameHudBottom {
     position: absolute;
-    right: 2px;
-    width: 92px;
+    right: 10px;
+    width: 126px;
     z-index: 2;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 6px;
     font-size: 6px;
     pointer-events: none;
   }
-  #ingameHudTop {
-    top: 6px;
-  }
-  #ingameHudBottom {
-    bottom: 6px;
-  }
+  #ingameHudTop { top: 10px; }
+  #ingameHudBottom { bottom: 10px; }
   #ingameHudTop .stat,
   #ingameHudBottom .stat {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 3px;
+    gap: 8px;
     min-width: 0;
-    min-height: 14px;
-    padding: 2px 3px;
-    border: 0;
-    border-radius: 3px;
-    background: rgba(15,20,27,.22);
+    min-height: 28px;
+    padding: 7px 9px;
+    border: 1px solid rgba(123, 230, 255, 0.16);
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(9, 16, 29, 0.78), rgba(5, 10, 21, 0.72));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 18px rgba(0,0,0,.18);
+    backdrop-filter: blur(10px);
   }
   #ingameHudTop .stat span,
   #ingameHudTop .stat b,
@@ -105,118 +151,98 @@
     hyphens: auto;
   }
   #ingameHudTop .stat span,
-  #ingameHudBottom .stat span { font-size: 0.8vw; line-height: 1.2; }
+  #ingameHudBottom .stat span { font-size: 0.72vw; line-height: 1.2; text-transform: uppercase; letter-spacing: .12em; }
   #ingameHudTop .stat b,
   #ingameHudBottom .stat b {
-    font-size: 0.9vw;
+    font-size: 0.88vw;
     text-align: right;
     white-space: normal;
     font-variant-numeric: tabular-nums;
     line-height: 1.2;
   }
   #ingameHudTop span,
-  #ingameHudBottom span { color: rgba(232,237,242,.58); }
+  #ingameHudBottom span { color: rgba(201,224,255,.62); }
   #ingameHudTop b,
-  #ingameHudBottom b { color: rgba(255,255,255,.72); }
+  #ingameHudBottom b { color: rgba(246,251,255,.9); }
   #ingameHudTop b.soft,
-  #ingameHudBottom b.soft { color: rgba(199,211,223,.62); font-weight: 600; }
+  #ingameHudBottom b.soft { color: rgba(199,211,223,.76); font-weight: 600; }
   #difficulty {
-    background: #202b3a; color: #e8edf2; border: 1px solid #3a4c60;
-    border-radius: 6px; padding: 2px 6px; font-family: inherit; font-size: 11px;
+    background: rgba(10, 17, 30, 0.9);
+    color: var(--text);
+    border: 1px solid rgba(123, 230, 255, 0.24);
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-family: inherit;
+    font-size: 11px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
   }
   .base { min-width: 0; }
-  .bar { flex: 1; height: 14px; border-radius: 7px; background: #26313f; border: 1px solid #3a4c60; overflow: hidden; }
-  .bar > i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #ef5350, #b71c1c); transition: width .12s linear; }
-  #stage { position: relative; border-radius: 0; overflow: hidden; box-shadow: none; }
+  .bar { flex: 1; height: 14px; border-radius: 999px; background: rgba(24,36,56,.85); border: 1px solid rgba(123,230,255,.18); overflow: hidden; box-shadow: inset 0 0 18px rgba(0,0,0,.3); }
+  .bar > i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #ff5f6d, #ffb86b 52%, #fff4bf); box-shadow: 0 0 18px rgba(255,95,109,.45); transition: width .12s linear; }
+  #stage { position: relative; border-radius: 26px; overflow: hidden; box-shadow: var(--panel-shadow); border: 1px solid rgba(123, 230, 255, 0.18); background: linear-gradient(180deg, rgba(11, 17, 30, 0.92), rgba(4, 8, 18, 0.96)); }
   #stageCol { min-width: 0; grid-area: stage; max-width: 920px; width: 100%; margin: 0 auto; }
-  canvas#game { display: block; width: 100%; height: auto; background: #0f141b; touch-action: none; }
+  #stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 16% 18%, rgba(81, 168, 255, 0.2), transparent 20%),
+      radial-gradient(circle at 84% 14%, rgba(123, 230, 255, 0.16), transparent 22%),
+      linear-gradient(180deg, rgba(255,255,255,0.04), transparent 36%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  canvas#game { display: block; width: 100%; height: auto; background: #050912; touch-action: none; position: relative; z-index: 0; }
   #overlay {
     position: absolute; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 14px; background: rgba(8,12,17,.78);
+    align-items: center; justify-content: center; gap: 14px; background: radial-gradient(circle, rgba(9,18,35,.62), rgba(3,6,12,.9));
     z-index: 4;
   }
   #overlay.hidden { display: none; }
-  #overlay h2 { margin: 0; font-size: 30px; }
-  #overlay p { margin: 0; opacity: .85; }
+  #overlay h2 { margin: 0; font-size: 34px; letter-spacing: .18em; text-transform: uppercase; text-shadow: 0 0 20px rgba(123,230,255,.22); }
+  #overlay p { margin: 0; opacity: .85; color: var(--muted); }
   #overlay button, .back {
-    cursor: pointer; border: 0; border-radius: 8px; padding: 10px 18px;
-    font-size: 15px; font-weight: 600; background: #4f9dff; color: #fff; text-decoration: none;
+    cursor: pointer; border: 1px solid rgba(123, 230, 255, 0.28); border-radius: 999px; padding: 10px 18px;
+    font-size: 15px; font-weight: 700; background: linear-gradient(135deg, rgba(81,168,255,.92), rgba(64,232,255,.92)); color: #04111c; text-decoration: none;
+    box-shadow: 0 10px 24px rgba(81,168,255,.28);
   }
-  #overlay button:hover { background: #3b8bf0; }
+  #overlay button:hover { filter: brightness(1.08); }
   #alert {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,.22);
-    background: rgba(7,11,16,.72); color: #ffd180; font-weight: 700; letter-spacing: .8px;
-    opacity: 0; transition: opacity .18s linear; pointer-events: none;
+    padding: 10px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14);
+    background: rgba(6,12,22,.78); color: #ffd180; font-weight: 800; letter-spacing: .14em;
+    box-shadow: 0 14px 30px rgba(0,0,0,.3); opacity: 0; transition: opacity .18s linear; pointer-events: none;
     z-index: 3;
   }
   #alert.show { opacity: 1; }
   .homeLink:hover { opacity: .7; }
   .variant-badge {
-    position: absolute; bottom: 6px; right: 6px; z-index: 2;
-    font-size: 18px; font-weight: 900; letter-spacing: 2px;
-    background: rgba(114, 9, 183, 0.2); border: 2px solid #7209b7;
-    padding: 4px 12px; border-radius: 6px; color: #7209b7;
-    opacity: 0.7; transition: opacity .15s ease;
+    position: absolute; bottom: 12px; left: 12px; z-index: 2; font-size: 12px; font-weight: 800; letter-spacing: .28em;
+    background: rgba(11, 18, 32, 0.78); border: 1px solid rgba(123, 230, 255, 0.24);
+    padding: 8px 12px; border-radius: 999px; color: var(--cyan); opacity: 0.92; transition: opacity .15s ease;
+    text-transform: uppercase; box-shadow: 0 10px 22px rgba(0,0,0,.26);
   }
   #stage:hover .variant-badge { opacity: 1; }
   #mobileBombBtn {
-    display: none;
-    position: absolute;
-    left: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 56px;
-    height: 56px;
-    border: 0;
-    border-radius: 50%;
-    background: rgba(239,83,80,.42);
-    color: rgba(255,255,255,.82);
-    font-size: 24px;
-    font-weight: 700;
-    cursor: pointer;
-    z-index: 2;
-    touch-action: manipulation;
-    pointer-events: auto;
+    display: none; position: absolute; left: 6px; top: 50%; transform: translateY(-50%); width: 56px; height: 56px;
+    border: 1px solid rgba(255,255,255,.12); border-radius: 50%; background: rgba(255,95,109,.28); color: rgba(255,255,255,.92);
+    font-size: 24px; font-weight: 700; cursor: pointer; z-index: 2; touch-action: manipulation; pointer-events: auto; box-shadow: 0 8px 24px rgba(0,0,0,.28);
   }
-  #mobileBombBtn:active {
-    background: rgba(239,83,80,.62);
-    transform: translateY(-50%) scale(0.92);
-  }
+  #mobileBombBtn:active { background: rgba(239,83,80,.52); transform: translateY(-50%) scale(0.92); }
   #mobileNukeBtn {
-    display: none;
-    position: absolute;
-    left: 6px;
-    top: calc(50% + 40px);
-    width: 56px;
-    height: 56px;
-    border: 0;
-    border-radius: 50%;
-    background: rgba(255,193,7,.42);
-    color: rgba(255,255,255,.9);
-    font-size: 22px;
-    font-weight: 700;
-    cursor: pointer;
-    z-index: 2;
-    touch-action: manipulation;
-    pointer-events: auto;
+    display: none; position: absolute; left: 6px; top: calc(50% + 40px); width: 56px; height: 56px;
+    border: 1px solid rgba(255,255,255,.12); border-radius: 50%; background: rgba(255,193,7,.26); color: rgba(255,255,255,.9);
+    font-size: 22px; font-weight: 700; cursor: pointer; z-index: 2; touch-action: manipulation; pointer-events: auto; box-shadow: 0 8px 24px rgba(0,0,0,.28);
   }
-  #mobileNukeBtn:active {
-    background: rgba(255,193,7,.62);
-    transform: scale(0.92);
-  }
+  #mobileNukeBtn:active { background: rgba(255,193,7,.46); transform: scale(0.92); }
   #help {
-    font-size: 9px; line-height: 1.22; opacity: .9;
-    display: grid; gap: 3px;
-    padding: 6px 8px;
-    border: 1px solid #2f3d4e;
-    border-radius: 8px;
-    background: #18212c;
+    font-size: 9px; line-height: 1.28; opacity: .96; display: grid; gap: 3px;
+    padding: 10px; border: 1px solid var(--panel-border); border-radius: 18px; background: var(--panel); box-shadow: var(--panel-shadow); backdrop-filter: blur(12px);
   }
-  #help span, #help a { min-height: 14px; display: flex; align-items: center; }
-  .back { background: #2c3a4b; color: #9fb2c6; padding: 2px 7px; font-size: 9px; }
-  .back:hover { background: #34465b; color: #e8edf2; }
-  kbd { background: #2c3a4b; border: 1px solid #3a4c60; border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; font-size: 9px; }
+  #help span, #help a { min-height: 16px; display: flex; align-items: center; color: #cfdef0; }
+  .back { background: rgba(18, 30, 49, 0.82); color: var(--cyan); padding: 6px 10px; font-size: 10px; }
+  .back:hover { background: rgba(29, 46, 72, 0.92); color: #f3fbff; }
+  kbd { background: rgba(17, 28, 46, 0.88); border: 1px solid rgba(123,230,255,.24); border-bottom-width: 2px; border-radius: 999px; padding: 2px 7px; font-size: 9px; color: var(--text); }
   @media (max-width: 980px) {
     #layout {
       grid-template-columns: 1fr;
@@ -447,6 +473,7 @@
     let lastTouchTapAt = 0;
     let last = 0;
     let shotSfxCd = 0;
+    let renderTick = 0;
 
     // ---- Dźwięk (Web Audio, syntezowany) ----
     let audioCtx = null, master = null, muted = false;
@@ -457,7 +484,7 @@
         if (!AC) return;
         audioCtx = new AC();
         master = audioCtx.createGain();
-        master.gain.value = 0.18;
+        master.gain.value = 0.10;
         master.connect(audioCtx.destination);
       }
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -1131,55 +1158,196 @@
 
     // ---- Rysowanie ----
     function drawBand(band, color, label, hits, per) {
-      ctx.fillStyle = 'rgba(255,255,255,.03)'; ctx.fillRect(0, band.top, CONFIG.panel.x, band.bot - band.top);
+      const bandHeight = band.bot - band.top;
+      const grad = ctx.createLinearGradient(0, band.top, CONFIG.panel.x, band.bot);
+      grad.addColorStop(0, 'rgba(14, 24, 44, 0.88)');
+      grad.addColorStop(1, 'rgba(6, 10, 20, 0.92)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, band.top, CONFIG.panel.x, bandHeight);
       const frac = Math.max(0, Math.min(1, hits / per));
-      ctx.fillStyle = color; ctx.globalAlpha = 0.30;
-      ctx.fillRect(0, band.bot - (band.bot - band.top) * frac, CONFIG.panel.x, (band.bot - band.top) * frac);
+      const fillGrad = ctx.createLinearGradient(0, band.bot, CONFIG.panel.x, band.top);
+      fillGrad.addColorStop(0, color);
+      fillGrad.addColorStop(1, 'rgba(255,255,255,0.18)');
+      ctx.fillStyle = fillGrad;
+      ctx.globalAlpha = 0.38;
+      ctx.fillRect(0, band.bot - bandHeight * frac, CONFIG.panel.x, bandHeight * frac);
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(1, band.top + 1, CONFIG.panel.x - 2, band.bot - band.top - 2);
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 16;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, band.top + 1, CONFIG.panel.x - 2, bandHeight - 2);
+      ctx.shadowBlur = 0;
       ctx.save();
       ctx.translate(CONFIG.panel.x / 2, (band.top + band.bot) / 2); ctx.rotate(-Math.PI / 2);
-      ctx.fillStyle = color; ctx.font = 'bold 16px "Segoe UI", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = color; ctx.font = '700 14px "Trebuchet MS", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(label, 0, 0);
       ctx.restore();
 
       ctx.fillStyle = color;
-      ctx.font = 'bold 15px "Segoe UI", sans-serif';
+      ctx.font = '700 14px "Trebuchet MS", sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
       ctx.fillText(hits + ' / ' + per, CONFIG.panel.x + 14, (band.top + band.bot) / 2);
     }
 
+    function drawBackground() {
+      const bg = ctx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, '#050a13');
+      bg.addColorStop(0.4, '#08111f');
+      bg.addColorStop(1, '#03060d');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      const skyline = ctx.createLinearGradient(0, 0, W, 0);
+      skyline.addColorStop(0, 'rgba(28, 98, 176, 0.16)');
+      skyline.addColorStop(0.55, 'rgba(55, 205, 255, 0.08)');
+      skyline.addColorStop(1, 'rgba(181, 95, 255, 0.12)');
+      ctx.fillStyle = skyline;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.strokeStyle = 'rgba(123, 230, 255, 0.08)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= W; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x + 0.5, 0);
+        ctx.lineTo(x + 0.5, H);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= H; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y + 0.5);
+        ctx.lineTo(W, y + 0.5);
+        ctx.stroke();
+      }
+
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      for (let i = 0; i < 48; i++) {
+        const px = (i * 137.7) % W;
+        const py = (i * 63.4 + renderTick * (8 + (i % 5))) % H;
+        const size = 1 + (i % 3);
+        ctx.fillStyle = i % 4 === 0 ? 'rgba(123,230,255,.7)' : 'rgba(255,255,255,.42)';
+        ctx.fillRect(px, py, size, size);
+      }
+      ctx.restore();
+
+      const scanY = 70 + Math.sin(renderTick * 0.9) * 24;
+      const scan = ctx.createLinearGradient(0, scanY - 30, 0, scanY + 30);
+      scan.addColorStop(0, 'rgba(81,168,255,0)');
+      scan.addColorStop(0.5, 'rgba(81,168,255,0.14)');
+      scan.addColorStop(1, 'rgba(81,168,255,0)');
+      ctx.fillStyle = scan;
+      ctx.fillRect(0, scanY - 30, W, 60);
+    }
+
+    function drawBaseZone() {
+      const shieldGrad = ctx.createLinearGradient(CONFIG.breachX - 60, 0, W, 0);
+      shieldGrad.addColorStop(0, 'rgba(76, 213, 255, 0.04)');
+      shieldGrad.addColorStop(1, 'rgba(76, 213, 255, 0.18)');
+      ctx.fillStyle = shieldGrad;
+      ctx.fillRect(CONFIG.breachX - 36, CONFIG.wallTop, W - (CONFIG.breachX - 36), CONFIG.wallBottom - CONFIG.wallTop);
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(123,230,255,.46)';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = 'rgba(123,230,255,.5)';
+      ctx.shadowBlur = 18;
+      ctx.setLineDash([10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(CONFIG.breachX, CONFIG.wallTop);
+      ctx.lineTo(CONFIG.breachX, CONFIG.wallBottom);
+      ctx.stroke();
+      ctx.restore();
+      ctx.setLineDash([]);
+    }
+
+    function drawZombie(z, colorFill, colorStroke) {
+      const glow = z.boss ? 'rgba(255,138,101,.38)' : 'rgba(123,230,255,.16)';
+      ctx.save();
+      ctx.shadowColor = glow;
+      ctx.shadowBlur = z.boss ? 18 : 10;
+      ctx.fillStyle = colorFill;
+      ctx.strokeStyle = colorStroke;
+      ctx.lineWidth = z.boss ? 3 : 2;
+      ctx.beginPath();
+      ctx.arc(z.x, z.y, z.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.strokeStyle = 'rgba(255,255,255,.2)';
+      ctx.lineWidth = Math.max(1, z.r * 0.18);
+      ctx.beginPath();
+      ctx.moveTo(z.x - z.r * 0.8, z.y + z.r * 0.2);
+      ctx.lineTo(z.x + z.r * 0.8, z.y + z.r * 0.2);
+      ctx.stroke();
+
+      const eyeY = z.y - z.r * 0.18;
+      const eyeOffset = z.r * 0.35;
+      ctx.fillStyle = z.boss ? '#fff3e0' : '#ecfff2';
+      ctx.beginPath();
+      ctx.arc(z.x - eyeOffset, eyeY, Math.max(1.6, z.r * 0.18), 0, Math.PI * 2);
+      ctx.arc(z.x + eyeOffset, eyeY, Math.max(1.6, z.r * 0.18), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = z.boss ? '#ff7043' : '#1a2a18';
+      ctx.beginPath();
+      ctx.arc(z.x - eyeOffset, eyeY, Math.max(0.8, z.r * 0.09), 0, Math.PI * 2);
+      ctx.arc(z.x + eyeOffset, eyeY, Math.max(0.8, z.r * 0.09), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawSquadMember(x, y, leader) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(93, 201, 255, 0.92)';
+      ctx.shadowColor = 'rgba(93, 201, 255, 0.5)';
+      ctx.shadowBlur = 12;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 18, y + 1);
+      ctx.lineTo(x + 8, y + 1);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = leader ? '#f3fbff' : '#67c4ff';
+      ctx.strokeStyle = 'rgba(255,255,255,.16)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(x, y, CONFIG.shooter.r + 0.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(7, 16, 28, 0.9)';
+      ctx.fillRect(x + 6, y - 2, 7, 4);
+      ctx.restore();
+    }
+
     function render() {
-      ctx.fillStyle = '#0f141b'; ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = '#1a2230'; ctx.fillRect(0, CONFIG.wallTop, W, CONFIG.wallBottom - CONFIG.wallTop);
+      drawBackground();
       // pasy paneli na lewej ścianie
       drawBand(recruitBand, '#8bd450', 'LUDZIE', recruitHits, recruitNeed);
       drawBand(powerBand, '#ffb74d', 'MOC', powerHits, powerNeed);
-      // linia bazy
-      ctx.strokeStyle = 'rgba(255,82,82,.7)'; ctx.lineWidth = 3; ctx.setLineDash([10, 8]);
-      ctx.beginPath(); ctx.moveTo(CONFIG.breachX, CONFIG.wallTop); ctx.lineTo(CONFIG.breachX, CONFIG.wallBottom); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(255,82,82,.10)'; ctx.fillRect(CONFIG.breachX, CONFIG.wallTop, W - CONFIG.breachX, CONFIG.wallBottom - CONFIG.wallTop);
+      drawBaseZone();
       // zombie
       const zc = zombieColorForWave(wave);
       for (const z of zombies) {
         const mini = z.miniType ? CONFIG.miniBoss[z.miniType] : null;
-        ctx.fillStyle = z.boss ? (mini ? mini.color : '#ff8a65') : zc.fill;
-        ctx.strokeStyle = z.boss ? '#bf4c2b' : zc.stroke;
-        ctx.lineWidth = z.boss ? 3 : 2;
-        ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        drawZombie(z, z.boss ? (mini ? mini.color : '#ff8a65') : zc.fill, z.boss ? '#bf4c2b' : zc.stroke);
         if (z.hp < z.maxhp) {
           const bw = z.r * 2.1;
-          ctx.fillStyle = '#0f141b'; ctx.fillRect(z.x - bw / 2, z.y - z.r - 10, bw, 5);
+          ctx.fillStyle = 'rgba(6,10,18,.88)'; ctx.fillRect(z.x - bw / 2, z.y - z.r - 12, bw, 6);
           ctx.fillStyle = z.boss ? '#ffb199' : '#8bd450';
           ctx.fillRect(z.x - bw / 2, z.y - z.r - 10, bw * (z.hp / z.maxhp), 5);
         }
       }
       // dropy broni
       for (const p of pickups) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(41, 182, 246, 0.52)';
+        ctx.shadowBlur = 18;
         ctx.fillStyle = p.color;
-        ctx.strokeStyle = '#0d2330';
+        ctx.strokeStyle = '#dff8ff';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(p.x, p.y - p.r);
@@ -1189,25 +1357,33 @@
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
       }
-      // zasięg pokrycia kolumny (pomocniczo)
+      // zasieg pokrycia kolumny
       const half = squadHalfHeight();
-      ctx.fillStyle = 'rgba(79,157,255,.12)';
+      const coverage = ctx.createLinearGradient(CONFIG.breachX, 0, W, 0);
+      coverage.addColorStop(0, 'rgba(79,157,255,.08)');
+      coverage.addColorStop(1, 'rgba(79,157,255,.18)');
+      ctx.fillStyle = coverage;
       ctx.fillRect(CONFIG.breachX, colY - half - 8, W - CONFIG.breachX, (half + 8) * 2);
-      // zwarta kupa ekipy
+      ctx.strokeStyle = 'rgba(123,230,255,.26)';
+      ctx.strokeRect(CONFIG.breachX, colY - half - 8, W - CONFIG.breachX, (half + 8) * 2);
+      // ekipa
       for (let i = 0; i < N; i++) {
         const o = memberOffset(i);
         const x = CONFIG.squadX + o.x;
         const y = colY + o.y;
-        ctx.strokeStyle = '#111'; ctx.lineCap = 'round'; ctx.lineWidth = 7;
-        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 18, y); ctx.stroke();
-        ctx.fillStyle = i === 0 ? '#dbe6f2' : '#4f9dff';
-        ctx.beginPath(); ctx.arc(x, y, CONFIG.shooter.r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#2b6cc0'; ctx.lineWidth = 2; ctx.stroke();
+        drawSquadMember(x, y, i === 0);
       }
       // pociski
-      ctx.fillStyle = '#ffe082';
-      for (const b of bullets) { ctx.fillRect(b.x - 5, b.y - 2, 10, 4); }
+      for (const b of bullets) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 224, 130, 0.95)';
+        ctx.shadowColor = 'rgba(255, 224, 130, 0.7)';
+        ctx.shadowBlur = 10;
+        ctx.fillRect(b.x - 6, b.y - 2, 12, 4);
+        ctx.restore();
+      }
       // efekty
       for (const f of fx) {
         ctx.globalAlpha = Math.max(0, f.life * 3.5);
@@ -1363,7 +1539,7 @@
       if (e.key === 'r' || e.key === 'R') { reset(); return; }
       if (e.key === 'm' || e.key === 'M') {
         muted = !muted;
-        if (master) master.gain.value = muted ? 0 : 0.18;
+        if (master) master.gain.value = muted ? 0 : 0.10;
         return;
       }
       if (e.code === 'KeyP' || e.key === 'p' || e.key === 'P') {
@@ -1415,6 +1591,7 @@
     // ---- Pętla ----
     function frame(t) {
       const dt = Math.min(0.05, last ? (t - last) / 1000 : 0); last = t;
+      renderTick += dt;
       if (state === 'play') update(dt);
       render();
       requestAnimationFrame(frame);
