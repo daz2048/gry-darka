@@ -5,6 +5,8 @@ Listed as **Mario 1.0** in the collection's main menu.
 100 generated levels across three worlds, coins, hidden star bonuses, three stompable enemy types (mosslings,
 beetles, and flying moths), shield blocks,
 moving platforms, checkpoints, and a final gate. No Nintendo assets or levels.
+The Diamond skin adds invulnerability, faster movement, higher jumps, triple
+coin rewards, and a lucky block that opens every 12 seconds.
 
 An original looping chiptune soundtrack plays alongside synthesized effects
 for jumps, landings, coins, bonuses, shield blocks, enemy hits, checkpoints,

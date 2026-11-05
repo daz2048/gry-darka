@@ -98,10 +98,11 @@ const HERO_SKINS = [
   { id: 'berry', name: 'Jagodowy', price: 305, palette: { shadow: 0x693957, mid: 0xa84670, light: 0xdd6f94, trim: 0xf3d07a, accent: 0x87b56a } },
   { id: 'meadow', name: 'Polny odkrywca', price: 355, palette: { shadow: 0x425c34, mid: 0x74944b, light: 0xb3c95c, trim: 0xf4d178, accent: 0xe59057 } },
   { id: 'magma', name: 'Wulkaniczny', price: 410, palette: { shadow: 0x4b3548, mid: 0x843d4b, light: 0xc65345, trim: 0xffc15e, accent: 0x53a9a0 } },
-  { id: 'diamond', name: 'Diamentowy', price: 1000000000000000, priceLabel: '1 biliard monet', power: 'Niezniszczalnosc + aura 176 px', palette: { shadow: 0x4c7580, mid: 0x8bcbd5, light: 0xe4fdff, trim: 0x76ecf2, accent: 0xb7f8df } }
+  { id: 'diamond', name: 'Diamentowy', price: 1000000000000000, priceLabel: '1 biliard monet', power: 'Niezniszczalnosc, szybki i wysoki skok, 3x monety, szczesliwy blok co 12 s', palette: { shadow: 0x4c7580, mid: 0x8bcbd5, light: 0xe4fdff, trim: 0x76ecf2, accent: 0xb7f8df } }
 ];
 const DIAMOND_AURA_RADIUS = 176;
 const DIAMOND_PULSE_INTERVAL = 1200;
+const DIAMOND_LUCKY_BLOCK_INTERVAL = 12000;
 const SHOP_STORAGE_KEY = 'maks-jump-quest-shop-v1';
 const ui = Object.fromEntries(['coins', 'score', 'lives', 'world', 'level-name', 'overlay', 'eyebrow', 'overlay-title', 'overlay-copy', 'primary', 'pause', 'sound', 'notice', 'footer-status', 'shop', 'shop-grid', 'wallet-count', 'shop-open', 'shop-close'].map(id => [id, document.getElementById(id)]));
 const touch = { left: false, right: false, jump: false };
@@ -386,6 +387,7 @@ class Quest extends Phaser.Scene {
     this.jumpBuffered = -1000;
     this.jumpHeld = false;
     this.wasGrounded = true;
+    this.nextLuckyBlockAt = 0;
     this.physics.world.setBounds(0, -400, data.width * TILE, 1200);
     this.cameras.main.setBackgroundColor(data.sky);
     this.drawScenery(data);
@@ -761,20 +763,33 @@ class Quest extends Phaser.Scene {
     pickup.destroy();
     this.burst(pickupX, pickupY);
     if (kind === 'shield') { this.shielded = true; notify('Tarcza zdobyta!'); playSound('shield'); }
-    else {
-      this.score += kind === 'star' ? 500 : 100;
-      if (kind === 'coin') {
-        this.coins++;
-        if (!this.unlimitedFunds) {
-          this.wallet++;
-          this.saveShopState();
-        }
-      }
+    else if (kind === 'coin') {
+      this.addCoins(1);
+      playSound('coin');
+    } else {
+      this.score += 500;
       playSound(kind === 'star' ? 'star' : 'coin');
       if (kind === 'star') notify('Sekretny bonus +500');
-      if (kind === 'coin' && this.coins % 25 === 0) { this.lives++; notify('25 monet: dodatkowe zycie!'); playSound('extraLife'); }
     }
     this.syncHud();
+  }
+
+  addCoins(baseAmount) {
+    const multiplier = this.selectedSkin === 'diamond' ? 3 : 1;
+    const previousCoins = this.coins;
+    const earned = baseAmount * multiplier;
+    this.coins += earned;
+    this.score += earned * 100;
+    if (!this.unlimitedFunds) {
+      this.wallet += earned;
+      this.saveShopState();
+    }
+    const extraLives = Math.floor(this.coins / 25) - Math.floor(previousCoins / 25);
+    if (extraLives > 0) {
+      this.lives += extraLives;
+      notify(`${extraLives * 25} monet: dodatkowe zycie!`);
+      playSound('extraLife');
+    }
   }
 
   burst(worldX, worldY) {
@@ -806,6 +821,28 @@ class Quest extends Phaser.Scene {
     this.score += 200;
     this.syncHud();
     playSound('stomp');
+  }
+
+  openLuckyBlock() {
+    const direction = this.player.flipX ? -1 : 1;
+    const x = this.player.x + direction * 58;
+    const y = this.player.y - 44;
+    const block = this.add.image(x, y, 'block').setDepth(7).setTint(0x80e5ec);
+    const mark = this.add.text(x, y - 2, '?', {
+      fontFamily: 'monospace', fontSize: '24px', fontStyle: 'bold', color: '#ffffff', stroke: '#237f88', strokeThickness: 3
+    }).setOrigin(.5).setDepth(8);
+    this.tweens.add({
+      targets: [block, mark], y: '-=20', duration: 280, ease: 'Back.Out', yoyo: true,
+      onComplete: () => {
+        block.destroy();
+        mark.destroy();
+        this.burst(x, y - 10);
+        this.addCoins(10);
+        this.syncHud();
+        playSound('star');
+        notify('Blok szczescia! +30 monet');
+      }
+    });
   }
 
   die() {
@@ -841,6 +878,8 @@ class Quest extends Phaser.Scene {
   update(time, delta) {
     if (this.phase !== 'playing') return;
     const body = this.player.body;
+    const diamondEquipped = this.selectedSkin === 'diamond';
+    body.setMaxVelocity(diamondEquipped ? 440 : 310, diamondEquipped ? 1150 : 900);
     const grounded = body.blocked.down || body.touching.down;
     if (grounded && !this.wasGrounded) playSound('land');
     this.wasGrounded = grounded;
@@ -849,14 +888,15 @@ class Quest extends Phaser.Scene {
     const right = this.keys.right.isDown || this.keys.d.isDown || touch.right;
     const jump = this.keys.space.isDown || this.keys.up.isDown || this.keys.w.isDown || touch.jump;
     if (jump && !this.jumpHeld) this.jumpBuffered = time;
-    if (!jump && this.jumpHeld && body.velocity.y < -210) body.setVelocityY(-210);
+    const jumpCutoff = diamondEquipped ? -390 : -210;
+    if (!jump && this.jumpHeld && body.velocity.y < jumpCutoff) body.setVelocityY(jumpCutoff);
     this.jumpHeld = jump;
     if (time - this.jumpBuffered < 120 && time - this.lastGround < 100) {
-      body.setVelocityY(-700); this.jumpBuffered = -1000; this.lastGround = -1000; playSound('jump');
+      body.setVelocityY(diamondEquipped ? -950 : -700); this.jumpBuffered = -1000; this.lastGround = -1000; playSound('jump');
     }
     const direction = Number(right) - Number(left);
-    body.setAccelerationX(direction * 1850);
-    body.setDragX(direction ? 0 : 2100);
+    body.setAccelerationX(direction * (diamondEquipped ? 2800 : 1850));
+    body.setDragX(direction ? 0 : diamondEquipped ? 2700 : 2100);
     if (direction) this.player.setFlipX(direction < 0);
     this.player.setTexture(this.heroTexture(grounded && Math.abs(body.velocity.x) > 30 && Math.floor(time / 110) % 2 ? 1 : 0));
     this.player.setAlpha(time < this.invincibleUntil && Math.floor(time / 90) % 2 ? .4 : 1);
@@ -891,6 +931,10 @@ class Quest extends Phaser.Scene {
           this.defeatEnemy(nearest);
           this.nextDiamondPulse = time + DIAMOND_PULSE_INTERVAL;
         }
+      }
+      if (time >= this.nextLuckyBlockAt) {
+        this.nextLuckyBlockAt = time + DIAMOND_LUCKY_BLOCK_INTERVAL;
+        this.openLuckyBlock();
       }
     }
     this.player.x = Math.max(12, this.player.x);
