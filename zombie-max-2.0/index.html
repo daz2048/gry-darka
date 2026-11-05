@@ -3937,9 +3937,9 @@
     }
 
     const ENVIRONMENTS = {
-      easy: { sky: '#142723', ground: '#182b24', stone: '#43544b', edge: '#71816a', light: '#b7d99a', haze: 'rgba(126,185,151,0.12)', rain: false },
-      normal: { sky: '#192329', ground: '#22292c', stone: '#455158', edge: '#71828a', light: '#e6c27b', haze: 'rgba(139,174,186,0.1)', rain: true },
-      hard: { sky: '#281a21', ground: '#2c2428', stone: '#54464d', edge: '#8e7275', light: '#ff9079', haze: 'rgba(215,108,119,0.1)', rain: true },
+      easy: { sky: '#26392f', ground: '#1c2829', stone: '#455b52', edge: '#8b9b7c', light: '#d3df9e', haze: 'rgba(157,192,163,0.17)', rain: false },
+      normal: { sky: '#352332', ground: '#25262f', stone: '#50515f', edge: '#9299a1', light: '#a6ded4', haze: 'rgba(140,184,191,0.16)', rain: true },
+      hard: { sky: '#3e2027', ground: '#30232b', stone: '#62424b', edge: '#ae7c77', light: '#ffd29b', haze: 'rgba(231,115,91,0.18)', rain: true },
       'super-hard-demon': { sky: '#291017', ground: '#24151c', stone: '#49313d', edge: '#88515b', light: '#ffae57', haze: 'rgba(255,87,37,0.12)', rain: false }
     };
     let sceneryCache;
@@ -4587,6 +4587,348 @@
       scene.restore();
     }
 
+    function drawNightmareDetails(scene, theme, skyline) {
+      if (difficultyKey === 'super-hard-demon') return;
+      scene.save();
+      scene.lineWidth = 1;
+      scene.lineJoin = 'round';
+      if (difficultyKey === 'easy') {
+        for (const memorialX of [260, 634]) {
+          const memorialY = skyline + 50 + memorialX % 31;
+          scene.fillStyle = '#182a29';
+          scene.beginPath();
+          scene.ellipse(memorialX, memorialY + 36, 36, 9, -0.15, 0, Math.PI * 2);
+          scene.fill();
+          scene.save();
+          scene.translate(memorialX, memorialY);
+          scene.rotate(memorialX === 260 ? -0.13 : 0.11);
+          scene.fillStyle = '#526456';
+          scene.strokeStyle = '#91a185';
+          scene.beginPath();
+          scene.moveTo(-16, 29);
+          scene.lineTo(-16, -16);
+          scene.lineTo(-8, -24);
+          scene.lineTo(15, -20);
+          scene.lineTo(19, 29);
+          scene.closePath();
+          scene.fill();
+          scene.stroke();
+          scene.fillStyle = '#283d36';
+          scene.fillRect(-10, -12, 21, 33);
+          scene.strokeStyle = '#adc19c';
+          scene.beginPath();
+          scene.moveTo(0, -8);
+          scene.lineTo(0, 7);
+          scene.moveTo(-6, -3);
+          scene.lineTo(6, -3);
+          scene.stroke();
+          scene.strokeStyle = '#152c28';
+          scene.beginPath();
+          scene.moveTo(-13, -19);
+          scene.lineTo(-2, -11);
+          scene.lineTo(-5, 0);
+          scene.lineTo(7, 9);
+          scene.lineTo(1, 24);
+          scene.stroke();
+          scene.fillStyle = '#6e8660';
+          scene.fillRect(-15, 19, 11, 6);
+          scene.restore();
+          for (let candle = 0; candle < 4; candle++) {
+            const candleX = memorialX - 24 + candle * 13;
+            const candleY = memorialY + 28 + candle % 2 * 6;
+            scene.fillStyle = '#b7b28e';
+            scene.fillRect(candleX, candleY, 3, 8 - candle % 3);
+            scene.fillStyle = '#f2d89e';
+            scene.beginPath();
+            scene.ellipse(candleX + 1.5, candleY - 2, 1.5, 3, 0, 0, Math.PI * 2);
+            scene.fill();
+          }
+        }
+        scene.strokeStyle = '#667e63';
+        for (let tendril = 0; tendril < 12; tendril++) {
+          const tendrilX = 77 + tendril * 67;
+          const tendrilY = skyline - 118 + tendril % 3 * 21;
+          scene.beginPath();
+          scene.moveTo(tendrilX, tendrilY);
+          scene.bezierCurveTo(tendrilX - 9, tendrilY + 13, tendrilX + 8, tendrilY + 25, tendrilX - 3, tendrilY + 41);
+          scene.stroke();
+        }
+      } else if (difficultyKey === 'normal') {
+        scene.fillStyle = '#27313b';
+        scene.fillRect(555, skyline - 70, 90, 67);
+        scene.strokeStyle = '#7c8585';
+        scene.strokeRect(557, skyline - 68, 86, 63);
+        scene.fillStyle = '#bec4ae';
+        scene.font = '700 9px "Rajdhani", sans-serif';
+        scene.textAlign = 'center';
+        scene.fillText('ZAGINIENI', 600, skyline - 57);
+        for (let poster = 0; poster < 5; poster++) {
+          scene.save();
+          scene.translate(570 + poster % 3 * 24, skyline - 48 + Math.floor(poster / 3) * 24);
+          scene.rotate((poster % 3 - 1) * 0.14);
+          scene.fillStyle = poster % 2 ? '#a2a795' : '#c1bea7';
+          scene.beginPath();
+          scene.moveTo(-7, -1);
+          scene.lineTo(8, 0);
+          scene.lineTo(7, 19);
+          scene.lineTo(2, 17);
+          scene.lineTo(-3, 20);
+          scene.lineTo(-7, 18);
+          scene.closePath();
+          scene.fill();
+          scene.fillStyle = '#47545a';
+          scene.beginPath();
+          scene.ellipse(0, 6, 3, 4, 0, 0, Math.PI * 2);
+          scene.fill();
+          scene.fillRect(-4, 10, 8, 3);
+          scene.fillRect(-4, 15, 7, 1);
+          scene.restore();
+        }
+        scene.fillStyle = '#1b2630';
+        scene.fillRect(457, skyline - 63, 39, 65);
+        scene.strokeStyle = '#728185';
+        scene.strokeRect(459, skyline - 61, 35, 61);
+        scene.strokeStyle = '#847967';
+        scene.lineWidth = 5;
+        scene.beginPath();
+        scene.moveTo(458, skyline - 44);
+        scene.lineTo(494, skyline - 23);
+        scene.moveTo(458, skyline - 15);
+        scene.lineTo(494, skyline - 48);
+        scene.stroke();
+        scene.strokeStyle = '#c2c6af';
+        scene.lineWidth = 1;
+        for (let tally = 0; tally < 4; tally++) {
+          scene.beginPath();
+          scene.moveTo(465 + tally * 5, skyline - 56);
+          scene.lineTo(464 + tally * 5, skyline - 48);
+          scene.stroke();
+        }
+        scene.beginPath();
+        scene.moveTo(461, skyline - 50);
+        scene.lineTo(484, skyline - 55);
+        scene.stroke();
+      } else {
+        scene.fillStyle = '#312a33';
+        scene.fillRect(572, skyline - 99, 67, 99);
+        scene.strokeStyle = '#a88477';
+        scene.strokeRect(575, skyline - 96, 61, 94);
+        scene.strokeRect(582, skyline - 86, 47, 76);
+        for (let rivet = 0; rivet < 7; rivet++) {
+          scene.fillStyle = '#a18c80';
+          scene.fillRect(577, skyline - 91 + rivet * 13, 2, 2);
+          scene.fillRect(632, skyline - 91 + rivet * 13, 2, 2);
+        }
+        scene.fillStyle = '#141d23';
+        scene.fillRect(589, skyline - 76, 33, 13);
+        scene.fillStyle = '#dca48b';
+        scene.fillRect(593, skyline - 72, 7, 3);
+        scene.fillRect(611, skyline - 72, 7, 3);
+        scene.strokeStyle = '#c3aa82';
+        scene.beginPath();
+        scene.arc(605, skyline - 34, 12, 0, Math.PI * 2);
+        scene.moveTo(595, skyline - 34);
+        scene.lineTo(615, skyline - 34);
+        scene.moveTo(605, skyline - 44);
+        scene.lineTo(605, skyline - 24);
+        scene.stroke();
+        scene.fillStyle = '#b8af92';
+        scene.beginPath();
+        scene.arc(660, skyline - 68, 10, 0, Math.PI * 2);
+        scene.fill();
+        scene.strokeStyle = '#5e4544';
+        scene.beginPath();
+        scene.moveTo(660, skyline - 68);
+        scene.lineTo(665, skyline - 74);
+        scene.stroke();
+        scene.strokeStyle = '#9b7f70';
+        for (let chain = 0; chain < 4; chain++) {
+          const chainX = 220 + chain * 149;
+          for (let link = 0; link < 9 + chain % 3; link++) {
+            scene.beginPath();
+            scene.ellipse(chainX, 107 + link * 7, 2 + link % 2, 4, link % 2 * 0.5, 0, Math.PI * 2);
+            scene.stroke();
+          }
+        }
+      }
+      scene.globalAlpha = 0.3;
+      scene.strokeStyle = difficultyKey === 'easy' ? '#6d886c' : '#8b766d';
+      scene.lineWidth = 1;
+      for (let streak = 0; streak < 21; streak++) {
+        const streakX = 91 + streak * 37;
+        const streakY = skyline - 47 + streak % 4 * 19;
+        scene.beginPath();
+        scene.moveTo(streakX, streakY);
+        scene.lineTo(streakX + 2, streakY + 13 + streak % 3 * 7);
+        scene.lineTo(streakX - 2, streakY + 23 + streak % 3 * 7);
+        scene.stroke();
+      }
+      scene.restore();
+    }
+
+    function drawNightmareBackdrop(scene, theme, skyline) {
+      if (difficultyKey === 'super-hard-demon') return;
+      scene.save();
+      scene.globalAlpha = 1;
+      const cemetery = difficultyKey === 'easy';
+      const factory = difficultyKey === 'hard';
+      const moonColor = cemetery ? '#bbc89a' : (factory ? '#e5a181' : '#cbb4c9');
+      const halo = scene.createRadialGradient(487, 70, 32, 487, 70, 121);
+      halo.addColorStop(0, cemetery ? 'rgba(188,214,158,0.25)' : 'rgba(215,118,134,0.27)');
+      halo.addColorStop(1, 'rgba(20,15,24,0)');
+      scene.fillStyle = halo;
+      scene.fillRect(366, 0, 242, 191);
+      scene.fillStyle = moonColor;
+      scene.beginPath();
+      scene.arc(487, 70, 39, 0, Math.PI * 2);
+      scene.fill();
+      scene.fillStyle = '#14151d';
+      scene.beginPath();
+      scene.arc(495, 65, 36, 0, Math.PI * 2);
+      scene.fill();
+      scene.strokeStyle = theme.edge;
+      scene.lineWidth = 1;
+      for (let scar = 0; scar < 5; scar++) {
+        scene.beginPath();
+        scene.moveTo(454 + scar * 4, 77 + scar * 2);
+        scene.lineTo(458 + scar * 4, 88 + scar * 2);
+        scene.stroke();
+      }
+      scene.strokeStyle = '#20222a';
+      scene.lineWidth = 2;
+      for (let strand = 0; strand < 6; strand++) {
+        const strandX = 105 + strand * 135;
+        scene.beginPath();
+        scene.moveTo(strandX, 0);
+        scene.bezierCurveTo(strandX + 30, 17, strandX - 10, 41, strandX + 22, 65 + strand % 3 * 9);
+        scene.moveTo(strandX + 11, 24);
+        scene.lineTo(strandX + 37, 37);
+        scene.stroke();
+      }
+      if (cemetery) {
+        for (const rootX of [101, 678]) {
+          scene.fillStyle = '#152723';
+          scene.strokeStyle = '#7b8d73';
+          scene.lineWidth = 1;
+          scene.beginPath();
+          scene.moveTo(rootX - 17, skyline + 2);
+          scene.lineTo(rootX - 8, skyline - 100);
+          scene.lineTo(rootX - 32, skyline - 143);
+          scene.lineTo(rootX - 5, skyline - 128);
+          scene.lineTo(rootX + 10, skyline - 180);
+          scene.lineTo(rootX + 9, skyline - 99);
+          scene.lineTo(rootX + 41, skyline - 137);
+          scene.lineTo(rootX + 18, skyline - 78);
+          scene.lineTo(rootX + 14, skyline);
+          scene.closePath();
+          scene.fill();
+          scene.stroke();
+          scene.strokeStyle = '#667e5c';
+          scene.beginPath();
+          scene.moveTo(rootX, skyline - 15);
+          scene.bezierCurveTo(rootX - 21, skyline + 19, rootX + 56, skyline + 42, rootX + 108, skyline + 77);
+          scene.moveTo(rootX + 42, skyline + 38);
+          scene.lineTo(rootX + 52, skyline + 68);
+          scene.lineTo(rootX + 79, skyline + 88);
+          scene.stroke();
+          scene.fillStyle = '#a9bd8c';
+          scene.fillRect(rootX - 4, skyline - 79, 3, 5);
+          scene.fillRect(rootX + 4, skyline - 80, 3, 5);
+        }
+      } else if (factory) {
+        for (let furnace = 0; furnace < 3; furnace++) {
+          const furnaceX = 155 + furnace * 305;
+          scene.fillStyle = '#311e28';
+          scene.strokeStyle = '#bd8673';
+          scene.lineWidth = 2;
+          scene.fillRect(furnaceX - 26, skyline - 59, 52, 59);
+          scene.strokeRect(furnaceX - 26, skyline - 59, 52, 59);
+          scene.fillStyle = '#d1825e';
+          scene.beginPath();
+          scene.arc(furnaceX, skyline - 18, 17, Math.PI, 0);
+          scene.lineTo(furnaceX + 17, skyline - 1);
+          scene.lineTo(furnaceX - 17, skyline - 1);
+          scene.closePath();
+          scene.fill();
+          scene.strokeStyle = '#35232c';
+          for (let bar = -2; bar <= 2; bar++) {
+            scene.beginPath();
+            scene.moveTo(furnaceX + bar * 6, skyline - 29);
+            scene.lineTo(furnaceX + bar * 6, skyline - 1);
+            scene.stroke();
+          }
+          scene.fillStyle = '#f1c994';
+          scene.fillRect(furnaceX - 18, skyline - 49, 11, 4);
+          scene.fillRect(furnaceX + 7, skyline - 49, 11, 4);
+          scene.strokeStyle = '#32202a';
+          scene.lineWidth = 7;
+          scene.beginPath();
+          scene.moveTo(furnaceX, skyline - 62);
+          scene.bezierCurveTo(furnaceX + 41, skyline - 99, furnaceX - 39, skyline - 144, furnaceX, skyline - 194);
+          scene.moveTo(furnaceX - 4, skyline - 145);
+          scene.lineTo(furnaceX + 23, skyline - 169);
+          scene.lineTo(furnaceX + 20, skyline - 201);
+          scene.stroke();
+        }
+      }
+      drawNightmareDetails(scene, theme, skyline);
+      scene.globalAlpha = 0.3;
+      scene.fillStyle = '#081018';
+      for (let shadow = 0; shadow < 5; shadow++) {
+        const shadowX = 151 + shadow * 139;
+        scene.beginPath();
+        scene.moveTo(shadowX - 8, skyline + 48);
+        scene.lineTo(shadowX + 8, skyline + 48);
+        scene.lineTo(shadowX + 95, H - 19);
+        scene.lineTo(shadowX + 70, H - 15);
+        scene.closePath();
+        scene.fill();
+      }
+      scene.restore();
+    }
+
+    function drawNightmareMist(time, theme) {
+      if (difficultyKey === 'super-hard-demon' || !horrorEnabled) return;
+      ctx.save();
+      const visualTime = reduceMotion || state !== 'play' || document.hidden ? 0 : time;
+      ctx.fillStyle = difficultyKey === 'hard' ? '#dba298' : '#b5cfc4';
+      ctx.globalAlpha = 0.07;
+      for (let ribbon = 0; ribbon < 4; ribbon++) {
+        const drift = Math.sin(visualTime * 0.18 + ribbon * 1.7) * 29;
+        const mistY = 306 + ribbon * 49;
+        ctx.beginPath();
+        ctx.moveTo(63, mistY + 8);
+        ctx.bezierCurveTo(249 + drift, mistY - 25, 452 - drift, mistY + 28, 877, mistY - 7);
+        ctx.bezierCurveTo(633 - drift, mistY + 36, 301 + drift, mistY + 5, 63, mistY + 18);
+        ctx.closePath();
+        ctx.fill();
+      }
+      if (!reduceMotion) {
+        const breath = 0.5 + 0.5 * Math.sin(visualTime * 0.48);
+        for (let watcher = 0; watcher < 5; watcher++) {
+          const watcherX = 178 + watcher * 142;
+          const watcherY = H * 0.53 - 73 - watcher % 3 * 23 + Math.sin(visualTime * 0.3 + watcher) * 2;
+          const gaze = Math.max(-2, Math.min(2, (colY - watcherY) * 0.012));
+          ctx.globalAlpha = 0.12 + breath * 0.07;
+          ctx.fillStyle = '#a3b4aa';
+          ctx.beginPath();
+          ctx.ellipse(watcherX, watcherY + 2, 8, 13, watcher % 2 ? 0.13 : -0.13, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#101a23';
+          ctx.globalAlpha = 0.4;
+          ctx.beginPath();
+          ctx.ellipse(watcherX - 4, watcherY, 3, 5, 0, 0, Math.PI * 2);
+          ctx.ellipse(watcherX + 4, watcherY, 3, 5, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = theme.light;
+          ctx.globalAlpha = 0.55 + breath * 0.12;
+          ctx.fillRect(watcherX - 5, watcherY + gaze, 2, 2);
+          ctx.fillRect(watcherX + 3, watcherY + gaze, 2, 2);
+        }
+      }
+      ctx.restore();
+    }
+
     function drawEnvironment(time) {
       const theme = ENVIRONMENTS[difficultyKey] || ENVIRONMENTS.normal;
       const demon = difficultyKey === 'super-hard-demon';
@@ -4750,6 +5092,7 @@
           }
         }
         drawEnvironmentDetails(scene, theme, skyline);
+        drawNightmareBackdrop(scene, theme, skyline);
         for (const propY of [112, H - 86]) {
           scene.fillStyle = '#293137';
           scene.fillRect(791, propY, 62, 25);
@@ -4838,6 +5181,7 @@
       }
       ctx.save();
       ctx.drawImage(sceneryCache, 0, 0);
+      drawNightmareMist(time, theme);
       const visualTime = reduceMotion || state !== 'play' ? 0 : time;
       ctx.lineWidth = 1;
       for (const lampX of [236, 743]) {
