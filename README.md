@@ -16,6 +16,12 @@ Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
 
 ## 📋 Dostępne gry
 
+### Darek's Jump Quest
+Platformowa przygoda w trzech światach: zielone wzgórza, kryształowe jaskinie i twierdza wiatru. Zbieraj monety, odkrywaj sekrety i pokonuj przeciwników skokiem.
+- **Sterowanie:** strzałki / A i D, skok: spacja / W / strzałka w górę; na telefonie przyciski dotykowe.
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/jump-quest/)
+- [Instrukcja i szczegóły](jump-quest/README.md)
+
 ### 🏰 Pojedynek Zamków
 Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.
 - **Gracze:** Janek i Darek
