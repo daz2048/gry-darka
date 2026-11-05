@@ -31,13 +31,21 @@ const LEVELS = [
       { column: 105, type: 'mossling' }
     ], movers: [[13, 8], [30, 8], [49, 8], [69, 8], [88, 8]], checkpoint: 58, shield: [7, 6], secrets: [[27, 4], [65, 4], [104, 4]] }
 ];
-const ui = Object.fromEntries(['coins', 'score', 'lives', 'world', 'level-name', 'overlay', 'eyebrow', 'overlay-title', 'overlay-copy', 'primary', 'pause', 'sound', 'notice', 'footer-status'].map(id => [id, document.getElementById(id)]));
+const HERO_SKINS = [
+  { id: 'trail', name: 'Szlakowiec', price: 0, palette: { shadow: 0x214f53, mid: 0x2a6562, light: 0x3e9182, trim: 0xe8b458, accent: 0xc9755f } },
+  { id: 'grove', name: 'Lesny zwiadowca', price: 30, palette: { shadow: 0x3d552e, mid: 0x57753a, light: 0x83a84c, trim: 0xe3bd61, accent: 0xd17c51 } },
+  { id: 'sunset', name: 'Bursztynowy', price: 55, palette: { shadow: 0x713e58, mid: 0xb64f53, light: 0xe87955, trim: 0xf3c565, accent: 0xf1ad59 } },
+  { id: 'crystal', name: 'Krysztalowy', price: 80, palette: { shadow: 0x344c79, mid: 0x566db0, light: 0x829cdb, trim: 0xb9e8d8, accent: 0xdfa1d3 } }
+];
+const SHOP_STORAGE_KEY = 'maks-jump-quest-shop-v1';
+const ui = Object.fromEntries(['coins', 'score', 'lives', 'world', 'level-name', 'overlay', 'eyebrow', 'overlay-title', 'overlay-copy', 'primary', 'pause', 'sound', 'notice', 'footer-status', 'shop', 'shop-grid', 'wallet-count', 'shop-open', 'shop-close'].map(id => [id, document.getElementById(id)]));
 const touch = { left: false, right: false, jump: false };
 let scene;
 let audio;
 let audioOutput;
 let muted = false;
 let noticeTimer;
+let storageWarningShown = false;
 
 const SOUNDS = {
   start: [[392, .12, 'triangle'], [523, .12, 'triangle', .12], [659, .12, 'triangle', .24], [784, .24, 'triangle', .36]],
@@ -113,13 +121,16 @@ class Quest extends Phaser.Scene {
     this.coins = 0;
     this.lives = 3;
     this.phase = 'ready';
+    this.loadShopState();
     this.makeTextures();
     this.keys = this.input.keyboard.addKeys({ left: 'LEFT', right: 'RIGHT', up: 'UP', a: 'A', d: 'D', w: 'W', space: 'SPACE' });
     this.input.keyboard.addCapture(['SPACE', 'UP', 'DOWN', 'LEFT', 'RIGHT']);
     this.input.keyboard.on('keydown-P', () => this.togglePause());
     this.input.keyboard.on('keydown-R', () => this.restartRun());
     this.input.keyboard.on('keydown-M', () => toggleSound());
-    this.input.keyboard.on('keydown-ESC', () => { location.href = '../index.html'; });
+    this.input.keyboard.on('keydown-S', () => this.openShop());
+    this.input.keyboard.on('keydown-FIVE', () => this.activateUnlimitedFunds());
+    this.input.keyboard.on('keydown-ESC', () => { if (ui.shop.hidden) location.href = '../index.html'; else this.closeShop(); });
     this.input.keyboard.on('keydown-H', () => { location.href = '../index.html'; });
     this.input.keyboard.on('keydown-ENTER', () => this.primary());
     this.buildLevel();
@@ -133,69 +144,88 @@ class Quest extends Phaser.Scene {
     const texture = (key, width, height, draw) => {
       graphics.clear(); draw(graphics); graphics.generateTexture(key, width, height);
     };
-    for (let frame = 0; frame < 2; frame++) texture(`hero${frame}`, 40, 52, pen => {
-      pen.fillStyle(0x65402f).fillEllipse(8, 8, 25, 24);
-      pen.fillStyle(0xffc99e).fillEllipse(10, 10, 20, 21);
-      pen.fillStyle(0x278b83).fillRoundedRect(7, 26, 27, 19, 7);
-      pen.fillStyle(0xe9a64b).fillRect(8, 39, 25, 7);
-      pen.fillStyle(0xf8d16a).fillRect(4, 29, 6, 13).fillRect(31, 29, 6, 13);
-      pen.fillStyle(0x65402f).fillEllipse(4, 2, 31, 15);
-      pen.fillStyle(0xe65f4b).fillEllipse(5, 0, 29, 12);
-      pen.fillStyle(0xf58a61).fillRoundedRect(3, 8, 34, 5, 3);
-      pen.fillStyle(0xf8d16a).fillEllipse(17, 3, 7, 6);
-      pen.fillStyle(0x412c2a).fillEllipse(11, 17, 3, 4).fillEllipse(24, 17, 3, 4);
-      pen.fillStyle(0xb94f46).fillRoundedRect(15, 23, 9, 2, 1);
-      pen.fillStyle(0xf5c49b).fillEllipse(1, 30, 8, 7).fillEllipse(31, 30, 8, 7);
-      pen.fillStyle(0x4e3b38).fillRoundedRect(frame ? 3 : 6, frame ? 44 : 45, 14, 7, 3);
-      pen.fillStyle(0x4e3b38).fillRoundedRect(frame ? 23 : 21, frame ? 45 : 44, 14, 7, 3);
-      pen.fillStyle(0xd94e4a).fillRect(17, 31, 5, 5);
+    for (const skin of HERO_SKINS) for (let frame = 0; frame < 2; frame++) texture(`hero-${skin.id}-${frame}`, 44, 56, pen => {
+      const palette = skin.palette;
+      pen.fillStyle(0x382e42).fillEllipse(22, 53, 32, 6);
+      pen.fillStyle(0x423547).fillRoundedRect(frame ? 6 : 9, 46, 14, 9, 3).fillRoundedRect(frame ? 25 : 22, 46, 14, 9, 3);
+      pen.fillStyle(0x55745d).fillRoundedRect(11, 38, 22, 10, 4);
+      pen.fillStyle(0xd1a158).fillRoundedRect(7, 27, 30, 20, 7);
+      pen.fillStyle(palette.mid).fillRoundedRect(8, 26, 28, 19, 6);
+      pen.fillStyle(palette.light).fillRoundedRect(11, 28, 22, 14, 4);
+      pen.fillStyle(palette.shadow).fillRoundedRect(4, 29, 8, 14, 4).fillRoundedRect(32, 29, 8, 14, 4);
+      pen.fillStyle(palette.trim).fillRoundedRect(5, 38, 8, 6, 2).fillRoundedRect(31, 38, 8, 6, 2);
+      pen.fillStyle(0x243f4b).fillRoundedRect(12, 12, 21, 21, 7);
+      pen.fillStyle(0xe9b58e).fillRoundedRect(12, 14, 21, 20, 7);
+      pen.fillStyle(0xf4c9a0).fillRoundedRect(15, 16, 15, 13, 5);
+      pen.fillStyle(0x60423b).fillRoundedRect(10, 13, 7, 12, 3).fillRoundedRect(29, 13, 7, 13, 3);
+      pen.fillStyle(0x423541).fillEllipse(18, 21, 3, 4).fillEllipse(28, 21, 3, 4);
+      pen.fillStyle(0x253947).fillEllipse(19, 22, 1, 2).fillEllipse(29, 22, 1, 2);
+      pen.fillStyle(0xc87867).fillRoundedRect(21, 28, 7, 2, 1);
+      pen.fillStyle(palette.shadow).fillRoundedRect(7, 5, 30, 13, 6);
+      pen.fillStyle(palette.light).fillRoundedRect(10, 6, 22, 7, 4);
+      pen.fillStyle(palette.shadow).fillRoundedRect(5, 14, 34, 5, 2);
+      pen.fillStyle(palette.trim).fillRoundedRect(11, 34, 22, 5, 2).fillCircle(22, 36, 2);
+      pen.fillStyle(palette.accent).fillRoundedRect(17, 30, 10, 4, 2);
+      pen.fillStyle(palette.trim).fillCircle(22, 8, 2);
     });
     texture('enemy', 40, 34, pen => {
-      pen.fillStyle(0x71547f).fillEllipse(3, 10, 34, 22);
-      pen.fillStyle(0xb49ac0).fillEllipse(7, 12, 26, 15);
-      pen.fillStyle(0x5cae74).fillEllipse(8, 2, 24, 15);
-      pen.fillStyle(0x83cf86).fillEllipse(13, 1, 16, 10);
-      pen.fillStyle(0xfff4dc).fillEllipse(11, 15, 7, 9).fillEllipse(23, 15, 7, 9);
-      pen.fillStyle(0x34304a).fillEllipse(14, 18, 3, 4).fillEllipse(26, 18, 3, 4);
-      pen.fillStyle(0xe88d8a).fillEllipse(7, 23, 7, 4).fillEllipse(27, 23, 7, 4);
-      pen.fillStyle(0x513b60).fillEllipse(7, 27, 11, 6).fillEllipse(23, 27, 11, 6);
+      pen.fillStyle(0x3d344e).fillEllipse(20, 30, 32, 6);
+      pen.fillStyle(0x49385f).fillRoundedRect(4, 15, 32, 17, 8);
+      pen.fillStyle(0x9a71a1).fillRoundedRect(6, 12, 28, 18, 8);
+      pen.fillStyle(0xc295b4).fillRoundedRect(9, 15, 20, 12, 6);
+      pen.fillStyle(0x478359).fillPoints([{x:9,y:16},{x:11,y:5},{x:18,y:11},{x:21,y:1},{x:26,y:11},{x:33,y:6},{x:31,y:18}], true);
+      pen.fillStyle(0x77bb70).fillPoints([{x:13,y:14},{x:14,y:8},{x:19,y:12},{x:21,y:5},{x:25,y:13}], true);
+      pen.fillStyle(0xfff2d7).fillEllipse(13, 17, 8, 10).fillEllipse(25, 17, 8, 10);
+      pen.fillStyle(0x303047).fillEllipse(16, 20, 3, 5).fillEllipse(28, 20, 3, 5);
+      pen.fillStyle(0xffffff).fillCircle(15, 18, 1).fillCircle(27, 18, 1);
+      pen.fillStyle(0xe88785).fillEllipse(8, 24, 8, 4).fillEllipse(29, 24, 8, 4);
+      pen.fillStyle(0x49385f).fillRoundedRect(7, 28, 12, 5, 2).fillRoundedRect(22, 28, 12, 5, 2);
     });
     texture('beetle', 40, 34, pen => {
-      pen.fillStyle(0x513b60).fillEllipse(3, 10, 34, 22);
-      pen.fillStyle(0x6d9d59).fillEllipse(6, 5, 28, 24);
-      pen.fillStyle(0xa6c96b).fillEllipse(10, 8, 20, 15);
-      pen.fillStyle(0xe4b66a).fillEllipse(27, 16, 11, 12);
-      pen.fillStyle(0xfff0c5).fillEllipse(30, 18, 3, 4).fillEllipse(35, 18, 3, 4);
-      pen.fillStyle(0x38445a).fillEllipse(31, 19, 2, 3).fillEllipse(36, 19, 2, 3);
-      pen.fillStyle(0xe6ca8b).fillCircle(13, 13, 3).fillCircle(23, 20, 3);
-      pen.fillStyle(0x513b60).fillEllipse(5, 27, 11, 6).fillEllipse(23, 27, 11, 6);
+      pen.fillStyle(0x3b344a).fillEllipse(20, 30, 34, 6);
+      pen.fillStyle(0x493b48).fillRoundedRect(4, 16, 32, 15, 7);
+      pen.fillStyle(0x52713f).fillRoundedRect(6, 10, 26, 20, 10);
+      pen.fillStyle(0x83a84c).fillRoundedRect(8, 8, 21, 17, 9);
+      pen.fillStyle(0xb7c968).fillEllipse(17, 12, 10, 9);
+      pen.fillStyle(0xd2a55e).fillRoundedRect(25, 17, 13, 11, 5);
+      pen.fillStyle(0x4f7040).fillRect(25, 12, 3, 13);
+      pen.fillStyle(0xffefd0).fillCircle(31, 20, 3).fillCircle(37, 20, 3);
+      pen.fillStyle(0x344047).fillCircle(32, 21, 1).fillCircle(38, 21, 1);
+      pen.fillStyle(0xe8d69a).fillCircle(12, 14, 3).fillCircle(21, 21, 2).fillCircle(16, 25, 2);
+      pen.fillStyle(0x493b48).fillRoundedRect(6, 27, 12, 5, 2).fillRoundedRect(23, 27, 12, 5, 2);
     });
     texture('flutter', 40, 34, pen => {
-      pen.fillStyle(0xa989cf).fillEllipse(0, 7, 19, 19).fillEllipse(21, 7, 19, 19);
-      pen.fillStyle(0xd2b5ea).fillEllipse(3, 9, 12, 13).fillEllipse(25, 9, 12, 13);
-      pen.fillStyle(0x4c879a).fillEllipse(14, 9, 13, 21);
-      pen.fillStyle(0x72bcc0).fillEllipse(15, 7, 11, 13);
-      pen.fillStyle(0xffe6a1).fillEllipse(17, 12, 3, 4).fillEllipse(23, 12, 3, 4);
-      pen.fillStyle(0x34445b).fillEllipse(18, 13, 2, 3).fillEllipse(24, 13, 2, 3);
-      pen.fillStyle(0xe97f91).fillEllipse(12, 25, 16, 6);
-      pen.fillStyle(0xf3d477).fillCircle(14, 6, 2).fillCircle(27, 6, 2);
+      pen.fillStyle(0x53416f).fillEllipse(7, 15, 16, 20).fillEllipse(33, 15, 16, 20);
+      pen.fillStyle(0x9a75bf).fillEllipse(7, 13, 13, 18).fillEllipse(33, 13, 13, 18);
+      pen.fillStyle(0xd5a9df).fillEllipse(8, 12, 7, 11).fillEllipse(32, 12, 7, 11);
+      pen.fillStyle(0x4c7788).fillRoundedRect(15, 12, 10, 17, 5);
+      pen.fillStyle(0x75b9ad).fillEllipse(20, 12, 12, 13);
+      pen.fillStyle(0xffefcf).fillCircle(17, 15, 3).fillCircle(23, 15, 3);
+      pen.fillStyle(0x384052).fillCircle(18, 16, 1).fillCircle(24, 16, 1);
+      pen.fillStyle(0xe77f8b).fillRoundedRect(13, 25, 14, 6, 3);
+      pen.fillStyle(0xf0d37d).fillCircle(16, 7, 2).fillCircle(25, 7, 2);
+      pen.fillStyle(0x6c507e).fillRect(16, 5, 1, 5).fillRect(25, 5, 1, 5);
     });
     texture('coin', 20, 24, pen => {
-      pen.fillStyle(0xc78232).fillEllipse(1, 0, 18, 24);
-      pen.fillStyle(0xffdb63).fillEllipse(3, 2, 14, 20);
-      pen.fillStyle(0xfff1a8).fillEllipse(5, 4, 5, 15);
-      pen.fillStyle(0xe9a93e).fillEllipse(11, 5, 3, 14);
+      pen.fillStyle(0x985c32).fillEllipse(2, 1, 16, 22);
+      pen.fillStyle(0xe59a38).fillEllipse(3, 1, 14, 21);
+      pen.fillStyle(0xffdf68).fillEllipse(5, 3, 10, 17);
+      pen.fillStyle(0xfff3b2).fillEllipse(6, 4, 4, 13);
+      pen.fillStyle(0xf0ae42).fillEllipse(12, 5, 2, 13);
+      pen.fillStyle(0xfff8d2).fillRect(7, 4, 2, 3);
     });
     texture('star', 28, 28, pen => {
       pen.fillStyle(0xfff4b7).fillPoints([{x:14,y:0},{x:18,y:9},{x:28,y:10},{x:21,y:17},{x:23,y:28},{x:14,y:22},{x:4,y:28},{x:6,y:17},{x:0,y:10},{x:10,y:9}], true);
       pen.fillStyle(0xd69b36).fillRect(11, 10, 2, 6).fillRect(17, 10, 2, 6);
     });
     texture('block', 48, 48, pen => {
-      pen.fillStyle(0xad603a).fillRoundedRect(1, 1, 46, 46, 7);
-      pen.fillStyle(0xffcf58).fillRoundedRect(3, 3, 42, 40, 6);
-      pen.fillStyle(0xffe793).fillRoundedRect(7, 6, 34, 5, 2);
-      pen.fillStyle(0xd78b3c).fillRoundedRect(7, 37, 34, 4, 2);
-      pen.fillStyle(0xb56a37).fillRoundedRect(19, 13, 14, 5, 2).fillRoundedRect(28, 17, 5, 8, 2).fillRoundedRect(20, 23, 13, 5, 2).fillRoundedRect(20, 27, 5, 5, 2).fillEllipse(18, 34, 5, 5);
+      pen.fillStyle(0x744838).fillRoundedRect(1, 1, 46, 46, 7);
+      pen.fillStyle(0xf0a943).fillRoundedRect(3, 3, 42, 42, 6);
+      pen.fillStyle(0xffd66a).fillRoundedRect(6, 5, 36, 34, 5);
+      pen.fillStyle(0xffedab).fillRoundedRect(9, 7, 28, 5, 2);
+      pen.fillStyle(0xc57836).fillRoundedRect(7, 39, 34, 4, 2);
+      pen.fillStyle(0xb66a38).fillRoundedRect(19, 14, 13, 5, 2).fillRoundedRect(27, 18, 5, 7, 2).fillRoundedRect(19, 23, 13, 5, 2).fillRoundedRect(19, 27, 5, 5, 2).fillEllipse(17, 34, 5, 5);
+      pen.fillStyle(0xfff4c4).fillCircle(11, 16, 2).fillCircle(37, 30, 2);
     });
     texture('shield', 28, 32, pen => {
       pen.fillStyle(0xd9fff0).fillPoints([{x:1,y:2},{x:14,y:0},{x:27,y:2},{x:25,y:21},{x:14,y:32},{x:3,y:21}], true);
@@ -203,11 +233,14 @@ class Quest extends Phaser.Scene {
       pen.fillStyle(0xf5df67).fillRect(12, 8, 4, 17).fillRect(8, 12, 12, 4);
     });
     texture('platform', 96, 20, pen => {
-      pen.fillStyle(0x79513d).fillRoundedRect(0, 4, 96, 16, 4);
-      pen.fillStyle(0xa96d48).fillRoundedRect(3, 8, 90, 8, 3);
-      pen.fillStyle(0x45a96e).fillRoundedRect(0, 0, 96, 8, 4);
-      pen.fillStyle(0x8bd47a).fillRoundedRect(5, 1, 82, 3, 2);
-      pen.fillStyle(0xf0d293).fillRect(20, 11, 5, 3).fillRect(63, 12, 4, 3).fillRect(79, 10, 5, 3);
+      pen.fillStyle(0x563e42).fillRoundedRect(0, 5, 96, 15, 4);
+      pen.fillStyle(0x9b6244).fillRoundedRect(3, 8, 90, 9, 3);
+      pen.fillStyle(0xc58850).fillRect(8, 10, 80, 2);
+      pen.fillStyle(0x327c59).fillRoundedRect(0, 0, 96, 9, 4);
+      pen.fillStyle(0x5fbd70).fillRoundedRect(4, 1, 88, 5, 3);
+      pen.fillStyle(0xa5df78).fillRoundedRect(8, 2, 72, 2, 1);
+      pen.fillStyle(0xf5d697).fillRect(17, 12, 6, 3).fillRect(45, 10, 5, 3).fillRect(72, 12, 7, 3);
+      pen.fillStyle(0x327c59).fillPoints([{x:16,y:4},{x:20,y:0},{x:24,y:4}], true).fillPoints([{x:66,y:4},{x:70,y:0},{x:74,y:4}], true);
     });
     texture('particle', 5, 5, pen => pen.fillStyle(0xffdf6d).fillRect(0, 0, 5, 5));
     graphics.destroy();
@@ -272,7 +305,7 @@ class Quest extends Phaser.Scene {
         enemy.flightPhase = column * .71;
       }
     }
-    this.player = this.physics.add.sprite(120, 420, 'hero0').setDepth(5);
+    this.player = this.physics.add.sprite(120, 420, this.heroTexture(0)).setDepth(5);
     this.player.body.setSize(22, 40).setOffset(5, 4).setMaxVelocity(310, 900);
     this.player.setCollideWorldBounds(false);
     this.physics.add.collider(this.player, this.solids);
@@ -301,12 +334,17 @@ class Quest extends Phaser.Scene {
     const graphics = this.add.graphics();
     graphics.fillStyle(data.dirt).fillRect(worldX, worldY, width, height);
     graphics.fillStyle(data.top).fillRect(worldX, worldY, width, 16);
-    graphics.fillStyle(0xffffff, .18).fillRect(worldX, worldY, width, 4);
-    graphics.fillStyle(0x332c42, .12).fillRect(worldX, worldY + 16, width, 5);
-    for (let offset = 8; offset < width; offset += 43) {
-      graphics.fillStyle(0xffffff, .1).fillEllipse(worldX + offset, worldY + 34 + offset % 17, 13, 5);
-      graphics.fillStyle(0x332c42, .13).fillEllipse(worldX + offset + 22, worldY + 65 + offset % 13, 17, 7);
-      graphics.fillStyle(data.top).fillTriangle(worldX + offset, worldY + 2, worldX + offset + 4, worldY - 5, worldX + offset + 8, worldY + 2);
+    graphics.fillStyle(0xffffff, .22).fillRect(worldX, worldY, width, 3);
+    graphics.fillStyle(0x332c42, .16).fillRect(worldX, worldY + 16, width, 4);
+    graphics.fillStyle(0x302c3c, .12).fillRect(worldX, worldY + height - 11, width, 11);
+    for (let offset = 8; offset < width; offset += 25 + Math.floor((worldX + offset) / 43) % 3 * 9) {
+      const detail = Math.floor((worldX + offset + this.level * 31) / 13);
+      const grassHeight = 4 + detail % 5;
+      graphics.fillStyle(0x302c3c, .13).fillRoundedRect(worldX + offset + 8, worldY + 32 + detail % 23, 11 + detail % 9, 5, 2);
+      graphics.fillStyle(0xffffff, .11).fillRoundedRect(worldX + offset + 10, worldY + 33 + detail % 23, 5, 2, 1);
+      graphics.fillStyle(0x332c42, .14).fillEllipse(worldX + offset + 22, worldY + 68 + detail % 17, 17, 7);
+      graphics.fillStyle(data.top).fillTriangle(worldX + offset, worldY + 3, worldX + offset + 4, worldY - grassHeight, worldX + offset + 8, worldY + 3);
+      graphics.fillStyle(0xa6df78, .7).fillTriangle(worldX + offset + 2, worldY + 2, worldX + offset + 4, worldY - grassHeight + 2, worldX + offset + 5, worldY + 2);
     }
     const solid = this.add.rectangle(worldX + width / 2, worldY + height / 2, width, height, 0, 0);
     this.solids.add(solid);
@@ -369,12 +407,18 @@ class Quest extends Phaser.Scene {
           foreground.fillStyle(0xe4b3ff).fillPoints([{x: x + 29, y: 470}, {x: x + 35, y: 447}, {x: x + 40, y: 470}], true);
         } else {
           const treeColor = this.level === 2 ? 0x68834f : 0x398a61;
-          foreground.fillStyle(0x79543f).fillRoundedRect(x + 14, 424, 9, 56, 4);
-          foreground.fillStyle(treeColor).fillEllipse(x - 1, 391, 40, 33).fillEllipse(x + 3, 374, 28, 28);
-          foreground.fillStyle(0x9cdb81, .7).fillEllipse(x + 4, 382, 14, 12);
+          const canopyShadow = this.level === 2 ? 0x485b4d : 0x28684f;
+          foreground.fillStyle(0x624a43).fillRoundedRect(x + 12, 405, 13, 75, 5);
+          foreground.fillStyle(0x93634a).fillRoundedRect(x + 15, 411, 5, 59, 2);
+          foreground.fillStyle(0x624a43).fillTriangle(x + 17, 447, x + 7, 463, x + 18, 458);
+          foreground.fillStyle(0x624a43).fillTriangle(x + 21, 452, x + 31, 466, x + 19, 460);
+          foreground.fillStyle(canopyShadow).fillEllipse(x - 5, 389, 47, 39).fillEllipse(x + 8, 377, 37, 39).fillEllipse(x + 22, 392, 34, 31);
+          foreground.fillStyle(treeColor).fillEllipse(x - 2, 385, 38, 34).fillEllipse(x + 10, 371, 29, 30).fillEllipse(x + 22, 388, 26, 26);
+          foreground.fillStyle(0x9cdb81, .75).fillEllipse(x + 4, 378, 15, 12).fillEllipse(x + 20, 383, 10, 9);
+          foreground.fillStyle(0xd8ef9b, .7).fillCircle(x + 4, 378, 3);
           if (column % 2 === 0) {
-            foreground.fillStyle(0xfff0a1).fillCircle(x + 37, 454, 4);
-            foreground.fillStyle(0xe87966).fillCircle(x + 37, 454, 2);
+            foreground.fillStyle(0xfff0a1).fillCircle(x + 39, 449, 5);
+            foreground.fillStyle(0xe87966).fillCircle(x + 39, 449, 2);
           }
         }
       }
@@ -412,6 +456,120 @@ class Quest extends Phaser.Scene {
     ui['footer-status'].textContent = `WYPRAWA ${String(this.level + 1).padStart(2, '0')} / 03`;
     document.body.dataset.state = this.phase;
     document.querySelector('.hud').style.color = this.level === 1 ? '#ffffff' : '#173c36';
+  }
+
+  loadShopState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SHOP_STORAGE_KEY) || '{}');
+      this.wallet = Number.isSafeInteger(saved.wallet) && saved.wallet > 0 ? saved.wallet : 0;
+      this.unlimitedFunds = saved.unlimitedFunds === true;
+      this.ownedSkins = Array.isArray(saved.ownedSkins) ? [...new Set(saved.ownedSkins.filter(id => HERO_SKINS.some(skin => skin.id === id)))] : [];
+      if (!this.ownedSkins.includes('trail')) this.ownedSkins.unshift('trail');
+      this.selectedSkin = this.ownedSkins.includes(saved.selectedSkin) ? saved.selectedSkin : 'trail';
+    } catch (error) {
+      this.wallet = 0;
+      this.unlimitedFunds = false;
+      this.ownedSkins = ['trail'];
+      this.selectedSkin = 'trail';
+      this.showStorageWarning();
+    }
+  }
+
+  saveShopState() {
+    try {
+      localStorage.setItem(SHOP_STORAGE_KEY, JSON.stringify({ wallet: this.wallet, unlimitedFunds: this.unlimitedFunds, ownedSkins: this.ownedSkins, selectedSkin: this.selectedSkin }));
+    } catch (error) {
+      this.showStorageWarning();
+    }
+  }
+
+  showStorageWarning() {
+    if (storageWarningShown) return;
+    storageWarningShown = true;
+    notify('Pamiec sklepu (localStorage) niedostepna. Postep nie zapisze sie po zamknieciu gry.');
+  }
+
+  activateUnlimitedFunds() {
+    if (this.unlimitedFunds) return;
+    this.unlimitedFunds = true;
+    this.saveShopState();
+    if (!ui.shop.hidden) this.renderShop();
+    notify('Monety bez limitu!');
+  }
+
+  heroTexture(frame) {
+    return `hero-${this.selectedSkin}-${frame}`;
+  }
+
+  openShop() {
+    if (!ui.shop.hidden) return;
+    this.shopReturnPhase = this.phase;
+    if (this.phase === 'playing') {
+      this.phase = 'shop';
+      this.physics.pause();
+      this.clearInput();
+    }
+    this.renderShop();
+    ui.shop.hidden = false;
+    ui['shop-close'].focus({ preventScroll: true });
+  }
+
+  closeShop() {
+    if (ui.shop.hidden) return;
+    ui.shop.hidden = true;
+    if (this.phase === 'shop') {
+      this.phase = 'playing';
+      this.physics.resume();
+      this.syncHud();
+    }
+    ui['shop-open'].focus({ preventScroll: true });
+  }
+
+  renderShop() {
+    ui['wallet-count'].textContent = this.unlimitedFunds ? '\u221e' : String(this.wallet).padStart(2, '0');
+    const grid = ui['shop-grid'];
+    grid.replaceChildren();
+    for (const skin of HERO_SKINS) {
+      const owned = this.ownedSkins.includes(skin.id);
+      const selected = this.selectedSkin === skin.id;
+      const card = document.createElement('article');
+      card.className = `skin-card${selected ? ' selected' : ''}`;
+      const preview = document.createElement('img');
+      preview.src = this.textures.getBase64(this.heroTextureFor(skin.id));
+      preview.alt = '';
+      const name = document.createElement('strong');
+      name.className = 'skin-name';
+      name.textContent = skin.name;
+      const price = document.createElement('span');
+      price.className = 'skin-price';
+      price.textContent = skin.price ? `${skin.price} monet` : 'Darmowy';
+      const action = document.createElement('button');
+      action.className = 'skin-action';
+      action.disabled = selected || (!owned && !this.unlimitedFunds && this.wallet < skin.price);
+      action.textContent = selected ? 'Wybrany' : owned ? 'Wybierz' : !this.unlimitedFunds && this.wallet < skin.price ? `Brakuje ${skin.price - this.wallet}` : 'Kup';
+      action.addEventListener('click', () => this.purchaseSkin(skin.id));
+      card.append(preview, name, price, action);
+      grid.append(card);
+    }
+  }
+
+  heroTextureFor(skinId) {
+    return `hero-${skinId}-0`;
+  }
+
+  purchaseSkin(skinId) {
+    const skin = HERO_SKINS.find(item => item.id === skinId);
+    if (!skin) return;
+    if (!this.ownedSkins.includes(skinId)) {
+      if (!this.unlimitedFunds && this.wallet < skin.price) return;
+      if (!this.unlimitedFunds) this.wallet -= skin.price;
+      this.ownedSkins.push(skinId);
+    }
+    this.selectedSkin = skinId;
+    this.saveShopState();
+    this.player.setTexture(this.heroTexture(0));
+    this.renderShop();
+    notify(`${skin.name} - zalozono!`);
   }
 
   showOverlay(eyebrow, title, copy, button) {
@@ -468,7 +626,13 @@ class Quest extends Phaser.Scene {
     if (kind === 'shield') { this.shielded = true; notify('Tarcza zdobyta!'); playSound('shield'); }
     else {
       this.score += kind === 'star' ? 500 : 100;
-      if (kind === 'coin') this.coins++;
+      if (kind === 'coin') {
+        this.coins++;
+        if (!this.unlimitedFunds) {
+          this.wallet++;
+          this.saveShopState();
+        }
+      }
       playSound(kind === 'star' ? 'star' : 'coin');
       if (kind === 'star') notify('Sekretny bonus +500');
       if (kind === 'coin' && this.coins % 25 === 0) { this.lives++; notify('25 monet: dodatkowe zycie!'); playSound('extraLife'); }
@@ -539,7 +703,7 @@ class Quest extends Phaser.Scene {
     body.setAccelerationX(direction * 1850);
     body.setDragX(direction ? 0 : 2100);
     if (direction) this.player.setFlipX(direction < 0);
-    this.player.setTexture(grounded && Math.abs(body.velocity.x) > 30 && Math.floor(time / 110) % 2 ? 'hero1' : 'hero0');
+    this.player.setTexture(this.heroTexture(grounded && Math.abs(body.velocity.x) > 30 && Math.floor(time / 110) % 2 ? 1 : 0));
     this.player.setAlpha(time < this.invincibleUntil && Math.floor(time / 90) % 2 ? .4 : 1);
     if (this.shielded) this.player.setTint(0xa8ffe3); else this.player.clearTint();
     this.player.x = Math.max(12, this.player.x);
@@ -577,6 +741,9 @@ ui.primary.addEventListener('click', () => scene?.primary());
 ui.pause.addEventListener('click', () => scene?.togglePause());
 ui.sound.addEventListener('click', toggleSound);
 document.getElementById('restart').addEventListener('click', () => scene?.restartRun());
+ui['shop-open'].addEventListener('click', () => scene?.openShop());
+ui['shop-close'].addEventListener('click', () => scene?.closeShop());
+ui.shop.addEventListener('click', event => { if (event.target === ui.shop) scene?.closeShop(); });
 for (const button of document.querySelectorAll('[data-control]')) {
   button.addEventListener('pointerdown', event => {
     event.preventDefault();
@@ -594,7 +761,7 @@ for (const button of document.querySelectorAll('[data-control]')) {
 if (typeof Phaser === 'undefined') document.getElementById('fatal').hidden = false;
 else {
   const game = new Phaser.Game({
-    type: Phaser.CANVAS, parent: 'game', backgroundColor: '#9ddedb', pixelArt: true,
+    type: Phaser.CANVAS, parent: 'game', backgroundColor: '#9ddedb',
     scale: { mode: Phaser.Scale.RESIZE, width: '100%', height: '100%' },
     physics: { default: 'arcade', arcade: { gravity: { y: 1450 }, debug: false } },
     scene: Quest, input: { activePointers: 4 }, audio: { noAudio: true },
