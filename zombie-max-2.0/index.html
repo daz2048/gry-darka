@@ -962,6 +962,7 @@
     const ctx = canvas.getContext('2d');
 
     // ---- CONFIG: pokrętła balansu (stroimy próbami) ----
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const CONFIG = {
       W: 1000, H: 520,
       wallTop: 0, wallBottom: 520,      // pelna wysokosc planszy, bez pustych pasow
@@ -1218,8 +1219,8 @@
       prismatic: { fill: '#ce93d8', stroke: '#1a237e', cost: 1050500, label: 'Prismatic' },
       legend: { fill: '#ffecb3', stroke: '#b71c1c', cost: 1065100, label: 'Legend' }
     };
-    let ownedSkins = defaultOwnedSkins();
     const SKIN_VARIANTS = Object.fromEntries(Object.keys(SKINS).map((key, index) => [key, index]));
+    let ownedSkins = defaultOwnedSkins();
     const GUNS = {
       blaster: { label: 'Blaster', desc: 'balanced', cost: 0, body: '#607d8b', barrel: '#cfd8dc', bullet: '#ffe082', fireMul: 1, dmgMul: 1, speedMul: 1, width: 6, length: 18, mode: 'single' },
       goldengun: { label: 'Golden Gun', desc: 'intergalactic singularity cannon', cost: 1e21, body: '#4a148c', barrel: '#80d8ff', bullet: '#e1f5fe', fireMul: 2.0, dmgMul: 10.8, speedMul: 2.35, width: 10, length: 44, mode: 'golden' },
@@ -2410,7 +2411,6 @@
       updateHud();
     }
 
-    function currentSkin() {
     function demonSkinPalette(variant) {
       const hellHue = (variant * 137.508) % 42;
       return {
@@ -2718,9 +2718,9 @@
     function updateSkinShopUi() {
       if (!el.skinList) return;
       if (!el.skinList.children.length) {
-        for (const [key, sk] of Object.entries(SKINS)) {
         const skinCount = Object.keys(SKINS).length;
         let swatchIndex = 0;
+        for (const [key, sk] of Object.entries(SKINS)) {
           const card = document.createElement('div');
           card.className = 'skinItem';
 
@@ -3671,6 +3671,762 @@
       ctx.fillText(hits + ' / ' + per, CONFIG.panel.x + 14, (band.top + band.bot) / 2);
     }
 
+    const ENVIRONMENTS = {
+      easy: { sky: '#142723', ground: '#182b24', stone: '#43544b', edge: '#71816a', light: '#b7d99a', haze: 'rgba(126,185,151,0.12)', rain: false },
+      normal: { sky: '#192329', ground: '#22292c', stone: '#455158', edge: '#71828a', light: '#e6c27b', haze: 'rgba(139,174,186,0.1)', rain: true },
+      hard: { sky: '#281a21', ground: '#2c2428', stone: '#54464d', edge: '#8e7275', light: '#ff9079', haze: 'rgba(215,108,119,0.1)', rain: true },
+      'super-hard-demon': { sky: '#291017', ground: '#24151c', stone: '#49313d', edge: '#88515b', light: '#ffae57', haze: 'rgba(255,87,37,0.12)', rain: false }
+    };
+    let sceneryCache;
+    let sceneryKey;
+
+    function drawEnvironmentDetails(scene, theme, skyline) {
+      scene.save();
+      scene.lineWidth = 1;
+      scene.lineJoin = 'round';
+      if (difficultyKey === 'easy') {
+        scene.fillStyle = '#273d35';
+        scene.strokeStyle = '#69756a';
+        scene.fillRect(295, skyline - 92, 122, 91);
+        scene.strokeRect(299, skyline - 88, 114, 86);
+        scene.beginPath();
+        scene.moveTo(283, skyline - 92);
+        scene.lineTo(356, skyline - 132);
+        scene.lineTo(429, skyline - 92);
+        scene.closePath();
+        scene.fill();
+        scene.stroke();
+        scene.fillStyle = '#101f1c';
+        scene.fillRect(337, skyline - 53, 38, 53);
+        scene.beginPath();
+        scene.arc(356, skyline - 53, 19, Math.PI, 0);
+        scene.fill();
+        scene.strokeStyle = '#4d6555';
+        for (let column = 0; column < 5; column++) {
+          scene.beginPath();
+          scene.moveTo(342 + column * 7, skyline - 60);
+          scene.lineTo(342 + column * 7, skyline - 2);
+          scene.stroke();
+        }
+        scene.fillStyle = '#89927b';
+        scene.fillRect(353, skyline - 119, 5, 23);
+        scene.fillRect(345, skyline - 112, 21, 4);
+        for (const pillarX of [304, 398]) {
+          scene.fillStyle = '#526057';
+          scene.fillRect(pillarX, skyline - 79, 10, 78);
+          scene.fillRect(pillarX - 3, skyline - 83, 16, 5);
+          scene.fillRect(pillarX - 3, skyline - 7, 16, 7);
+        }
+        scene.globalAlpha = 0.6;
+        for (let index = 0; index < 38; index++) {
+          const ivyX = 297 + (index * 17) % 119;
+          const ivyY = skyline - 90 + (index * 29) % 87;
+          scene.fillStyle = index % 3 ? '#466849' : '#71935d';
+          scene.beginPath();
+          scene.ellipse(ivyX, ivyY, 4, 2, index, 0, Math.PI * 2);
+          scene.fill();
+        }
+        for (let row = 0; row < 6; row++) {
+          const pathY = skyline + 15 + row * 37;
+          for (let column = 0; column < 4; column++) {
+            const pathX = 318 + column * 22 + row * 9;
+            scene.fillStyle = (row + column) % 2 ? '#4a5749' : '#35453c';
+            scene.fillRect(pathX, pathY, 18, 11 + row);
+            scene.fillStyle = '#718064';
+            scene.fillRect(pathX + 2, pathY, 12, 1);
+          }
+        }
+        scene.globalAlpha = 1;
+        for (const graveX of [145, 568, 714]) {
+          const graveY = skyline + 38 + graveX % 61;
+          scene.fillStyle = '#34483e';
+          scene.beginPath();
+          scene.ellipse(graveX + 4, graveY + 28, 27, 7, -0.15, 0, Math.PI * 2);
+          scene.fill();
+          scene.fillStyle = '#56655a';
+          scene.fillRect(graveX - 13, graveY - 5, 25, 30);
+          scene.beginPath();
+          scene.arc(graveX - 0.5, graveY - 5, 12.5, Math.PI, 0);
+          scene.fill();
+          scene.fillStyle = '#8d9781';
+          scene.fillRect(graveX - 2, graveY - 10, 3, 15);
+          scene.fillRect(graveX - 7, graveY - 6, 13, 3);
+          scene.fillStyle = '#2c3b32';
+          scene.fillRect(graveX - 7, graveY + 12, 13, 2);
+          scene.fillRect(graveX - 5, graveY + 17, 9, 1);
+          scene.fillStyle = '#a4b582';
+          for (let flower = 0; flower < 5; flower++) {
+            scene.fillRect(graveX + 16 + flower * 3, graveY + 20 + flower % 2 * 4, 2, 2);
+          }
+        }
+      } else if (difficultyKey === 'normal') {
+        scene.fillStyle = '#37464b';
+        scene.fillRect(294, skyline - 87, 152, 87);
+        scene.fillStyle = '#172328';
+        scene.fillRect(303, skyline - 49, 64, 46);
+        scene.fillRect(378, skyline - 49, 57, 46);
+        scene.strokeStyle = '#5e6a68';
+        for (let shutterY = skyline - 45; shutterY < skyline; shutterY += 6) {
+          scene.beginPath();
+          scene.moveTo(306, shutterY);
+          scene.lineTo(364, shutterY);
+          scene.stroke();
+        }
+        scene.fillStyle = '#725e49';
+        scene.save();
+        scene.translate(404, skyline - 26);
+        scene.rotate(-0.3);
+        scene.fillRect(-28, -3, 56, 6);
+        scene.rotate(0.65);
+        scene.fillRect(-27, -3, 54, 6);
+        scene.restore();
+        scene.fillStyle = '#183d3a';
+        scene.fillRect(302, skyline - 78, 136, 22);
+        scene.strokeStyle = '#568478';
+        scene.strokeRect(304, skyline - 76, 132, 18);
+        scene.fillStyle = '#a3c6a2';
+        scene.fillRect(312, skyline - 72, 4, 12);
+        scene.fillRect(308, skyline - 68, 12, 4);
+        scene.font = '700 11px "Rajdhani", sans-serif';
+        scene.fillText('APTEKA 24H', 331, skyline - 62);
+        for (let stripe = 0; stripe < 12; stripe++) {
+          scene.fillStyle = stripe % 2 ? '#746e5a' : '#3f5b59';
+          scene.fillRect(300 + stripe * 12, skyline - 55, 12, 7);
+        }
+        scene.strokeStyle = '#5d6b6d';
+        for (let rung = 0; rung < 9; rung++) {
+          const rungY = skyline - 161 + rung * 13;
+          scene.strokeRect(527, rungY, 24, 10);
+        }
+        scene.beginPath();
+        scene.moveTo(139, skyline - 99);
+        scene.quadraticCurveTo(340, skyline - 56, 579, skyline - 135);
+        scene.stroke();
+        scene.fillStyle = '#162026';
+        scene.beginPath();
+        scene.ellipse(568, 425, 65, 12, 0, 0, Math.PI * 2);
+        scene.fill();
+        scene.fillStyle = '#456366';
+        scene.beginPath();
+        scene.moveTo(509, 414);
+        scene.lineTo(514, 394);
+        scene.lineTo(536, 389);
+        scene.lineTo(550, 370);
+        scene.lineTo(590, 370);
+        scene.lineTo(609, 390);
+        scene.lineTo(627, 396);
+        scene.lineTo(630, 417);
+        scene.closePath();
+        scene.fill();
+        scene.fillStyle = '#182a30';
+        scene.beginPath();
+        scene.moveTo(546, 388);
+        scene.lineTo(556, 375);
+        scene.lineTo(586, 375);
+        scene.lineTo(598, 388);
+        scene.closePath();
+        scene.fill();
+        scene.strokeStyle = '#829b98';
+        scene.beginPath();
+        scene.moveTo(572, 375);
+        scene.lineTo(565, 381);
+        scene.lineTo(578, 385);
+        scene.moveTo(519, 399);
+        scene.lineTo(620, 399);
+        scene.stroke();
+        scene.fillStyle = '#d7bc7c';
+        scene.fillRect(511, 400, 8, 4);
+        scene.fillStyle = '#a36054';
+        scene.fillRect(622, 400, 5, 4);
+        for (const wheelX of [537, 605]) {
+          scene.fillStyle = '#10191d';
+          scene.beginPath();
+          scene.arc(wheelX, 416, 10, 0, Math.PI * 2);
+          scene.fill();
+          scene.fillStyle = '#667576';
+          scene.beginPath();
+          scene.arc(wheelX, 416, 4, 0, Math.PI * 2);
+          scene.fill();
+        }
+        scene.globalAlpha = 0.32;
+        scene.fillStyle = '#b7b093';
+        for (let dash = 0; dash < 7; dash++) scene.fillRect(115 + dash * 104, 463, 53, 4);
+        scene.globalAlpha = 1;
+        scene.fillStyle = '#151f24';
+        scene.beginPath();
+        scene.ellipse(217, 386, 24, 7, 0, 0, Math.PI * 2);
+        scene.fill();
+        scene.strokeStyle = '#596769';
+        for (let slot = 0; slot < 7; slot++) {
+          scene.beginPath();
+          scene.moveTo(201 + slot * 5, 382);
+          scene.lineTo(201 + slot * 5, 389);
+          scene.stroke();
+        }
+      } else if (difficultyKey === 'hard') {
+        scene.fillStyle = '#413e42';
+        scene.fillRect(303, skyline - 116, 87, 111);
+        scene.beginPath();
+        scene.ellipse(346.5, skyline - 116, 43.5, 11, 0, 0, Math.PI * 2);
+        scene.fill();
+        scene.strokeStyle = '#827272';
+        for (const bandY of [skyline - 113, skyline - 71, skyline - 23]) {
+          scene.beginPath();
+          scene.ellipse(346.5, bandY, 43.5, 10, 0, 0, Math.PI);
+          scene.stroke();
+        }
+        scene.strokeStyle = '#796567';
+        scene.lineWidth = 8;
+        scene.beginPath();
+        scene.moveTo(276, skyline - 7);
+        scene.lineTo(276, skyline - 66);
+        scene.lineTo(432, skyline - 66);
+        scene.lineTo(432, skyline - 9);
+        scene.stroke();
+        scene.strokeStyle = '#b28e78';
+        scene.lineWidth = 1;
+        for (const valveX of [290, 412]) {
+          scene.beginPath();
+          scene.arc(valveX, skyline - 66, 9, 0, Math.PI * 2);
+          scene.moveTo(valveX - 6, skyline - 72);
+          scene.lineTo(valveX + 6, skyline - 60);
+          scene.moveTo(valveX + 6, skyline - 72);
+          scene.lineTo(valveX - 6, skyline - 60);
+          scene.stroke();
+        }
+        scene.strokeStyle = '#7a6466';
+        scene.lineWidth = 3;
+        scene.beginPath();
+        scene.moveTo(551, skyline);
+        scene.lineTo(551, 87);
+        scene.lineTo(711, 87);
+        scene.lineTo(697, 103);
+        scene.lineTo(551, 103);
+        scene.moveTo(551, 87);
+        scene.lineTo(630, 103);
+        scene.moveTo(551, 103);
+        scene.lineTo(603, 87);
+        scene.moveTo(603, 87);
+        scene.lineTo(662, 103);
+        scene.moveTo(662, 103);
+        scene.lineTo(697, 87);
+        scene.stroke();
+        scene.lineWidth = 1;
+        scene.beginPath();
+        scene.moveTo(688, 104);
+        scene.lineTo(688, 169);
+        scene.arc(682, 169, 6, 0, Math.PI);
+        scene.stroke();
+        for (let index = 0; index < 5; index++) {
+          const barrelX = 160 + index * 138;
+          const barrelY = 328 + index % 2 * 92;
+          scene.fillStyle = '#413c38';
+          scene.fillRect(barrelX, barrelY, 23, 31);
+          scene.fillStyle = '#7e7552';
+          scene.fillRect(barrelX, barrelY + 11, 23, 8);
+          scene.fillStyle = '#252b29';
+          scene.fillRect(barrelX + 9, barrelY + 12, 5, 6);
+          scene.strokeStyle = '#9b8173';
+          scene.strokeRect(barrelX, barrelY, 23, 31);
+          scene.beginPath();
+          scene.moveTo(barrelX, barrelY + 4);
+          scene.lineTo(barrelX + 23, barrelY + 4);
+          scene.moveTo(barrelX, barrelY + 26);
+          scene.lineTo(barrelX + 23, barrelY + 26);
+          scene.stroke();
+        }
+        scene.fillStyle = '#3a3437';
+        scene.fillRect(453, 461, 120, 27);
+        scene.strokeStyle = '#89765d';
+        for (let stripe = 0; stripe < 8; stripe++) {
+          scene.beginPath();
+          scene.moveTo(457 + stripe * 15, 464);
+          scene.lineTo(467 + stripe * 15, 484);
+          scene.stroke();
+        }
+      } else {
+        for (const pillarX of [305, 428]) {
+          scene.fillStyle = '#34202d';
+          scene.strokeStyle = '#8e5559';
+          scene.beginPath();
+          scene.moveTo(pillarX - 19, skyline);
+          scene.lineTo(pillarX - 12, skyline - 122);
+          scene.lineTo(pillarX, skyline - 159);
+          scene.lineTo(pillarX + 12, skyline - 122);
+          scene.lineTo(pillarX + 19, skyline);
+          scene.closePath();
+          scene.fill();
+          scene.stroke();
+          for (let rune = 0; rune < 4; rune++) {
+            const runeY = skyline - 108 + rune * 26;
+            scene.strokeStyle = rune % 2 ? '#cd7248' : '#9d4c40';
+            scene.beginPath();
+            scene.moveTo(pillarX - 5, runeY);
+            scene.lineTo(pillarX + 5, runeY + 6);
+            scene.lineTo(pillarX - 3, runeY + 12);
+            scene.lineTo(pillarX + 3, runeY - 2);
+            scene.stroke();
+          }
+        }
+        scene.strokeStyle = '#71414c';
+        scene.lineWidth = 13;
+        scene.beginPath();
+        scene.moveTo(305, skyline - 108);
+        scene.quadraticCurveTo(366, skyline - 196, 428, skyline - 108);
+        scene.stroke();
+        scene.lineWidth = 1;
+        for (let link = 0; link < 17; link++) {
+          const chainX = 306 + link * 7.6;
+          const chainY = skyline - 114 + Math.sin(link / 16 * Math.PI) * 33;
+          scene.strokeStyle = link % 3 ? '#a27465' : '#d49568';
+          scene.beginPath();
+          scene.ellipse(chainX, chainY, 5, 2.5, link % 2 ? 0.6 : -0.6, 0, Math.PI * 2);
+          scene.stroke();
+        }
+        for (let fissure = 0; fissure < 5; fissure++) {
+          const fissureX = 134 + fissure * 153;
+          const fissureY = 330 + fissure % 2 * 106;
+          scene.strokeStyle = '#713125';
+          scene.lineWidth = 7;
+          scene.beginPath();
+          scene.moveTo(fissureX - 30, fissureY - 12);
+          scene.lineTo(fissureX - 12, fissureY + 1);
+          scene.lineTo(fissureX + 3, fissureY - 5);
+          scene.lineTo(fissureX + 19, fissureY + 13);
+          scene.lineTo(fissureX + 37, fissureY + 17);
+          scene.stroke();
+          scene.strokeStyle = '#d86b32';
+          scene.lineWidth = 2;
+          scene.stroke();
+          scene.fillStyle = '#34202b';
+          scene.strokeStyle = '#784452';
+          scene.lineWidth = 1;
+          scene.beginPath();
+          scene.moveTo(fissureX + 25, fissureY - 7);
+          scene.lineTo(fissureX + 34, fissureY - 39);
+          scene.lineTo(fissureX + 44, fissureY - 16);
+          scene.lineTo(fissureX + 49, fissureY + 2);
+          scene.closePath();
+          scene.fill();
+          scene.stroke();
+        }
+        scene.strokeStyle = '#995940';
+        scene.globalAlpha = 0.6;
+        scene.beginPath();
+        scene.ellipse(550, 420, 53, 17, 0, 0, Math.PI * 2);
+        scene.ellipse(550, 420, 42, 12, 0, 0, Math.PI * 2);
+        scene.moveTo(505, 420);
+        scene.lineTo(574, 409);
+        scene.lineTo(550, 434);
+        scene.lineTo(524, 409);
+        scene.lineTo(595, 420);
+        scene.stroke();
+      }
+      scene.globalAlpha = 0.55;
+      for (let index = 0; index < 32; index++) {
+        const detailX = 85 + (index * 193) % 742;
+        const detailY = 302 + (index * 71) % 202;
+        if (difficultyKey === 'easy') {
+          scene.strokeStyle = index % 2 ? '#779069' : '#405e48';
+          scene.beginPath();
+          scene.moveTo(detailX, detailY);
+          scene.lineTo(detailX - 4, detailY - 9);
+          scene.moveTo(detailX, detailY);
+          scene.lineTo(detailX + 3, detailY - 12);
+          scene.stroke();
+        } else {
+          scene.save();
+          scene.translate(detailX, detailY);
+          scene.rotate(index * 0.7);
+          scene.fillStyle = difficultyKey === 'normal' ? '#9a9d8b' : theme.stone;
+          scene.fillRect(-4, -2, 8, 5);
+          scene.fillStyle = '#333b38';
+          scene.fillRect(-2, -1, 4, 1);
+          scene.restore();
+        }
+      }
+      scene.globalAlpha = 1;
+      for (const lampX of [236, 743]) {
+        scene.fillStyle = '#303d3b';
+        scene.fillRect(lampX - 2, skyline - 87, 4, 87);
+        scene.fillRect(lampX - 8, skyline - 90, 16, 4);
+        scene.fillRect(lampX - 7, skyline - 88, 2, 17);
+        scene.fillRect(lampX + 5, skyline - 88, 2, 17);
+        scene.fillRect(lampX - 8, skyline - 72, 16, 3);
+        scene.fillStyle = theme.light;
+        scene.globalAlpha = 0.8;
+        scene.fillRect(lampX - 4, skyline - 85, 8, 12);
+        scene.globalAlpha = 0.15;
+        scene.beginPath();
+        scene.ellipse(lampX, skyline + 3, 23, 6, 0, 0, Math.PI * 2);
+        scene.fill();
+        scene.globalAlpha = 1;
+      }
+      scene.restore();
+    }
+
+    function drawEnvironment(time) {
+      const theme = ENVIRONMENTS[difficultyKey] || ENVIRONMENTS.normal;
+      const demon = difficultyKey === 'super-hard-demon';
+      if (sceneryKey !== difficultyKey || !sceneryCache) {
+        sceneryCache = document.createElement('canvas');
+        sceneryCache.width = W;
+        sceneryCache.height = H;
+        sceneryKey = difficultyKey;
+        const scene = sceneryCache.getContext('2d');
+        const skyline = H * 0.53;
+        const wash = scene.createLinearGradient(0, 0, 0, H);
+        wash.addColorStop(0, theme.sky);
+        wash.addColorStop(0.52, 'rgba(10,12,16,0)');
+        wash.addColorStop(1, theme.ground);
+        scene.fillStyle = wash;
+        scene.fillRect(0, 0, W, H);
+        scene.lineWidth = 1;
+
+        for (let index = 0; index < 64; index++) {
+          const starX = (index * 173 + 61) % W;
+          const starY = (index * 47 + 13) % 150;
+          scene.fillStyle = index % 5 === 0 ? theme.edge : '#394047';
+          scene.fillRect(starX, starY, index % 5 === 0 ? 2 : 1, 1);
+        }
+
+        for (let index = 0; index < 12; index++) {
+          const propX = 64 + index * 75;
+          const height = 50 + (index * 37) % 95;
+          scene.fillStyle = theme.stone;
+          scene.strokeStyle = theme.edge;
+          scene.globalAlpha = 0.58;
+          if (difficultyKey === 'easy') {
+            scene.fillRect(propX, skyline - height, 5, height);
+            scene.beginPath();
+            scene.moveTo(propX + 2, skyline - height - 31);
+            scene.lineTo(propX - 28, skyline - height + 40);
+            scene.lineTo(propX + 31, skyline - height + 40);
+            scene.closePath();
+            scene.fill();
+            scene.fillStyle = '#283f34';
+            scene.beginPath();
+            scene.ellipse(propX, skyline - height + 12, 27, 38, 0.2, 0, Math.PI * 2);
+            scene.fill();
+            scene.fillStyle = theme.stone;
+            scene.fillRect(propX - 13, skyline - 25, 24, 25);
+            scene.beginPath();
+            scene.arc(propX - 1, skyline - 25, 12, Math.PI, 0);
+            scene.fill();
+            scene.fillStyle = theme.edge;
+            scene.fillRect(propX - 2, skyline - 30, 2, 15);
+            scene.fillRect(propX - 7, skyline - 26, 12, 2);
+          } else if (difficultyKey === 'normal') {
+            scene.fillRect(propX - 26, skyline - height, 58, height);
+            scene.fillStyle = '#151d22';
+            scene.fillRect(propX - 20, skyline - height + 4, 46, 5);
+            for (let row = 0; row < Math.floor(height / 18) - 1; row++) {
+              for (let column = 0; column < 3; column++) {
+                scene.fillStyle = (row + column + index) % 7 === 0 ? theme.light : '#19242b';
+                scene.fillRect(propX - 17 + column * 15, skyline - height + 17 + row * 18, 7, 9);
+              }
+            }
+            scene.strokeRect(propX - 26, skyline - height, 58, height);
+            scene.fillStyle = theme.stone;
+            scene.fillRect(propX + 12, skyline - height - 14, 3, 14);
+            scene.fillRect(propX + 4, skyline - height - 10, 20, 2);
+          } else if (difficultyKey === 'hard') {
+            scene.fillRect(propX - 27, skyline - 50, 62, 50);
+            scene.fillRect(propX - 8, skyline - height, 17, height);
+            scene.fillStyle = theme.edge;
+            scene.fillRect(propX - 10, skyline - height, 21, 5);
+            scene.fillStyle = '#24191e';
+            for (let slot = 0; slot < 4; slot++) scene.fillRect(propX - 20 + slot * 12, skyline - 36, 7, 16);
+            scene.strokeRect(propX - 24, skyline - 47, 56, 44);
+            scene.beginPath();
+            scene.moveTo(propX - 22, skyline - 42);
+            scene.lineTo(propX + 28, skyline - 5);
+            scene.moveTo(propX + 28, skyline - 42);
+            scene.lineTo(propX - 22, skyline - 5);
+            scene.stroke();
+          } else {
+            scene.beginPath();
+            scene.moveTo(propX - 24, skyline);
+            scene.lineTo(propX - 16, skyline - height * 0.7);
+            scene.lineTo(propX, skyline - height - 20);
+            scene.lineTo(propX + 17, skyline - height * 0.7);
+            scene.lineTo(propX + 25, skyline);
+            scene.closePath();
+            scene.fill();
+            scene.stroke();
+            scene.strokeStyle = '#cc6036';
+            scene.beginPath();
+            scene.moveTo(propX, skyline - height + 6);
+            scene.lineTo(propX - 6, skyline - height * 0.55);
+            scene.lineTo(propX + 7, skyline - height * 0.4);
+            scene.lineTo(propX, skyline - 8);
+            scene.stroke();
+          }
+        }
+        scene.globalAlpha = 1;
+        const soil = scene.createLinearGradient(0, skyline, 0, H);
+        soil.addColorStop(0, theme.ground);
+        soil.addColorStop(1, '#101518');
+        scene.fillStyle = soil;
+        scene.fillRect(0, skyline, W, H - skyline);
+        scene.strokeStyle = theme.stone;
+        scene.globalAlpha = 0.35;
+        for (let row = 0; row < 7; row++) {
+          const groundY = skyline + 9 + row * row * 5;
+          scene.beginPath();
+          scene.moveTo(42, groundY);
+          scene.lineTo(CONFIG.breachX - 15, groundY + 9);
+          scene.stroke();
+        }
+        for (let index = 0; index < 95; index++) {
+          const detailX = 55 + (index * 137) % 825;
+          const detailY = skyline + 13 + (index * 67) % 222;
+          scene.fillStyle = index % 3 === 0 ? theme.edge : theme.stone;
+          scene.fillRect(detailX, detailY, 2 + index % 5, 1 + index % 3);
+          if (index % 8 === 0) {
+            scene.beginPath();
+            scene.moveTo(detailX - 12, detailY - 5);
+            scene.lineTo(detailX, detailY);
+            scene.lineTo(detailX - 5, detailY + 8);
+            scene.lineTo(detailX + 9, detailY + 13);
+            scene.stroke();
+          }
+        }
+        scene.globalAlpha = 0.65;
+        for (let index = 0; index < 8; index++) {
+          const puddleX = 100 + (index * 127) % 750;
+          const puddleY = skyline + 30 + (index * 73) % 190;
+          scene.fillStyle = demon ? '#81331d' : '#101f25';
+          scene.beginPath();
+          scene.ellipse(puddleX, puddleY, 18 + index * 2, 4 + index % 3, -0.08, 0, Math.PI * 2);
+          scene.fill();
+          scene.strokeStyle = demon ? '#d06730' : theme.edge;
+          scene.beginPath();
+          scene.moveTo(puddleX - 10, puddleY + 1);
+          scene.lineTo(puddleX + 12, puddleY);
+          scene.stroke();
+        }
+        scene.globalAlpha = 0.8;
+        for (let index = 0; index < 24; index++) {
+          const fenceX = 55 + index * 35;
+          scene.strokeStyle = theme.stone;
+          scene.beginPath();
+          scene.moveTo(fenceX, skyline - 4);
+          scene.lineTo(fenceX, skyline - 29 - index % 3 * 3);
+          scene.lineTo(fenceX + 5, skyline - 34);
+          scene.moveTo(fenceX, skyline - 19);
+          scene.lineTo(fenceX + 35, skyline - 21);
+          scene.stroke();
+          if (difficultyKey === 'easy') {
+            scene.strokeStyle = '#526c41';
+            scene.beginPath();
+            scene.moveTo(fenceX, H - 12);
+            scene.lineTo(fenceX - 5, H - 27 - index % 5 * 3);
+            scene.moveTo(fenceX, H - 12);
+            scene.lineTo(fenceX + 7, H - 24);
+            scene.stroke();
+          }
+        }
+        drawEnvironmentDetails(scene, theme, skyline);
+        for (const propY of [112, H - 86]) {
+          scene.fillStyle = '#293137';
+          scene.fillRect(791, propY, 62, 25);
+          scene.strokeStyle = theme.edge;
+          scene.strokeRect(793, propY + 2, 58, 21);
+          scene.beginPath();
+          scene.moveTo(794, propY + 3);
+          scene.lineTo(850, propY + 22);
+          scene.moveTo(850, propY + 3);
+          scene.lineTo(794, propY + 22);
+          scene.stroke();
+          scene.fillStyle = theme.light;
+          scene.fillRect(816, propY + 8, 11, 3);
+        }
+        scene.globalAlpha = 1;
+        scene.fillStyle = '#161e23';
+        scene.fillRect(CONFIG.breachX + 14, 0, W - CONFIG.breachX - 14, H);
+        for (let panelY = 0; panelY < H; panelY += 52) {
+          scene.fillStyle = '#2c3539';
+          scene.fillRect(CONFIG.breachX + 18, panelY + 2, 77, 47);
+          scene.strokeStyle = '#526066';
+          scene.strokeRect(CONFIG.breachX + 21, panelY + 5, 71, 41);
+          scene.fillStyle = '#121a1e';
+          scene.fillRect(CONFIG.breachX + 26, panelY + 12, 4, 4);
+          scene.fillRect(W - 17, panelY + 34, 4, 4);
+          scene.fillStyle = '#7b8580';
+          for (const boltX of [CONFIG.breachX + 24, W - 12]) {
+            scene.fillRect(boltX, panelY + 8, 2, 2);
+            scene.fillRect(boltX, panelY + 40, 2, 2);
+          }
+          if (panelY % 104 === 0) {
+            scene.fillStyle = '#101b20';
+            for (let vent = 0; vent < 5; vent++) {
+              scene.fillRect(CONFIG.breachX + 39, panelY + 13 + vent * 5, 33, 2);
+            }
+          } else {
+            scene.strokeStyle = '#697473';
+            scene.beginPath();
+            scene.moveTo(CONFIG.breachX + 51, panelY + 17);
+            scene.lineTo(CONFIG.breachX + 67, panelY + 17);
+            scene.lineTo(CONFIG.breachX + 67, panelY + 30);
+            scene.stroke();
+          }
+        }
+        scene.strokeStyle = '#0c1419';
+        scene.lineWidth = 3;
+        scene.beginPath();
+        scene.moveTo(W - 8, 57);
+        scene.lineTo(W - 8, 204);
+        scene.lineTo(W - 38, 218);
+        scene.lineTo(W - 38, 299);
+        scene.lineTo(W - 8, 317);
+        scene.lineTo(W - 8, H - 17);
+        scene.stroke();
+        scene.lineWidth = 1;
+        scene.fillStyle = '#0e1e22';
+        scene.fillRect(CONFIG.breachX + 37, 235, 39, 43);
+        scene.strokeStyle = '#678179';
+        scene.strokeRect(CONFIG.breachX + 37, 235, 39, 43);
+        scene.fillStyle = '#53866d';
+        scene.fillRect(CONFIG.breachX + 42, 241, 29, 13);
+        scene.strokeStyle = '#c0d19a';
+        scene.beginPath();
+        scene.moveTo(CONFIG.breachX + 44, 249);
+        scene.lineTo(CONFIG.breachX + 51, 249);
+        scene.lineTo(CONFIG.breachX + 54, 244);
+        scene.lineTo(CONFIG.breachX + 59, 252);
+        scene.lineTo(CONFIG.breachX + 63, 247);
+        scene.lineTo(CONFIG.breachX + 69, 247);
+        scene.stroke();
+        for (let switchIndex = 0; switchIndex < 4; switchIndex++) {
+          scene.fillStyle = switchIndex % 2 ? '#b29354' : '#427c6d';
+          scene.fillRect(CONFIG.breachX + 43 + switchIndex * 7, 262, 3, 5);
+        }
+        scene.fillStyle = theme.light;
+        scene.globalAlpha = 0.55;
+        for (let stripeY = 0; stripeY < H; stripeY += 23) {
+          scene.beginPath();
+          scene.moveTo(CONFIG.breachX + 6, stripeY);
+          scene.lineTo(CONFIG.breachX + 13, stripeY + 7);
+          scene.lineTo(CONFIG.breachX + 13, stripeY + 16);
+          scene.lineTo(CONFIG.breachX + 6, stripeY + 9);
+          scene.closePath();
+          scene.fill();
+        }
+      }
+      ctx.save();
+      ctx.drawImage(sceneryCache, 0, 0);
+      const visualTime = reduceMotion || state !== 'play' ? 0 : time;
+      ctx.lineWidth = 1;
+      for (const lampX of [236, 743]) {
+        ctx.fillStyle = theme.haze;
+        ctx.globalAlpha = 0.42 + Math.sin(visualTime * 1.8 + lampX) * 0.06;
+        ctx.beginPath();
+        ctx.moveTo(lampX - 4, H * 0.53 - 73);
+        ctx.lineTo(lampX - 28, H * 0.53 + 4);
+        ctx.lineTo(lampX + 28, H * 0.53 + 4);
+        ctx.lineTo(lampX + 4, H * 0.53 - 73);
+        ctx.closePath();
+        ctx.fill();
+      }
+      if (difficultyKey === 'easy') {
+        ctx.fillStyle = '#93b4a1';
+        for (let wisp = 0; wisp < 5; wisp++) {
+          const wispX = 151 + wisp * 157 + Math.sin(visualTime * 0.23 + wisp) * 22;
+          const wispY = 314 + wisp % 3 * 69;
+          ctx.globalAlpha = 0.035;
+          ctx.beginPath();
+          ctx.ellipse(wispX, wispY, 62, 5 + wisp % 2 * 3, -0.06, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (difficultyKey === 'hard') {
+        ctx.fillStyle = '#b2aaa5';
+        for (let chimney = 0; chimney < 5; chimney++) {
+          const chimneyIndex = chimney * 2;
+          const chimneyX = 64 + chimneyIndex * 75;
+          const chimneyY = H * 0.53 - 50 - (chimneyIndex * 37) % 95;
+          for (let puff = 0; puff < 4; puff++) {
+            const phase = (visualTime * 0.22 + puff / 4 + chimney * 0.17) % 1;
+            ctx.globalAlpha = (1 - phase) * 0.09;
+            ctx.beginPath();
+            ctx.ellipse(chimneyX + Math.sin(phase * 3 + chimney) * phase * 25, chimneyY - phase * 57, 6 + phase * 16, 4 + phase * 10, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      if (theme.rain) {
+        ctx.strokeStyle = theme.edge;
+        for (let ripple = 0; ripple < 8; ripple++) {
+          const phase = (visualTime * 0.65 + ripple * 0.31) % 1;
+          const rippleX = 100 + (ripple * 127) % 750;
+          const rippleY = H * 0.53 + 30 + (ripple * 73) % 190;
+          ctx.globalAlpha = (1 - phase) * 0.23;
+          ctx.beginPath();
+          ctx.ellipse(rippleX, rippleY, 2 + phase * 16, 0.7 + phase * 3, -0.08, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (demon) {
+        ctx.strokeStyle = '#ffb255';
+        ctx.lineWidth = 1.3;
+        for (let fissure = 0; fissure < 5; fissure++) {
+          const fissureX = 134 + fissure * 153;
+          const fissureY = 330 + fissure % 2 * 106;
+          ctx.globalAlpha = 0.3 + Math.sin(visualTime * 1.6 + fissure) * 0.12;
+          ctx.beginPath();
+          ctx.moveTo(fissureX - 12, fissureY + 1);
+          ctx.lineTo(fissureX + 3, fissureY - 5);
+          ctx.lineTo(fissureX + 19, fissureY + 13);
+          ctx.stroke();
+        }
+      }
+      ctx.strokeStyle = theme.light;
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.18;
+      if (theme.rain) {
+        ctx.beginPath();
+        for (let index = 0; index < 65; index++) {
+          const rainX = ((index * 157 - visualTime * 32) % W + W) % W;
+          const rainY = (index * 71 + visualTime * 210) % H;
+          ctx.moveTo(rainX, rainY);
+          ctx.lineTo(rainX - 4, rainY + 12);
+        }
+        ctx.stroke();
+      } else {
+        for (let index = 0; index < 20; index++) {
+          const moteX = 75 + (index * 139) % 790 + Math.sin(visualTime * 0.5 + index) * 12;
+          const moteY = demon
+            ? H - (index * 47 + visualTime * (18 + index % 4 * 4)) % (H - 80)
+            : 280 + (index * 47) % 210 - Math.sin(visualTime * 0.7 + index * 2) * 13;
+          ctx.globalAlpha = 0.3 + Math.sin(visualTime + index) * 0.15;
+          ctx.fillStyle = theme.light;
+          ctx.fillRect(moteX, moteY, 2, 2);
+        }
+      }
+      ctx.globalAlpha = 0.8;
+      for (let lampY = 38; lampY < H; lampY += 104) {
+        ctx.fillStyle = baseHp < CONFIG.baseHpMax * 0.3 ? '#ff5959' : theme.light;
+        ctx.fillRect(CONFIG.breachX + 23, lampY, 4, 12);
+        ctx.fillStyle = theme.haze;
+        ctx.fillRect(CONFIG.breachX - 10, lampY - 6, 32, 24);
+      }
+      const baseDamage = 1 - Math.max(0, Math.min(1, baseHp / CONFIG.baseHpMax));
+      if (baseDamage > 0.25) {
+        ctx.globalAlpha = baseDamage * 0.8;
+        ctx.strokeStyle = '#0b1014';
+        ctx.lineWidth = 2;
+        for (let crack = 0; crack < Math.ceil(baseDamage * 7); crack++) {
+          const crackY = 72 + crack * 61;
+          ctx.beginPath();
+          ctx.moveTo(CONFIG.breachX + 28, crackY);
+          ctx.lineTo(CONFIG.breachX + 41, crackY + 8);
+          ctx.lineTo(CONFIG.breachX + 35, crackY + 20);
+          ctx.lineTo(CONFIG.breachX + 51, crackY + 29);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
     function render() {
       ctx.save();
       ctx.globalAlpha = 1;
@@ -3790,7 +4546,8 @@
       laneGradient.addColorStop(1, 'rgba(10,8,10,0.3)');
       ctx.fillStyle = laneGradient;
       ctx.fillRect(0, CONFIG.wallTop, W, CONFIG.wallBottom - CONFIG.wallTop);
-      ctx.fillStyle = hellMode ? 'rgba(10,4,8,0.62)' : 'rgba(10,8,10,0.95)'; ctx.fillRect(0, CONFIG.wallTop, W, CONFIG.wallBottom - CONFIG.wallTop);
+      ctx.fillStyle = hellMode ? 'rgba(10,4,8,0.62)' : 'rgba(10,8,10,0.65)'; ctx.fillRect(0, CONFIG.wallTop, W, CONFIG.wallBottom - CONFIG.wallTop);
+      drawEnvironment(nowS);
       const beamShiftA = (nowS * 38) % (W + 300) - 150;
       const beamShiftB = (nowS * 24) % (W + 380) - 190;
       const beamA = ctx.createLinearGradient(beamShiftA - 120, 0, beamShiftA + 140, H);

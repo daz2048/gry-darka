@@ -26,6 +26,16 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 - **Zombie od fali 100 są złote**
 - **Wygrana uruchamia confetti**
 
+## Scenery
+
+- **Easy**: overgrown cemetery with an ivy-covered mausoleum, barred doorway, mossy stone paths, engraved gravestones, flowers, grass, drifting mist, and fireflies.
+- **Normal**: abandoned city with a boarded pharmacy, striped awning, fire escape, sagging cables, a wrecked car, road markings, a drain cover, scattered paper, rain, and puddle ripples.
+- **Hard**: industrial ruins with a storage tank, pipework and valves, a trussed crane, hanging hook, banded barrels, striped barricades, smoking chimneys, and rain.
+- **Super Hard Demon**: volcanic fortress with a chained rune gateway, fractured spires, obsidian shards, glowing lava fissures, a ground sigil, and rising embers.
+- Every mode includes ground cracks, rubble, supply crates, lanterns and light cones, plus an armored base with panel fasteners, vents, cable runs, and a status console.
+- Base warning lights turn red at low health, and damage cracks increase as health falls; repairs clear the corresponding wear.
+- Static scenery is cached per difficulty. New weather and lighting effects freeze when paused and respect reduced-motion preferences. Scenery is decorative and does not change movement, hits, or difficulty.
+
 ## 🛒 Sklep
 
 - Kategorie: **Guns** i **Skins**
