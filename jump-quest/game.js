@@ -2,15 +2,15 @@
 
 const TILE = 48;
 const LEVELS = [
-  { name: 'Pierwszy szlak', world: 'ZIELONE WZGORZA', sky: 0x9ddedb, dirt: 0xc98e62, top: 0x45966b, width: 100,
+  { name: 'Pierwszy szlak', world: 'ZIELONE WZGORZA', sky: 0x8fe3f2, dirt: 0x9b6244, top: 0x4ab86f, width: 100,
     ground: [[0, 17], [20, 17], [40, 20], [63, 18], [84, 16]],
     ledges: [[8, 7, 3], [14, 6, 3], [25, 7, 4], [34, 6, 3], [44, 7, 3], [53, 6, 4], [65, 7, 4], [75, 6, 3], [88, 7, 4]],
     enemies: [12, 27, 46, 56, 70, 91], movers: [[18, 8], [38, 8], [61, 8], [82, 8]], checkpoint: 49, shield: [10, 6], secrets: [[15, 4], [55, 4], [76, 4]] },
-  { name: 'Krysztalowe jaskinie', world: 'PODZIEMNY SZLAK', sky: 0x284659, dirt: 0x557183, top: 0x80c7c0, width: 106,
+  { name: 'Krysztalowe jaskinie', world: 'PODZIEMNY SZLAK', sky: 0x263552, dirt: 0x66527c, top: 0x54c4b8, width: 106,
     ground: [[0, 13], [17, 15], [36, 16], [56, 16], [76, 14], [94, 12]],
     ledges: [[7, 7, 3], [20, 7, 3], [28, 6, 3], [38, 7, 4], [48, 6, 3], [59, 7, 4], [68, 6, 3], [80, 7, 3], [97, 7, 4]],
     enemies: [10, 23, 40, 48, 61, 82, 99], movers: [[14, 8], [33, 8], [53, 8], [73, 8], [91, 8]], checkpoint: 43, shield: [8, 6], secrets: [[29, 4], [49, 4], [69, 4]] },
-  { name: 'Brama na szczycie', world: 'TWIERDZA WIATRU', sky: 0xf3c6b0, dirt: 0x8c7c83, top: 0xd5d9d4, width: 112,
+  { name: 'Brama na szczycie', world: 'TWIERDZA WIATRU', sky: 0xffc59c, dirt: 0x805674, top: 0xe6a951, width: 112,
     ground: [[0, 12], [16, 13], [33, 15], [52, 16], [72, 15], [91, 21]],
     ledges: [[6, 7, 3], [19, 7, 3], [26, 6, 3], [36, 7, 3], [44, 6, 3], [55, 7, 3], [64, 6, 3], [75, 7, 3], [83, 6, 3], [95, 7, 3], [103, 6, 3]],
     enemies: [9, 21, 37, 44, 57, 64, 78, 96, 105], movers: [[13, 8], [30, 8], [49, 8], [69, 8], [88, 8]], checkpoint: 58, shield: [7, 6], secrets: [[27, 4], [65, 4], [104, 4]] }
@@ -117,33 +117,49 @@ class Quest extends Phaser.Scene {
     const texture = (key, width, height, draw) => {
       graphics.clear(); draw(graphics); graphics.generateTexture(key, width, height);
     };
-    for (let frame = 0; frame < 2; frame++) texture(`hero${frame}`, 32, 44, pen => {
-      pen.fillStyle(0x173c36).fillRect(8, 1, 17, 8).fillRect(6, 7, 24, 5);
-      pen.fillStyle(0xffcc9b).fillRect(9, 12, 16, 12);
-      pen.fillStyle(0x173c36).fillRect(21, 14, 3, 4);
-      pen.fillStyle(0xf4ca4b).fillRect(6, 24, 20, 12).fillRect(2, 25, 5, 10);
-      pen.fillStyle(0x3e7985).fillRect(8, 34, 8, 8).fillRect(19, 34, 7, frame ? 5 : 8);
-      pen.fillStyle(0x173c36).fillRect(frame ? 3 : 6, 40, 12, 4).fillRect(19, frame ? 37 : 40, 12, 4);
+    for (let frame = 0; frame < 2; frame++) texture(`hero${frame}`, 40, 52, pen => {
+      pen.fillStyle(0x65402f).fillEllipse(8, 8, 25, 24);
+      pen.fillStyle(0xffc99e).fillEllipse(10, 10, 20, 21);
+      pen.fillStyle(0x278b83).fillRoundedRect(7, 26, 27, 19, 7);
+      pen.fillStyle(0xe9a64b).fillRect(8, 39, 25, 7);
+      pen.fillStyle(0xf8d16a).fillRect(4, 29, 6, 13).fillRect(31, 29, 6, 13);
+      pen.fillStyle(0x65402f).fillEllipse(4, 2, 31, 15);
+      pen.fillStyle(0xe65f4b).fillEllipse(5, 0, 29, 12);
+      pen.fillStyle(0xf58a61).fillRoundedRect(3, 8, 34, 5, 3);
+      pen.fillStyle(0xf8d16a).fillEllipse(17, 3, 7, 6);
+      pen.fillStyle(0x412c2a).fillEllipse(11, 17, 3, 4).fillEllipse(24, 17, 3, 4);
+      pen.fillStyle(0xb94f46).fillRoundedRect(15, 23, 9, 2, 1);
+      pen.fillStyle(0xf5c49b).fillEllipse(1, 30, 8, 7).fillEllipse(31, 30, 8, 7);
+      pen.fillStyle(0x4e3b38).fillRoundedRect(frame ? 3 : 6, frame ? 44 : 45, 14, 7, 3);
+      pen.fillStyle(0x4e3b38).fillRoundedRect(frame ? 23 : 21, frame ? 45 : 44, 14, 7, 3);
+      pen.fillStyle(0xd94e4a).fillRect(17, 31, 5, 5);
     });
-    texture('enemy', 36, 30, pen => {
-      pen.fillStyle(0x773b48).fillRect(4, 9, 28, 17).fillRect(8, 4, 20, 7);
-      pen.fillStyle(0xe68c78).fillRect(7, 6, 22, 7);
-      pen.fillStyle(0xfff2d5).fillRect(8, 15, 7, 7).fillRect(22, 15, 7, 7);
-      pen.fillStyle(0x173c36).fillRect(11, 17, 3, 4).fillRect(23, 17, 3, 4).fillRect(2, 26, 12, 4).fillRect(24, 26, 12, 4);
+    texture('enemy', 40, 34, pen => {
+      pen.fillStyle(0x71547f).fillEllipse(3, 10, 34, 22);
+      pen.fillStyle(0xb49ac0).fillEllipse(7, 12, 26, 15);
+      pen.fillStyle(0x5cae74).fillEllipse(8, 2, 24, 15);
+      pen.fillStyle(0x83cf86).fillEllipse(13, 1, 16, 10);
+      pen.fillStyle(0xfff4dc).fillEllipse(11, 15, 7, 9).fillEllipse(23, 15, 7, 9);
+      pen.fillStyle(0x34304a).fillEllipse(14, 18, 3, 4).fillEllipse(26, 18, 3, 4);
+      pen.fillStyle(0xe88d8a).fillEllipse(7, 23, 7, 4).fillEllipse(27, 23, 7, 4);
+      pen.fillStyle(0x513b60).fillEllipse(7, 27, 11, 6).fillEllipse(23, 27, 11, 6);
     });
     texture('coin', 20, 24, pen => {
-      pen.fillStyle(0xb77b29).fillRect(4, 0, 12, 24).fillRect(1, 4, 18, 16);
-      pen.fillStyle(0xffdc57).fillRect(5, 2, 10, 19).fillRect(3, 6, 14, 12);
-      pen.fillStyle(0xfff0a3).fillRect(7, 5, 3, 12);
+      pen.fillStyle(0xc78232).fillEllipse(1, 0, 18, 24);
+      pen.fillStyle(0xffdb63).fillEllipse(3, 2, 14, 20);
+      pen.fillStyle(0xfff1a8).fillEllipse(5, 4, 5, 15);
+      pen.fillStyle(0xe9a93e).fillEllipse(11, 5, 3, 14);
     });
     texture('star', 28, 28, pen => {
       pen.fillStyle(0xfff4b7).fillPoints([{x:14,y:0},{x:18,y:9},{x:28,y:10},{x:21,y:17},{x:23,y:28},{x:14,y:22},{x:4,y:28},{x:6,y:17},{x:0,y:10},{x:10,y:9}], true);
       pen.fillStyle(0xd69b36).fillRect(11, 10, 2, 6).fillRect(17, 10, 2, 6);
     });
     texture('block', 48, 48, pen => {
-      pen.fillStyle(0xa56535).fillRect(0, 0, 48, 48);
-      pen.fillStyle(0xffd760).fillRect(3, 3, 42, 40);
-      pen.fillStyle(0xa56535).fillRect(20, 12, 12, 5).fillRect(27, 17, 5, 8).fillRect(21, 23, 7, 5).fillRect(21, 32, 5, 5);
+      pen.fillStyle(0xad603a).fillRoundedRect(1, 1, 46, 46, 7);
+      pen.fillStyle(0xffcf58).fillRoundedRect(3, 3, 42, 40, 6);
+      pen.fillStyle(0xffe793).fillRoundedRect(7, 6, 34, 5, 2);
+      pen.fillStyle(0xd78b3c).fillRoundedRect(7, 37, 34, 4, 2);
+      pen.fillStyle(0xb56a37).fillRoundedRect(19, 13, 14, 5, 2).fillRoundedRect(28, 17, 5, 8, 2).fillRoundedRect(20, 23, 13, 5, 2).fillRoundedRect(20, 27, 5, 5, 2).fillEllipse(18, 34, 5, 5);
     });
     texture('shield', 28, 32, pen => {
       pen.fillStyle(0xd9fff0).fillPoints([{x:1,y:2},{x:14,y:0},{x:27,y:2},{x:25,y:21},{x:14,y:32},{x:3,y:21}], true);
@@ -151,9 +167,11 @@ class Quest extends Phaser.Scene {
       pen.fillStyle(0xf5df67).fillRect(12, 8, 4, 17).fillRect(8, 12, 12, 4);
     });
     texture('platform', 96, 20, pen => {
-      pen.fillStyle(0x315e57).fillRect(0, 0, 96, 20);
-      pen.fillStyle(0xf1d78c).fillRect(0, 0, 96, 5);
-      pen.fillStyle(0x719b85).fillRect(7, 8, 82, 5);
+      pen.fillStyle(0x79513d).fillRoundedRect(0, 4, 96, 16, 4);
+      pen.fillStyle(0xa96d48).fillRoundedRect(3, 8, 90, 8, 3);
+      pen.fillStyle(0x45a96e).fillRoundedRect(0, 0, 96, 8, 4);
+      pen.fillStyle(0x8bd47a).fillRoundedRect(5, 1, 82, 3, 2);
+      pen.fillStyle(0xf0d293).fillRect(20, 11, 5, 3).fillRect(63, 12, 4, 3).fillRect(79, 10, 5, 3);
     });
     texture('particle', 5, 5, pen => pen.fillStyle(0xffdf6d).fillRect(0, 0, 5, 5));
     graphics.destroy();
@@ -236,41 +254,82 @@ class Quest extends Phaser.Scene {
   addTerrain(worldX, worldY, width, height, data) {
     const graphics = this.add.graphics();
     graphics.fillStyle(data.dirt).fillRect(worldX, worldY, width, height);
-    graphics.fillStyle(data.top).fillRect(worldX, worldY, width, 12);
-    graphics.fillStyle(0xffffff, .15).fillRect(worldX, worldY + 12, width, 5);
-    graphics.lineStyle(2, 0x173c36, .12);
-    for (let offset = 0; offset < width; offset += TILE) graphics.strokeRect(worldX + offset, worldY + 20, TILE, height - 20);
+    graphics.fillStyle(data.top).fillRect(worldX, worldY, width, 16);
+    graphics.fillStyle(0xffffff, .18).fillRect(worldX, worldY, width, 4);
+    graphics.fillStyle(0x332c42, .12).fillRect(worldX, worldY + 16, width, 5);
+    for (let offset = 8; offset < width; offset += 43) {
+      graphics.fillStyle(0xffffff, .1).fillEllipse(worldX + offset, worldY + 34 + offset % 17, 13, 5);
+      graphics.fillStyle(0x332c42, .13).fillEllipse(worldX + offset + 22, worldY + 65 + offset % 13, 17, 7);
+      graphics.fillStyle(data.top).fillTriangle(worldX + offset, worldY + 2, worldX + offset + 4, worldY - 5, worldX + offset + 8, worldY + 2);
+    }
     const solid = this.add.rectangle(worldX + width / 2, worldY + height / 2, width, height, 0, 0);
     this.solids.add(solid);
   }
 
   drawScenery(data) {
-    const backdrop = this.add.graphics().setScrollFactor(.18);
-    if (this.level === 1) {
-      for (let index = 0; index < 36; index++) {
-        const sceneryX = index * 75;
-        backdrop.fillStyle(index % 2 ? 0x355d6e : 0x3c6975).fillTriangle(sceneryX, 540, sceneryX + 80, 150 + index % 4 * 60, sceneryX + 160, 540);
-        backdrop.fillStyle(0x87cebf, .3).fillRect(sceneryX + 25, 60 + index % 5 * 30, 4, 8);
+    const worldWidth = data.width * TILE + 1800;
+    const backdrop = this.add.graphics().setScrollFactor(.12).setDepth(-10);
+    const middle = this.add.graphics().setScrollFactor(.28).setDepth(-5);
+    const foreground = this.add.graphics().setDepth(1);
+    const skyTop = [0x6ac9ec, 0x192847, 0xf39b83][this.level];
+    const skyBottom = [0xc4f3df, 0x64558b, 0xffd694][this.level];
+    backdrop.fillGradientStyle(skyTop, skyTop, skyBottom, skyBottom, 1).fillRect(0, 0, worldWidth, 540);
+
+    if (this.level === 0) {
+      backdrop.fillStyle(0xffed9b).fillCircle(735, 106, 43);
+      backdrop.fillStyle(0xffed9b, .14).fillCircle(735, 106, 66);
+      for (let index = 0; index < 18; index++) {
+        const x = index * 310 + 35;
+        const y = 82 + index % 3 * 38;
+        backdrop.fillStyle(0xffffff, .82).fillEllipse(x, y + 9, 92, 26).fillEllipse(x + 24, y, 44, 34).fillEllipse(x + 51, y + 4, 55, 30);
+      }
+      for (let index = 0; index < 20; index++) {
+        const x = index * 290 - 100;
+        backdrop.fillStyle(index % 2 ? 0x7cc99e : 0x6fbd96).fillEllipse(x, 355 + index % 3 * 21, 380, 190);
+        middle.fillStyle(index % 2 ? 0x4da981 : 0x5db48a).fillEllipse(x + 110, 415 + index % 2 * 18, 360, 140);
+      }
+    } else if (this.level === 1) {
+      for (let index = 0; index < 45; index++) {
+        const x = index * 130;
+        backdrop.fillStyle(index % 2 ? 0x3b416e : 0x34476d).fillTriangle(x, 0, x + 49, 112 + index % 4 * 23, x + 98, 0);
+        backdrop.fillStyle(0x8be4dd, .7).fillPoints([{x: x + 38, y: 112 + index % 4 * 23}, {x: x + 49, y: 82 + index % 4 * 23}, {x: x + 58, y: 112 + index % 4 * 23}], true);
+        if (index % 2 === 0) backdrop.fillStyle(0xe4b3ff, .75).fillPoints([{x: x + 80, y: 380}, {x: x + 101, y: 333 + index % 3 * 15}, {x: x + 119, y: 380}], true);
+      }
+      for (let index = 0; index < 16; index++) {
+        const x = index * 330 + 45;
+        middle.fillStyle(0x404675).fillEllipse(x, 460 + index % 2 * 20, 310, 170);
+        middle.fillStyle(0x525487).fillEllipse(x + 48, 455 + index % 3 * 12, 198, 102);
       }
     } else {
-      backdrop.fillStyle(0xfff2c5).fillCircle(740, 128, 45);
+      backdrop.fillStyle(0xffefb0).fillCircle(735, 116, 48);
+      backdrop.fillStyle(0xffefb0, .13).fillCircle(735, 116, 72);
       for (let index = 0; index < 17; index++) {
-        const sceneryX = index * 180;
-        backdrop.fillStyle(this.level === 2 ? 0xbdacb1 : 0x7dbbb0).fillTriangle(sceneryX - 100, 540, sceneryX + 120, 230 + index % 3 * 40, sceneryX + 350, 540);
-        backdrop.fillStyle(this.level === 2 ? 0xf3e7d5 : 0xe7f4df).fillTriangle(sceneryX + 75, 285 + index % 3 * 40, sceneryX + 120, 230 + index % 3 * 40, sceneryX + 165, 285 + index % 3 * 40);
-        backdrop.fillStyle(0xffffff, .7).fillRoundedRect(sceneryX + 50, 105 + index % 3 * 45, 80, 19, 8).fillRoundedRect(sceneryX + 65, 94 + index % 3 * 45, 42, 30, 10);
+        const x = index * 340 + 70;
+        backdrop.fillStyle(0xf5c181, .82).fillEllipse(x, 164 + index % 3 * 28, 105, 28).fillEllipse(x + 30, 154 + index % 3 * 28, 54, 41).fillEllipse(x + 63, 164 + index % 3 * 28, 74, 30);
+        middle.fillStyle(index % 2 ? 0x855b7b : 0x96617b).fillRoundedRect(x - 15, 315, 94, 185, 7);
+        middle.fillStyle(0xb66e79).fillRoundedRect(x + 1, 270 + index % 3 * 13, 62, 62, 8);
+        middle.fillStyle(0xffd27b).fillTriangle(x - 8, 276 + index % 3 * 13, x + 32, 226 + index % 3 * 13, x + 71, 276 + index % 3 * 13);
+        middle.fillStyle(0xffdd85).fillRect(x + 28, 326, 16, 31).fillRect(x + 24, 379, 24, 6);
+        middle.fillStyle(0xffe59b).fillTriangle(x + 33, 224 + index % 3 * 13, x + 63, 233 + index % 3 * 13, x + 33, 244 + index % 3 * 13);
       }
     }
-    const foreground = this.add.graphics();
+
     for (const [start, count] of data.ground) {
       for (let column = start + 2; column < start + count - 1; column += 5) {
-        const sceneryX = column * TILE;
+        const x = column * TILE;
         if (this.level === 1) {
-          foreground.fillStyle(0x80cfc5).fillTriangle(sceneryX, 480, sceneryX + 14, 435, sceneryX + 28, 480);
+          foreground.fillStyle(0x4c5681).fillEllipse(x, 464, 38, 22);
+          foreground.fillStyle(0x8be4dd).fillPoints([{x: x + 12, y: 469}, {x: x + 19, y: 438}, {x: x + 25, y: 469}], true);
+          foreground.fillStyle(0xe4b3ff).fillPoints([{x: x + 29, y: 470}, {x: x + 35, y: 447}, {x: x + 40, y: 470}], true);
         } else {
-          foreground.fillStyle(0x55775b).fillRect(sceneryX + 14, 409, 8, 71);
-          foreground.fillStyle(this.level === 2 ? 0x9d8e9b : 0x45966b).fillRect(sceneryX - 5, 389, 46, 36).fillRect(sceneryX + 3, 370, 30, 30);
-          foreground.fillStyle(0xffffff, .18).fillRect(sceneryX + 3, 375, 10, 37);
+          const treeColor = this.level === 2 ? 0x68834f : 0x398a61;
+          foreground.fillStyle(0x79543f).fillRoundedRect(x + 14, 424, 9, 56, 4);
+          foreground.fillStyle(treeColor).fillEllipse(x - 1, 391, 40, 33).fillEllipse(x + 3, 374, 28, 28);
+          foreground.fillStyle(0x9cdb81, .7).fillEllipse(x + 4, 382, 14, 12);
+          if (column % 2 === 0) {
+            foreground.fillStyle(0xfff0a1).fillCircle(x + 37, 454, 4);
+            foreground.fillStyle(0xe87966).fillCircle(x + 37, 454, 2);
+          }
         }
       }
     }
