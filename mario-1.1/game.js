@@ -55,6 +55,23 @@ function colorFromHsl(hue, saturation, lightness) {
   return (Math.round((red + match) * 255) << 16) | (Math.round((green + match) * 255) << 8) | Math.round((blue + match) * 255);
 }
 function makeScenePalette(index, theme, blueprint) {
+  if (index === LEVEL_COUNT - 1) return {
+    isGold: true,
+    sky: 0x9c6a14,
+    skyTop: 0x67420c,
+    skyBottom: 0xf0c34d,
+    dirt: 0x80520d,
+    top: 0xf3bc32,
+    farColor: 0x9b6a13,
+    midColor: 0xb47c18,
+    accentColor: 0xffe486,
+    cloudColor: 0xf6d77b,
+    foliageColor: 0xe0aa28,
+    foliageShadow: 0x91600e,
+    foliageLight: 0xffe68b,
+    flowerColor: 0xffc233,
+    grassHighlight: 0xffefaa
+  };
   if (index < LEVEL_BLUEPRINTS.length) return { ...THEME_PALETTES[theme], sky: blueprint.sky, dirt: blueprint.dirt, top: blueprint.top };
   const hue = (index * 137.508 + 43) % 360;
   return {
@@ -79,7 +96,9 @@ const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
   const round = Math.floor(index / LEVEL_BLUEPRINTS.length);
   const blueprint = LEVEL_BLUEPRINTS[theme];
   const difficulty = Math.min(8, Math.floor(index / 12));
-  const name = `Poziom ${String(index + 1).padStart(3, '0')} - ${blueprint.name}`;
+  const isFinalLevel = index === LEVEL_COUNT - 1;
+  const name = isFinalLevel ? 'Poziom 100 - Zlota Korona' : `Poziom ${String(index + 1).padStart(3, '0')} - ${blueprint.name}`;
+  const world = isFinalLevel ? 'ZLOTA KORONA' : blueprint.world;
   const palette = makeScenePalette(index, theme, blueprint);
   if (index < LEVEL_BLUEPRINTS.length) return { ...blueprint, ...palette, name, theme, difficulty };
 
@@ -140,6 +159,7 @@ const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
     ...blueprint,
     ...palette,
     name,
+    world,
     theme,
     difficulty,
     width,
@@ -490,6 +510,7 @@ class Quest extends Phaser.Scene {
     this.jumpHeld = false;
     this.wasGrounded = true;
     this.nextLuckyBlockAt = 0;
+    this.nextGoldDamageAt = 0;
     this.physics.world.setBounds(0, -400, data.width * TILE, 1200);
     this.cameras.main.setBackgroundColor(data.sky);
     this.drawScenery(data);
@@ -546,9 +567,11 @@ class Quest extends Phaser.Scene {
     this.physics.add.collider(this.player, this.solids);
     this.physics.add.collider(this.player, this.blocks, (player, block) => {
       if (player.body.blocked.up && !block.used) {
-        block.used = true; block.setTint(0x9b947b);
+        block.used = true; block.setTint(data.isGold ? 0xe4a92c : 0x9b947b);
         const pickup = this.pickups.create(block.x, block.y - 48, 'shield');
-        pickup.kind = 'shield'; playSound('block');
+        pickup.kind = 'shield';
+        if (data.isGold) pickup.setTint(0xffc83e);
+        playSound('block');
       }
     });
     this.physics.add.collider(this.player, this.movers);
@@ -558,6 +581,11 @@ class Quest extends Phaser.Scene {
     this.drawCheckpoint(data.checkpoint * TILE);
     this.exitX = (data.width - 3) * TILE;
     this.drawExit(this.exitX);
+    if (data.isGold) {
+      for (const child of this.children.getAll()) {
+        if (typeof child.setTint === 'function') child.setTint(0xffc83e);
+      }
+    }
     this.resizeCamera();
     this.cameras.main.setBounds(0, 0, data.width * TILE, 540);
     this.cameras.main.startFollow(this.player, true, .09, .09, -100, 0);
@@ -567,17 +595,20 @@ class Quest extends Phaser.Scene {
 
   addTerrain(worldX, worldY, width, height, data) {
     const graphics = this.add.graphics();
+    const edgeLight = data.isGold ? 0xffe89a : 0xffffff;
+    const soilShade = data.isGold ? 0x865b16 : 0x332c42;
+    const soilDeep = data.isGold ? 0x694710 : 0x302c3c;
     graphics.fillStyle(data.dirt).fillRect(worldX, worldY, width, height);
     graphics.fillStyle(data.top).fillRect(worldX, worldY, width, 16);
-    graphics.fillStyle(0xffffff, .22).fillRect(worldX, worldY, width, 3);
-    graphics.fillStyle(0x332c42, .16).fillRect(worldX, worldY + 16, width, 4);
-    graphics.fillStyle(0x302c3c, .12).fillRect(worldX, worldY + height - 11, width, 11);
+    graphics.fillStyle(edgeLight, .22).fillRect(worldX, worldY, width, 3);
+    graphics.fillStyle(soilShade, .16).fillRect(worldX, worldY + 16, width, 4);
+    graphics.fillStyle(soilDeep, .12).fillRect(worldX, worldY + height - 11, width, 11);
     for (let offset = 8; offset < width; offset += 25 + Math.floor((worldX + offset) / 43) % 3 * 9) {
       const detail = Math.floor((worldX + offset + this.level * 31) / 13);
       const grassHeight = 4 + detail % 5;
-      graphics.fillStyle(0x302c3c, .13).fillRoundedRect(worldX + offset + 8, worldY + 32 + detail % 23, 11 + detail % 9, 5, 2);
-      graphics.fillStyle(0xffffff, .11).fillRoundedRect(worldX + offset + 10, worldY + 33 + detail % 23, 5, 2, 1);
-      graphics.fillStyle(0x332c42, .14).fillEllipse(worldX + offset + 22, worldY + 68 + detail % 17, 17, 7);
+      graphics.fillStyle(soilDeep, .13).fillRoundedRect(worldX + offset + 8, worldY + 32 + detail % 23, 11 + detail % 9, 5, 2);
+      graphics.fillStyle(edgeLight, .11).fillRoundedRect(worldX + offset + 10, worldY + 33 + detail % 23, 5, 2, 1);
+      graphics.fillStyle(soilShade, .14).fillEllipse(worldX + offset + 22, worldY + 68 + detail % 17, 17, 7);
       graphics.fillStyle(data.top).fillTriangle(worldX + offset, worldY + 3, worldX + offset + 4, worldY - grassHeight, worldX + offset + 8, worldY + 3);
       graphics.fillStyle(data.grassHighlight, .7).fillTriangle(worldX + offset + 2, worldY + 2, worldX + offset + 4, worldY - grassHeight + 2, worldX + offset + 5, worldY + 2);
     }
@@ -641,10 +672,12 @@ class Quest extends Phaser.Scene {
         } else {
           const treeColor = data.foliageColor;
           const canopyShadow = data.foliageShadow;
-          foreground.fillStyle(0x624a43).fillRoundedRect(x + 12, 405, 13, 75, 5);
-          foreground.fillStyle(0x93634a).fillRoundedRect(x + 15, 411, 5, 59, 2);
-          foreground.fillStyle(0x624a43).fillTriangle(x + 17, 447, x + 7, 463, x + 18, 458);
-          foreground.fillStyle(0x624a43).fillTriangle(x + 21, 452, x + 31, 466, x + 19, 460);
+          const trunkColor = data.isGold ? 0x805512 : 0x624a43;
+          const trunkLight = data.isGold ? 0xb17b1c : 0x93634a;
+          foreground.fillStyle(trunkColor).fillRoundedRect(x + 12, 405, 13, 75, 5);
+          foreground.fillStyle(trunkLight).fillRoundedRect(x + 15, 411, 5, 59, 2);
+          foreground.fillStyle(trunkColor).fillTriangle(x + 17, 447, x + 7, 463, x + 18, 458);
+          foreground.fillStyle(trunkColor).fillTriangle(x + 21, 452, x + 31, 466, x + 19, 460);
           foreground.fillStyle(canopyShadow).fillEllipse(x - 5, 389, 47, 39).fillEllipse(x + 8, 377, 37, 39).fillEllipse(x + 22, 392, 34, 31);
           foreground.fillStyle(treeColor).fillEllipse(x - 2, 385, 38, 34).fillEllipse(x + 10, 371, 29, 30).fillEllipse(x + 22, 388, 26, 26);
           foreground.fillStyle(data.foliageLight, .75).fillEllipse(x + 4, 378, 15, 12).fillEllipse(x + 20, 383, 10, 9);
@@ -660,18 +693,23 @@ class Quest extends Phaser.Scene {
 
   drawCheckpoint(worldX) {
     const pen = this.add.graphics();
-    pen.fillStyle(0x315e57).fillRect(worldX, 380, 5, 100);
+    const post = this.dataLevel.isGold ? 0x805512 : 0x315e57;
+    pen.fillStyle(post).fillRect(worldX, 380, 5, 100);
     pen.fillStyle(0xffdc57).fillTriangle(worldX + 5, 380, worldX + 45, 395, worldX + 5, 410);
     this.checkpointFlag = pen;
   }
 
   drawExit(worldX) {
     const pen = this.add.graphics();
-    pen.fillStyle(0x315e57).fillRect(worldX - 38, 362, 16, 118).fillRect(worldX + 22, 362, 16, 118).fillRect(worldX - 38, 345, 76, 22);
-    pen.fillStyle(0xffdd57).fillRect(worldX - 33, 350, 66, 10);
-    pen.fillStyle(0xf3f5de, .65).fillRect(worldX - 22, 368, 44, 112);
-    pen.fillStyle(0xf3f5de).fillRect(worldX - 44, 337, 88, 9);
-    this.add.text(worldX, 316, 'META', { fontFamily: 'monospace', fontSize: '14px', color: '#173c36', backgroundColor: '#ffdd57', padding: {x: 8, y: 4} }).setOrigin(.5);
+    const frame = this.dataLevel.isGold ? 0x805512 : 0x315e57;
+    const trim = this.dataLevel.isGold ? 0xffd75a : 0xffdd57;
+    const glow = this.dataLevel.isGold ? 0xffefb0 : 0xf3f5de;
+    const textColor = this.dataLevel.isGold ? '#70480d' : '#173c36';
+    pen.fillStyle(frame).fillRect(worldX - 38, 362, 16, 118).fillRect(worldX + 22, 362, 16, 118).fillRect(worldX - 38, 345, 76, 22);
+    pen.fillStyle(trim).fillRect(worldX - 33, 350, 66, 10);
+    pen.fillStyle(glow, .65).fillRect(worldX - 22, 368, 44, 112);
+    pen.fillStyle(glow).fillRect(worldX - 44, 337, 88, 9);
+    this.add.text(worldX, 316, 'META', { fontFamily: 'monospace', fontSize: '14px', color: textColor, backgroundColor: `#${trim.toString(16).padStart(6, '0')}`, padding: {x: 8, y: 4} }).setOrigin(.5);
   }
 
   resizeCamera() {
@@ -688,7 +726,9 @@ class Quest extends Phaser.Scene {
     ui['level-name'].textContent = LEVELS[this.level].name;
     ui['footer-status'].textContent = `WYPRAWA ${String(this.level + 1).padStart(3, '0')} / ${LEVEL_COUNT}`;
     document.body.dataset.state = this.phase;
-    document.querySelector('.hud').style.color = this.dataLevel.theme === 1 ? '#ffffff' : '#173c36';
+    const hud = document.querySelector('.hud');
+    hud.style.color = this.dataLevel.isGold ? '#70480d' : this.dataLevel.theme === 1 ? '#ffffff' : '#173c36';
+    hud.style.background = this.dataLevel.isGold ? 'linear-gradient(#fff0b8e6, transparent)' : '';
   }
 
   loadShopState() {
@@ -827,7 +867,21 @@ class Quest extends Phaser.Scene {
   primary() {
     if (this.phase === 'won' || this.phase === 'gameover') return this.restartRun();
     const resuming = this.phase === 'paused';
-    if (this.phase === 'levelComplete') { this.level++; this.buildLevel(); }
+    if (this.phase === 'diamondRequired') {
+      if (!this.ownedSkins.includes('diamond')) return this.openShop();
+      this.selectedSkin = 'diamond';
+      this.phase = 'levelComplete';
+    }
+    if (this.phase === 'levelComplete') {
+      const nextLevel = this.level + 1;
+      if (nextLevel === LEVEL_COUNT - 1 && !this.ownedSkins.includes('diamond')) {
+        this.phase = 'diamondRequired';
+        this.showOverlay('SKORA DIAMENTOWA', 'Poziom 100', 'Zloty swiat wymaga odblokowanej i zalozonej skory Diamentowej.', 'Otworz sklep');
+        return;
+      }
+      this.level = nextLevel;
+      this.buildLevel();
+    }
     this.phase = 'playing';
     ui.overlay.hidden = true;
     this.physics.resume();
@@ -930,9 +984,9 @@ class Quest extends Phaser.Scene {
     const direction = this.player.flipX ? -1 : 1;
     const x = this.player.x + direction * 58;
     const y = this.player.y - 44;
-    const block = this.add.image(x, y, 'block').setDepth(7).setTint(0x80e5ec);
+    const block = this.add.image(x, y, 'block').setDepth(7).setTint(this.dataLevel.isGold ? 0xffc83e : 0x80e5ec);
     const mark = this.add.text(x, y - 2, '?', {
-      fontFamily: 'monospace', fontSize: '24px', fontStyle: 'bold', color: '#ffffff', stroke: '#237f88', strokeThickness: 3
+      fontFamily: 'monospace', fontSize: '24px', fontStyle: 'bold', color: '#ffffff', stroke: this.dataLevel.isGold ? '#805512' : '#237f88', strokeThickness: 3
     }).setOrigin(.5).setDepth(8);
     this.tweens.add({
       targets: [block, mark], y: '-=20', duration: 280, ease: 'Back.Out', yoyo: true,
@@ -982,6 +1036,11 @@ class Quest extends Phaser.Scene {
     if (this.phase !== 'playing') return;
     const body = this.player.body;
     const diamondEquipped = this.selectedSkin === 'diamond';
+    if (this.dataLevel.isGold && !diamondEquipped && time >= this.nextGoldDamageAt) {
+      this.nextGoldDamageAt = time + 2200;
+      this.die();
+      if (this.phase !== 'playing') return;
+    }
     body.setMaxVelocity(diamondEquipped ? 440 : 310, diamondEquipped ? 1150 : 900);
     const grounded = body.blocked.down || body.touching.down;
     if (grounded && !this.wasGrounded) playSound('land');
@@ -1003,15 +1062,16 @@ class Quest extends Phaser.Scene {
     if (direction) this.player.setFlipX(direction < 0);
     this.player.setTexture(this.heroTexture(grounded && Math.abs(body.velocity.x) > 30 && Math.floor(time / 110) % 2 ? 1 : 0));
     this.player.setAlpha(time < this.invincibleUntil && Math.floor(time / 90) % 2 ? .4 : 1);
-    if (this.shielded) this.player.setTint(0xa8ffe3);
+    if (this.dataLevel.isGold) this.player.setTint(0xffc83e);
+    else if (this.shielded) this.player.setTint(0xa8ffe3);
     else if (this.selectedSkin === 'diamond') this.player.setTint(0xc8fbff);
     else this.player.clearTint();
     this.diamondAura.clear();
     if (this.selectedSkin === 'diamond') {
       const aura = this.diamondAura;
       const pulse = .48 + (Math.sin(time * .008) + 1) * .16;
-      aura.lineStyle(2, 0x8af5ff, pulse).strokeCircle(this.player.x, this.player.y, DIAMOND_AURA_RADIUS);
-      aura.fillStyle(0xe4fdff, .9);
+      aura.lineStyle(2, this.dataLevel.isGold ? 0xffd75a : 0x8af5ff, pulse).strokeCircle(this.player.x, this.player.y, DIAMOND_AURA_RADIUS);
+      aura.fillStyle(this.dataLevel.isGold ? 0xffefb0 : 0xe4fdff, .9);
       const orbit = time * .0012;
       for (let point = 0; point < 4; point++) {
         const angle = orbit + point * Math.PI / 2;
