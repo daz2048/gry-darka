@@ -1,7 +1,7 @@
 'use strict';
 
 const TILE = 48;
-const LEVELS = [
+const LEVEL_BLUEPRINTS = [
   { name: 'Pierwszy szlak', world: 'ZIELONE WZGORZA', sky: 0x8fe3f2, dirt: 0x9b6244, top: 0x4ab86f, width: 100,
     ground: [[0, 17], [20, 17], [40, 20], [63, 18], [84, 16]],
     ledges: [[8, 7, 3], [14, 6, 3], [25, 7, 4], [34, 6, 3], [44, 7, 3], [53, 6, 4], [65, 7, 4], [75, 6, 3], [88, 7, 4]],
@@ -31,6 +31,60 @@ const LEVELS = [
       { column: 105, type: 'mossling' }
     ], movers: [[13, 8], [30, 8], [49, 8], [69, 8], [88, 8]], checkpoint: 58, shield: [7, 6], secrets: [[27, 4], [65, 4], [104, 4]] }
 ];
+const LEVEL_COUNT = 100;
+const ENEMY_TYPES = ['mossling', 'beetle', 'flutter'];
+const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
+  const theme = index % LEVEL_BLUEPRINTS.length;
+  const round = Math.floor(index / LEVEL_BLUEPRINTS.length);
+  const blueprint = LEVEL_BLUEPRINTS[theme];
+  const addedColumns = Math.floor(round / 5) * 2;
+  const ground = blueprint.ground.map(([start, count]) => [start, count]);
+  ground[ground.length - 1][1] += addedColumns;
+  const occupied = new Set();
+  const chooseColumn = (preferred, [start, count], salt) => {
+    const options = count - 4;
+    const offset = ((preferred - start - 2 + salt) % options + options) % options;
+    for (let step = 0; step < options; step++) {
+      const column = start + 2 + (offset + step) % options;
+      if (!occupied.has(column)) {
+        occupied.add(column);
+        return column;
+      }
+    }
+    return start + 2 + offset;
+  };
+  const enemies = blueprint.enemies.map((enemy, enemyIndex) => {
+    const segment = ground.find(([start, count]) => enemy.column >= start && enemy.column < start + count);
+    const salt = round * (2 + enemyIndex % 3 + enemyIndex);
+    const typeIndex = ENEMY_TYPES.indexOf(enemy.type);
+    const type = round === 0 ? enemy.type : ENEMY_TYPES[(typeIndex + round + theme) % ENEMY_TYPES.length];
+    const spawn = { column: chooseColumn(enemy.column, segment, salt), type };
+    if (type === 'flutter') spawn.row = 4 + (index + enemyIndex) % 2;
+    return spawn;
+  });
+  const extraEnemies = Math.min(3, Math.floor(round / 3));
+  for (let extra = 0; extra < extraEnemies; extra++) {
+    const segment = ground[(index + extra * 2) % ground.length];
+    const [start, count] = segment;
+    const type = ENEMY_TYPES[(index + extra) % ENEMY_TYPES.length];
+    const spawn = { column: chooseColumn(start + 2 + (round + extra * 3) % (count - 4), segment, round + extra), type };
+    if (type === 'flutter') spawn.row = 4 + (index + extra) % 2;
+    enemies.push(spawn);
+  }
+  return {
+    ...blueprint,
+    name: `Poziom ${String(index + 1).padStart(3, '0')} - ${blueprint.name}`,
+    theme,
+    difficulty: Math.min(8, Math.floor(index / 12)),
+    width: blueprint.width + addedColumns,
+    ground,
+    ledges: blueprint.ledges.map(ledge => [...ledge]),
+    enemies,
+    movers: blueprint.movers.map(mover => [...mover]),
+    shield: [...blueprint.shield],
+    secrets: blueprint.secrets.map(secret => [...secret])
+  };
+});
 const HERO_SKINS = [
   { id: 'trail', name: 'Szlakowiec', price: 0, palette: { shadow: 0x214f53, mid: 0x2a6562, light: 0x3e9182, trim: 0xe8b458, accent: 0xc9755f } },
   { id: 'grove', name: 'Lesny zwiadowca', price: 30, palette: { shadow: 0x3d552e, mid: 0x57753a, light: 0x83a84c, trim: 0xe3bd61, accent: 0xd17c51 } },
@@ -369,7 +423,7 @@ class Quest extends Phaser.Scene {
       enemy.kind = type;
       enemy.minX = segment[0] * TILE + 22;
       enemy.maxX = (segment[0] + segment[1]) * TILE - 22;
-      enemy.speed = (type === 'beetle' ? 38 : type === 'flutter' ? 72 : 62) + this.level * 10;
+      enemy.speed = (type === 'beetle' ? 38 : type === 'flutter' ? 72 : 62) + data.difficulty * 8;
       enemy.body.setVelocityX(-enemy.speed);
       enemy.body.setSize(type === 'flutter' ? 28 : 30, 24).setOffset(5, 6);
       if (type === 'flutter') {
@@ -430,11 +484,11 @@ class Quest extends Phaser.Scene {
     const backdrop = this.add.graphics().setScrollFactor(.12).setDepth(-10);
     const middle = this.add.graphics().setScrollFactor(.28).setDepth(-5);
     const foreground = this.add.graphics().setDepth(1);
-    const skyTop = [0x6ac9ec, 0x192847, 0xf39b83][this.level];
-    const skyBottom = [0xc4f3df, 0x64558b, 0xffd694][this.level];
+    const skyTop = [0x6ac9ec, 0x192847, 0xf39b83][data.theme];
+    const skyBottom = [0xc4f3df, 0x64558b, 0xffd694][data.theme];
     backdrop.fillGradientStyle(skyTop, skyTop, skyBottom, skyBottom, 1).fillRect(0, 0, worldWidth, 540);
 
-    if (this.level === 0) {
+    if (data.theme === 0) {
       backdrop.fillStyle(0xffed9b).fillCircle(735, 106, 43);
       backdrop.fillStyle(0xffed9b, .14).fillCircle(735, 106, 66);
       for (let index = 0; index < 18; index++) {
@@ -447,7 +501,7 @@ class Quest extends Phaser.Scene {
         backdrop.fillStyle(index % 2 ? 0x7cc99e : 0x6fbd96).fillEllipse(x, 355 + index % 3 * 21, 380, 190);
         middle.fillStyle(index % 2 ? 0x4da981 : 0x5db48a).fillEllipse(x + 110, 415 + index % 2 * 18, 360, 140);
       }
-    } else if (this.level === 1) {
+    } else if (data.theme === 1) {
       for (let index = 0; index < 45; index++) {
         const x = index * 130;
         backdrop.fillStyle(index % 2 ? 0x3b416e : 0x34476d).fillTriangle(x, 0, x + 49, 112 + index % 4 * 23, x + 98, 0);
@@ -476,13 +530,13 @@ class Quest extends Phaser.Scene {
     for (const [start, count] of data.ground) {
       for (let column = start + 2; column < start + count - 1; column += 5) {
         const x = column * TILE;
-        if (this.level === 1) {
+        if (data.theme === 1) {
           foreground.fillStyle(0x4c5681).fillEllipse(x, 464, 38, 22);
           foreground.fillStyle(0x8be4dd).fillPoints([{x: x + 12, y: 469}, {x: x + 19, y: 438}, {x: x + 25, y: 469}], true);
           foreground.fillStyle(0xe4b3ff).fillPoints([{x: x + 29, y: 470}, {x: x + 35, y: 447}, {x: x + 40, y: 470}], true);
         } else {
-          const treeColor = this.level === 2 ? 0x68834f : 0x398a61;
-          const canopyShadow = this.level === 2 ? 0x485b4d : 0x28684f;
+          const treeColor = data.theme === 2 ? 0x68834f : 0x398a61;
+          const canopyShadow = data.theme === 2 ? 0x485b4d : 0x28684f;
           foreground.fillStyle(0x624a43).fillRoundedRect(x + 12, 405, 13, 75, 5);
           foreground.fillStyle(0x93634a).fillRoundedRect(x + 15, 411, 5, 59, 2);
           foreground.fillStyle(0x624a43).fillTriangle(x + 17, 447, x + 7, 463, x + 18, 458);
@@ -526,11 +580,11 @@ class Quest extends Phaser.Scene {
     ui.coins.textContent = String(this.coins).padStart(2, '0');
     ui.score.textContent = String(this.score).padStart(4, '0');
     ui.lives.textContent = this.lives;
-    ui.world.textContent = `${String(this.level + 1).padStart(2, '0')} / ${LEVELS[this.level].world}`;
+    ui.world.textContent = `${String(this.level + 1).padStart(3, '0')} / ${LEVEL_COUNT} - ${LEVELS[this.level].world}`;
     ui['level-name'].textContent = LEVELS[this.level].name;
-    ui['footer-status'].textContent = `WYPRAWA ${String(this.level + 1).padStart(2, '0')} / 03`;
+    ui['footer-status'].textContent = `WYPRAWA ${String(this.level + 1).padStart(3, '0')} / ${LEVEL_COUNT}`;
     document.body.dataset.state = this.phase;
-    document.querySelector('.hud').style.color = this.level === 1 ? '#ffffff' : '#173c36';
+    document.querySelector('.hud').style.color = this.dataLevel.theme === 1 ? '#ffffff' : '#173c36';
   }
 
   loadShopState() {
@@ -781,7 +835,7 @@ class Quest extends Phaser.Scene {
     this.score += 1000;
     this.phase = this.level === LEVELS.length - 1 ? 'won' : 'levelComplete';
     this.physics.pause(); this.clearInput(); playSound(this.phase === 'won' ? 'victory' : 'complete');
-    this.showOverlay(this.phase === 'won' ? 'TRZY SWIATY ZA TOBA' : 'SZLAK UKONCZONY', this.phase === 'won' ? 'Przygoda zdobyta!' : 'Dobra robota!', `Wynik: ${this.score} / Monety: ${this.coins}`, this.phase === 'won' ? 'Zagraj ponownie' : 'Nastepny swiat');
+    this.showOverlay(this.phase === 'won' ? '100 POZIOMOW ZA TOBA' : 'POZIOM UKONCZONY', this.phase === 'won' ? 'Przygoda zdobyta!' : 'Dobra robota!', `Wynik: ${this.score} / Monety: ${this.coins}`, this.phase === 'won' ? 'Zagraj ponownie' : 'Nastepny poziom');
   }
 
   update(time, delta) {
