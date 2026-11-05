@@ -340,7 +340,7 @@ class Quest extends Phaser.Scene {
     this.input.keyboard.addCapture(['SPACE', 'UP', 'DOWN', 'LEFT', 'RIGHT']);
     this.input.keyboard.on('keydown-P', () => this.togglePause());
     this.input.keyboard.on('keydown-R', () => this.restartRun());
-    this.input.keyboard.on('keydown-M', () => toggleSound());
+    this.input.keyboard.on('keydown-M', () => this.goToFinalLevel());
     this.input.keyboard.on('keydown-S', () => this.openShop());
     this.input.keyboard.on('keydown-F', () => {
       if (!document.fullscreenElement) document.documentElement.requestFullscreen();
@@ -879,6 +879,7 @@ class Quest extends Phaser.Scene {
         this.showOverlay('SKORA DIAMENTOWA', 'Poziom 100', 'Zloty swiat wymaga odblokowanej i zalozonej skory Diamentowej.', 'Otworz sklep');
         return;
       }
+      if (nextLevel === LEVEL_COUNT - 1) this.selectedSkin = 'diamond';
       this.level = nextLevel;
       this.buildLevel();
     }
@@ -890,6 +891,13 @@ class Quest extends Phaser.Scene {
     this.syncHud();
     playSound(resuming ? 'resume' : 'start');
     startMusic();
+  }
+
+  goToFinalLevel() {
+    if (!ui.shop.hidden) return;
+    this.level = LEVEL_COUNT - 2;
+    this.phase = 'levelComplete';
+    this.primary();
   }
 
   clearInput() {
