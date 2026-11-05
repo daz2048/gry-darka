@@ -38,7 +38,9 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 
 Easy, Normal, and Hard also feature eclipsed moonlight, overhead tendrils, long shadows, and slow nightmare mist. Easy keeps its twisted cemetery trees, Normal keeps the original city buildings without crystal-like towers, and Hard has glowing furnaces.
 
-Super Hard Demon has a painted infernal fortress: layered ash clouds, distant ridges, etched lightning, and a horned stone idol with watching eyes, carved runes, eroded features, and a shadowed entrance. Torn woven banners, candle wax, chipped paving, stone pitting, and fine brush textures give the scene a weathered mural finish. This artwork is cached, stays behind enemies and pickups, and adds no flashing or extra animation. Other modes and gameplay difficulty are unchanged.
+Super Hard Demon has a painted infernal fortress: layered ash clouds, distant ridges, etched lightning, and a horned stone idol with watching eyes, carved runes, eroded features, and a shadowed entrance. Torn woven banners, candle wax, chipped paving, stone pitting, and fine brush textures give the scene a weathered mural finish. This artwork is cached and stays behind enemies and pickups. Other modes and gameplay difficulty are unchanged.
+
+Its dimensional layer adds a vast watching aperture in the sky, suspended broken arches, stairs leading nowhere, fractured sky seams, and a starfield beneath a torn courtyard. A faint drifting veil and upward-falling ash add slow movement without strobing or camera shake. These additional atmospheric effects respect Groza, reduced motion, pauses, game-over states, and hidden tabs; the painted scenery remains static.
 
 The nightmare scenes add cracked, candlelit memorials and hanging lichen in Easy; torn missing-person notices, boarded doors, and chalk tallies in Normal; and riveted pressure doors, gauges, and suspended chains in Hard. These weathered details are cached with the scenery. Pale watching faces breathe slowly and follow the squad with their eyes when Groza and motion effects are enabled; their animation stops during pauses and in hidden tabs.
 

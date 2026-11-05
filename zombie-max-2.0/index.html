@@ -4652,6 +4652,81 @@
       scene.lineTo(729, 42);
       scene.lineTo(708, 74);
       scene.stroke();
+      scene.globalAlpha = 0.85;
+      scene.fillStyle = '#09141d';
+      scene.beginPath();
+      scene.moveTo(210, 77);
+      scene.bezierCurveTo(272, 13, 377, 27, 445, 61);
+      scene.bezierCurveTo(388, 46, 376, 120, 293, 101);
+      scene.bezierCurveTo(256, 91, 233, 108, 210, 77);
+      scene.closePath();
+      scene.fill();
+      scene.strokeStyle = '#9bbaa8';
+      scene.lineWidth = 1;
+      scene.stroke();
+      scene.strokeStyle = '#466d71';
+      for (let filament = 0; filament < 38; filament++) {
+        const filamentX = 247 + filament * 4;
+        const filamentY = 58 - Math.sin(filament / 37 * Math.PI) * 19;
+        scene.globalAlpha = 0.25 + filament % 3 * 0.1;
+        scene.beginPath();
+        scene.moveTo(filamentX, filamentY);
+        scene.quadraticCurveTo(332, 73, filamentX + 4, 94 - filament % 4 * 3);
+        scene.stroke();
+      }
+      scene.globalAlpha = 1;
+      scene.fillStyle = '#c2b992';
+      scene.beginPath();
+      scene.moveTo(329, 43);
+      scene.quadraticCurveTo(339, 65, 328, 96);
+      scene.quadraticCurveTo(319, 69, 329, 43);
+      scene.fill();
+      scene.fillStyle = '#0a151d';
+      scene.fillRect(327, 49, 3, 39);
+      for (const archX of [113, 779]) {
+        scene.save();
+        scene.translate(archX, 75);
+        scene.rotate(archX === 113 ? -0.3 : 0.24);
+        for (let rib = 0; rib < 5; rib++) {
+          scene.strokeStyle = rib % 2 ? '#6d7f7d' : '#354852';
+          scene.lineWidth = 7 - rib;
+          scene.globalAlpha = 0.65 - rib * 0.07;
+          scene.beginPath();
+          scene.ellipse(0, -19 - rib * 9, 41 + rib * 10, 52 + rib * 13, 0, 0.15, Math.PI * 0.91);
+          scene.stroke();
+          scene.lineWidth = 1;
+          scene.strokeStyle = '#b0b5a2';
+          scene.stroke();
+        }
+        scene.globalAlpha = 0.55;
+        for (let step = 0; step < 9; step++) {
+          const stepX = -28 + step * 6;
+          const stepY = 47 + step * 6;
+          scene.fillStyle = '#273d48';
+          scene.fillRect(stepX, stepY, 20 - step, 4);
+          scene.strokeStyle = '#92a39a';
+          scene.beginPath();
+          scene.moveTo(stepX, stepY);
+          scene.lineTo(stepX + 20 - step, stepY);
+          scene.stroke();
+        }
+        scene.restore();
+      }
+      scene.globalAlpha = 0.5;
+      scene.strokeStyle = '#76a99b';
+      scene.lineWidth = 1;
+      for (let fracture = 0; fracture < 3; fracture++) {
+        const fractureX = 95 + fracture * 327;
+        scene.beginPath();
+        scene.moveTo(fractureX, 0);
+        scene.lineTo(fractureX + 13, 34);
+        scene.lineTo(fractureX - 7, 57);
+        scene.lineTo(fractureX + 19, 82);
+        scene.moveTo(fractureX + 2, 47);
+        scene.lineTo(fractureX + 31, 51);
+        scene.lineTo(fractureX + 43, 69);
+        scene.stroke();
+      }
       scene.restore();
     }
 
@@ -4878,6 +4953,39 @@
           scene.stroke();
         }
       }
+      scene.globalAlpha = 0.78;
+      scene.fillStyle = '#07131e';
+      scene.beginPath();
+      scene.moveTo(199, 422);
+      scene.bezierCurveTo(290, 396, 331, 433, 410, 405);
+      scene.lineTo(464, 385);
+      scene.lineTo(449, 411);
+      scene.bezierCurveTo(529, 436, 578, 420, 683, 447);
+      scene.bezierCurveTo(568, 434, 540, 461, 445, 445);
+      scene.lineTo(372, 473);
+      scene.lineTo(393, 441);
+      scene.bezierCurveTo(311, 448, 263, 414, 199, 422);
+      scene.closePath();
+      scene.fill();
+      scene.strokeStyle = '#7b9f99';
+      scene.lineWidth = 1;
+      scene.globalAlpha = 0.45;
+      scene.stroke();
+      scene.fillStyle = '#c1c6b3';
+      for (let star = 0; star < 21; star++) {
+        const starX = 315 + star * 17;
+        const starY = 429 + Math.sin(star * 2.3) * 4;
+        scene.globalAlpha = 0.15 + star % 4 * 0.1;
+        scene.fillRect(starX, starY, star % 5 === 0 ? 2 : 1, 1);
+      }
+      scene.strokeStyle = '#7c9691';
+      scene.globalAlpha = 0.17;
+      for (let reflection = 0; reflection < 8; reflection++) {
+        scene.beginPath();
+        scene.moveTo(492 - reflection * 4, 311 + reflection * 5);
+        scene.bezierCurveTo(528, 326 + reflection * 9, 567, 296 + reflection * 7, 614 + reflection * 4, 323 + reflection * 6);
+        scene.stroke();
+      }
       scene.lineWidth = 1;
       for (let fleck = 0; fleck < 1900; fleck++) {
         const fleckX = (fleck * 157 + fleck % 7 * 11) % (CONFIG.breachX - 16);
@@ -4887,6 +4995,35 @@
         scene.fillRect(fleckX, fleckY, 1 + fleck % 3, 1 + fleck % 2);
       }
       scene.restore();
+    }
+
+    function drawDemonVeil(time) {
+      if (difficultyKey !== 'super-hard-demon' || !horrorEnabled) return;
+      const visualTime = reduceMotion || state !== 'play' || document.hidden ? 0 : time;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(48, 0, CONFIG.breachX - 65, H);
+      ctx.clip();
+      for (let veil = 0; veil < 3; veil++) {
+        const drift = Math.sin(visualTime * 0.11 + veil * 1.8) * 19;
+        const veilY = 123 + veil * 132;
+        ctx.globalAlpha = 0.025 + (0.5 + 0.5 * Math.sin(visualTime * 0.2 + veil)) * 0.015;
+        ctx.fillStyle = veil % 2 ? '#a0b7a5' : '#030c19';
+        ctx.beginPath();
+        ctx.moveTo(51, veilY);
+        ctx.bezierCurveTo(242 + drift, veilY - 43, 489 - drift, veilY + 36, 873, veilY - 21);
+        ctx.bezierCurveTo(657, veilY + 29, 264 - drift, veilY - 9, 51, veilY + 17);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.fillStyle = '#acbcb1';
+      for (let ash = 0; ash < 24; ash++) {
+        const ashX = 79 + ash * 137 % 770 + Math.sin(visualTime * 0.16 + ash) * 5;
+        const ashY = 68 + ((ash * 73 - visualTime * (2 + ash % 3)) % 405 + 405) % 405;
+        ctx.globalAlpha = 0.09 + ash % 3 * 0.025;
+        ctx.fillRect(ashX, ashY, 1, 2);
+      }
+      ctx.restore();
     }
 
     function drawNightmareDetails(scene, theme, skyline) {
@@ -5486,6 +5623,7 @@
       ctx.save();
       ctx.drawImage(sceneryCache, 0, 0);
       drawNightmareMist(time, theme);
+      drawDemonVeil(time);
       const visualTime = reduceMotion || state !== 'play' ? 0 : time;
       ctx.lineWidth = 1;
       for (const lampX of [236, 743]) {
