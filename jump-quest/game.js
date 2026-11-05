@@ -35,7 +35,15 @@ const HERO_SKINS = [
   { id: 'trail', name: 'Szlakowiec', price: 0, palette: { shadow: 0x214f53, mid: 0x2a6562, light: 0x3e9182, trim: 0xe8b458, accent: 0xc9755f } },
   { id: 'grove', name: 'Lesny zwiadowca', price: 30, palette: { shadow: 0x3d552e, mid: 0x57753a, light: 0x83a84c, trim: 0xe3bd61, accent: 0xd17c51 } },
   { id: 'sunset', name: 'Bursztynowy', price: 55, palette: { shadow: 0x713e58, mid: 0xb64f53, light: 0xe87955, trim: 0xf3c565, accent: 0xf1ad59 } },
-  { id: 'crystal', name: 'Krysztalowy', price: 80, palette: { shadow: 0x344c79, mid: 0x566db0, light: 0x829cdb, trim: 0xb9e8d8, accent: 0xdfa1d3 } }
+  { id: 'crystal', name: 'Krysztalowy', price: 80, palette: { shadow: 0x344c79, mid: 0x566db0, light: 0x829cdb, trim: 0xb9e8d8, accent: 0xdfa1d3 } },
+  { id: 'tide', name: 'Nadmorski', price: 110, palette: { shadow: 0x174c60, mid: 0x267d91, light: 0x62c5bd, trim: 0xf2cf76, accent: 0xec8d83 } },
+  { id: 'ember', name: 'Pustynny wedrowiec', price: 145, palette: { shadow: 0x70412f, mid: 0xa65c36, light: 0xe58a45, trim: 0xffd06a, accent: 0x7d4958 } },
+  { id: 'lilac', name: 'Lawendowy', price: 180, palette: { shadow: 0x583f72, mid: 0x8364a2, light: 0xb69bcf, trim: 0xe6d58f, accent: 0x79a89a } },
+  { id: 'night', name: 'Nocny zwiadowca', price: 220, palette: { shadow: 0x233d57, mid: 0x345f7a, light: 0x578ca0, trim: 0xe8c86c, accent: 0xd78068 } },
+  { id: 'cloud', name: 'Lodowy', price: 260, palette: { shadow: 0x586579, mid: 0xa7b9ca, light: 0xe5eee0, trim: 0xd8ad64, accent: 0x7da9ba } },
+  { id: 'berry', name: 'Jagodowy', price: 305, palette: { shadow: 0x693957, mid: 0xa84670, light: 0xdd6f94, trim: 0xf3d07a, accent: 0x87b56a } },
+  { id: 'meadow', name: 'Polny odkrywca', price: 355, palette: { shadow: 0x425c34, mid: 0x74944b, light: 0xb3c95c, trim: 0xf4d178, accent: 0xe59057 } },
+  { id: 'magma', name: 'Wulkaniczny', price: 410, palette: { shadow: 0x4b3548, mid: 0x843d4b, light: 0xc65345, trim: 0xffc15e, accent: 0x53a9a0 } }
 ];
 const SHOP_STORAGE_KEY = 'maks-jump-quest-shop-v1';
 const ui = Object.fromEntries(['coins', 'score', 'lives', 'world', 'level-name', 'overlay', 'eyebrow', 'overlay-title', 'overlay-copy', 'primary', 'pause', 'sound', 'notice', 'footer-status', 'shop', 'shop-grid', 'wallet-count', 'shop-open', 'shop-close'].map(id => [id, document.getElementById(id)]));
