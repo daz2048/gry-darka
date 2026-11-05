@@ -32,14 +32,56 @@ const LEVEL_BLUEPRINTS = [
     ], movers: [[13, 8], [30, 8], [49, 8], [69, 8], [88, 8]], checkpoint: 58, shield: [7, 6], secrets: [[27, 4], [65, 4], [104, 4]] }
 ];
 const LEVEL_COUNT = 100;
-const ENEMY_TYPES = ['mossling', 'beetle', 'flutter'];
+const ENEMY_TYPES = ['mossling', 'beetle', 'flutter', 'hopper', 'roller', 'wisp'];
+const THEME_PALETTES = [
+  { skyTop: 0x6ac9ec, skyBottom: 0xc4f3df, farColor: 0x7cc99e, midColor: 0x4da981, accentColor: 0xffed9b, cloudColor: 0xffffff, foliageColor: 0x398a61, foliageShadow: 0x28684f, foliageLight: 0x9cdb81, flowerColor: 0xe87966, grassHighlight: 0xa6df78 },
+  { skyTop: 0x192847, skyBottom: 0x64558b, farColor: 0x3b416e, midColor: 0x404675, accentColor: 0x8be4dd, cloudColor: 0xe4b3ff, foliageColor: 0x54c4b8, foliageShadow: 0x34476d, foliageLight: 0xe4b3ff, flowerColor: 0x8be4dd, grassHighlight: 0x8be4dd },
+  { skyTop: 0xf39b83, skyBottom: 0xffd694, farColor: 0xf5c181, midColor: 0x855b7b, accentColor: 0xffefb0, cloudColor: 0xf5c181, foliageColor: 0x68834f, foliageShadow: 0x485b4d, foliageLight: 0x9cdb81, flowerColor: 0xe87966, grassHighlight: 0xffd27b }
+];
+function colorFromHsl(hue, saturation, lightness) {
+  const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+  const sector = ((hue % 360) + 360) % 360 / 60;
+  const secondary = chroma * (1 - Math.abs(sector % 2 - 1));
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+  if (sector < 1) [red, green] = [chroma, secondary];
+  else if (sector < 2) [red, green] = [secondary, chroma];
+  else if (sector < 3) [green, blue] = [chroma, secondary];
+  else if (sector < 4) [green, blue] = [secondary, chroma];
+  else if (sector < 5) [red, blue] = [secondary, chroma];
+  else [red, blue] = [chroma, secondary];
+  const match = lightness - chroma / 2;
+  return (Math.round((red + match) * 255) << 16) | (Math.round((green + match) * 255) << 8) | Math.round((blue + match) * 255);
+}
+function makeScenePalette(index, theme, blueprint) {
+  if (index < LEVEL_BLUEPRINTS.length) return { ...THEME_PALETTES[theme], sky: blueprint.sky, dirt: blueprint.dirt, top: blueprint.top };
+  const hue = (index * 137.508 + 43) % 360;
+  return {
+    sky: colorFromHsl(hue, .46, .64),
+    skyTop: colorFromHsl(hue, .7, .55),
+    skyBottom: colorFromHsl(hue + 28, .68, .83),
+    dirt: colorFromHsl(hue + 330, .42, .34),
+    top: colorFromHsl(hue + 138, .56, .47),
+    farColor: colorFromHsl(hue + 188, .4, .42),
+    midColor: colorFromHsl(hue + 168, .48, .34),
+    accentColor: colorFromHsl(hue + 50, .8, .7),
+    cloudColor: colorFromHsl(hue + 30, .34, .9),
+    foliageColor: colorFromHsl(hue + 132, .5, .38),
+    foliageShadow: colorFromHsl(hue + 130, .5, .27),
+    foliageLight: colorFromHsl(hue + 112, .55, .69),
+    flowerColor: colorFromHsl(hue + 350, .7, .64),
+    grassHighlight: colorFromHsl(hue + 125, .6, .69)
+  };
+}
 const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
   const theme = index % LEVEL_BLUEPRINTS.length;
   const round = Math.floor(index / LEVEL_BLUEPRINTS.length);
   const blueprint = LEVEL_BLUEPRINTS[theme];
   const difficulty = Math.min(8, Math.floor(index / 12));
   const name = `Poziom ${String(index + 1).padStart(3, '0')} - ${blueprint.name}`;
-  if (index < LEVEL_BLUEPRINTS.length) return { ...blueprint, name, theme, difficulty };
+  const palette = makeScenePalette(index, theme, blueprint);
+  if (index < LEVEL_BLUEPRINTS.length) return { ...blueprint, ...palette, name, theme, difficulty };
 
   let seed = (index + 1) * 2654435761 >>> 0;
   const random = () => {
@@ -74,9 +116,9 @@ const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
       let column = start + 2 + randomInt(count - 4);
       while (occupiedEnemies.has(column)) column = start + 2 + (column - start - 1) % (count - 4);
       occupiedEnemies.add(column);
-      const type = ENEMY_TYPES[randomInt(ENEMY_TYPES.length)];
+      const type = ENEMY_TYPES[(index + segmentIndex + enemyIndex) % ENEMY_TYPES.length];
       const enemy = { column, type };
-      if (type === 'flutter') enemy.row = 4 + randomInt(3);
+      if (type === 'flutter' || type === 'wisp') enemy.row = 4 + randomInt(3);
       enemies.push(enemy);
     }
     if (segmentIndex < ground.length - 1) {
@@ -96,6 +138,7 @@ const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
   const shield = [shieldSegment[0] + 4, 6];
   return {
     ...blueprint,
+    ...palette,
     name,
     theme,
     difficulty,
@@ -277,6 +320,9 @@ class Quest extends Phaser.Scene {
     this.input.keyboard.on('keydown-R', () => this.restartRun());
     this.input.keyboard.on('keydown-M', () => toggleSound());
     this.input.keyboard.on('keydown-S', () => this.openShop());
+    this.input.keyboard.on('keydown-F', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    });
     this.input.keyboard.on('keydown-FIVE', () => this.activateUnlimitedFunds());
     this.input.keyboard.on('keydown-ESC', () => { if (ui.shop.hidden) location.href = '../index.html'; else this.closeShop(); });
     this.input.keyboard.on('keydown-H', () => { location.href = '../index.html'; });
@@ -357,6 +403,36 @@ class Quest extends Phaser.Scene {
       pen.fillStyle(0xe77f8b).fillRoundedRect(13, 25, 14, 6, 3);
       pen.fillStyle(0xf0d37d).fillCircle(16, 7, 2).fillCircle(25, 7, 2);
       pen.fillStyle(0x6c507e).fillRect(16, 5, 1, 5).fillRect(25, 5, 1, 5);
+    });
+    texture('hopper', 40, 34, pen => {
+      pen.fillStyle(0x483a4b).fillEllipse(20, 30, 30, 6);
+      pen.fillStyle(0x6c9b57).fillRoundedRect(7, 13, 26, 18, 9);
+      pen.fillStyle(0xa8c86b).fillRoundedRect(10, 10, 20, 16, 8);
+      pen.fillStyle(0x79a64e).fillEllipse(14, 8, 8, 14).fillEllipse(27, 8, 8, 14);
+      pen.fillStyle(0xe4a1ad).fillEllipse(14, 8, 3, 8).fillEllipse(27, 8, 3, 8);
+      pen.fillStyle(0xffefd0).fillCircle(15, 17, 4).fillCircle(26, 17, 4);
+      pen.fillStyle(0x343b43).fillCircle(16, 18, 2).fillCircle(27, 18, 2);
+      pen.fillStyle(0xe98e83).fillEllipse(20, 24, 6, 3);
+      pen.fillStyle(0x557747).fillRoundedRect(8, 27, 10, 5, 2).fillRoundedRect(23, 27, 10, 5, 2);
+    });
+    texture('roller', 40, 34, pen => {
+      pen.fillStyle(0x403548).fillEllipse(20, 30, 34, 6);
+      pen.fillStyle(0x6f4960).fillCircle(20, 20, 15);
+      pen.fillStyle(0xc16e67).fillCircle(20, 19, 11);
+      pen.fillStyle(0xe6a16c).fillCircle(17, 15, 4);
+      pen.fillStyle(0x573d58).fillPoints([{x:12,y:10},{x:11,y:3},{x:18,y:8},{x:23,y:2},{x:25,y:10},{x:33,y:8},{x:29,y:16}], true);
+      pen.fillStyle(0xffefcf).fillCircle(25, 20, 3).fillCircle(32, 20, 3);
+      pen.fillStyle(0x333747).fillCircle(26, 21, 1).fillCircle(33, 21, 1);
+      pen.fillStyle(0x563b52).fillRoundedRect(6, 27, 12, 5, 2).fillRoundedRect(24, 27, 10, 5, 2);
+    });
+    texture('wisp', 40, 34, pen => {
+      pen.fillStyle(0x52667c).fillEllipse(20, 30, 30, 5);
+      pen.fillStyle(0x76bfd0).fillPoints([{x:7,y:24},{x:8,y:16},{x:13,y:9},{x:21,y:6},{x:29,y:9},{x:33,y:17},{x:31,y:26},{x:26,y:22},{x:21,y:27},{x:16,y:22},{x:11,y:27}], true);
+      pen.fillStyle(0xb3edf0).fillEllipse(19, 13, 14, 11);
+      pen.fillStyle(0xfff3d9).fillEllipse(16, 16, 5, 7).fillEllipse(26, 16, 5, 7);
+      pen.fillStyle(0x344353).fillCircle(17, 17, 2).fillCircle(27, 17, 2);
+      pen.fillStyle(0x83d9df).fillPoints([{x:13,y:26},{x:17,y:22},{x:19,y:30},{x:23,y:23},{x:27,y:28}], true);
+      pen.fillStyle(0xe3ffff, .8).fillCircle(13, 11, 2).fillCircle(29, 12, 2);
     });
     texture('coin', 20, 24, pen => {
       pen.fillStyle(0x985c32).fillEllipse(2, 1, 16, 22);
@@ -442,21 +518,23 @@ class Quest extends Phaser.Scene {
     this.enemies = this.physics.add.group();
     for (const spawn of data.enemies) {
       const { column, type } = spawn;
-      const enemyTexture = type === 'beetle' || type === 'flutter' ? type : 'enemy';
-      const spawnY = type === 'flutter' ? spawn.row * TILE : 450;
+      const flies = type === 'flutter' || type === 'wisp';
+      const enemyTexture = type === 'mossling' ? 'enemy' : type;
+      const spawnY = flies ? spawn.row * TILE : 450;
       const enemy = this.enemies.create(column * TILE, spawnY, enemyTexture);
       const segment = data.ground.find(([start, count]) => column >= start && column < start + count);
       enemy.kind = type;
       enemy.minX = segment[0] * TILE + 22;
       enemy.maxX = (segment[0] + segment[1]) * TILE - 22;
-      enemy.speed = (type === 'beetle' ? 38 : type === 'flutter' ? 72 : 62) + data.difficulty * 8;
+      enemy.speed = (type === 'beetle' ? 38 : type === 'flutter' || type === 'wisp' ? 72 : type === 'roller' ? 94 : 62) + data.difficulty * 8;
       enemy.body.setVelocityX(-enemy.speed);
-      enemy.body.setSize(type === 'flutter' ? 28 : 30, 24).setOffset(5, 6);
-      if (type === 'flutter') {
+      enemy.body.setSize(flies ? 28 : 30, 24).setOffset(5, 6);
+      if (flies) {
         enemy.body.setAllowGravity(false);
         enemy.baseY = spawnY;
         enemy.flightPhase = column * .71;
       }
+      if (type === 'hopper') enemy.nextHopAt = 700 + column * 17 % 600;
     }
     this.player = this.physics.add.sprite(120, 420, this.heroTexture(0)).setDepth(5);
     this.player.body.setSize(22, 40).setOffset(5, 4).setMaxVelocity(310, 900);
@@ -499,7 +577,7 @@ class Quest extends Phaser.Scene {
       graphics.fillStyle(0xffffff, .11).fillRoundedRect(worldX + offset + 10, worldY + 33 + detail % 23, 5, 2, 1);
       graphics.fillStyle(0x332c42, .14).fillEllipse(worldX + offset + 22, worldY + 68 + detail % 17, 17, 7);
       graphics.fillStyle(data.top).fillTriangle(worldX + offset, worldY + 3, worldX + offset + 4, worldY - grassHeight, worldX + offset + 8, worldY + 3);
-      graphics.fillStyle(0xa6df78, .7).fillTriangle(worldX + offset + 2, worldY + 2, worldX + offset + 4, worldY - grassHeight + 2, worldX + offset + 5, worldY + 2);
+      graphics.fillStyle(data.grassHighlight, .7).fillTriangle(worldX + offset + 2, worldY + 2, worldX + offset + 4, worldY - grassHeight + 2, worldX + offset + 5, worldY + 2);
     }
     const solid = this.add.rectangle(worldX + width / 2, worldY + height / 2, width, height, 0, 0);
     this.solids.add(solid);
@@ -510,46 +588,44 @@ class Quest extends Phaser.Scene {
     const backdrop = this.add.graphics().setScrollFactor(.12).setDepth(-10);
     const middle = this.add.graphics().setScrollFactor(.28).setDepth(-5);
     const foreground = this.add.graphics().setDepth(1);
-    const skyTop = [0x6ac9ec, 0x192847, 0xf39b83][data.theme];
-    const skyBottom = [0xc4f3df, 0x64558b, 0xffd694][data.theme];
-    backdrop.fillGradientStyle(skyTop, skyTop, skyBottom, skyBottom, 1).fillRect(0, 0, worldWidth, 540);
+    backdrop.fillGradientStyle(data.skyTop, data.skyTop, data.skyBottom, data.skyBottom, 1).fillRect(0, 0, worldWidth, 540);
 
     if (data.theme === 0) {
-      backdrop.fillStyle(0xffed9b).fillCircle(735, 106, 43);
-      backdrop.fillStyle(0xffed9b, .14).fillCircle(735, 106, 66);
+      backdrop.fillStyle(data.accentColor).fillCircle(735, 106, 43);
+      backdrop.fillStyle(data.accentColor, .14).fillCircle(735, 106, 66);
       for (let index = 0; index < 18; index++) {
         const x = index * 310 + 35;
         const y = 82 + index % 3 * 38;
-        backdrop.fillStyle(0xffffff, .82).fillEllipse(x, y + 9, 92, 26).fillEllipse(x + 24, y, 44, 34).fillEllipse(x + 51, y + 4, 55, 30);
+        backdrop.fillStyle(data.cloudColor, .82).fillEllipse(x, y + 9, 92, 26).fillEllipse(x + 24, y, 44, 34).fillEllipse(x + 51, y + 4, 55, 30);
       }
       for (let index = 0; index < 20; index++) {
         const x = index * 290 - 100;
-        backdrop.fillStyle(index % 2 ? 0x7cc99e : 0x6fbd96).fillEllipse(x, 355 + index % 3 * 21, 380, 190);
-        middle.fillStyle(index % 2 ? 0x4da981 : 0x5db48a).fillEllipse(x + 110, 415 + index % 2 * 18, 360, 140);
+        backdrop.fillStyle(data.farColor).fillEllipse(x, 355 + index % 3 * 21, 380, 190);
+        middle.fillStyle(data.midColor).fillEllipse(x + 110, 415 + index % 2 * 18, 360, 140);
       }
     } else if (data.theme === 1) {
       for (let index = 0; index < 45; index++) {
         const x = index * 130;
-        backdrop.fillStyle(index % 2 ? 0x3b416e : 0x34476d).fillTriangle(x, 0, x + 49, 112 + index % 4 * 23, x + 98, 0);
-        backdrop.fillStyle(0x8be4dd, .7).fillPoints([{x: x + 38, y: 112 + index % 4 * 23}, {x: x + 49, y: 82 + index % 4 * 23}, {x: x + 58, y: 112 + index % 4 * 23}], true);
-        if (index % 2 === 0) backdrop.fillStyle(0xe4b3ff, .75).fillPoints([{x: x + 80, y: 380}, {x: x + 101, y: 333 + index % 3 * 15}, {x: x + 119, y: 380}], true);
+        backdrop.fillStyle(data.farColor).fillTriangle(x, 0, x + 49, 112 + index % 4 * 23, x + 98, 0);
+        backdrop.fillStyle(data.accentColor, .7).fillPoints([{x: x + 38, y: 112 + index % 4 * 23}, {x: x + 49, y: 82 + index % 4 * 23}, {x: x + 58, y: 112 + index % 4 * 23}], true);
+        if (index % 2 === 0) backdrop.fillStyle(data.cloudColor, .75).fillPoints([{x: x + 80, y: 380}, {x: x + 101, y: 333 + index % 3 * 15}, {x: x + 119, y: 380}], true);
       }
       for (let index = 0; index < 16; index++) {
         const x = index * 330 + 45;
-        middle.fillStyle(0x404675).fillEllipse(x, 460 + index % 2 * 20, 310, 170);
-        middle.fillStyle(0x525487).fillEllipse(x + 48, 455 + index % 3 * 12, 198, 102);
+        middle.fillStyle(data.midColor).fillEllipse(x, 460 + index % 2 * 20, 310, 170);
+        middle.fillStyle(data.farColor).fillEllipse(x + 48, 455 + index % 3 * 12, 198, 102);
       }
     } else {
-      backdrop.fillStyle(0xffefb0).fillCircle(735, 116, 48);
-      backdrop.fillStyle(0xffefb0, .13).fillCircle(735, 116, 72);
+      backdrop.fillStyle(data.accentColor).fillCircle(735, 116, 48);
+      backdrop.fillStyle(data.accentColor, .13).fillCircle(735, 116, 72);
       for (let index = 0; index < 17; index++) {
         const x = index * 340 + 70;
-        backdrop.fillStyle(0xf5c181, .82).fillEllipse(x, 164 + index % 3 * 28, 105, 28).fillEllipse(x + 30, 154 + index % 3 * 28, 54, 41).fillEllipse(x + 63, 164 + index % 3 * 28, 74, 30);
-        middle.fillStyle(index % 2 ? 0x855b7b : 0x96617b).fillRoundedRect(x - 15, 315, 94, 185, 7);
-        middle.fillStyle(0xb66e79).fillRoundedRect(x + 1, 270 + index % 3 * 13, 62, 62, 8);
-        middle.fillStyle(0xffd27b).fillTriangle(x - 8, 276 + index % 3 * 13, x + 32, 226 + index % 3 * 13, x + 71, 276 + index % 3 * 13);
-        middle.fillStyle(0xffdd85).fillRect(x + 28, 326, 16, 31).fillRect(x + 24, 379, 24, 6);
-        middle.fillStyle(0xffe59b).fillTriangle(x + 33, 224 + index % 3 * 13, x + 63, 233 + index % 3 * 13, x + 33, 244 + index % 3 * 13);
+        backdrop.fillStyle(data.cloudColor, .82).fillEllipse(x, 164 + index % 3 * 28, 105, 28).fillEllipse(x + 30, 154 + index % 3 * 28, 54, 41).fillEllipse(x + 63, 164 + index % 3 * 28, 74, 30);
+        middle.fillStyle(data.farColor).fillRoundedRect(x - 15, 315, 94, 185, 7);
+        middle.fillStyle(data.midColor).fillRoundedRect(x + 1, 270 + index % 3 * 13, 62, 62, 8);
+        middle.fillStyle(data.accentColor).fillTriangle(x - 8, 276 + index % 3 * 13, x + 32, 226 + index % 3 * 13, x + 71, 276 + index % 3 * 13);
+        middle.fillStyle(data.cloudColor).fillRect(x + 28, 326, 16, 31).fillRect(x + 24, 379, 24, 6);
+        middle.fillStyle(data.accentColor).fillTriangle(x + 33, 224 + index % 3 * 13, x + 63, 233 + index % 3 * 13, x + 33, 244 + index % 3 * 13);
       }
     }
 
@@ -557,23 +633,23 @@ class Quest extends Phaser.Scene {
       for (let column = start + 2; column < start + count - 1; column += 5) {
         const x = column * TILE;
         if (data.theme === 1) {
-          foreground.fillStyle(0x4c5681).fillEllipse(x, 464, 38, 22);
-          foreground.fillStyle(0x8be4dd).fillPoints([{x: x + 12, y: 469}, {x: x + 19, y: 438}, {x: x + 25, y: 469}], true);
-          foreground.fillStyle(0xe4b3ff).fillPoints([{x: x + 29, y: 470}, {x: x + 35, y: 447}, {x: x + 40, y: 470}], true);
+          foreground.fillStyle(data.midColor).fillEllipse(x, 464, 38, 22);
+          foreground.fillStyle(data.accentColor).fillPoints([{x: x + 12, y: 469}, {x: x + 19, y: 438}, {x: x + 25, y: 469}], true);
+          foreground.fillStyle(data.cloudColor).fillPoints([{x: x + 29, y: 470}, {x: x + 35, y: 447}, {x: x + 40, y: 470}], true);
         } else {
-          const treeColor = data.theme === 2 ? 0x68834f : 0x398a61;
-          const canopyShadow = data.theme === 2 ? 0x485b4d : 0x28684f;
+          const treeColor = data.foliageColor;
+          const canopyShadow = data.foliageShadow;
           foreground.fillStyle(0x624a43).fillRoundedRect(x + 12, 405, 13, 75, 5);
           foreground.fillStyle(0x93634a).fillRoundedRect(x + 15, 411, 5, 59, 2);
           foreground.fillStyle(0x624a43).fillTriangle(x + 17, 447, x + 7, 463, x + 18, 458);
           foreground.fillStyle(0x624a43).fillTriangle(x + 21, 452, x + 31, 466, x + 19, 460);
           foreground.fillStyle(canopyShadow).fillEllipse(x - 5, 389, 47, 39).fillEllipse(x + 8, 377, 37, 39).fillEllipse(x + 22, 392, 34, 31);
           foreground.fillStyle(treeColor).fillEllipse(x - 2, 385, 38, 34).fillEllipse(x + 10, 371, 29, 30).fillEllipse(x + 22, 388, 26, 26);
-          foreground.fillStyle(0x9cdb81, .75).fillEllipse(x + 4, 378, 15, 12).fillEllipse(x + 20, 383, 10, 9);
-          foreground.fillStyle(0xd8ef9b, .7).fillCircle(x + 4, 378, 3);
+          foreground.fillStyle(data.foliageLight, .75).fillEllipse(x + 4, 378, 15, 12).fillEllipse(x + 20, 383, 10, 9);
+          foreground.fillStyle(data.cloudColor, .7).fillCircle(x + 4, 378, 3);
           if (column % 2 === 0) {
-            foreground.fillStyle(0xfff0a1).fillCircle(x + 39, 449, 5);
-            foreground.fillStyle(0xe87966).fillCircle(x + 39, 449, 2);
+            foreground.fillStyle(data.accentColor).fillCircle(x + 39, 449, 5);
+            foreground.fillStyle(data.flowerColor).fillCircle(x + 39, 449, 2);
           }
         }
       }
@@ -967,7 +1043,15 @@ class Quest extends Phaser.Scene {
       const speed = enemy.speed;
       if (enemy.x <= enemy.minX || enemy.body.blocked.left) enemy.setVelocityX(speed);
       if (enemy.x >= enemy.maxX || enemy.body.blocked.right) enemy.setVelocityX(-speed);
-      if (enemy.kind === 'flutter') enemy.setVelocityY(Math.sin(time * .004 + enemy.flightPhase) * 55);
+      if (enemy.kind === 'hopper' && enemy.body.blocked.down && time >= enemy.nextHopAt) {
+        enemy.setVelocityY(-330 - this.dataLevel.difficulty * 15);
+        enemy.nextHopAt = time + 1250 - this.dataLevel.difficulty * 25;
+      }
+      if (enemy.kind === 'flutter' || enemy.kind === 'wisp') {
+        const flightSpeed = enemy.kind === 'wisp' ? .006 : .004;
+        const flightHeight = enemy.kind === 'wisp' ? 72 : 55;
+        enemy.setVelocityY(Math.sin(time * flightSpeed + enemy.flightPhase) * flightHeight);
+      }
       enemy.setFlipX(enemy.body.velocity.x > 0);
     });
     this.movers.children.iterate(platform => {
