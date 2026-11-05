@@ -14,7 +14,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #e96d53; outline-offs
 .icon:hover { background: #ffffff80; }
 .playfield { position: relative; overflow: hidden; background: #9ddedb; aspect-ratio: 16 / 9; max-height: calc(100svh - 142px); margin: auto; border: 2px solid var(--ink); }
 #game { width: 100%; height: 100%; }
-#game canvas { display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+#game canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
 .hud { position: absolute; inset: 0 0 auto; padding: 24px 28px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; pointer-events: none; color: #173c36; background: linear-gradient(#eff5e9d9, transparent); }
 .hud-label { font-size: 11px; font-weight: 700; display: block; margin-bottom: 5px; }
 .hud strong { font-size: 19px; }
@@ -31,6 +31,25 @@ h1 em { font-style: normal; color: #c45036; }
 .primary:hover { background: #285d4f; }
 .primary span { font-size: 23px; }
 .menu-link { display: block; width: fit-content; margin-top: 20px; color: var(--ink); font-size: 12px; text-underline-offset: 4px; }
+.shop { position: absolute; inset: 0; z-index: 15; display: grid; place-items: center; padding: 18px; background: #102b2bd9; backdrop-filter: blur(5px); }
+.shop[hidden] { display: none; }
+.shop-panel { width: min(820px, 100%); max-height: 100%; overflow: auto; padding: 22px; border: 2px solid var(--ink); background: var(--paper); box-shadow: 0 16px 48px #102b2b66; }
+.shop-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.shop-header h2 { margin: 4px 0 0; font-size: 28px; }
+.shop-close { flex: 0 0 auto; font-size: 27px; }
+.shop-wallet { display: flex; justify-content: space-between; align-items: center; margin: 18px 0 14px; padding: 10px 12px; background: #dce8df; font-family: 'VT323', monospace; font-size: 22px; }
+.shop-wallet strong { color: #b26e25; font-size: 25px; }
+.shop-wallet b { font-weight: 400; }
+.skin-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.skin-card { min-width: 0; display: flex; flex-direction: column; align-items: center; padding: 12px; border: 1px solid #173c3640; background: #fffefa; text-align: center; }
+.skin-card.selected { border: 2px solid #38866e; background: #e7f2e7; }
+.skin-card img { width: 58px; height: 74px; object-fit: contain; filter: drop-shadow(0 4px 2px #173c3626); }
+.skin-name { min-height: 36px; display: grid; place-items: center; font-size: 13px; }
+.skin-price { margin: 2px 0 10px; color: #52635b; font-family: 'VT323', monospace; font-size: 18px; }
+.skin-power { min-height: 30px; margin: -4px 0 8px; color: #277e87; font-size: 10px; font-weight: 700; line-height: 1.3; }
+.skin-action { width: 100%; min-height: 38px; padding: 7px; border: 0; background: var(--ink); color: white; font-weight: 700; }
+.skin-action:hover:not(:disabled) { background: #285d4f; }
+.skin-action:disabled { background: #bac6bb; color: #40524a; cursor: default; }
 footer { display: flex; justify-content: space-between; padding: 20px 0; font-size: 10px; font-weight: 700; }
 #notice { position: absolute; left: 50%; top: 20%; transform: translateX(-50%); background: var(--ink); color: white; padding: 10px 18px; border-radius: 4px; font-size: 13px; pointer-events: none; opacity: 0; transition: opacity .2s; text-align: center; }
 #notice.visible { opacity: 1; }
@@ -54,6 +73,15 @@ body[data-state="playing"] .touch-controls { display: flex; }
   .overlay { padding: 28% 7% 7%; align-items: flex-start; background: linear-gradient(90deg, #eff5e9ed, #eff5e9a6 70%, transparent); }
   h1 { font-size: 47px; } .intro p { font-size: 13px; }
   .eyebrow { font-size: 9px; }
+  .shop { padding: 10px; }
+  .shop-panel { padding: 14px; }
+  .shop-header h2 { font-size: 22px; }
+  .skin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .skin-card { padding: 8px; }
+  .skin-card img { width: 44px; height: 52px; }
+  .skin-name { min-height: 30px; font-size: 11px; }
+  .skin-price { margin: 0 0 6px; font-size: 16px; }
+  .skin-action { min-height: 34px; padding: 5px; font-size: 11px; }
   footer { font-size: 8px; padding: 14px 0; gap: 10px; }
 }
 @media (max-height: 500px) and (orientation: landscape) {
