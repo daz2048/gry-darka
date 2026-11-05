@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="280" viewBox="0 0 560 280">
+  <defs><linearGradient id="city" x2="0" y2="1"><stop stop-color="#193248"/><stop offset="1" stop-color="#080e15"/></linearGradient><radialGradient id="moon"><stop stop-color="#e65e4e" stop-opacity=".35"/><stop offset="1" stop-color="#e65e4e" stop-opacity="0"/></radialGradient></defs>
+  <path fill="url(#city)" d="M0 0h560v280H0z"/><circle cx="428" cy="62" r="105" fill="url(#moon)"/><circle cx="428" cy="62" r="25" fill="#d8826b"/>
+  <path fill="#101b26" d="M0 163h43v-72h28v72h39V72h50v91h43v-56h38v56h44V65h53v98h51v-75h43v75h128v117H0z"/>
+  <g fill="#e2ad65" opacity=".7"><path d="M51 111h8v13h-8zm62 12h8v11h-8zm102 16h8v12h-8zm81-53h9v13h-9zm113 37h8v13h-8zm87-16h8v12h-8z"/></g>
+  <path fill="#182733" d="M0 184h560v96H0z"/><path stroke="#e46c59" stroke-width="4" stroke-dasharray="10 8" d="M376 80v148"/><path fill="#e46c59" opacity=".12" d="M376 80h184v148H376z"/>
+  <g fill="#69cfce" stroke="#227e91" stroke-width="4"><circle cx="103" cy="153" r="16"/><circle cx="132" cy="184" r="16"/><circle cx="99" cy="215" r="16"/></g>
+  <g stroke="#101820" stroke-width="9" stroke-linecap="round"><path d="M94 153H59M123 184H86M90 215H55"/></g>
+  <path fill="#ffe082" d="M178 150h23v5h-23zm23 31h23v5h-23z"/>
+  <path fill="#a44850" stroke="#ed7964" stroke-width="4" d="M443 123 423 146l-22 8 10 17-7 32 19 13 15-13 21 9 18-21-9-24 8-19-24-9z"/>
+  <path fill="#171923" d="m421 127 11-21 10 17 14-22 10 29z"/><path fill="#f9d77c" d="M427 151h8v8h-8zm25 0h8v8h-8z"/>
+  <path fill="#dc5361" d="M265 111 277 123l-12 12-12-12z"/>
+</svg>

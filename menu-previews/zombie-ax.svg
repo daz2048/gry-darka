@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="280" viewBox="0 0 560 280">
+  <defs><linearGradient id="gridbg" x2="0" y2="1"><stop stop-color="#17232d"/><stop offset="1" stop-color="#090d12"/></linearGradient></defs>
+  <path fill="url(#gridbg)" d="M0 0h560v280H0z"/><path stroke="#5d7890" stroke-opacity=".16" d="M40 0v280m60-280v280m60-280v280m60-280v280m60-280v280m60-280v280m60-280v280m60-280v280m60-280v280M0 50h560M0 110h560M0 170h560M0 230h560"/>
+  <path stroke="#ff5252" stroke-width="4" stroke-dasharray="10 8" d="M140 45v185"/><path fill="#ff5252" opacity=".1" d="M0 45h140v185H0z"/>
+  <g fill="#7bc955" stroke="#386d34" stroke-width="4"><circle cx="58" cy="106" r="19"/><circle cx="94" cy="162" r="15"/><circle cx="44" cy="211" r="13"/></g>
+  <g fill="#fff"><circle cx="52" cy="102" r="3"/><circle cx="64" cy="102" r="3"/><circle cx="90" cy="159" r="2"/><circle cx="99" cy="159" r="2"/></g>
+  <path fill="#18212a" stroke="#34414b" stroke-width="4" d="M377 91h138v139H377z"/><path fill="#24343d" d="M392 108h107v105H392z"/><path fill="#ff6b3d" opacity=".2" d="M377 91h138v139H377z"/>
+  <path stroke="#dbe6f2" stroke-width="8" stroke-linecap="round" d="M444 143h-47"/><circle cx="447" cy="143" r="17" fill="#ff6b3d" stroke="#a11f1f" stroke-width="4"/><text x="447" y="148" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="13" font-weight="bold">4</text>
+  <path fill="#ffb74d" d="M300 138h25v6h-25zm-38 44h25v6h-25z"/><circle cx="305" cy="141" r="13" fill="#ffe082" opacity=".3"/>
+</svg>

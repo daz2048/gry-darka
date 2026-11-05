@@ -16,6 +16,18 @@ Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
 
 ## 📋 Dostępne gry
 
+### Mario 1.0 (Maks Jump Quest)
+Platformowa przygoda w trzech światach: zielone wzgórza, kryształowe jaskinie i twierdza wiatru. Zbieraj monety, odkrywaj sekrety i pokonuj przeciwników skokiem.
+- **Sterowanie:** strzałki / A i D, skok: spacja / W / strzałka w górę; na telefonie przyciski dotykowe.
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/jump-quest/)
+- [Instrukcja i szczegóły](jump-quest/README.md)
+
+### Mario Vanilla
+Klasyczny wariant platformowej przygody z trzema światami, przeciwnikami, monetami i punktami kontrolnymi.
+- **Sterowanie:** strzałki / A i D, skok: spacja / W / strzałka w górę; na telefonie przyciski dotykowe.
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/mario-vanilla/)
+- [Instrukcja i szczegóły](mario-vanilla/README.md)
+
 ### 🏰 Pojedynek Zamków
 Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.
 - **Gracze:** Janek i Darek

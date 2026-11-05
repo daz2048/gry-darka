@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gry Darka, Janka i Ekipy</title>
+<title>GRY EKIPY SPOD LIPY (HAJNÓWKA SIĘ KŁANIA)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   
@@ -17,7 +17,7 @@
   .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 16px 60px; }
   header { text-align: center; margin-bottom: 40px; }
   h1 { 
-    font-size: 42px; letter-spacing: 4px; margin: 0 0 12px;
+    font-size: 30px; letter-spacing: 2px; margin: 0 0 12px;
     background: linear-gradient(90deg, #ff006e, #8338ec, #3a86ff, #06ffa5);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -31,7 +31,7 @@
   }
   .grid {
     display: grid; gap: 22px;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   }
   .card {
     display: flex; flex-direction: column;
@@ -70,6 +70,10 @@
   .thumb.zombie-ax { background: linear-gradient(135deg, #ff006e 0%, #d62828 50%, #8b0000 100%); color: #fff; }
   .thumb.zombie-daz { background: linear-gradient(135deg, #06ffa5 0%, #00d9a3 50%, #00a896 100%); color: #000; text-shadow: 1px 1px 3px rgba(0,0,0,.3); }
   .thumb.zombie-jan { background: linear-gradient(135deg, #ffbe0b 0%, #fb5607 50%, #ff006e 100%); color: #000; text-shadow: 1px 1px 3px rgba(0,0,0,.3); }
+  .thumb.jump-quest { background: #9ddedb; position: relative; overflow: hidden; }
+  .thumb.preview { padding: 0; overflow: hidden; }
+  .thumb.preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .thumb.jump-quest img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
   .card h2 { margin: 0 0 8px; font-size: 16px; letter-spacing: 1px; font-family: 'Courier New', monospace; }
   .card p { margin: 0 0 16px; font-size: 12px; line-height: 1.6; opacity: .85; flex: 1; font-family: "Segoe UI", sans-serif; }
   .btn {
@@ -101,63 +105,83 @@
   .card:nth-child(7) { border-color: #ffbe0b; }
   .card:nth-child(7) .btn { background: #ffbe0b; color: #000; border-color: #ffbe0b; }
   .card:nth-child(7) .btn:hover { box-shadow: 0 0 15px #ffbe0b, inset 0 0 10px #ffbe0b; }
+  .card.jump-quest { border-color: #ffdd57; }
+  .card.jump-quest .btn { background: #ffdd57; color: #173c36; border-color: #ffdd57; }
+  .card.mario-vanilla { border-color: #ff795f; }
+  .card.mario-vanilla .btn { background: #ff795f; color: #241a1d; border-color: #ff795f; }
   footer { text-align: center; margin-top: 48px; font-size: 11px; opacity: .5; font-family: "Segoe UI", sans-serif; }
+  @media (max-width: 600px) {
+    h1 { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>🎮 GRY DARKA, JANKA I EKIPY 🎮</h1>
+      <h1>GRY EKIPY SPOD LIPY (HAJNÓWKA SIĘ KŁANIA)</h1>
       <p class="sub">► INDIE GAMES COLLECTION ◄ Graj od razu, bez instalacji!</p>
     </header>
 
     <main class="grid">
       <a class="card" href="pojedynek-zamkow/">
-        <div class="thumb castle">PZ</div>
+        <div class="thumb castle preview"><img src="menu-previews/castle-duel.svg" alt="Dwa zamki i kula armatnia nad polem bitwy" loading="lazy"></div>
         <h2>Pojedynek Zamków (Janek i Darek)</h2>
         <p>Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-vanilla/">
-        <div class="thumb zombie-v">V</div>
+        <div class="thumb zombie-v preview"><img src="menu-previews/zombie-vanilla.svg" alt="Druzyna broni bazy przed nadciagajacymi zombie" loading="lazy"></div>
         <h2>Napór Zombie (Vanilla)</h2>
         <p>Prototyp 1.0 - oryginalna gra. Broń bazy przed falami zombie. Przesuwaj ekipę w pionie, strzelaj prosto, dobieraj ludzi i moc.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-max-1.0/">
-        <div class="thumb zombie-max-1">MAX 1.0</div>
+        <div class="thumb zombie-max-1 preview"><img src="menu-previews/zombie-max-1.svg" alt="Obrona przed zombie pod czerwonym ksiezycem" loading="lazy"></div>
         <h2>Zombie Max 1.0</h2>
         <p>Dotychczasowy wariant Maksa. Broń bazy przed falami zombie i rozwijaj swoją ekipę.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-max-2.0/">
-        <div class="thumb zombie-max-2">MAX 2.0</div>
-        <h2>Zombie Max 2.0</h2>
+        <div class="thumb zombie-max-2 preview"><img src="menu-previews/zombie-max-2.svg" alt="Mroczne miasto i starcie z demonem" loading="lazy"></div>
+        <h2>Zombie Max 1.1</h2>
         <p>Nowa wersja rozwijana jako osobny wariant.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-ax/">
-        <div class="thumb zombie-ax">AX</div>
+        <div class="thumb zombie-ax preview"><img src="menu-previews/zombie-ax.svg" alt="Strzelec odpiera zombie na cyfrowym polu bitwy" loading="lazy"></div>
         <h2>Zombie AX</h2>
         <p>Wariant prowadzony przez Aleksa. Broń bazy przed falami zombie z innymi strategiami.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-daz/">
-        <div class="thumb zombie-daz">DAZ</div>
+        <div class="thumb zombie-daz preview"><img src="menu-previews/zombie-daz.svg" alt="Zielona linia obrony przeciwko zombie" loading="lazy"></div>
         <h2>Zombie Daz</h2>
         <p>Wariant Daz oryginalnej gry. Broń bazy przed falami zombie z własnymi ulepszeniami.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-jan/">
-        <div class="thumb zombie-jan">JAN</div>
+        <div class="thumb zombie-jan preview"><img src="menu-previews/zombie-jan.svg" alt="Pomarańczowa fala zombie zbliza sie do obroncow" loading="lazy"></div>
         <h2>Zombie Jan</h2>
         <p>Wariant prowadzony przez Janka. Broń bazy przed falami zombie z własnymi pomysłami.</p>
+        <span class="btn">Graj</span>
+      </a>
+      <a class="card jump-quest" href="jump-quest/index.html">
+        <div class="thumb jump-quest"><img src="jump-quest/preview.svg" alt="Darek na szlaku wśród platform i monet" loading="lazy"></div>
+        <h2>Mario 1.0</h2>
+        <p>Platformowa przygoda w trzech światach. Zbieraj monety, odkrywaj sekrety i dotrzyj do bramy na szczycie!</p>
+        <span class="btn">Graj</span>
+      </a>
+
+      <a class="card mario-vanilla" href="mario-vanilla/index.html">
+        <div class="thumb jump-quest"><img src="mario-vanilla/preview.svg" alt="Mario Vanilla: platformowy szlak z monetami i brama" loading="lazy"></div>
+        <h2>Mario Vanilla</h2>
+        <p>Klasyczny wariant platformowej przygody: skacz po platformach, zbieraj monety i dotrzyj do mety.</p>
         <span class="btn">Graj</span>
       </a>
     </main>

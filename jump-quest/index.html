@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#183c36">
+  <title>Maks Jump Quest</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="vendor/phaser.min.js"></script>
+  <script defer src="game.js"></script>
+</head>
+<body>
+  <main class="game-shell">
+    <header class="topbar">
+      <a class="home icon" href="../index.html" title="Menu gier" aria-label="Menu gier">&#8962;</a>
+      <div class="brand">MAKS <strong>JUMP QUEST</strong></div>
+      <div class="tools">
+        <button id="sound" class="icon" title="Dzwiek" aria-label="Dzwiek" aria-pressed="true">&#9835;</button>
+        <button id="restart" class="icon" title="Od nowa (R)" aria-label="Od nowa">&#8635;</button>
+        <button id="pause" class="icon" title="Pauza (P)" aria-label="Pauza" aria-pressed="false">&#9208;</button>
+      </div>
+    </header>
+    <section class="playfield" aria-label="Gra platformowa">
+      <div id="game"></div>
+      <div class="hud" aria-live="off">
+        <div><span class="hud-label" id="world">01 / ZIELONE WZGORZA</span><strong id="level-name">Pierwszy szlak</strong></div>
+        <div class="stats"><span title="Monety">&#9670; <b id="coins">00</b></span><span title="Punkty">PKT <b id="score">0000</b></span><span title="Zycia">&#9829; <b id="lives">3</b></span></div>
+      </div>
+      <div id="notice" role="status"></div>
+      <div id="overlay" class="overlay">
+        <div class="intro">
+          <span id="eyebrow" class="eyebrow">PRZYGODA W TRZECH SWIATACH</span>
+          <h1 id="overlay-title">Maks<br><em>Jump Quest</em></h1>
+          <p id="overlay-copy">Za horyzontem czeka kolejna przygoda.</p>
+          <button id="primary" class="primary">Rozpocznij <span aria-hidden="true">&#8594;</span></button>
+          <a class="menu-link" href="../index.html">Menu gier</a>
+        </div>
+      </div>
+      <div class="touch-controls" aria-label="Sterowanie dotykowe">
+        <div class="direction-pad"><button data-control="left" aria-label="W lewo">&#9664;</button><button data-control="right" aria-label="W prawo">&#9654;</button></div>
+        <button data-control="jump" class="jump" aria-label="Skok">&#8593;</button>
+      </div>
+      <div id="fatal" role="alert" hidden>Nie udalo sie uruchomic gry. Odswiez strone. <a href="../index.html">Menu gier</a></div>
+    </section>
+    <footer><span>DAREK &amp; EKIPA</span><span id="footer-status">WYPRAWA 01 &middot; 3 SWIATY</span><span>JUMP QUEST</span></footer>
+  </main>
+</body>
+</html>
