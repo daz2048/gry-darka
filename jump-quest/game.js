@@ -216,10 +216,15 @@ class Quest extends Phaser.Scene {
       pen.fillStyle(0x423547).fillRoundedRect(frame ? 6 : 9, 46, 14, 9, 3).fillRoundedRect(frame ? 25 : 22, 46, 14, 9, 3);
       pen.fillStyle(0x55745d).fillRoundedRect(11, 38, 22, 10, 4);
       pen.fillStyle(0xd1a158).fillRoundedRect(7, 27, 30, 20, 7);
-      pen.fillStyle(palette.mid).fillRoundedRect(8, 26, 28, 19, 6);
-      pen.fillStyle(palette.light).fillRoundedRect(11, 28, 22, 14, 4);
+      pen.fillStyle(palette.light).fillRoundedRect(8, 26, 28, 19, 6);
+      pen.fillStyle(palette.mid).fillRoundedRect(11, 31, 22, 14, 4);
+      pen.fillStyle(palette.mid).fillRoundedRect(13, 25, 6, 12, 2).fillRoundedRect(25, 25, 6, 12, 2);
+      pen.fillStyle(palette.light).fillRoundedRect(15, 32, 14, 7, 2);
       pen.fillStyle(palette.shadow).fillRoundedRect(4, 29, 8, 14, 4).fillRoundedRect(32, 29, 8, 14, 4);
       pen.fillStyle(palette.trim).fillRoundedRect(5, 38, 8, 6, 2).fillRoundedRect(31, 38, 8, 6, 2);
+      pen.fillStyle(palette.trim).fillCircle(16, 29, 2).fillCircle(28, 29, 2);
+      pen.fillStyle(palette.accent).fillRoundedRect(8, 36, 7, 8, 2);
+      pen.fillStyle(palette.trim).fillCircle(11, 39, 1);
       pen.fillStyle(0x243f4b).fillRoundedRect(12, 12, 21, 21, 7);
       pen.fillStyle(0xe9b58e).fillRoundedRect(12, 14, 21, 20, 7);
       pen.fillStyle(0xf4c9a0).fillRoundedRect(15, 16, 15, 13, 5);
@@ -231,8 +236,7 @@ class Quest extends Phaser.Scene {
       pen.fillStyle(palette.light).fillRoundedRect(10, 6, 22, 7, 4);
       pen.fillStyle(palette.shadow).fillRoundedRect(5, 14, 34, 5, 2);
       pen.fillStyle(palette.trim).fillRoundedRect(11, 34, 22, 5, 2).fillCircle(22, 36, 2);
-      pen.fillStyle(palette.accent).fillRoundedRect(17, 30, 10, 4, 2);
-      pen.fillStyle(palette.trim).fillCircle(22, 8, 2);
+      pen.fillStyle(palette.accent).fillPoints([{x:22,y:5},{x:25,y:8},{x:22,y:11},{x:19,y:8}], true);
     });
     texture('enemy', 40, 34, pen => {
       pen.fillStyle(0x3d344e).fillEllipse(20, 30, 32, 6);
