@@ -37,52 +37,76 @@ const LEVELS = Array.from({ length: LEVEL_COUNT }, (_, index) => {
   const theme = index % LEVEL_BLUEPRINTS.length;
   const round = Math.floor(index / LEVEL_BLUEPRINTS.length);
   const blueprint = LEVEL_BLUEPRINTS[theme];
-  const addedColumns = Math.floor(round / 5) * 2;
-  const ground = blueprint.ground.map(([start, count]) => [start, count]);
-  ground[ground.length - 1][1] += addedColumns;
-  const occupied = new Set();
-  const chooseColumn = (preferred, [start, count], salt) => {
-    const options = count - 4;
-    const offset = ((preferred - start - 2 + salt) % options + options) % options;
-    for (let step = 0; step < options; step++) {
-      const column = start + 2 + (offset + step) % options;
-      if (!occupied.has(column)) {
-        occupied.add(column);
-        return column;
-      }
-    }
-    return start + 2 + offset;
+  const difficulty = Math.min(8, Math.floor(index / 12));
+  const name = `Poziom ${String(index + 1).padStart(3, '0')} - ${blueprint.name}`;
+  if (index < LEVEL_BLUEPRINTS.length) return { ...blueprint, name, theme, difficulty };
+
+  let seed = (index + 1) * 2654435761 >>> 0;
+  const random = () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 4294967296;
   };
-  const enemies = blueprint.enemies.map((enemy, enemyIndex) => {
-    const segment = ground.find(([start, count]) => enemy.column >= start && enemy.column < start + count);
-    const salt = round * (2 + enemyIndex % 3 + enemyIndex);
-    const typeIndex = ENEMY_TYPES.indexOf(enemy.type);
-    const type = round === 0 ? enemy.type : ENEMY_TYPES[(typeIndex + round + theme) % ENEMY_TYPES.length];
-    const spawn = { column: chooseColumn(enemy.column, segment, salt), type };
-    if (type === 'flutter') spawn.row = 4 + (index + enemyIndex) % 2;
-    return spawn;
-  });
-  const extraEnemies = Math.min(3, Math.floor(round / 3));
-  for (let extra = 0; extra < extraEnemies; extra++) {
-    const segment = ground[(index + extra * 2) % ground.length];
-    const [start, count] = segment;
-    const type = ENEMY_TYPES[(index + extra) % ENEMY_TYPES.length];
-    const spawn = { column: chooseColumn(start + 2 + (round + extra * 3) % (count - 4), segment, round + extra), type };
-    if (type === 'flutter') spawn.row = 4 + (index + extra) % 2;
-    enemies.push(spawn);
+  const randomInt = limit => Math.floor(random() * limit);
+  const width = 120 + index - LEVEL_BLUEPRINTS.length;
+  const ground = [];
+  let cursor = 0;
+  while (cursor < width - 14) {
+    const length = 12 + randomInt(7);
+    ground.push([cursor, length]);
+    cursor += length;
+    if (cursor < width - 14) cursor += 2 + randomInt(3);
   }
+  const lastGround = ground[ground.length - 1];
+  lastGround[1] += width - lastGround[0] - lastGround[1];
+
+  const ledges = [];
+  const enemies = [];
+  const movers = [];
+  const occupiedEnemies = new Set();
+  for (let segmentIndex = 0; segmentIndex < ground.length; segmentIndex++) {
+    const [start, count] = ground[segmentIndex];
+    const ledgeCount = count > 15 && random() < .45 ? 2 : 1;
+    for (let ledge = 0; ledge < ledgeCount; ledge++) {
+      ledges.push([start + 2 + randomInt(count - 6), 5 + randomInt(3), 2 + randomInt(3)]);
+    }
+    const enemyCount = 1 + Number(random() < .32 + Math.min(.3, difficulty * .03));
+    for (let enemyIndex = 0; enemyIndex < enemyCount; enemyIndex++) {
+      let column = start + 2 + randomInt(count - 4);
+      while (occupiedEnemies.has(column)) column = start + 2 + (column - start - 1) % (count - 4);
+      occupiedEnemies.add(column);
+      const type = ENEMY_TYPES[randomInt(ENEMY_TYPES.length)];
+      const enemy = { column, type };
+      if (type === 'flutter') enemy.row = 4 + randomInt(3);
+      enemies.push(enemy);
+    }
+    if (segmentIndex < ground.length - 1) {
+      const gapStart = start + count;
+      const gapWidth = ground[segmentIndex + 1][0] - gapStart;
+      if (gapWidth >= 2) movers.push([gapStart + Math.floor(gapWidth / 2), 7 + randomInt(2)]);
+    }
+  }
+
+  const checkpointSegment = ground[Math.floor(ground.length / 2)];
+  const shieldSegment = ground[Math.min(1, ground.length - 1)];
+  const secrets = [1, Math.floor(ground.length / 2), ground.length - 1].map((segmentIndex, secretIndex) => {
+    const [start, count] = ground[segmentIndex];
+    return [start + 2 + randomInt(count - 4), 4 + secretIndex % 2];
+  });
+  const checkpoint = checkpointSegment[0] + Math.floor(checkpointSegment[1] / 2);
+  const shield = [shieldSegment[0] + 4, 6];
   return {
     ...blueprint,
-    name: `Poziom ${String(index + 1).padStart(3, '0')} - ${blueprint.name}`,
+    name,
     theme,
-    difficulty: Math.min(8, Math.floor(index / 12)),
-    width: blueprint.width + addedColumns,
+    difficulty,
+    width,
     ground,
-    ledges: blueprint.ledges.map(ledge => [...ledge]),
+    ledges,
     enemies,
-    movers: blueprint.movers.map(mover => [...mover]),
-    shield: [...blueprint.shield],
-    secrets: blueprint.secrets.map(secret => [...secret])
+    movers,
+    checkpoint,
+    shield,
+    secrets
   };
 });
 const HERO_SKINS = [
