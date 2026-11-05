@@ -466,6 +466,13 @@ class Quest extends Phaser.Scene {
       pen.fillStyle(0xf0ae42).fillEllipse(12, 5, 2, 13);
       pen.fillStyle(0xfff8d2).fillRect(7, 4, 2, 3);
     });
+    texture('special-coin', 32, 32, pen => {
+      pen.fillStyle(0x80500d).fillCircle(16, 16, 15);
+      pen.fillStyle(0xe29b1f).fillCircle(16, 16, 13);
+      pen.fillStyle(0xffdf58).fillCircle(16, 16, 10);
+      pen.fillStyle(0xfff4b0).fillPoints([{x:16,y:7},{x:18,y:13},{x:25,y:13},{x:20,y:17},{x:22,y:24},{x:16,y:20},{x:10,y:24},{x:12,y:17},{x:7,y:13},{x:14,y:13}], true);
+      pen.fillStyle(0xffffff, .8).fillCircle(11, 10, 2);
+    });
     texture('star', 28, 28, pen => {
       pen.fillStyle(0xfff4b7).fillPoints([{x:14,y:0},{x:18,y:9},{x:28,y:10},{x:21,y:17},{x:23,y:28},{x:14,y:22},{x:4,y:28},{x:6,y:17},{x:0,y:10},{x:10,y:9}], true);
       pen.fillStyle(0xd69b36).fillRect(11, 10, 2, 6).fillRect(17, 10, 2, 6);
@@ -540,6 +547,9 @@ class Quest extends Phaser.Scene {
       for (let offset = 4; offset < count - 2; offset += 3) this.pickups.create((start + offset) * TILE, 438, 'coin').kind = 'coin';
     }
     for (const [column, row] of data.secrets) this.pickups.create(column * TILE, row * TILE, 'star').kind = 'star';
+    const specialCoin = this.pickups.create(data.checkpoint * TILE, 412, 'special-coin').setScale(1.25);
+    specialCoin.kind = 'specialCoin';
+    specialCoin.body.updateFromGameObject();
     this.enemies = this.physics.add.group();
     for (const spawn of data.enemies) {
       const { column, type } = spawn;
@@ -939,10 +949,16 @@ class Quest extends Phaser.Scene {
   collect(pickup) {
     if (this.phase !== 'playing' || !pickup.active) return;
     const kind = pickup.kind;
+    if (kind === 'specialCoin' && this.selectedSkin !== 'diamond') return;
     const { x: pickupX, y: pickupY } = pickup;
     pickup.destroy();
     this.burst(pickupX, pickupY);
-    if (kind === 'shield') { this.shielded = true; notify('Tarcza zdobyta!'); playSound('shield'); }
+    if (kind === 'specialCoin') {
+      this.addCoins(100, false);
+      notify('Specjalna moneta +100!');
+      playSound('star');
+    }
+    else if (kind === 'shield') { this.shielded = true; notify('Tarcza zdobyta!'); playSound('shield'); }
     else if (kind === 'coin') {
       this.addCoins(1);
       playSound('coin');
@@ -954,8 +970,8 @@ class Quest extends Phaser.Scene {
     this.syncHud();
   }
 
-  addCoins(baseAmount) {
-    const multiplier = this.selectedSkin === 'diamond' ? 3 : 1;
+  addCoins(baseAmount, applyMultiplier = true) {
+    const multiplier = applyMultiplier && this.selectedSkin === 'diamond' ? 3 : 1;
     const previousCoins = this.coins;
     const earned = baseAmount * multiplier;
     this.coins += earned;
@@ -1071,7 +1087,7 @@ class Quest extends Phaser.Scene {
     if (diamondEquipped) {
       const maxTravel = COIN_MAGNET_SPEED * Math.min(delta, 50) / 1000;
       for (const pickup of this.pickups.getChildren()) {
-        if (!pickup.active || pickup.kind !== 'coin') continue;
+        if (!pickup.active || (pickup.kind !== 'coin' && pickup.kind !== 'specialCoin')) continue;
         const dx = this.player.x - pickup.x;
         const dy = this.player.y - pickup.y;
         const distance = Math.hypot(dx, dy);
