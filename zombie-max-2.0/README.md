@@ -36,7 +36,9 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 - Base warning lights turn red at low health, and damage cracks increase as health falls; repairs clear the corresponding wear.
 - Static scenery is cached per difficulty. New weather and lighting effects freeze when paused and respect reduced-motion preferences. Scenery is decorative and does not change movement, hits, or difficulty.
 
-Easy, Normal, and Hard also feature eclipsed moonlight, overhead tendrils, long shadows, and slow nightmare mist. Easy keeps its twisted cemetery trees, Normal keeps the original city buildings without crystal-like towers, and Hard has glowing furnaces. Demon scenery is unchanged.
+Easy, Normal, and Hard also feature eclipsed moonlight, overhead tendrils, long shadows, and slow nightmare mist. Easy keeps its twisted cemetery trees, Normal keeps the original city buildings without crystal-like towers, and Hard has glowing furnaces.
+
+Super Hard Demon has a painted infernal fortress: layered ash clouds, distant ridges, etched lightning, and a horned stone idol with watching eyes, carved runes, eroded features, and a shadowed entrance. Torn woven banners, candle wax, chipped paving, stone pitting, and fine brush textures give the scene a weathered mural finish. This artwork is cached, stays behind enemies and pickups, and adds no flashing or extra animation. Other modes and gameplay difficulty are unchanged.
 
 The nightmare scenes add cracked, candlelit memorials and hanging lichen in Easy; torn missing-person notices, boarded doors, and chalk tallies in Normal; and riveted pressure doors, gauges, and suspended chains in Hard. These weathered details are cached with the scenery. Pale watching faces breathe slowly and follow the squad with their eyes when Groza and motion effects are enabled; their animation stops during pauses and in hidden tabs.
 
