@@ -3680,7 +3680,264 @@
     let sceneryCache;
     let sceneryKey;
 
+    function drawSceneAccents(scene, theme, skyline) {
+      scene.save();
+      scene.lineWidth = 1;
+      scene.lineJoin = 'round';
+      if (difficultyKey === 'easy') {
+        scene.fillStyle = '#283b34';
+        scene.strokeStyle = '#637367';
+        scene.fillRect(136, skyline - 134, 43, 127);
+        scene.strokeRect(140, skyline - 130, 35, 122);
+        scene.beginPath();
+        scene.moveTo(129, skyline - 134);
+        scene.lineTo(157, skyline - 176);
+        scene.lineTo(186, skyline - 134);
+        scene.closePath();
+        scene.fill();
+        scene.stroke();
+        scene.fillStyle = '#12221e';
+        scene.fillRect(147, skyline - 121, 21, 33);
+        scene.beginPath();
+        scene.arc(157.5, skyline - 121, 10.5, Math.PI, 0);
+        scene.fill();
+        scene.fillStyle = '#938768';
+        scene.beginPath();
+        scene.moveTo(151, skyline - 113);
+        scene.lineTo(149, skyline - 96);
+        scene.lineTo(166, skyline - 96);
+        scene.lineTo(163, skyline - 113);
+        scene.closePath();
+        scene.fill();
+        scene.fillRect(156, skyline - 95, 3, 5);
+        scene.strokeStyle = '#6e8068';
+        for (const postX of [507, 615]) {
+          scene.fillStyle = '#3b5044';
+          scene.fillRect(postX, skyline - 68, 13, 69);
+          scene.fillRect(postX - 3, skyline - 72, 19, 5);
+          scene.beginPath();
+          scene.arc(postX + 6.5, skyline - 79, 6, 0, Math.PI * 2);
+          scene.fill();
+        }
+        for (let bar = 0; bar < 11; bar++) {
+          const gateX = 525 + bar * 8;
+          const gateTop = skyline - 53 - Math.sin(bar / 10 * Math.PI) * 17;
+          scene.beginPath();
+          scene.moveTo(gateX, skyline);
+          scene.lineTo(gateX, gateTop);
+          scene.lineTo(gateX - 3, gateTop + 4);
+          scene.moveTo(gateX, gateTop);
+          scene.lineTo(gateX + 3, gateTop + 4);
+          scene.stroke();
+        }
+        scene.beginPath();
+        scene.moveTo(521, skyline - 14);
+        scene.lineTo(615, skyline - 14);
+        scene.moveTo(521, skyline - 40);
+        scene.lineTo(615, skyline - 40);
+        scene.stroke();
+        for (let cluster = 0; cluster < 8; cluster++) {
+          const mossX = 90 + cluster * 94;
+          const mossY = 462 + cluster % 3 * 16;
+          scene.fillStyle = '#344d38';
+          scene.beginPath();
+          scene.ellipse(mossX, mossY, 20, 5, -0.15, 0, Math.PI * 2);
+          scene.fill();
+          scene.fillStyle = '#9b9c77';
+          scene.fillRect(mossX + 4, mossY - 7, 2, 7);
+          scene.fillRect(mossX + 11, mossY - 5, 2, 5);
+          scene.fillStyle = '#ab775d';
+          scene.beginPath();
+          scene.ellipse(mossX + 5, mossY - 7, 5, 2, 0, Math.PI, Math.PI * 2);
+          scene.ellipse(mossX + 12, mossY - 5, 4, 2, 0, Math.PI, Math.PI * 2);
+          scene.fill();
+        }
+      } else if (difficultyKey === 'normal') {
+        scene.fillStyle = '#26363b';
+        scene.fillRect(115, skyline - 51, 89, 49);
+        scene.strokeStyle = '#81908a';
+        scene.strokeRect(118, skyline - 47, 83, 43);
+        scene.fillStyle = '#506a68';
+        scene.fillRect(109, skyline - 55, 101, 6);
+        scene.fillStyle = '#15272e';
+        scene.fillRect(124, skyline - 42, 30, 30);
+        scene.fillRect(161, skyline - 42, 32, 30);
+        scene.strokeStyle = '#839b96';
+        scene.beginPath();
+        scene.moveTo(127, skyline - 38);
+        scene.lineTo(141, skyline - 26);
+        scene.lineTo(133, skyline - 21);
+        scene.moveTo(172, skyline - 42);
+        scene.lineTo(176, skyline - 24);
+        scene.lineTo(190, skyline - 31);
+        scene.stroke();
+        scene.fillStyle = '#8d7e63';
+        scene.fillRect(125, skyline - 14, 69, 4);
+        scene.fillRect(132, skyline - 10, 3, 10);
+        scene.fillRect(183, skyline - 10, 3, 10);
+        scene.fillStyle = '#192c32';
+        scene.beginPath();
+        scene.moveTo(639, skyline - 1);
+        scene.lineTo(660, skyline - 35);
+        scene.lineTo(719, skyline - 35);
+        scene.lineTo(740, skyline - 1);
+        scene.closePath();
+        scene.fill();
+        scene.strokeStyle = '#8c9990';
+        for (let step = 0; step < 5; step++) {
+          scene.beginPath();
+          scene.moveTo(647 + step * 3, skyline - 4 - step * 6);
+          scene.lineTo(732 - step * 3, skyline - 4 - step * 6);
+          scene.stroke();
+        }
+        scene.strokeStyle = '#576f72';
+        scene.lineWidth = 2;
+        scene.strokeRect(637, skyline - 56, 106, 55);
+        scene.fillStyle = '#71998b';
+        scene.fillRect(670, skyline - 72, 36, 16);
+        scene.fillStyle = '#d5d9bb';
+        scene.font = '700 11px "Rajdhani", sans-serif';
+        scene.textAlign = 'center';
+        scene.fillText('M', 688, skyline - 60);
+        scene.fillStyle = '#495455';
+        scene.fillRect(779, skyline - 115, 4, 116);
+        scene.fillStyle = '#172328';
+        scene.fillRect(771, skyline - 113, 19, 43);
+        for (let lamp = 0; lamp < 3; lamp++) {
+          scene.fillStyle = lamp === 0 ? '#b9674f' : '#354542';
+          scene.beginPath();
+          scene.arc(780.5, skyline - 105 + lamp * 12, 4, 0, Math.PI * 2);
+          scene.fill();
+        }
+      } else if (difficultyKey === 'hard') {
+        scene.fillStyle = '#292a2e';
+        scene.fillRect(625, 331, 82, 70);
+        scene.strokeStyle = '#8a7b71';
+        scene.strokeRect(629, 335, 74, 62);
+        scene.fillStyle = '#151d21';
+        scene.beginPath();
+        scene.arc(666, 366, 25, 0, Math.PI * 2);
+        scene.fill();
+        scene.strokeStyle = '#6f7372';
+        scene.lineWidth = 5;
+        for (let blade = 0; blade < 6; blade++) {
+          const angle = blade * Math.PI / 3;
+          scene.beginPath();
+          scene.moveTo(666 + Math.cos(angle) * 6, 366 + Math.sin(angle) * 6);
+          scene.lineTo(666 + Math.cos(angle + 0.3) * 21, 366 + Math.sin(angle + 0.3) * 21);
+          scene.stroke();
+        }
+        scene.lineWidth = 1;
+        scene.strokeStyle = '#a08c75';
+        for (let grate = 0; grate < 7; grate++) {
+          scene.beginPath();
+          scene.moveTo(642 + grate * 8, 342);
+          scene.lineTo(642 + grate * 8, 390);
+          scene.stroke();
+        }
+        scene.fillStyle = '#4b4546';
+        for (let stair = 0; stair < 6; stair++) scene.fillRect(447 + stair * 10, skyline - stair * 9, 55 - stair * 6, 6);
+        scene.strokeStyle = '#ad9172';
+        scene.beginPath();
+        scene.moveTo(444, skyline - 17);
+        scene.lineTo(500, skyline - 68);
+        scene.lineTo(528, skyline - 68);
+        scene.moveTo(444, skyline - 17);
+        scene.lineTo(444, skyline + 2);
+        scene.moveTo(500, skyline - 68);
+        scene.lineTo(500, skyline - 45);
+        scene.stroke();
+        scene.fillStyle = '#20292a';
+        scene.fillRect(109, 455, 122, 18);
+        scene.strokeStyle = '#8a7b69';
+        for (let roller = 0; roller < 10; roller++) {
+          scene.beginPath();
+          scene.ellipse(117 + roller * 11, 464, 3, 7, 0, 0, Math.PI * 2);
+          scene.stroke();
+        }
+        scene.fillStyle = '#645344';
+        scene.fillRect(141, 438, 42, 16);
+        scene.strokeStyle = '#b09a78';
+        scene.strokeRect(144, 441, 36, 10);
+        scene.fillRect(119, 473, 4, 13);
+        scene.fillRect(214, 473, 4, 13);
+      } else {
+        scene.strokeStyle = '#573641';
+        scene.lineWidth = 11;
+        scene.beginPath();
+        scene.moveTo(620, skyline);
+        scene.lineTo(620, skyline - 88);
+        scene.quadraticCurveTo(638, skyline - 133, 662, skyline - 111);
+        scene.moveTo(711, skyline);
+        scene.lineTo(711, skyline - 92);
+        scene.lineTo(689, skyline - 116);
+        scene.stroke();
+        scene.lineWidth = 1;
+        scene.strokeStyle = '#b87755';
+        for (let link = 0; link < 12; link++) {
+          scene.beginPath();
+          scene.ellipse(641 + Math.sin(link * 0.28) * 4, skyline - 108 + link * 7, 2.5, 4, link % 2 * 0.8, 0, Math.PI * 2);
+          scene.stroke();
+        }
+        for (const brazierX of [169, 770]) {
+          scene.fillStyle = '#38252c';
+          scene.beginPath();
+          scene.moveTo(brazierX - 16, 392);
+          scene.lineTo(brazierX + 16, 392);
+          scene.lineTo(brazierX + 10, 404);
+          scene.lineTo(brazierX - 10, 404);
+          scene.closePath();
+          scene.fill();
+          scene.fillRect(brazierX - 3, 404, 6, 20);
+          scene.fillRect(brazierX - 13, 424, 26, 4);
+          scene.fillStyle = '#c56b34';
+          scene.beginPath();
+          scene.moveTo(brazierX - 10, 391);
+          scene.quadraticCurveTo(brazierX - 13, 381, brazierX - 3, 374);
+          scene.lineTo(brazierX, 382);
+          scene.lineTo(brazierX + 7, 368);
+          scene.quadraticCurveTo(brazierX + 16, 384, brazierX + 10, 391);
+          scene.closePath();
+          scene.fill();
+          scene.fillStyle = '#edd08b';
+          scene.beginPath();
+          scene.ellipse(brazierX + 2, 387, 4, 5, 0, 0, Math.PI * 2);
+          scene.fill();
+        }
+        for (let slab = 0; slab < 7; slab++) {
+          scene.fillStyle = slab % 2 ? '#392c36' : '#4a303a';
+          scene.fillRect(301 + slab * 15, 473 - slab % 3 * 3, 12, 24);
+          scene.fillStyle = '#8a5b59';
+          scene.fillRect(302 + slab * 15, 474 - slab % 3 * 3, 9, 1);
+        }
+      }
+      scene.lineWidth = 1;
+      scene.globalAlpha = 0.25;
+      scene.strokeStyle = theme.edge;
+      for (let track = 0; track < 18; track++) {
+        const trackX = 96 + track * 42;
+        const trackY = 304 + (track * 31) % 147;
+        scene.beginPath();
+        scene.ellipse(trackX, trackY, 2, 4, 0.8, 0, Math.PI * 2);
+        scene.ellipse(trackX + 9, trackY + 9, 2, 4, 0.8, 0, Math.PI * 2);
+        scene.stroke();
+      }
+      scene.globalAlpha = 0.65;
+      scene.fillStyle = '#a38f58';
+      for (let casing = 0; casing < 18; casing++) {
+        const casingX = 843 + casing * 19 % 43;
+        const casingY = 165 + casing * 47 % 211;
+        scene.save();
+        scene.translate(casingX, casingY);
+        scene.rotate(casing * 1.7);
+        scene.fillRect(-2, -0.6, 4, 1.2);
+        scene.restore();
+      }
+      scene.restore();
+    }
+
     function drawEnvironmentDetails(scene, theme, skyline) {
+      drawSceneAccents(scene, theme, skyline);
       scene.save();
       scene.lineWidth = 1;
       scene.lineJoin = 'round';
@@ -4427,6 +4684,191 @@
       ctx.restore();
     }
 
+    function drawZombieOutfit(zombie, torsoW, torsoH, headR, golden) {
+      ctx.save();
+      const variant = (Math.floor((zombie.bloody || 0) * 97) + Math.round(zombie.maxhp)) % 3;
+      const headY = -torsoH * 0.55;
+      const demon = difficultyKey === 'super-hard-demon';
+      ctx.lineWidth = Math.max(0.7, torsoW * 0.08);
+      ctx.strokeStyle = golden ? '#b29343' : '#1c2628';
+      ctx.beginPath();
+      ctx.moveTo(0, -torsoH * 0.26);
+      ctx.lineTo(0, torsoH * 0.48);
+      ctx.stroke();
+      if (difficultyKey === 'easy') {
+        ctx.fillStyle = variant === 0 ? '#63755a' : '#756957';
+        ctx.fillRect(-torsoW * 0.46, -torsoH * 0.38, torsoW * 0.92, torsoH * 0.15);
+        ctx.fillRect(torsoW * 0.16, -torsoH * 0.25, torsoW * 0.17, torsoH * 0.34);
+        ctx.strokeStyle = '#a0a17b';
+        ctx.beginPath();
+        ctx.moveTo(-torsoW * 0.4, torsoH * 0.23);
+        ctx.lineTo(-torsoW * 0.18, torsoH * 0.28);
+        ctx.moveTo(-torsoW * 0.34, torsoH * 0.16);
+        ctx.lineTo(-torsoW * 0.28, torsoH * 0.34);
+        ctx.stroke();
+      } else if (difficultyKey === 'normal') {
+        ctx.fillStyle = variant === 0 ? '#a3a99b' : '#718d8b';
+        ctx.beginPath();
+        ctx.moveTo(-torsoW * 0.45, -torsoH * 0.38);
+        ctx.lineTo(0, -torsoH * 0.2);
+        ctx.lineTo(torsoW * 0.45, -torsoH * 0.38);
+        ctx.lineTo(torsoW * 0.22, -torsoH * 0.06);
+        ctx.lineTo(0, -torsoH * 0.2);
+        ctx.lineTo(-torsoW * 0.22, -torsoH * 0.06);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = variant === 1 ? '#9d7958' : '#657785';
+        ctx.beginPath();
+        ctx.moveTo(0, -torsoH * 0.18);
+        ctx.lineTo(torsoW * 0.13, torsoH * 0.3);
+        ctx.lineTo(-torsoW * 0.04, torsoH * 0.39);
+        ctx.lineTo(-torsoW * 0.11, torsoH * 0.25);
+        ctx.closePath();
+        ctx.fill();
+      } else if (difficultyKey === 'hard') {
+        ctx.fillStyle = golden ? '#cfac55' : '#a29353';
+        ctx.fillRect(-torsoW * 0.48, -torsoH * 0.3, torsoW * 0.22, torsoH * 0.71);
+        ctx.fillRect(torsoW * 0.26, -torsoH * 0.3, torsoW * 0.22, torsoH * 0.71);
+        ctx.fillStyle = '#c9c5a1';
+        ctx.fillRect(-torsoW * 0.5, torsoH * 0.18, torsoW, torsoH * 0.1);
+        ctx.fillStyle = variant === 2 ? '#829188' : '#bca061';
+        ctx.beginPath();
+        ctx.ellipse(0, headY - headR * 0.15, headR * 1.12, headR * 0.94, 0, Math.PI, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(-headR * 1.2, headY - headR * 0.17, headR * 2.4, headR * 0.16);
+        ctx.fillStyle = '#e3d6a5';
+        ctx.fillRect(-headR * 0.15, headY - headR * 0.87, headR * 0.3, headR * 0.5);
+      } else {
+        ctx.fillStyle = golden ? '#a98b43' : '#563543';
+        ctx.strokeStyle = golden ? '#ffe4a0' : '#bd7650';
+        ctx.beginPath();
+        ctx.moveTo(-torsoW * 0.49, -torsoH * 0.34);
+        ctx.lineTo(0, -torsoH * 0.17);
+        ctx.lineTo(torsoW * 0.49, -torsoH * 0.34);
+        ctx.lineTo(torsoW * 0.37, torsoH * 0.26);
+        ctx.lineTo(0, torsoH * 0.43);
+        ctx.lineTo(-torsoW * 0.37, torsoH * 0.26);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = '#e7a768';
+        ctx.beginPath();
+        ctx.moveTo(-torsoW * 0.2, -torsoH * 0.03);
+        ctx.lineTo(0, torsoH * 0.15);
+        ctx.lineTo(torsoW * 0.2, -torsoH * 0.03);
+        ctx.stroke();
+      }
+      if (zombie.boss) {
+        ctx.fillStyle = golden ? '#e5c773' : (demon ? '#a16b68' : '#8c9c96');
+        ctx.strokeStyle = '#202a2d';
+        for (const shoulder of [-1, 1]) {
+          ctx.fillRect(shoulder * torsoW * 0.67 - torsoW * 0.2, -torsoH * 0.35, torsoW * 0.4, torsoH * 0.25);
+          ctx.strokeRect(shoulder * torsoW * 0.67 - torsoW * 0.2, -torsoH * 0.35, torsoW * 0.4, torsoH * 0.25);
+        }
+        ctx.strokeStyle = golden ? '#fff1b3' : '#e5d7ac';
+        ctx.lineWidth = Math.max(0.9, torsoW * 0.1);
+        if (zombie.miniType === 'charger') {
+          ctx.beginPath();
+          ctx.moveTo(torsoW * 0.15, -torsoH * 0.15);
+          ctx.lineTo(-torsoW * 0.12, torsoH * 0.09);
+          ctx.lineTo(torsoW * 0.1, torsoH * 0.09);
+          ctx.lineTo(-torsoW * 0.1, torsoH * 0.3);
+          ctx.stroke();
+        } else if (zombie.miniType === 'splitter') {
+          for (let node = 0; node < 3; node++) {
+            ctx.beginPath();
+            ctx.arc((node - 1) * torsoW * 0.24, torsoH * 0.08, torsoW * 0.11, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        } else {
+          ctx.strokeRect(-torsoW * 0.26, -torsoH * 0.12, torsoW * 0.52, torsoH * 0.4);
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawPickupSymbol(pickup) {
+      ctx.save();
+      ctx.translate(pickup.x, pickup.y);
+      ctx.scale(pickup.r * 0.52, pickup.r * 0.52);
+      ctx.fillStyle = '#13232a';
+      ctx.strokeStyle = '#13232a';
+      ctx.lineWidth = 0.24;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      const type = pickup.type;
+      if (type === 'heal' || type === 'megaheal' || type === 'medkit') {
+        ctx.fillRect(-0.2, -0.85, 0.4, 1.7);
+        ctx.fillRect(-0.85, -0.2, 1.7, 0.4);
+      } else if (type === 'shield' || type === 'fortify') {
+        ctx.beginPath();
+        ctx.moveTo(0, -0.9);
+        ctx.lineTo(0.7, -0.55);
+        ctx.lineTo(0.58, 0.35);
+        ctx.lineTo(0, 0.9);
+        ctx.lineTo(-0.58, 0.35);
+        ctx.lineTo(-0.7, -0.55);
+        ctx.closePath();
+        ctx.stroke();
+      } else if (type === 'fire' || type === 'rainfire') {
+        ctx.beginPath();
+        ctx.moveTo(-0.55, 0.7);
+        ctx.quadraticCurveTo(-0.9, 0.15, -0.3, -0.45);
+        ctx.lineTo(-0.18, 0.05);
+        ctx.lineTo(0.35, -0.9);
+        ctx.quadraticCurveTo(1, 0.1, 0.5, 0.7);
+        ctx.closePath();
+        ctx.fill();
+      } else if (type === 'freeze') {
+        for (let ray = 0; ray < 6; ray++) {
+          const angle = ray * Math.PI / 3;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(angle) * 0.9, Math.sin(angle) * 0.9);
+          ctx.stroke();
+        }
+      } else if (type === 'bomb' || type === 'bombpack' || type === 'nuke') {
+        ctx.beginPath();
+        ctx.arc(0, 0.15, 0.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(0, -0.45);
+        ctx.quadraticCurveTo(-0.1, -0.95, 0.5, -0.8);
+        ctx.stroke();
+      } else if (type === 'recruit' || type === 'army') {
+        ctx.beginPath();
+        ctx.arc(0, -0.45, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(-0.45, 0, 0.9, 0.7);
+        ctx.fillRect(-0.9, -0.1, 0.25, 0.65);
+        ctx.fillRect(0.65, -0.1, 0.25, 0.65);
+      } else if (type === 'jackpot' || type === 'bounty') {
+        ctx.beginPath();
+        ctx.arc(0, 0, 0.75, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillRect(-0.12, -0.45, 0.24, 0.9);
+        ctx.fillRect(-0.35, -0.15, 0.7, 0.3);
+      } else if (type === 'spread') {
+        for (let shot = -1; shot <= 1; shot++) {
+          ctx.beginPath();
+          ctx.moveTo(0.6, 0);
+          ctx.lineTo(-0.75, shot * 0.7);
+          ctx.stroke();
+        }
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(0.2, -0.9);
+        ctx.lineTo(-0.55, 0.1);
+        ctx.lineTo(0.05, 0.1);
+        ctx.lineTo(-0.2, 0.9);
+        ctx.lineTo(0.6, -0.2);
+        ctx.lineTo(0, -0.2);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     function render() {
       ctx.save();
       ctx.globalAlpha = 1;
@@ -4721,6 +5163,10 @@
         ctx.translate(z.x, z.y);
         ctx.scale(modelScale, modelScale);
 
+        ctx.fillStyle = 'rgba(0,0,0,0.28)';
+        ctx.beginPath();
+        ctx.ellipse(1, torsoH * 0.9, torsoW * 0.9, Math.max(1.5, headR * 0.3), 0, 0, Math.PI * 2);
+        ctx.fill();
         if (demonMode) {
           ctx.strokeStyle = 'rgba(255,54,34,0.42)';
           ctx.lineWidth = 1.4;
@@ -4838,6 +5284,8 @@
         ctx.lineTo(-headR * 0.08, eyeY + headR * 0.48);
         ctx.stroke();
 
+        drawZombieOutfit(z, torsoW, torsoH, headR, goldenWave);
+
         // Only some zombies are heavily bloody.
         const bloodiness = typeof z.bloody === 'number' ? z.bloody : 0;
         if (bloodiness > 0.05) {
@@ -4906,6 +5354,14 @@
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(p.x - p.r * 0.72, p.y);
+        ctx.lineTo(p.x, p.y - p.r * 0.72);
+        ctx.lineTo(p.x + p.r * 0.3, p.y - p.r * 0.42);
+        ctx.stroke();
+        drawPickupSymbol(p);
         ctx.restore();
       }
       // zasięg pokrycia kolumny (pomocniczo)
@@ -4928,6 +5384,19 @@
         const sk = currentSkin();
         const gun = currentGun();
         ctx.save();
+        if (i % 5 === 0) {
+          ctx.fillStyle = demonMode ? '#45202a' : '#30483e';
+          ctx.fillRect(x + 3 * goldComboScale, y - 3.5 * goldComboScale, 4 * goldComboScale, 7 * goldComboScale);
+          ctx.strokeStyle = demonMode ? '#c98c5d' : '#91ae99';
+          ctx.lineWidth = 0.65;
+          ctx.strokeRect(x + 3 * goldComboScale, y - 3.5 * goldComboScale, 4 * goldComboScale, 7 * goldComboScale);
+          ctx.beginPath();
+          ctx.moveTo(x + 5.5 * goldComboScale, y - 3.5 * goldComboScale);
+          ctx.lineTo(x + 5.5 * goldComboScale, y - 8 * goldComboScale);
+          ctx.stroke();
+          ctx.fillStyle = demonMode ? '#ffb766' : '#b3d2a4';
+          ctx.fillRect(x + 4 * goldComboScale, y - goldComboScale, 2 * goldComboScale, goldComboScale);
+        }
         const demonGunBody = demonMode ? '#451019' : gun.body;
         const demonGunBarrel = demonMode ? '#d94a2e' : gun.barrel;
         const gunLen = Math.max(14, gun.length * goldComboScale);

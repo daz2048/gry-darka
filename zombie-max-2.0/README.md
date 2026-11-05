@@ -36,6 +36,15 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 - Base warning lights turn red at low health, and damage cracks increase as health falls; repairs clear the corresponding wear.
 - Static scenery is cached per difficulty. New weather and lighting effects freeze when paused and respect reduced-motion preferences. Scenery is decorative and does not change movement, hits, or difficulty.
 
+### Additional Detail
+
+- **Easy** adds a cemetery bell tower, wrought-iron gate, moss patches, mushrooms, and patched scarves on enemies.
+- **Normal** adds a broken-glass bus shelter, metro stairwell, traffic lights, and collared enemy outfits with loose ties.
+- **Hard** adds a grated ventilation turbine, service stairs, roller conveyor, reflective workwear, and hard hats.
+- **Super Hard Demon** adds shattered arches, hanging chains, braziers, basalt paving, and plated enemy armor.
+- All modes include ground tracks, spent casings, enemy contact shadows, mini-boss equipment emblems, and radio packs on squad specialists.
+- Loot diamonds have highlighted edges and symbols for their effect families, covering all 18 drop types. These details do not change statistics, collisions, or controls.
+
 ## 🛒 Sklep
 
 - Kategorie: **Guns** i **Skins**
