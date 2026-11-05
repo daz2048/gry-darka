@@ -850,6 +850,13 @@
     body.hell-mode::before,
     body.hell-mode #stage { animation: none; }
   }
+  #horrorSetting { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 24px; cursor: pointer; }
+  #horrorToggle { width: 17px; height: 17px; margin: 0; accent-color: var(--accent-hot); cursor: pointer; }
+  #horrorToggle:focus-visible { outline: 2px solid var(--accent-hot); outline-offset: 3px; }
+  body[data-horror="off"]::before,
+  body[data-horror="off"] #stage,
+  body[data-horror="off"] #stage::after { animation: none; }
+  body[data-horror="off"] #stage::after { opacity: 0; }
 </style>
 </head>
 <body>
@@ -900,6 +907,7 @@
           </div>
           <div class="stat"><button id="power900Btn" type="button">MOC 900 (9)</button></div>
           <div class="stat"><button id="musicBtn" type="button">MUZYKA: ON (T)</button></div>
+          <div class="stat"><label id="horrorSetting" for="horrorToggle"><span>Groza</span><input id="horrorToggle" type="checkbox" role="switch" checked aria-label="Efekty grozy" /></label></div>
           <div class="stat"><button id="musicDebugBtn" type="button">DEBUG MUZYKI</button></div>
           <div id="musicDebugPanel" aria-live="polite"></div>
           <div id="shop" aria-label="Sklep">
@@ -1070,6 +1078,15 @@
     let cameraShakeTimer = 0;
     let jumpScareTimer = 0;
     let jumpScareKind = '';
+    let horrorEnabled = true;
+    const DREAD_PROFILES = {
+      easy: { color: '#b8d7b4', pace: 1.15 },
+      normal: { color: '#b9dbe1', pace: 1 },
+      hard: { color: '#e5b0a7', pace: 0.88 },
+      'super-hard-demon': { color: '#ffb05f', pace: 0.76 }
+    };
+    const DREAD_ENCOUNTER_COUNT = 5;
+    const dread = { wait: 0, elapsed: 0, duration: 0, intensity: 0, beat: 0, side: -1, height: 0.4, kind: 0, cooldown: 0 };
     let introJumpScareDone = false;
     let playTime = 0;
     let shopPowerBuys = 0;
@@ -2176,7 +2193,253 @@
       noise.start(base); noise.stop(base + 0.2);
     }
 
+    function sfxDread(kind, side, intensity) {
+      if (!horrorEnabled || reduceMotion || !audioCtx || audioCtx.state !== 'running' || muted || state !== 'play' || document.hidden) return;
+      const base = audioCtx.currentTime;
+      const position = audioCtx.createStereoPanner();
+      position.pan.value = side * 0.7;
+      position.connect(master);
+      if (kind === 'signal' || kind === 'breath') {
+        const breathing = kind === 'breath';
+        const duration = breathing ? 1.25 : 0.55;
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = noiseBuf(duration);
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = breathing ? 'bandpass' : 'lowpass';
+        filter.frequency.value = breathing ? 420 : 680;
+        filter.Q.value = breathing ? 0.7 : 1;
+        const gain = env(breathing ? 0.012 : 0.018, duration, breathing ? 0.45 : 0.12);
+        noise.connect(filter); filter.connect(gain); gain.connect(position);
+        noise.onended = function () { filter.disconnect(); gain.disconnect(); position.disconnect(); };
+        noise.start(base); noise.stop(base + duration + 0.01);
+        return;
+      }
+      if (kind === 'footstep') {
+        const step = audioCtx.createOscillator();
+        step.type = 'sine';
+        step.frequency.setValueAtTime(92, base);
+        step.frequency.exponentialRampToValueAtTime(29, base + 0.18);
+        const gain = env(0.015, 0.22, 0.015);
+        step.connect(gain); gain.connect(position);
+        step.onended = function () { gain.disconnect(); position.disconnect(); };
+        step.start(base); step.stop(base + 0.24);
+        return;
+      }
+      for (let beat = 0; beat < 2; beat++) {
+        const at = base + beat * 0.19;
+        const tone = audioCtx.createOscillator();
+        tone.type = 'sine';
+        tone.frequency.setValueAtTime(74 - beat * 10, at);
+        tone.frequency.exponentialRampToValueAtTime(32, at + 0.2);
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0, at);
+        gain.gain.linearRampToValueAtTime((0.022 + intensity * 0.015) * (beat ? 0.65 : 1), at + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.23);
+        tone.connect(gain); gain.connect(position);
+        tone.onended = function () { gain.disconnect(); if (beat === 1) position.disconnect(); };
+        tone.start(at); tone.stop(at + 0.25);
+      }
+    }
+
+    function resetDread() {
+      dread.wait = 8 + Math.random() * 6;
+      dread.elapsed = 0;
+      dread.duration = 0;
+      dread.intensity = 0;
+      dread.beat = 0;
+      dread.kind = Math.floor(Math.random() * DREAD_ENCOUNTER_COUNT);
+      dread.cooldown = 0;
+    }
+
+    function updateDread(dt) {
+      if (state !== 'play' || document.hidden) return;
+      dread.cooldown = Math.max(0, dread.cooldown - dt);
+      if (!horrorEnabled || reduceMotion) {
+        dread.intensity = 0;
+        return;
+      }
+      dread.wait -= dt;
+      if (dread.wait <= 0 && jumpScareTimer <= 0) {
+        const profile = DREAD_PROFILES[difficultyKey] || DREAD_PROFILES.normal;
+        dread.elapsed = 0;
+        dread.side = Math.random() < 0.5 ? -1 : 1;
+        dread.height = 0.3 + Math.random() * 0.22;
+        dread.kind = (dread.kind + 1 + Math.floor(Math.random() * (DREAD_ENCOUNTER_COUNT - 1))) % DREAD_ENCOUNTER_COUNT;
+        dread.duration = (dread.kind >= 3 ? 8 : 5.2) + Math.random() * 2.4;
+        dread.beat = 0.8;
+        dread.wait = dread.duration + (12 + Math.random() * 17) * profile.pace;
+        sfxDread('signal', dread.side, 0);
+      }
+      if (dread.duration <= 0 || dread.elapsed >= dread.duration) {
+        dread.intensity = 0;
+        return;
+      }
+      dread.elapsed = Math.min(dread.duration, dread.elapsed + dt);
+      dread.intensity = Math.pow(Math.sin(Math.PI * dread.elapsed / dread.duration), 2);
+      dread.beat -= dt;
+      if (dread.beat <= 0 && jumpScareTimer <= 0) {
+        if (dread.kind === 3) {
+          dread.beat = 2.4;
+          sfxDread('breath', dread.side, dread.intensity);
+        } else if (dread.kind === 4) {
+          dread.beat = 1.1 - dread.intensity * 0.2;
+          sfxDread('footstep', dread.side, dread.intensity);
+        } else {
+          dread.beat = 1.35 - dread.intensity * 0.35;
+          sfxDread('heartbeat', dread.side, dread.intensity);
+        }
+      }
+    }
+
+    function drawDread() {
+      if (!horrorEnabled || reduceMotion || dread.intensity <= 0 || (state !== 'play' && state !== 'pause')) return;
+      const profile = DREAD_PROFILES[difficultyKey] || DREAD_PROFILES.normal;
+      const strength = dread.intensity * (jumpScareTimer > 0 ? 0.2 : 1);
+      const apparitionX = dread.side < 0 ? W * 0.19 : W * 0.75;
+      const apparitionY = H * dread.height;
+      ctx.save();
+      const darkness = ctx.createLinearGradient(dread.side < 0 ? 0 : W, 0, W * 0.5, 0);
+      darkness.addColorStop(0, 'rgba(0,3,7,' + strength * 0.3 + ')');
+      darkness.addColorStop(1, 'rgba(0,3,7,0)');
+      ctx.fillStyle = darkness;
+      ctx.fillRect(0, 0, W, H);
+      ctx.translate(apparitionX, apparitionY);
+      ctx.globalAlpha = strength * 0.76;
+      if (dread.kind === 0) {
+        for (let pair = 0; pair < 4; pair++) {
+          const eyeX = pair * 27 * dread.side;
+          const eyeY = pair % 2 * 22 - pair * 8;
+          ctx.globalAlpha = strength * (0.8 - pair * 0.14);
+          ctx.fillStyle = '#090e13';
+          ctx.beginPath();
+          ctx.ellipse(eyeX, eyeY, 20, 12, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = profile.color;
+          ctx.fillRect(eyeX - 10, eyeY - 1, 4, 2);
+          ctx.fillRect(eyeX + 6, eyeY - 1, 4, 2);
+        }
+      } else if (dread.kind === 3) {
+        const lean = dread.side * (18 + strength * 21);
+        const gaze = Math.max(-2, Math.min(2, (colY - apparitionY) * 0.02));
+        ctx.fillStyle = '#090d13';
+        ctx.beginPath();
+        ctx.moveTo(0, 111);
+        ctx.bezierCurveTo(lean * 0.1, 24, lean * 1.7, -16, lean, -57);
+        ctx.bezierCurveTo(lean - 29, -85, lean - 20, -13, lean * 0.2, 24);
+        ctx.lineTo(-dread.side * 8, 118);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#9bada3';
+        ctx.beginPath();
+        ctx.ellipse(lean, -49, 12, 24, -dread.side * 0.23, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#080d12';
+        ctx.beginPath();
+        ctx.ellipse(lean - 5, -52, 3.8, 7, 0.1, 0, Math.PI * 2);
+        ctx.ellipse(lean + 5, -52, 3.8, 7, -0.1, 0, Math.PI * 2);
+        ctx.ellipse(lean, -33, 2, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = profile.color;
+        ctx.fillRect(lean - 6, -52 + gaze, 2, 2);
+        ctx.fillRect(lean + 4, -52 + gaze, 2, 2);
+        ctx.fillStyle = '#172027';
+        ctx.fillRect(-12, -112, 24, 240);
+        ctx.strokeStyle = '#65736e';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(dread.side * 12, -112);
+        ctx.lineTo(dread.side * 12, 128);
+        ctx.stroke();
+        ctx.strokeStyle = '#8b9b90';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        for (let finger = 0; finger < 3; finger++) {
+          const fingerY = 3 + finger * 8;
+          ctx.beginPath();
+          ctx.moveTo(dread.side * 17, fingerY);
+          ctx.quadraticCurveTo(dread.side * 3, fingerY - 5, -dread.side * 3, fingerY + 2);
+          ctx.stroke();
+        }
+      } else if (dread.kind === 4) {
+        for (let figure = 0; figure < 5; figure++) {
+          const depth = 0.34 + figure * 0.13 + strength * 0.16;
+          ctx.save();
+          ctx.translate((figure - 2) * 37 * dread.side + Math.sin(dread.elapsed * 0.5 + figure) * 3, figure % 2 * 18);
+          ctx.scale(depth, depth);
+          ctx.globalAlpha = strength * (0.25 + figure * 0.1);
+          ctx.fillStyle = '#080e15';
+          ctx.beginPath();
+          ctx.moveTo(-9, -42);
+          ctx.quadraticCurveTo(-31, -88, 5, -89);
+          ctx.quadraticCurveTo(28, -81, 13, -42);
+          ctx.lineTo(27, 24);
+          ctx.lineTo(14, 109);
+          ctx.lineTo(2, 55);
+          ctx.lineTo(-12, 112);
+          ctx.lineTo(-23, 104);
+          ctx.lineTo(-19, 20);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = '#15232a';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(-15, -29);
+          ctx.lineTo(-26, 49);
+          ctx.moveTo(17, -29);
+          ctx.lineTo(31, 51);
+          ctx.stroke();
+          ctx.fillStyle = profile.color;
+          ctx.fillRect(-6, -65, 3, 2);
+          ctx.fillRect(4, -65, 3, 2);
+          ctx.globalAlpha = strength * 0.12;
+          ctx.fillStyle = '#03080d';
+          ctx.beginPath();
+          ctx.ellipse(18, 123, 19, 7, -0.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      } else {
+        const approach = 0.7 + strength * (dread.kind === 2 ? 0.65 : 0.3);
+        ctx.scale(approach, approach);
+        ctx.fillStyle = '#06090d';
+        ctx.beginPath();
+        ctx.moveTo(-17, -23);
+        ctx.bezierCurveTo(-40, -85, 37, -96, 22, -24);
+        ctx.lineTo(48, 36);
+        ctx.lineTo(39, 101);
+        ctx.lineTo(16, 68);
+        ctx.lineTo(7, 126);
+        ctx.lineTo(-7, 126);
+        ctx.lineTo(-15, 65);
+        ctx.lineTo(-40, 100);
+        ctx.lineTo(-47, 35);
+        ctx.closePath();
+        ctx.fill();
+        if (dread.kind === 2) {
+          ctx.fillStyle = '#8b9b93';
+          ctx.beginPath();
+          ctx.ellipse(1, -43, 16, 25, -0.07, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#080e13';
+          ctx.beginPath();
+          ctx.ellipse(-6, -47, 4, 7, 0.1, 0, Math.PI * 2);
+          ctx.ellipse(8, -47, 4, 7, -0.1, 0, Math.PI * 2);
+          ctx.ellipse(1, -28, 3, 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        const gaze = Math.max(-2, Math.min(2, (colY - apparitionY) * 0.02));
+        ctx.fillStyle = profile.color;
+        ctx.beginPath();
+        ctx.ellipse(-6, -47 + gaze, 2.1, 1.2, 0, 0, Math.PI * 2);
+        ctx.ellipse(8, -47 + gaze, 2.1, 1.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     function triggerJumpScare(kind) {
+      if (!horrorEnabled || reduceMotion || state !== 'play' || document.hidden || dread.cooldown > 0) return;
+      dread.cooldown = 8;
       jumpScareKind = kind || 'breach';
       jumpScareTimer = Math.max(jumpScareTimer, kind === 'boss' ? 0.72 : 0.46);
       addCameraShake(kind === 'boss' ? 5.4 : 3.6, kind === 'boss' ? 0.3 : 0.18);
@@ -2393,6 +2656,7 @@
       cameraShakeTimer = 0;
       jumpScareTimer = 0;
       jumpScareKind = '';
+      resetDread();
       introJumpScareDone = false;
       playTime = 0;
       initAmbientDust();
@@ -3268,6 +3532,7 @@
       }
       if (breachFlashTimer > 0) breachFlashTimer = Math.max(0, breachFlashTimer - dt);
       if (jumpScareTimer > 0) jumpScareTimer = Math.max(0, jumpScareTimer - dt);
+      updateDread(dt);
       if (cameraShakeTimer > 0) {
         cameraShakeTimer = Math.max(0, cameraShakeTimer - dt);
         cameraShake *= 0.9;
@@ -5067,6 +5332,7 @@
         ctx.fillStyle = gradB;
         ctx.fillRect(0, 0, W, H);
       }
+      drawDread();
       // pasy paneli na lewej ścianie
       drawBand(recruitBand, hellMode ? '#ff9a32' : '#8bd450', 'LUDZIE', recruitHits, recruitNeed);
       drawBand(powerBand, '#ffb74d', 'MOC', powerHits, powerNeed);
@@ -5795,6 +6061,7 @@
       difficulty: document.getElementById('difficulty'),
       power900Btn: document.getElementById('power900Btn'),
       musicBtn: document.getElementById('musicBtn'),
+      horrorToggle: document.getElementById('horrorToggle'),
       musicDebugBtn: document.getElementById('musicDebugBtn'),
       musicDebugPanel: document.getElementById('musicDebugPanel'),
       shopPower: document.getElementById('shopPower'),
@@ -6134,6 +6401,16 @@
         applyPower();
         showAlert('MOC: 900', 1.0);
         updateHud();
+      });
+    }
+    if (el.horrorToggle) {
+      el.horrorToggle.addEventListener('change', function () {
+        horrorEnabled = el.horrorToggle.checked;
+        document.body.dataset.horror = horrorEnabled ? 'on' : 'off';
+        resetDread();
+        jumpScareTimer = 0;
+        cameraShake = 0;
+        cameraShakeTimer = 0;
       });
     }
     if (el.musicBtn) {

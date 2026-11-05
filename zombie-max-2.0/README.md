@@ -45,6 +45,15 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 - All modes include ground tracks, spent casings, enemy contact shadows, mini-boss equipment emblems, and radio packs on squad specialists.
 - Loot diamonds have highlighted edges and symbols for their effect families, covering all 18 drop types. These details do not change statistics, collisions, or controls.
 
+## Horror Atmosphere
+
+- All four modes feature five irregular encounters: watching eyes, looming silhouettes, a pale apparition, a figure peeking around a pillar, and a distant procession of long-limbed shadows.
+- Encounters fade in after an 8-14 second warmup, never repeat consecutively, and leave randomized quiet periods between them. Harder modes shorten those quiet periods; peeking figures and processions linger longer before fading.
+- Quiet positional radio static, double heartbeats, filtered breathing, and distant footsteps build tension without increasing the jump-scare volume. They respect mute and audio autoplay restrictions.
+- The **Groza** switch beside the music control disables encounters, jump scares, and the animated film overlay without restarting the game.
+- Jump scares have an eight-second cooldown. Added encounters freeze when paused or the tab is hidden; reduced-motion mode disables the apparitions and jump scares.
+- Apparitions render behind gameplay objects and do not change enemies, hit detection, or player controls.
+
 ## 🛒 Sklep
 
 - Kategorie: **Guns** i **Skins**
