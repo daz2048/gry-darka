@@ -31,7 +31,7 @@
   }
   .grid {
     display: grid; gap: 22px;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   }
   .card {
     display: flex; flex-direction: column;
@@ -71,6 +71,8 @@
   .thumb.zombie-daz { background: linear-gradient(135deg, #06ffa5 0%, #00d9a3 50%, #00a896 100%); color: #000; text-shadow: 1px 1px 3px rgba(0,0,0,.3); }
   .thumb.zombie-jan { background: linear-gradient(135deg, #ffbe0b 0%, #fb5607 50%, #ff006e 100%); color: #000; text-shadow: 1px 1px 3px rgba(0,0,0,.3); }
   .thumb.jump-quest { background: #9ddedb; position: relative; overflow: hidden; }
+  .thumb.preview { padding: 0; overflow: hidden; }
+  .thumb.preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .thumb.jump-quest img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
   .card h2 { margin: 0 0 8px; font-size: 16px; letter-spacing: 1px; font-family: 'Courier New', monospace; }
   .card p { margin: 0 0 16px; font-size: 12px; line-height: 1.6; opacity: .85; flex: 1; font-family: "Segoe UI", sans-serif; }
@@ -120,49 +122,49 @@
 
     <main class="grid">
       <a class="card" href="pojedynek-zamkow/">
-        <div class="thumb castle">Zamki Janka</div>
+        <div class="thumb castle preview"><img src="menu-previews/castle-duel.svg" alt="Dwa zamki i kula armatnia nad polem bitwy" loading="lazy"></div>
         <h2>Pojedynek Zamków (Janek i Darek)</h2>
         <p>Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-vanilla/">
-        <div class="thumb zombie-v">V</div>
+        <div class="thumb zombie-v preview"><img src="menu-previews/zombie-vanilla.svg" alt="Druzyna broni bazy przed nadciagajacymi zombie" loading="lazy"></div>
         <h2>Napór Zombie (Vanilla)</h2>
         <p>Prototyp 1.0 - oryginalna gra. Broń bazy przed falami zombie. Przesuwaj ekipę w pionie, strzelaj prosto, dobieraj ludzi i moc.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-max-1.0/">
-        <div class="thumb zombie-max-1">MAX 1.0</div>
+        <div class="thumb zombie-max-1 preview"><img src="menu-previews/zombie-max-1.svg" alt="Obrona przed zombie pod czerwonym ksiezycem" loading="lazy"></div>
         <h2>Zombie Max 1.0</h2>
         <p>Dotychczasowy wariant Maksa. Broń bazy przed falami zombie i rozwijaj swoją ekipę.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-max-2.0/">
-        <div class="thumb zombie-max-2">MAX 1.1</div>
+        <div class="thumb zombie-max-2 preview"><img src="menu-previews/zombie-max-2.svg" alt="Mroczne miasto i starcie z demonem" loading="lazy"></div>
         <h2>Zombie Max 1.1</h2>
         <p>Nowa wersja rozwijana jako osobny wariant.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-ax/">
-        <div class="thumb zombie-ax">AX</div>
+        <div class="thumb zombie-ax preview"><img src="menu-previews/zombie-ax.svg" alt="Strzelec odpiera zombie na cyfrowym polu bitwy" loading="lazy"></div>
         <h2>Zombie AX</h2>
         <p>Wariant prowadzony przez Aleksa. Broń bazy przed falami zombie z innymi strategiami.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-daz/">
-        <div class="thumb zombie-daz">DAZ</div>
+        <div class="thumb zombie-daz preview"><img src="menu-previews/zombie-daz.svg" alt="Zielona linia obrony przeciwko zombie" loading="lazy"></div>
         <h2>Zombie Daz</h2>
         <p>Wariant Daz oryginalnej gry. Broń bazy przed falami zombie z własnymi ulepszeniami.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card" href="zombie-jan/">
-        <div class="thumb zombie-jan">JAN</div>
+        <div class="thumb zombie-jan preview"><img src="menu-previews/zombie-jan.svg" alt="Pomarańczowa fala zombie zbliza sie do obroncow" loading="lazy"></div>
         <h2>Zombie Jan</h2>
         <p>Wariant prowadzony przez Janka. Broń bazy przed falami zombie z własnymi pomysłami.</p>
         <span class="btn">Graj</span>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="280" viewBox="0 0 560 280">
+  <defs><linearGradient id="green-night" x2="0" y2="1"><stop stop-color="#173b3d"/><stop offset="1" stop-color="#071614"/></linearGradient></defs>
+  <path fill="url(#green-night)" d="M0 0h560v280H0z"/><circle cx="448" cy="59" r="36" fill="#a2f5c2" opacity=".72"/><circle cx="448" cy="59" r="62" fill="#06ffa5" opacity=".1"/>
+  <path fill="#0a201f" d="M0 170h52v-72h36v72h48v-96h47v96h48v-51h44v51h47v-83h50v83h44v-64h45v64h99v110H0z"/>
+  <path fill="#102b29" d="M0 186h560v94H0z"/><path stroke="#06ffa5" stroke-width="4" stroke-dasharray="10 8" d="M391 69v158"/><path fill="#06ffa5" opacity=".11" d="M391 69h169v158H391z"/>
+  <g stroke="#0a1212" stroke-width="8" stroke-linecap="round"><path d="M104 146h47M128 181h47M101 214h47"/></g>
+  <g fill="#b5fff0" stroke="#219b83" stroke-width="4"><circle cx="113" cy="146" r="15"/><circle cx="137" cy="181" r="15"/><circle cx="110" cy="214" r="15"/></g>
+  <path fill="#ffdd57" d="M173 143h25v6h-25zm26 35h25v6h-25zm22 33h25v6h-25z"/>
+  <g fill="#83d65a" stroke="#37834a" stroke-width="4"><circle cx="450" cy="145" r="23"/><circle cx="510" cy="199" r="17"/></g><g fill="#efffe4"><circle cx="444" cy="140" r="3"/><circle cx="457" cy="140" r="3"/><circle cx="506" cy="195" r="2"/><circle cx="515" cy="195" r="2"/></g>
+  <path fill="#06ffa5" d="M293 116 306 129l-13 13-13-13z"/><path fill="#d9fff0" d="M294 129h25v5h-25z"/>
+</svg>
