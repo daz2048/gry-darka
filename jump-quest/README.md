@@ -1,8 +1,14 @@
-# Darek's Jump Quest
+# Maks Jump Quest
 
 Original side-scrolling platformer inspired by classic run-and-jump games.
+Listed as **Mario 1.0** in the collection's main menu.
 Three worlds, coins, hidden star bonuses, patrolling enemies, shield blocks,
 moving platforms, checkpoints, and a final gate. No Nintendo assets or levels.
+
+Original synthesized chiptune effects accompany jumps, landings, coins, bonuses,
+shield blocks, enemy hits, checkpoints, extra lives, and deaths. Short jingles
+play at the start, level completion, game over, and victory. Audio starts after
+interaction; M or the sound button mutes all effects immediately.
 
 Open `index.html` directly in a modern browser, or use the collection's main
 menu. No build step, package installation, or server is required. The engine is

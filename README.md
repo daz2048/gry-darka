@@ -16,7 +16,7 @@ Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
 
 ## 📋 Dostępne gry
 
-### Darek's Jump Quest
+### Mario 1.0 (Maks Jump Quest)
 Platformowa przygoda w trzech światach: zielone wzgórza, kryształowe jaskinie i twierdza wiatru. Zbieraj monety, odkrywaj sekrety i pokonuj przeciwników skokiem.
 - **Sterowanie:** strzałki / A i D, skok: spacja / W / strzałka w górę; na telefonie przyciski dotykowe.
 - [Zagraj »](https://dariusz22p.github.io/gry-darka/jump-quest/)

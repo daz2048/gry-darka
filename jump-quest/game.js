@@ -19,28 +19,66 @@ const ui = Object.fromEntries(['coins', 'score', 'lives', 'world', 'level-name',
 const touch = { left: false, right: false, jump: false };
 let scene;
 let audio;
+let audioOutput;
 let muted = false;
 let noticeTimer;
 
-function tone(frequency, duration = .1, type = 'square') {
+const SOUNDS = {
+  start: [[392, .12, 'triangle'], [523, .12, 'triangle', .12], [659, .12, 'triangle', .24], [784, .24, 'triangle', .36]],
+  jump: [[220, .16, 'square', 0, 740]],
+  coin: [[988, .07, 'sine'], [1319, .16, 'sine', .07]],
+  star: [[659, .1, 'triangle'], [831, .1, 'triangle', .1], [988, .1, 'triangle', .2], [1319, .25, 'triangle', .3]],
+  block: [[180, .1, 'square', 0, 100], [440, .12, 'triangle', .08]],
+  shield: [[440, .12, 'triangle'], [659, .12, 'triangle', .1], [880, .28, 'sine', .2]],
+  shieldBreak: [[520, .24, 'sawtooth', 0, 90]],
+  stomp: [[260, .14, 'square', 0, 75]],
+  checkpoint: [[523, .12, 'triangle'], [659, .12, 'triangle', .12], [784, .28, 'triangle', .24]],
+  extraLife: [[523, .09, 'square'], [659, .09, 'square', .1], [784, .09, 'square', .2], [1047, .3, 'triangle', .3]],
+  death: [[440, .16, 'triangle', 0, 330], [262, .18, 'triangle', .17], [131, .32, 'sawtooth', .35, 65]],
+  gameOver: [[392, .2, 'triangle'], [330, .2, 'triangle', .22], [262, .2, 'triangle', .44], [131, .45, 'triangle', .66]],
+  complete: [[523, .12, 'triangle'], [659, .12, 'triangle', .13], [784, .12, 'triangle', .26], [1047, .35, 'triangle', .39]],
+  victory: [[523, .15, 'triangle'], [659, .15, 'triangle', .15], [784, .15, 'triangle', .3], [1047, .2, 'triangle', .45], [784, .12, 'triangle', .68], [1047, .5, 'triangle', .82]],
+  land: [[95, .055, 'triangle', 0, 50]],
+  resume: [[440, .08, 'triangle'], [660, .1, 'triangle', .08]]
+};
+
+function disableSound() {
+  muted = true;
+  if (audioOutput) audioOutput.gain.value = 0;
+  ui.sound.setAttribute('aria-pressed', 'false');
+  ui.sound.style.opacity = '.45';
+  notify('Dzwiek niedostepny w tej przegladarce.');
+}
+
+function tone(frequency, duration = .1, type = 'square', delay = 0, endFrequency = frequency) {
   if (muted) return;
   try {
-    audio ??= new (window.AudioContext || window.webkitAudioContext)();
-    if (audio.state === 'suspended') audio.resume();
+    if (!audio) {
+      audio = new (window.AudioContext || window.webkitAudioContext)();
+      audioOutput = audio.createGain();
+      audioOutput.connect(audio.destination);
+    }
+    if (audio.state === 'suspended') audio.resume().catch(disableSound);
+    const startTime = audio.currentTime + delay;
     const oscillator = audio.createOscillator();
     const gain = audio.createGain();
     oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, audio.currentTime);
-    gain.gain.setValueAtTime(.035, audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + duration);
-    oscillator.connect(gain).connect(audio.destination);
-    oscillator.start();
-    oscillator.stop(audio.currentTime + duration);
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+    oscillator.frequency.exponentialRampToValueAtTime(endFrequency, startTime + duration);
+    gain.gain.setValueAtTime(.001, startTime);
+    gain.gain.linearRampToValueAtTime(.055, startTime + .005);
+    gain.gain.exponentialRampToValueAtTime(.001, startTime + duration);
+    oscillator.connect(gain).connect(audioOutput);
+    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
   } catch (error) {
-    muted = true;
-    ui.sound.setAttribute('aria-pressed', 'false');
-    notify('Dzwiek niedostepny w tej przegladarce.');
+    disableSound();
   }
+}
+
+function playSound(name) {
+  for (const note of SOUNDS[name]) tone(...note);
 }
 
 function notify(message) {
@@ -133,6 +171,7 @@ class Quest extends Phaser.Scene {
     this.lastGround = -1000;
     this.jumpBuffered = -1000;
     this.jumpHeld = false;
+    this.wasGrounded = true;
     this.physics.world.setBounds(0, -400, data.width * TILE, 1200);
     this.cameras.main.setBackgroundColor(data.sky);
     this.drawScenery(data);
@@ -177,7 +216,7 @@ class Quest extends Phaser.Scene {
       if (player.body.blocked.up && !block.used) {
         block.used = true; block.setTint(0x9b947b);
         const pickup = this.pickups.create(block.x, block.y - 48, 'shield');
-        pickup.kind = 'shield'; tone(660, .2);
+        pickup.kind = 'shield'; playSound('block');
       }
     });
     this.physics.add.collider(this.player, this.movers);
@@ -283,6 +322,7 @@ class Quest extends Phaser.Scene {
 
   primary() {
     if (this.phase === 'won' || this.phase === 'gameover') return this.restartRun();
+    const resuming = this.phase === 'paused';
     if (this.phase === 'levelComplete') { this.level++; this.buildLevel(); }
     this.phase = 'playing';
     ui.overlay.hidden = true;
@@ -290,7 +330,7 @@ class Quest extends Phaser.Scene {
     this.clearInput();
     ui.pause.setAttribute('aria-pressed', 'false');
     this.syncHud();
-    tone(440, .08, 'triangle');
+    playSound(resuming ? 'resume' : 'start');
   }
 
   clearInput() {
@@ -320,13 +360,13 @@ class Quest extends Phaser.Scene {
     const { x: pickupX, y: pickupY } = pickup;
     pickup.destroy();
     this.burst(pickupX, pickupY);
-    if (kind === 'shield') { this.shielded = true; notify('Tarcza zdobyta!'); tone(880, .2, 'triangle'); }
+    if (kind === 'shield') { this.shielded = true; notify('Tarcza zdobyta!'); playSound('shield'); }
     else {
       this.score += kind === 'star' ? 500 : 100;
       if (kind === 'coin') this.coins++;
-      tone(kind === 'star' ? 1046 : 880, .09, 'sine');
+      playSound(kind === 'star' ? 'star' : 'coin');
       if (kind === 'star') notify('Sekretny bonus +500');
-      if (kind === 'coin' && this.coins % 25 === 0) { this.lives++; notify('25 monet: dodatkowe zycie!'); }
+      if (kind === 'coin' && this.coins % 25 === 0) { this.lives++; notify('25 monet: dodatkowe zycie!'); playSound('extraLife'); }
     }
     this.syncHud();
   }
@@ -341,18 +381,19 @@ class Quest extends Phaser.Scene {
     if (this.phase !== 'playing' || !enemy.active) return;
     if (this.player.body.velocity.y > 60 && this.player.body.bottom < enemy.body.top + 19) {
       this.burst(enemy.x, enemy.y); enemy.destroy();
-      this.player.setVelocityY(-350); this.score += 200; this.syncHud(); tone(220);
+      this.player.setVelocityY(-350); this.score += 200; this.syncHud(); playSound('stomp');
     } else if (this.time.now > this.invincibleUntil) {
       if (this.shielded) {
         this.shielded = false; this.invincibleUntil = this.time.now + 1800;
-        this.player.setVelocityY(-250); tone(160, .2); notify('Tarcza ochronila Cie!');
+        this.player.setVelocityY(-250); playSound('shieldBreak'); notify('Tarcza ochronila Cie!');
       } else this.die();
     }
   }
 
   die() {
     if (this.phase !== 'playing') return;
-    this.lives--; this.shielded = false; tone(110, .3, 'sawtooth');
+    this.lives--; this.shielded = false;
+    playSound(this.lives <= 0 ? 'gameOver' : 'death');
     if (this.lives <= 0) {
       this.phase = 'gameover'; this.physics.pause(); this.clearInput();
       this.showOverlay('KONIEC WYPRAWY', 'Jeszcze raz?', `Wynik: ${this.score}. Kazdy skok to nowa szansa.`, 'Sprobuj ponownie');
@@ -369,7 +410,7 @@ class Quest extends Phaser.Scene {
   complete() {
     this.score += 1000;
     this.phase = this.level === LEVELS.length - 1 ? 'won' : 'levelComplete';
-    this.physics.pause(); this.clearInput(); tone(1046, .4, 'triangle');
+    this.physics.pause(); this.clearInput(); playSound(this.phase === 'won' ? 'victory' : 'complete');
     this.showOverlay(this.phase === 'won' ? 'TRZY SWIATY ZA TOBA' : 'SZLAK UKONCZONY', this.phase === 'won' ? 'Przygoda zdobyta!' : 'Dobra robota!', `Wynik: ${this.score} / Monety: ${this.coins}`, this.phase === 'won' ? 'Zagraj ponownie' : 'Nastepny swiat');
   }
 
@@ -377,6 +418,8 @@ class Quest extends Phaser.Scene {
     if (this.phase !== 'playing') return;
     const body = this.player.body;
     const grounded = body.blocked.down || body.touching.down;
+    if (grounded && !this.wasGrounded) playSound('land');
+    this.wasGrounded = grounded;
     if (grounded) this.lastGround = time;
     const left = this.keys.left.isDown || this.keys.a.isDown || touch.left;
     const right = this.keys.right.isDown || this.keys.d.isDown || touch.right;
@@ -385,7 +428,7 @@ class Quest extends Phaser.Scene {
     if (!jump && this.jumpHeld && body.velocity.y < -210) body.setVelocityY(-210);
     this.jumpHeld = jump;
     if (time - this.jumpBuffered < 120 && time - this.lastGround < 100) {
-      body.setVelocityY(-700); this.jumpBuffered = -1000; this.lastGround = -1000; tone(370, .08, 'triangle');
+      body.setVelocityY(-700); this.jumpBuffered = -1000; this.lastGround = -1000; playSound('jump');
     }
     const direction = Number(right) - Number(left);
     body.setAccelerationX(direction * 1850);
@@ -409,7 +452,7 @@ class Quest extends Phaser.Scene {
     });
     if (!this.checkpointOn && this.player.x > this.dataLevel.checkpoint * TILE) {
       this.checkpointOn = true; this.checkpointX = this.dataLevel.checkpoint * TILE + 55;
-      this.checkpointFlag.setAlpha(.55); notify('Punkt kontrolny!'); tone(660, .15, 'triangle');
+      this.checkpointFlag.setAlpha(.55); notify('Punkt kontrolny!'); playSound('checkpoint');
     }
     if (this.player.y > 650) this.die();
     if (this.player.x > this.exitX - 20 && this.player.y > 360 && this.player.y < 490) this.complete();
@@ -418,9 +461,10 @@ class Quest extends Phaser.Scene {
 
 function toggleSound() {
   muted = !muted;
+  if (audioOutput) audioOutput.gain.value = muted ? 0 : 1;
   ui.sound.setAttribute('aria-pressed', String(!muted));
   ui.sound.style.opacity = muted ? '.45' : '1';
-  if (!muted) tone(660);
+  if (!muted) playSound('resume');
 }
 
 ui.primary.addEventListener('click', () => scene?.primary());
