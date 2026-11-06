@@ -1,12 +1,12 @@
 :root {
   color-scheme: dark;
-  --ink: #f0efea;
-  --muted: #aaa9a5;
-  --panel: #343434;
-  --arena: #3c3c3c;
-  --orange: #f5a623;
-  --red: #ff6259;
-  --blue: #70a7ff;
+  --ink: #f1f1f1;
+  --muted: #b2b2b2;
+  --panel: #4a4a4a;
+  --arena: #3d3d3d;
+  --orange: #ffad18;
+  --red: #e94747;
+  --blue: #438ce8;
 }
 
 * { box-sizing: border-box; }
@@ -14,7 +14,7 @@
 html, body { min-height: 100%; margin: 0; }
 
 body {
-  background: #222323;
+  background: #3d3d3d;
   color: var(--ink);
   font-family: "Arial", "Helvetica Neue", sans-serif;
 }
@@ -45,9 +45,9 @@ button, a { font: inherit; }
   display: grid;
   place-items: center;
   color: var(--ink);
-  background: #343535;
-  border: 1px solid #555;
-  border-radius: 6px;
+  background: #585858;
+  border: 1px solid #777;
+  border-radius: 2px;
   font-size: 24px;
   text-decoration: none;
   cursor: pointer;
@@ -84,9 +84,9 @@ button, a { font: inherit; }
   display: grid;
   place-items: center;
   background: var(--arena);
-  border: 1px solid #575757;
-  border-radius: 9px;
-  box-shadow: 0 16px 48px #0006;
+  border: 1px solid #505050;
+  border-radius: 2px;
+  box-shadow: 0 8px 24px #0004;
 }
 
 #game { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; }
@@ -109,7 +109,7 @@ button, a { font: inherit; }
 .player-status .status-line span { color: var(--blue); }
 .robot-status .status-line span { color: var(--red); }
 .status-line strong { color: var(--ink); }
-.health-track, .charge-track { height: 8px; overflow: hidden; background: #171818; border: 1px solid #777; border-radius: 99px; }
+.health-track, .charge-track { height: 8px; overflow: hidden; background: #282828; border: 1px solid #777; border-radius: 0; }
 .health-track { margin-top: 6px; }
 .health-track span, .charge-track span { display: block; width: 100%; height: 100%; transition: width .12s linear; }
 .player-status .health-track span { background: linear-gradient(90deg, #6eaaff, #b2d7ff); }
@@ -199,11 +199,11 @@ button, a { font: inherit; }
 .shop-heading h2 { margin: 0; font: 900 20px/1 Impact, "Arial Black", sans-serif; }
 .shop-heading span { color: var(--muted); font: 900 9px/1 Arial, sans-serif; white-space: nowrap; }
 .shop-heading strong { color: var(--orange); font-size: 14px; }
-.shop-section-heading { margin: 14px 0 8px; color: #84d8bd; font: 900 12px/1 Impact, "Arial Black", sans-serif; letter-spacing: 1px; }
+.shop-section-heading { margin: 14px 0 8px; color: #e5e5e5; font: 900 12px/1 Impact, "Arial Black", sans-serif; letter-spacing: 1px; }
 .weapon-list { display: grid; gap: 8px; }
 .upgrade-list .weapon-button { grid-column: 1 / -1; }
-.weapon-button { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; min-height: 58px; padding: 9px 10px; text-align: left; color: var(--ink); background: #454545; border: 1px solid #676767; border-left: 4px solid var(--weapon-color); border-radius: 4px; cursor: pointer; }
-.weapon-button:hover:not(:disabled), .weapon-button[aria-pressed="true"] { border-color: var(--weapon-color); background: #555; }
+.weapon-button { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; min-height: 58px; padding: 9px 10px; text-align: left; color: var(--ink); background: #555; border: 1px solid #777; border-left: 4px solid var(--weapon-color); border-radius: 2px; cursor: pointer; }
+.weapon-button:hover:not(:disabled), .weapon-button[aria-pressed="true"] { border-color: var(--weapon-color); background: #626262; }
 .weapon-button:disabled { opacity: .55; cursor: not-allowed; }
 .weapon-name { font: 900 15px/1 Impact, "Arial Black", sans-serif; }
 .weapon-button small { grid-column: 1; color: #d3d1ca; font: 800 9px/1 Arial, sans-serif; }

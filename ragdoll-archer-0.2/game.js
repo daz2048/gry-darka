@@ -67,6 +67,8 @@ class ArcherScene extends Phaser.Scene {
 
   create() {
     this.matter.world.setGravity(0, MATTER_GRAVITY);
+    this.cameras.main.setZoom(1.2);
+    this.cameras.main.centerOn(WIDTH / 2, HEIGHT / 2);
     this.round = 1;
     this.score = 0;
     this.points = 0;
@@ -145,56 +147,42 @@ class ArcherScene extends Phaser.Scene {
 
   drawArena() {
     const background = this.add.graphics().setDepth(-10);
-    background.fillGradientStyle(0x76b7d0, 0xb8d7d4, 0xe8d1ad, 0xf0d8ad, 1).fillRect(0, 0, WIDTH, HEIGHT);
-    background.fillStyle(0xf8f3e7, 0.58);
-    for (const cloud of [
-      { x: 138, y: 112, width: 188, height: 24 },
-      { x: 422, y: 77, width: 234, height: 28 },
-      { x: 785, y: 137, width: 168, height: 22 }
-    ]) {
-      background.fillEllipse(cloud.x, cloud.y, cloud.width, cloud.height);
-      background.fillEllipse(cloud.x - cloud.width * 0.2, cloud.y + 6, cloud.width * 0.44, cloud.height * 0.72);
-      background.fillEllipse(cloud.x + cloud.width * 0.2, cloud.y + 5, cloud.width * 0.38, cloud.height * 0.68);
+    background.fillStyle(0x3d3d3d).fillRect(0, 0, WIDTH, HEIGHT);
+    background.fillStyle(0x666666, 0.12);
+    background.fillTriangle(78, 40, 174, 0, 268, 38, 172, 132);
+    background.fillTriangle(690, 336, 738, 288, 786, 336, 738, 384);
+    background.fillTriangle(842, 408, 884, 366, 926, 408, 884, 450);
+    for (let index = 0; index < 46; index++) {
+      const x = (index * 197 + 41) % WIDTH;
+      const y = (index * 113 + 27) % HEIGHT;
+      const radius = index % 7 === 0 ? 2.8 : index % 3 === 0 ? 1.8 : 1.1;
+      background.fillStyle(0xc5c5c5, index % 5 === 0 ? 0.52 : 0.24).fillCircle(x, y, radius);
     }
-    background.fillStyle(0x91aa91, 0.8);
-    background.fillEllipse(120, 375, 520, 154);
-    background.fillEllipse(502, 367, 610, 170);
-    background.fillEllipse(918, 382, 470, 160);
-    background.fillStyle(0x728c69, 0.9);
-    background.fillEllipse(-8, 427, 450, 138);
-    background.fillEllipse(395, 423, 560, 144);
-    background.fillEllipse(948, 427, 430, 138);
-    background.fillGradientStyle(0x77905c, 0x6d8755, 0x594a39, 0x443a31, 1).fillRect(0, 442, WIDTH, 98);
-    background.fillStyle(0x98a765, 0.9).fillRect(0, 459, WIDTH, 3);
-    for (let index = 0; index < 52; index++) {
-      const x = (index * 71 + 13) % WIDTH;
-      const y = 462 + (index * 29) % 32;
-      const height = 4 + index % 6;
-      background.lineStyle(1.3, index % 3 === 0 ? 0xc5b36f : 0x9ca25c, 0.55)
-        .lineBetween(x, y, x + (index % 2 === 0 ? 2 : -2), y - height);
-    }
-    background.fillStyle(0x493d32, 0.6).fillRect(0, 500, WIDTH, 40);
-    background.fillStyle(0x332f2c, 0.35).fillRect(0, 500, WIDTH, 3);
+    background.fillStyle(0x303030).fillRect(0, 504, WIDTH, 36);
+    background.fillStyle(0x555555, 0.5).fillRect(0, 504, WIDTH, 2);
     this.matter.add.rectangle(WIDTH / 2, 520, WIDTH, 40, { isStatic: true, label: 'floor', friction: 0.9 });
   }
 
   addPlatforms() {
-    const platforms = [
-      { x: PLAYER_X, footY: PLAYER_FOOT_Y, width: 196, solid: true },
-      ...ROBOT_POSITIONS.map(position => ({ x: position.x, footY: position.footY, width: 166, solid: false }))
-    ];
-    this.platformGraphics = this.add.graphics().setDepth(1).setVisible(false);
-    for (const platform of platforms) {
-      const y = platform.footY + 10;
-      if (platform.solid) {
-        this.matter.add.rectangle(platform.x, y, platform.width, 20, { isStatic: true, label: 'platform', friction: 0.9 });
-        for (const merlonX of [platform.x - platform.width / 2 + 2, platform.x + platform.width / 2 - 22]) {
-          this.platformGraphics.fillStyle(0x666666).fillRoundedRect(merlonX, platform.footY - 16, 20, 18, 2);
-        }
-      }
-      this.platformGraphics.fillStyle(0x666666).fillRoundedRect(platform.x - platform.width / 2, y - 10, platform.width, 20, 3);
-      this.platformGraphics.fillStyle(0x898989, 0.45).fillRect(platform.x - platform.width / 2 + 5, y - 7, platform.width - 10, 3);
-      this.platformGraphics.fillStyle(0x4c4c4c, 0.5).fillRect(platform.x - platform.width / 2, y + 10, platform.width, 5);
+    this.platformGraphics = this.add.graphics().setDepth(1);
+    this.drawPlatform(PLAYER_X, PLAYER_FOOT_Y, 196, true);
+    const firstRivalPlatform = ROBOT_POSITIONS[0];
+    this.drawPlatform(firstRivalPlatform.x, firstRivalPlatform.footY, 166, false);
+  }
+
+  drawPlatform(x, footY, width, solid) {
+    const top = footY + 10;
+    const left = x - width / 2;
+    const supportWidth = width * 0.78;
+    this.platformGraphics.fillStyle(0x565656).fillRect(x - supportWidth / 2, top + 10, supportWidth, HEIGHT - top - 10);
+    this.platformGraphics.fillStyle(0x747474, 0.4).fillRect(x - supportWidth / 2 + 8, top + 10, 4, HEIGHT - top - 10);
+    this.platformGraphics.fillStyle(0x4d4d4d, 0.45).fillRect(x + supportWidth / 2 - 12, top + 10, 4, HEIGHT - top - 10);
+    this.platformGraphics.fillStyle(0x646464).fillRect(left, top - 10, width, 20);
+    this.platformGraphics.fillStyle(0x858585).fillRect(left, top - 10, width, 4);
+    this.platformGraphics.fillStyle(0x4a4a4a).fillRect(left, top + 10, width, 5);
+    if (!solid) return;
+    for (const merlonX of [left + 2, left + width - 22]) {
+      this.platformGraphics.fillStyle(0x777777).fillRect(merlonX, footY - 18, 20, 20);
     }
   }
 
@@ -229,6 +217,9 @@ class ArcherScene extends Phaser.Scene {
     const spawn = ROBOT_POSITIONS[(this.round - 1) % ROBOT_POSITIONS.length];
     if (this.robotPlatformBody) this.matter.world.remove(this.robotPlatformBody);
     this.robotPlatformBody = this.matter.add.rectangle(spawn.x, spawn.footY + 10, 166, 20, { isStatic: true, label: 'active-robot-platform', friction: 0.9 });
+    this.platformGraphics.clear();
+    this.drawPlatform(PLAYER_X, PLAYER_FOOT_Y, 196, true);
+    this.drawPlatform(spawn.x, spawn.footY, 166, false);
     this.robot = { x: spawn.x, footY: spawn.footY, health: 100, label: spawn.label };
     this.robotArmorLevel = Math.min(this.round, ARMOR_MAX_LEVEL);
     this.robotPoison = null;
@@ -626,14 +617,14 @@ class ArcherScene extends Phaser.Scene {
     const x = actor.x;
     const footY = actor.footY;
     const facingRight = side === 'player';
-    const skinColor = flash ? 0xffedb5 : side === 'player' ? 0xf0c6a5 : 0xc98d6a;
-    const skinShadow = side === 'player' ? 0xc58769 : 0x8e5847;
-    const outlineColor = 0x302630;
-    const shirtColor = side === 'player' ? 0x477caf : 0xb95047;
-    const shirtHighlight = side === 'player' ? 0x8eb9d1 : 0xe28268;
-    const pantsColor = side === 'player' ? 0x39435c : 0x51404a;
-    const hairColor = side === 'player' ? 0x53392d : 0x352b2c;
-    const accent = side === 'player' ? 0xe4a45d : 0xe7a16b;
+    const skinColor = flash ? 0xffffff : 0xe8e8e8;
+    const skinShadow = 0xbdbdbd;
+    const outlineColor = 0x737373;
+    const shirtColor = 0xe3e3e3;
+    const shirtHighlight = 0xf7f7f7;
+    const pantsColor = 0xcfcfcf;
+    const hairColor = 0xe8e8e8;
+    const accent = 0xffa900;
     const idleWobble = Math.sin(this.time.now / 390 + (facingRight ? 0 : 1.4)) * 2.4;
     const hitFlail = flash ? (facingRight ? -10 : 10) : 0;
     const shoulderX = x + idleWobble + hitFlail;
@@ -691,12 +682,12 @@ class ArcherScene extends Phaser.Scene {
     joint(frontKnee, 7.5, pantsColor);
     joint(backElbow, 6.8);
     joint(frontElbow, 7);
-    graphics.fillStyle(0x65432f, 1).fillRect(hipX - 10, hipY - 2, 20, 5);
+    graphics.fillStyle(0x9a9a9a, 1).fillRect(hipX - 10, hipY - 2, 20, 5);
     graphics.fillStyle(accent, 1).fillRect(hipX - 2, hipY - 1, 4, 3);
-    graphics.fillStyle(0x55382d, 1).fillRoundedRect(frontFoot.x - 10, footY - 8, 21, 9, 4);
-    graphics.fillStyle(0x76513b, 1).fillRoundedRect(backFoot.x - 10, footY - 8, 21, 9, 4);
-    graphics.lineStyle(1.2, 0xb47c50, 0.9).lineBetween(frontFoot.x - 5, footY - 3, frontFoot.x + 7, footY - 3);
-    graphics.lineStyle(1.2, 0xb47c50, 0.9).lineBetween(backFoot.x - 5, footY - 3, backFoot.x + 7, footY - 3);
+    graphics.fillStyle(0x777777, 1).fillRoundedRect(frontFoot.x - 10, footY - 8, 21, 9, 4);
+    graphics.fillStyle(0x929292, 1).fillRoundedRect(backFoot.x - 10, footY - 8, 21, 9, 4);
+    graphics.lineStyle(1.2, 0xd8d8d8, 0.9).lineBetween(frontFoot.x - 5, footY - 3, frontFoot.x + 7, footY - 3);
+    graphics.lineStyle(1.2, 0xd8d8d8, 0.9).lineBetween(backFoot.x - 5, footY - 3, backFoot.x + 7, footY - 3);
     graphics.fillStyle(outlineColor, 1).fillCircle(frontHand.x, frontHand.y, 5.5);
     graphics.fillStyle(skinColor, 1).fillCircle(frontHand.x, frontHand.y, 3.5);
     graphics.fillStyle(outlineColor, 1).fillCircle(backHand.x, backHand.y, 5.5);
@@ -786,7 +777,7 @@ class ArcherScene extends Phaser.Scene {
       else graphics.lineTo(bowX, bowY);
     }
     graphics.strokePath();
-    graphics.lineStyle(4, 0x76513a, 1).beginPath();
+    graphics.lineStyle(4, 0xffa900, 1).beginPath();
     for (let step = 0; step <= 10; step++) {
       const t = step / 10 * 2 - 1;
       const bowX = centerX + perpX * t * 26 + dirX * (11 * (1 - t * t));
