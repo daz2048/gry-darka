@@ -6,8 +6,8 @@ const PLAYER_X = 156;
 const PLAYER_FOOT_Y = 430;
 const CHARGE_TIME = 1300;
 const ARMOR_COST = 750;
-const ARMOR_MAX_LEVEL = 3;
-const ARMOR_DAMAGE_REDUCTION = [0, 0.4, 0.6, 0.8];
+const ARMOR_MAX_LEVEL = 5;
+const ARMOR_DAMAGE_REDUCTION = [0, 0.4, 0.55, 0.68, 0.78, 0.86];
 const MATTER = Phaser.Physics.Matter.Matter;
 
 const WEAPONS = [
@@ -84,6 +84,7 @@ class ArcherScene extends Phaser.Scene {
     this.robotFlashUntil = 0;
     this.player = { x: PLAYER_X, footY: PLAYER_FOOT_Y };
     this.robot = { ...ROBOT_POSITIONS[0], health: 100 };
+    this.robotArmorLevel = 1;
     this.robotPlatformBody = null;
     this.nextRobotShotAt = Infinity;
     this.paused = false;
@@ -189,6 +190,7 @@ class ArcherScene extends Phaser.Scene {
     if (this.robotPlatformBody) this.matter.world.remove(this.robotPlatformBody);
     this.robotPlatformBody = this.matter.add.rectangle(spawn.x, spawn.footY + 10, 166, 20, { isStatic: true, label: 'active-robot-platform', friction: 0.9 });
     this.robot = { x: spawn.x, footY: spawn.footY, health: 100, label: spawn.label };
+    this.robotArmorLevel = Math.min(this.round, ARMOR_MAX_LEVEL);
     this.robotPoison = null;
     this.robotHealth = 100;
     this.robotFlashUntil = 0;
@@ -323,8 +325,9 @@ class ArcherScene extends Phaser.Scene {
 
   hitTarget(side, power, weapon = WEAPONS[0]) {
     const baseDamage = Math.round((15 + power * 34) * weapon.damage);
-    const damage = side === 'robot' && this.armorLevel > 0
-      ? Math.round(baseDamage * (1 - ARMOR_DAMAGE_REDUCTION[this.armorLevel]))
+    const armorLevel = side === 'robot' ? this.armorLevel : this.robotArmorLevel;
+    const damage = armorLevel > 0
+      ? Math.round(baseDamage * (1 - ARMOR_DAMAGE_REDUCTION[armorLevel]))
       : baseDamage;
     if (side === 'player') {
       if (!this.robot || this.robot.health <= 0) return;
@@ -525,23 +528,37 @@ class ArcherScene extends Phaser.Scene {
     if (side === 'robot') graphics.fillStyle(0x8c8c8c, 1).fillRoundedRect(x - 15, footY - 124, 30, 13, 5);
     graphics.fillStyle(side === 'player' ? 0x70a7ff : 0xff6a5e, 1).fillCircle(x + (facingRight ? 5 : -5), footY - 109, 2.3);
     graphics.fillStyle(accent, 1).fillRoundedRect(x - 5, footY - 71, 10, 8, 2);
-    if (side === 'player' && this.armorLevel > 0) {
+    const armorLevel = side === 'player' ? this.armorLevel : this.robotArmorLevel;
+    if (armorLevel > 0) {
+      const plateFill = side === 'player' ? 0x527f72 : 0x814b45;
+      const plateTrim = side === 'player' ? 0xd9eee5 : 0xffc1a8;
       const chestY = shoulderY + 5;
-      graphics.fillStyle(0x527f72, 1).lineStyle(2, 0xd9eee5, 1);
+      graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
       graphics.fillRoundedRect(x - 13, chestY, 26, 31, 5).strokeRoundedRect(x - 13, chestY, 26, 31, 5);
-      for (let rib = 0; rib < this.armorLevel; rib++) {
+      for (let rib = 0; rib < Math.min(armorLevel, 4); rib++) {
         const ribY = chestY + 8 + rib * 6;
         graphics.lineStyle(2, 0xb9dbcf, 1).lineBetween(x - 7, ribY, x + 7, ribY);
       }
-      if (this.armorLevel >= 2) {
-        graphics.fillStyle(0x527f72, 1).lineStyle(2, 0xd9eee5, 1);
+      if (armorLevel >= 2) {
+        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
         graphics.fillRoundedRect(x - 16, footY - 126, 32, 13, 5).strokeRoundedRect(x - 16, footY - 126, 32, 13, 5);
-        graphics.lineStyle(2, 0xf5a623, 1).lineBetween(x - 9, footY - 120, x + 9, footY - 120);
+        graphics.lineStyle(2, accent, 1).lineBetween(x - 9, footY - 120, x + 9, footY - 120);
       }
-      if (this.armorLevel >= 3) {
-        graphics.fillStyle(0x527f72, 1).lineStyle(2, 0xd9eee5, 1);
+      if (armorLevel >= 3) {
+        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
         graphics.fillRoundedRect(x - 23, shoulderY, 13, 15, 5).strokeRoundedRect(x - 23, shoulderY, 13, 15, 5);
         graphics.fillRoundedRect(x + 10, shoulderY, 13, 15, 5).strokeRoundedRect(x + 10, shoulderY, 13, 15, 5);
+      }
+      if (armorLevel >= 4) {
+        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
+        graphics.fillRoundedRect(frontElbow.x - 7, frontElbow.y - 5, 14, 10, 4).strokeRoundedRect(frontElbow.x - 7, frontElbow.y - 5, 14, 10, 4);
+        graphics.fillRoundedRect(backElbow.x - 7, backElbow.y - 5, 14, 10, 4).strokeRoundedRect(backElbow.x - 7, backElbow.y - 5, 14, 10, 4);
+        graphics.fillRoundedRect(x - 22, footY - 40, 12, 16, 4).strokeRoundedRect(x - 22, footY - 40, 12, 16, 4);
+        graphics.fillRoundedRect(x + 10, footY - 40, 12, 16, 4).strokeRoundedRect(x + 10, footY - 40, 12, 16, 4);
+      }
+      if (armorLevel >= 5) {
+        graphics.fillStyle(accent, 1).fillTriangle(x, chestY + 9, x - 5, chestY + 16, x + 5, chestY + 16);
+        graphics.lineStyle(3, plateTrim, 1).lineBetween(x - 9, footY - 46, x + 9, footY - 46);
       }
     }
 
