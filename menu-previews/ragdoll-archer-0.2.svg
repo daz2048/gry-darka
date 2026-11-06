@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" role="img" aria-labelledby="title desc">
+  <title id="title">Ragdoll Archers 0.2</title>
+  <desc id="desc">A ragdoll archer fires a glowing blue upgraded arrow beside a points-powered arrow shop.</desc>
+  <defs>
+    <linearGradient id="arena" x2="0" y2="1">
+      <stop stop-color="#414141"/>
+      <stop offset="1" stop-color="#292929"/>
+    </linearGradient>
+    <linearGradient id="shot" x2="1" y2="0">
+      <stop stop-color="#70a7ff" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#b9ddff"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="320" fill="url(#arena)"/>
+  <g fill="#a3a3a3" opacity=".4">
+    <circle cx="58" cy="44" r="2"/><circle cx="176" cy="78" r="1.7"/><circle cx="290" cy="36" r="2.3"/>
+    <circle cx="372" cy="64" r="1.5"/><circle cx="526" cy="40" r="2"/><circle cx="590" cy="266" r="1.8"/>
+    <circle cx="92" cy="264" r="2"/><circle cx="268" cy="285" r="2.4"/><circle cx="414" cy="279" r="1.8"/>
+  </g>
+  <path d="M16 257h322v14H16z" fill="#656565"/>
+  <path d="M54 239h42v18H54zm214 0h42v18h-42z" fill="#747474"/>
+  <g stroke="#f1f1ef" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="150" cy="120" r="18" fill="#f5f4ef" stroke="none"/>
+    <path d="m147 139-9 49 17 26m-17-26-26 30m24-54 31 16 22 33m-49-49 37-6" stroke-width="15"/>
+    <path d="m160 146 25-13" stroke-width="8"/>
+  </g>
+  <path d="M189 115Q228 155 190 194" fill="none" stroke="#f5a623" stroke-width="6" stroke-linecap="round"/>
+  <path d="m189 115 1 79" stroke="#fff0c8" stroke-width="1.5"/>
+  <path d="M181 131 350 83" stroke="url(#shot)" stroke-width="8" stroke-linecap="round"/>
+  <path d="m350 83-18-2 8 15z" fill="#b9ddff"/>
+  <g fill="#70a7ff" opacity=".8">
+    <circle cx="224" cy="120" r="2.5"/><circle cx="248" cy="113" r="2"/><circle cx="273" cy="106" r="1.6"/><circle cx="302" cy="97" r="1.3"/>
+  </g>
+  <g font-family="Arial,sans-serif" font-weight="900">
+    <text x="34" y="36" fill="#f4f2ee" font-size="13" letter-spacing="1">RAGDOLL ARCHERS</text>
+    <rect x="208" y="20" width="48" height="22" rx="4" fill="#f5a623"/>
+    <text x="232" y="35" fill="#292929" font-size="11" text-anchor="middle">0.2</text>
+    <text x="376" y="39" fill="#f5a623" font-size="11" letter-spacing="1">ARROW SHOP</text>
+  </g>
+  <rect x="368" y="51" width="248" height="226" rx="7" fill="#252525" stroke="#666"/>
+  <rect x="382" y="64" width="220" height="28" rx="4" fill="#393939"/>
+  <text x="394" y="82" fill="#d5d5d2" font-family="Arial,sans-serif" font-size="10" font-weight="900">POINTS</text>
+  <text x="587" y="83" fill="#f5a623" font-family="Arial,sans-serif" font-size="15" font-weight="900" text-anchor="end">1,250</text>
+  <g font-family="Arial,sans-serif" font-weight="900">
+    <rect x="382" y="101" width="220" height="36" rx="4" fill="#484848" stroke="#f0efea"/>
+    <path d="M397 118h22" stroke="#f0efea" stroke-width="3"/><path d="m419 118-8-5v10z" fill="#f0efea"/>
+    <text x="429" y="116" fill="#f0efea" font-size="10">DEFAULT</text><text x="429" y="128" fill="#aaa9a5" font-size="8">BALANCED</text>
+    <text x="588" y="122" fill="#f0efea" font-size="8" text-anchor="end">EQUIPPED</text>
+    <rect x="382" y="145" width="220" height="36" rx="4" fill="#383f49" stroke="#70a7ff"/>
+    <path d="M397 162h24" stroke="#70a7ff" stroke-width="3"/><path d="m421 162-8-5v10z" fill="#b9ddff"/>
+    <text x="429" y="160" fill="#f0efea" font-size="10">SWIFT</text><text x="429" y="172" fill="#9fc5ff" font-size="8">FASTER SHOTS</text>
+    <text x="588" y="166" fill="#70a7ff" font-size="9" text-anchor="end">500 PTS</text>
+    <rect x="382" y="189" width="220" height="36" rx="4" fill="#484238" stroke="#f5a623"/>
+    <path d="M397 206h24" stroke="#f5a623" stroke-width="4"/><path d="m421 206-8-6v12z" fill="#ffd070"/>
+    <text x="429" y="204" fill="#f0efea" font-size="10">POWER</text><text x="429" y="216" fill="#f5c46b" font-size="8">MORE DAMAGE</text>
+    <text x="588" y="210" fill="#f5a623" font-size="9" text-anchor="end">1,000 PTS</text>
+    <rect x="382" y="233" width="220" height="30" rx="4" fill="#484040" stroke="#ff6259"/>
+    <path d="M397 248h24" stroke="#ff6259" stroke-width="5"/><path d="m421 248-8-6v12z" fill="#ff9b8c"/>
+    <text x="429" y="251" fill="#f0efea" font-size="10">ELITE</text>
+    <text x="588" y="251" fill="#ff8176" font-size="9" text-anchor="end">2,000 PTS</text>
+  </g>
+</svg>
