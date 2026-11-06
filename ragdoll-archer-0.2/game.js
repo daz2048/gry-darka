@@ -18,7 +18,7 @@ const WEAPONS = [
   { id: 'swift', name: 'SWIFT', cost: 500, speed: 1.3, damage: 1, color: 0x70a7ff, detail: 'FASTER SHOTS' },
   { id: 'power', name: 'POWER', cost: 1000, speed: 1, damage: 1.4, color: 0xf5a623, detail: 'MORE DAMAGE' },
   { id: 'firework', name: 'FIREWORK', cost: 1400, speed: 0.9, damage: 1.5, color: 0xff7ac6, detail: 'BURST ON IMPACT', effect: 'firework' },
-  { id: 'minigun', name: 'MINIGUN', cost: 1600, speed: 1.05, damage: 0.12, color: 0xffcf56, detail: '100-ARROW BURST', burstCount: 100, burstInterval: 16, spread: 0.0025 },
+  { id: 'minigun', name: 'MINIGUN', cost: 1000000, speed: 1.05, damage: 0.12, color: 0xffcf56, detail: '100-ARROW BURST', burstCount: 100, burstInterval: 16, spread: 0.0025 },
   { id: 'frost', name: 'FROST', cost: 1800, speed: 0.95, damage: 0.85, color: 0x74e1f4, detail: 'SLOWS ROBOT', effect: 'frost' },
   { id: 'poison', name: 'POISON', cost: 2200, speed: 1, damage: 0.85, color: 0x8cdb77, detail: 'DAMAGE OVER TIME', effect: 'poison' },
   { id: 'ricochet', name: 'RICOCHET', cost: 2400, speed: 1.1, damage: 1.1, color: 0xb692ff, detail: 'BOUNCES OFF PLATFORMS', effect: 'ricochet' },
