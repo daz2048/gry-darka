@@ -133,6 +133,14 @@ class ArcherScene extends Phaser.Scene {
       if (!this.started || this.ended) this.startGame();
     });
     this.input.keyboard.on('keydown-M', () => this.enableInfinitePoints());
+    this.input.keyboard.on('keydown-F', () => this.toggleFullscreen());
+  }
+
+  toggleFullscreen() {
+    const fullscreenChange = document.fullscreenElement
+      ? document.exitFullscreen()
+      : document.documentElement.requestFullscreen();
+    fullscreenChange.catch(() => this.setNotice('FULLSCREEN UNAVAILABLE'));
   }
 
   drawArena() {
