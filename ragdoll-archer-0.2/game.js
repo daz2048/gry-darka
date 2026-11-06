@@ -4,6 +4,7 @@ const GRAVITY = 0.46;
 const MATTER_GRAVITY = 1.6;
 const PLAYER_X = 156;
 const PLAYER_FOOT_Y = 430;
+const ACTOR_SCALE = 1.35;
 const CHARGE_TIME = 1300;
 const ARMOR_COST = 750;
 const ARMOR_MAX_LEVEL = 8;
@@ -11,19 +12,52 @@ const ARMOR_DAMAGE_REDUCTION = [0, 0.4, 0.55, 0.68, 0.78, 0.86, 0.88, 0.9, 0.92]
 const MEDKIT_COST = 600;
 const MEDKIT_HEAL = 35;
 const SHIELD_COST = 1200;
+const TOWER_WIDTH = 196;
+const RIVAL_BLOCK_SIZE = 52;
+const RIVAL_BLOCK_GAP = 3;
+const RIVAL_BLOCKS_WIDTH = RIVAL_BLOCK_SIZE * 3 + RIVAL_BLOCK_GAP * 2;
 const MATTER = Phaser.Physics.Matter.Matter;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const SKULL_PATH = 'M12 2C6.9 2 3 5.7 3 10.6c0 2.8 1.3 5 3.5 6.3V20a1 1 0 0 0 1 1H9v-2h2v2h2v-2h2v2h1.5a1 1 0 0 0 1-1v-3.1c2.2-1.3 3.5-3.5 3.5-6.3C21 5.7 17.1 2 12 2ZM8.5 13.5a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6Zm7 0a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6ZM12 14.2l1.2 2h-2.4Z';
+
+const PALETTE = {
+  background: 0x3d3d3d,
+  diamond: 0x434343,
+  speck: 0x5b5b5b,
+  speckLight: 0x6a6a6a,
+  block: 0x6c6c6c,
+  blockAlt: 0x686868,
+  blockSeam: 0x5f5f5f,
+  body: 0xebebeb,
+  bodyBack: 0xcbcbcb,
+  hit: 0xf2a7a7,
+  hitBack: 0xd98f8f,
+  bow: 0xf5a623,
+  bowString: 0xf7d9a6,
+  arrow: 0xeeeeee,
+  metal: 0x8e8e8e,
+  metalBack: 0x7b7b7b,
+  metalLight: 0xb4b4b4,
+  stud: 0x5f5f5f,
+  visor: 0x454545,
+  plate: 0xf3f3f3,
+  plateSeam: 0xa9a9a9,
+  red: 0xe45050,
+  redDark: 0x7a2d2d,
+  orange: 0xf5a623
+};
 
 const WEAPONS = [
-  { id: 'default', name: 'DEFAULT', cost: 0, speed: 1, damage: 1, color: 0xf3f0e9, detail: 'BALANCED' },
-  { id: 'swift', name: 'SWIFT', cost: 500, speed: 1.3, damage: 1, color: 0x70a7ff, detail: 'FASTER SHOTS' },
+  { id: 'default', name: 'DEFAULT', cost: 0, speed: 1, damage: 1, color: 0xeeeeee, detail: 'BALANCED' },
+  { id: 'swift', name: 'SWIFT', cost: 500, speed: 1.3, damage: 1, color: 0x4d8ff0, detail: 'FASTER SHOTS' },
   { id: 'power', name: 'POWER', cost: 1000, speed: 1, damage: 1.4, color: 0xf5a623, detail: 'MORE DAMAGE' },
-  { id: 'firework', name: 'FIREWORK', cost: 1400, speed: 0.9, damage: 1.5, color: 0xff7ac6, detail: 'BURST ON IMPACT', effect: 'firework' },
-  { id: 'minigun', name: 'MINIGUN', cost: 1000000, speed: 1.05, damage: 0.12, color: 0xffcf56, detail: '100-ARROW BURST', burstCount: 100, burstInterval: 16, spread: 0.0025 },
-  { id: 'frost', name: 'FROST', cost: 1800, speed: 0.95, damage: 0.85, color: 0x74e1f4, detail: 'SLOWS RIVAL', effect: 'frost' },
-  { id: 'poison', name: 'POISON', cost: 2200, speed: 1, damage: 0.85, color: 0x8cdb77, detail: 'DAMAGE OVER TIME', effect: 'poison' },
-  { id: 'ricochet', name: 'RICOCHET', cost: 2400, speed: 1.1, damage: 1.1, color: 0xb692ff, detail: 'BOUNCES OFF PLATFORMS', effect: 'ricochet' },
-  { id: 'laser', name: 'LASER', cost: 2800, speed: 2, damage: 1.8, color: 0xff4ce1, detail: 'INSTANT BEAM', effect: 'laser' },
-  { id: 'elite', name: 'ELITE', cost: 3000, speed: 1.25, damage: 1.5, color: 0xff6259, detail: 'FAST + POWERFUL' }
+  { id: 'firework', name: 'FIREWORK', cost: 1400, speed: 0.9, damage: 1.5, color: 0xf27fb2, detail: 'BURST ON IMPACT', effect: 'firework' },
+  { id: 'minigun', name: 'MINIGUN', cost: 1000000, speed: 1.05, damage: 0.12, color: 0xf2c94c, detail: '100-ARROW BURST', burstCount: 100, burstInterval: 16, spread: 0.0025 },
+  { id: 'frost', name: 'FROST', cost: 1800, speed: 0.95, damage: 0.85, color: 0x7fd1f0, detail: 'SLOWS RIVAL', effect: 'frost' },
+  { id: 'poison', name: 'POISON', cost: 2200, speed: 1, damage: 0.85, color: 0xc3e37a, detail: 'DAMAGE OVER TIME', effect: 'poison' },
+  { id: 'ricochet', name: 'RICOCHET', cost: 2400, speed: 1.1, damage: 1.1, color: 0xb39af0, detail: 'BOUNCES OFF PLATFORMS', effect: 'ricochet' },
+  { id: 'laser', name: 'LASER', cost: 2800, speed: 2, damage: 1.8, color: 0xe86bd3, detail: 'INSTANT BEAM', effect: 'laser' },
+  { id: 'elite', name: 'ELITE', cost: 3000, speed: 1.25, damage: 1.5, color: 0xe45050, detail: 'FAST + POWERFUL' }
 ];
 
 const ROBOT_POSITIONS = [
@@ -32,9 +66,61 @@ const ROBOT_POSITIONS = [
   { x: 835, footY: 275, label: 'RIGHT HIGH PLATFORM' },
   { x: 690, footY: 305, label: 'CENTER PLATFORM' },
   { x: 820, footY: 390, label: 'LOWER RIGHT PLATFORM' },
-  { x: 755, footY: 245, label: 'TOP PLATFORM' },
-  { x: 875, footY: 330, label: 'RIGHT PLATFORM' }
+  { x: 755, footY: 265, label: 'TOP PLATFORM' },
+  { x: 845, footY: 330, label: 'RIGHT PLATFORM' }
 ];
+
+const toCssColor = color => `#${color.toString(16).padStart(6, '0')}`;
+
+const shadeColor = (color, factor) => {
+  const channel = shift => Math.round(((color >> shift) & 255) * factor);
+  return (channel(16) << 16) | (channel(8) << 8) | channel(0);
+};
+
+const formatCost = cost => {
+  if (cost >= 1000000) return `${cost / 1000000}M`;
+  if (cost >= 10000) return `${Math.round(cost / 1000)}K`;
+  return String(cost);
+};
+
+function svgElement(tag, attributes) {
+  const element = document.createElementNS(SVG_NS, tag);
+  for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value);
+  return element;
+}
+
+function createSkullIcon() {
+  const svg = svgElement('svg', { viewBox: '0 0 24 24', class: 'skull-icon', 'aria-hidden': 'true' });
+  svg.append(svgElement('path', { d: SKULL_PATH, fill: 'currentColor', 'fill-rule': 'evenodd' }));
+  return svg;
+}
+
+function createLockBadge(cost) {
+  const badge = document.createElement('span');
+  badge.className = 'lock-badge';
+  const svg = svgElement('svg', { viewBox: '0 0 26 28', 'aria-hidden': 'true' });
+  svg.append(
+    svgElement('path', { d: 'M7.5 12V8.5a5.5 5.5 0 0 1 11 0V12', fill: 'none', stroke: 'currentColor', 'stroke-width': '3' }),
+    svgElement('rect', { x: '2', y: '11', width: '22', height: '16', rx: '3', fill: 'currentColor' })
+  );
+  const label = document.createElement('span');
+  label.textContent = formatCost(cost);
+  badge.append(svg, label);
+  return badge;
+}
+
+function createArrowIcon(accentColor) {
+  const accent = toCssColor(accentColor);
+  const stripe = toCssColor(shadeColor(accentColor, 0.7));
+  const svg = svgElement('svg', { viewBox: '0 0 214 16', class: 'arrow-icon', 'aria-hidden': 'true' });
+  svg.append(
+    svgElement('rect', { x: '12', y: '6.5', width: '180', height: '3', rx: '1.5', fill: '#f0f0f0' }),
+    svgElement('path', { d: 'M1 8 16 1.5 12.5 8 16 14.5Z', fill: accent }),
+    svgElement('path', { d: 'M184 8 192 1h21l-8 7 8 7h-21Z', fill: accent }),
+    svgElement('path', { d: 'M195 1.5l6 6.5-6 6.5M203 1.5l6 6.5-6 6.5', fill: 'none', stroke: stripe, 'stroke-width': '1.6' })
+  );
+  return svg;
+}
 
 const ui = {
   overlay: document.getElementById('overlay'),
@@ -45,6 +131,7 @@ const ui = {
   robotPosition: document.getElementById('robot-position'),
   playerHealth: document.getElementById('player-health'),
   playerHealthText: document.getElementById('player-health-text'),
+  playerArmor: document.getElementById('player-armor'),
   robotHealth: document.getElementById('robot-health'),
   robotHealthText: document.getElementById('robot-health-text'),
   score: document.getElementById('score'),
@@ -67,7 +154,7 @@ class ArcherScene extends Phaser.Scene {
 
   create() {
     this.matter.world.setGravity(0, MATTER_GRAVITY);
-    this.cameras.main.setZoom(1.2);
+    this.cameras.main.setZoom(1.12);
     this.cameras.main.centerOn(WIDTH / 2, HEIGHT / 2);
     this.round = 1;
     this.score = 0;
@@ -147,42 +234,46 @@ class ArcherScene extends Phaser.Scene {
 
   drawArena() {
     const background = this.add.graphics().setDepth(-10);
-    background.fillStyle(0x3d3d3d).fillRect(0, 0, WIDTH, HEIGHT);
-    background.fillStyle(0x666666, 0.12);
-    background.fillTriangle(78, 40, 174, 0, 268, 38, 172, 132);
-    background.fillTriangle(690, 336, 738, 288, 786, 336, 738, 384);
-    background.fillTriangle(842, 408, 884, 366, 926, 408, 884, 450);
-    for (let index = 0; index < 46; index++) {
+    background.fillStyle(PALETTE.background).fillRect(0, 0, WIDTH, HEIGHT);
+    background.fillStyle(PALETTE.diamond).fillPoints([
+      { x: 250, y: 30 },
+      { x: 400, y: 180 },
+      { x: 250, y: 330 },
+      { x: 100, y: 180 }
+    ], true);
+    for (let index = 0; index < 48; index++) {
       const x = (index * 197 + 41) % WIDTH;
       const y = (index * 113 + 27) % HEIGHT;
-      const radius = index % 7 === 0 ? 2.8 : index % 3 === 0 ? 1.8 : 1.1;
-      background.fillStyle(0xc5c5c5, index % 5 === 0 ? 0.52 : 0.24).fillCircle(x, y, radius);
+      const radius = index % 9 === 0 ? 3.4 : index % 4 === 0 ? 2.3 : 1.5;
+      background.fillStyle(index % 3 === 0 ? PALETTE.speckLight : PALETTE.speck).fillCircle(x, y, radius);
     }
-    background.fillStyle(0x303030).fillRect(0, 504, WIDTH, 36);
-    background.fillStyle(0x555555, 0.5).fillRect(0, 504, WIDTH, 2);
-    this.matter.add.rectangle(WIDTH / 2, 520, WIDTH, 40, { isStatic: true, label: 'floor', friction: 0.9 });
   }
 
   addPlatforms() {
     this.platformGraphics = this.add.graphics().setDepth(1);
-    this.drawPlatform(PLAYER_X, PLAYER_FOOT_Y, 196, true);
-    const firstRivalPlatform = ROBOT_POSITIONS[0];
-    this.drawPlatform(firstRivalPlatform.x, firstRivalPlatform.footY, 166, false);
+    const towerHeight = HEIGHT - PLAYER_FOOT_Y;
+    this.matter.add.rectangle(PLAYER_X, PLAYER_FOOT_Y + towerHeight / 2, TOWER_WIDTH, towerHeight, { isStatic: true, label: 'platform', friction: 0.9 });
+    this.drawPlatforms(ROBOT_POSITIONS[0]);
   }
 
-  drawPlatform(x, footY, width, solid) {
-    const top = footY + 10;
-    const left = x - width / 2;
-    const supportWidth = width * 0.78;
-    this.platformGraphics.fillStyle(0x565656).fillRect(x - supportWidth / 2, top + 10, supportWidth, HEIGHT - top - 10);
-    this.platformGraphics.fillStyle(0x747474, 0.4).fillRect(x - supportWidth / 2 + 8, top + 10, 4, HEIGHT - top - 10);
-    this.platformGraphics.fillStyle(0x4d4d4d, 0.45).fillRect(x + supportWidth / 2 - 12, top + 10, 4, HEIGHT - top - 10);
-    this.platformGraphics.fillStyle(0x646464).fillRect(left, top - 10, width, 20);
-    this.platformGraphics.fillStyle(0x858585).fillRect(left, top - 10, width, 4);
-    this.platformGraphics.fillStyle(0x4a4a4a).fillRect(left, top + 10, width, 5);
-    if (!solid) return;
-    for (const merlonX of [left + 2, left + width - 22]) {
-      this.platformGraphics.fillStyle(0x777777).fillRect(merlonX, footY - 18, 20, 20);
+  drawPlatforms(spawn) {
+    const graphics = this.platformGraphics.clear();
+    const towerLeft = PLAYER_X - TOWER_WIDTH / 2;
+    const tile = TOWER_WIDTH / 3;
+    graphics.fillStyle(PALETTE.blockSeam).fillRect(towerLeft, PLAYER_FOOT_Y, TOWER_WIDTH, HEIGHT - PLAYER_FOOT_Y);
+    for (let row = 0; PLAYER_FOOT_Y + row * tile < HEIGHT; row++) {
+      for (let column = 0; column < 3; column++) {
+        graphics.fillStyle((row + column) % 2 === 0 ? PALETTE.block : PALETTE.blockAlt)
+          .fillRect(towerLeft + column * tile + 1, PLAYER_FOOT_Y + row * tile + 1, tile - 2, tile - 2);
+      }
+    }
+    graphics.fillStyle(PALETTE.block)
+      .fillRect(towerLeft, PLAYER_FOOT_Y - 22, 26, 22)
+      .fillRect(towerLeft + TOWER_WIDTH - 26, PLAYER_FOOT_Y - 22, 26, 22);
+    const rivalLeft = spawn.x - RIVAL_BLOCKS_WIDTH / 2;
+    for (let block = 0; block < 3; block++) {
+      graphics.fillStyle(block === 1 ? PALETTE.blockAlt : PALETTE.block)
+        .fillRect(rivalLeft + block * (RIVAL_BLOCK_SIZE + RIVAL_BLOCK_GAP), spawn.footY, RIVAL_BLOCK_SIZE, RIVAL_BLOCK_SIZE);
     }
   }
 
@@ -216,10 +307,8 @@ class ArcherScene extends Phaser.Scene {
   spawnRobot() {
     const spawn = ROBOT_POSITIONS[(this.round - 1) % ROBOT_POSITIONS.length];
     if (this.robotPlatformBody) this.matter.world.remove(this.robotPlatformBody);
-    this.robotPlatformBody = this.matter.add.rectangle(spawn.x, spawn.footY + 10, 166, 20, { isStatic: true, label: 'active-robot-platform', friction: 0.9 });
-    this.platformGraphics.clear();
-    this.drawPlatform(PLAYER_X, PLAYER_FOOT_Y, 196, true);
-    this.drawPlatform(spawn.x, spawn.footY, 166, false);
+    this.robotPlatformBody = this.matter.add.rectangle(spawn.x, spawn.footY + RIVAL_BLOCK_SIZE / 2, RIVAL_BLOCKS_WIDTH, RIVAL_BLOCK_SIZE, { isStatic: true, label: 'active-robot-platform', friction: 0.9 });
+    this.drawPlatforms(spawn);
     this.robot = { x: spawn.x, footY: spawn.footY, health: 100, label: spawn.label };
     this.robotArmorLevel = Math.min(this.round, ARMOR_MAX_LEVEL);
     this.robotPoison = null;
@@ -330,8 +419,8 @@ class ArcherScene extends Phaser.Scene {
 
   bowOrigin(actor, side) {
     return {
-      x: actor.x + (side === 'player' ? 26 : -26),
-      y: actor.footY - 82
+      x: actor.x + (side === 'player' ? 26 : -26) * ACTOR_SCALE,
+      y: actor.footY - 82 * ACTOR_SCALE
     };
   }
 
@@ -353,7 +442,7 @@ class ArcherScene extends Phaser.Scene {
     if (!this.robot || this.robot.health <= 0) return;
     const origin = this.bowOrigin(this.robot, 'robot');
     const targetX = this.player.x + 5;
-    const targetY = this.player.footY - 82;
+    const targetY = this.player.footY - 82 * ACTOR_SCALE;
     const speed = Phaser.Math.Between(13, 17);
     const distanceX = targetX - origin.x;
     const travelFrames = Math.abs(distanceX) / speed;
@@ -415,9 +504,9 @@ class ArcherScene extends Phaser.Scene {
   arrowHitsTarget(position, angle, target) {
     const tipX = position.x + Math.cos(angle) * 18;
     const tipY = position.y + Math.sin(angle) * 18;
-    const headDistance = Phaser.Math.Distance.Between(tipX, tipY, target.x, target.footY - 108);
-    const torsoDistance = Phaser.Math.Distance.Between(tipX, tipY, target.x, target.footY - 65);
-    return headDistance < 22 || torsoDistance < 31;
+    const headDistance = Phaser.Math.Distance.Between(tipX, tipY, target.x, target.footY - 107 * ACTOR_SCALE);
+    const torsoDistance = Phaser.Math.Distance.Between(tipX, tipY, target.x, target.footY - 65 * ACTOR_SCALE);
+    return headDistance < 22 * ACTOR_SCALE || torsoDistance < 31 * ACTOR_SCALE;
   }
 
   hitTarget(side, power, weapon = WEAPONS[0]) {
@@ -530,23 +619,22 @@ class ArcherScene extends Phaser.Scene {
     const origin = this.bowOrigin(this.player, 'player');
     const power = this.chargeStartedAt === null ? 0.28 : Phaser.Math.Clamp((time - this.chargeStartedAt) / CHARGE_TIME, 0.12, 1);
     const weapon = WEAPONS.find(item => item.id === this.selectedWeapon);
+    const directionX = Math.cos(this.aimAngle);
+    const directionY = Math.sin(this.aimAngle);
+    this.aimGraphics.fillStyle(0xf2f2f2, this.chargeStartedAt === null ? 0.4 : 0.9);
     if (weapon.effect === 'laser') {
-      const directionX = Math.cos(this.aimAngle);
-      const directionY = Math.sin(this.aimAngle);
-      const guideDistance = Math.hypot(WIDTH, HEIGHT);
-      this.aimGraphics.lineStyle(2, weapon.color, this.chargeStartedAt === null ? 0.4 : 0.75)
-        .lineBetween(origin.x, origin.y, origin.x + directionX * guideDistance, origin.y + directionY * guideDistance);
-      this.aimGraphics.lineStyle(0.8, 0xfff7ff, this.chargeStartedAt === null ? 0.35 : 0.8)
-        .lineBetween(origin.x, origin.y, origin.x + directionX * guideDistance, origin.y + directionY * guideDistance);
+      for (let distance = 24; distance < 760; distance += 14) {
+        this.aimGraphics.fillCircle(origin.x + directionX * distance, origin.y + directionY * distance, 1.8);
+      }
       return;
     }
     const speed = (7 + power * 14) * weapon.speed;
-    this.aimGraphics.fillStyle(0xf4f3ef, this.chargeStartedAt === null ? 0.32 : 0.66);
-    for (let frame = 2; frame <= 32; frame += 4) {
-      const x = origin.x + Math.cos(this.aimAngle) * speed * frame;
-      const y = origin.y + Math.sin(this.aimAngle) * speed * frame + GRAVITY * frame * frame / 2;
+    const frameStep = 14 / speed;
+    for (let frame = frameStep; frame <= 22; frame += frameStep) {
+      const x = origin.x + directionX * speed * frame;
+      const y = origin.y + directionY * speed * frame + GRAVITY * frame * frame / 2;
       if (x > WIDTH || y > HEIGHT) break;
-      this.aimGraphics.fillCircle(x, y, frame < 10 ? 2.4 : 1.7);
+      this.aimGraphics.fillCircle(x, y, 1.9);
     }
   }
 
@@ -555,16 +643,33 @@ class ArcherScene extends Phaser.Scene {
     for (const arrow of this.arrows) {
       const { x, y } = arrow.body.position;
       const angle = arrow.body.angle;
-      const dx = Math.cos(angle);
-      const dy = Math.sin(angle);
-      const color = arrow.side === 'player' ? arrow.weapon.color : 0xf26a5f;
-      this.arrowGraphics.lineStyle(3, color, 1).lineBetween(x - dx * 19, y - dy * 19, x + dx * 14, y + dy * 14);
-      this.arrowGraphics.fillStyle(color, 1).fillTriangle(x + dx * 21, y + dy * 21, x + dx * 10 - dy * 5, y + dy * 10 + dx * 5, x + dx * 10 + dy * 5, y + dy * 10 - dx * 5);
+      const accent = arrow.side === 'player' ? arrow.weapon.color : PALETTE.arrow;
+      this.drawArrowSprite(this.arrowGraphics, x, y, Math.cos(angle), Math.sin(angle), accent);
+    }
+  }
+
+  drawArrowSprite(graphics, x, y, dx, dy, accent) {
+    const px = -dy;
+    const py = dx;
+    const tailX = x - dx * 36;
+    const tailY = y - dy * 36;
+    graphics.lineStyle(2.8, PALETTE.arrow, 1).lineBetween(tailX, tailY, x + dx * 13, y + dy * 13);
+    graphics.fillStyle(accent, 1).fillTriangle(
+      x + dx * 24, y + dy * 24,
+      x + dx * 10 + px * 5.5, y + dy * 10 + py * 5.5,
+      x + dx * 10 - px * 5.5, y + dy * 10 - py * 5.5
+    );
+    graphics.lineStyle(2, accent, 1);
+    for (const offset of [2, 7, 12]) {
+      const baseX = tailX + dx * offset;
+      const baseY = tailY + dy * offset;
+      graphics.lineBetween(baseX, baseY, baseX - dx * 6 + px * 5, baseY - dy * 6 + py * 5);
+      graphics.lineBetween(baseX, baseY, baseX - dx * 6 - px * 5, baseY - dy * 6 - py * 5);
     }
   }
 
   spawnFirework(x, y, time) {
-    const colors = [0xff7ac6, 0xffcf56, 0x74e1f4, 0xf3f0e9];
+    const colors = [0xf27fb2, PALETTE.orange, 0x4d8ff0, PALETTE.arrow];
     for (let spark = 0; spark < 20; spark++) {
       this.effects.push({
         x,
@@ -584,10 +689,9 @@ class ArcherScene extends Phaser.Scene {
       const age = time - effect.bornAt;
       if (effect.type === 'laser') {
         const opacity = 1 - age / 180;
-        this.effectGraphics.lineStyle(18, effect.color, opacity * 0.14).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
-        this.effectGraphics.lineStyle(8, effect.color, opacity * 0.4).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
-        this.effectGraphics.lineStyle(3, effect.color, opacity * 0.9).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
-        this.effectGraphics.lineStyle(1.2, 0xfff7ff, opacity).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
+        this.effectGraphics.lineStyle(8, effect.color, opacity * 0.3).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
+        this.effectGraphics.lineStyle(3, effect.color, opacity).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
+        this.effectGraphics.lineStyle(1, 0xffffff, opacity).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
         continue;
       }
       const progress = age / 520;
@@ -603,190 +707,211 @@ class ArcherScene extends Phaser.Scene {
     this.drawArcher(this.player, 'player', this.aimAngle, this.time.now < this.playerFlashUntil);
     if (this.robot) {
       const origin = this.bowOrigin(this.robot, 'robot');
-      const targetY = this.player.footY - 82;
+      const targetY = this.player.footY - 82 * ACTOR_SCALE;
       const distanceX = this.player.x - origin.x;
       const travelFrames = Math.abs(distanceX) / 15;
       const correctedY = targetY - origin.y - GRAVITY * travelFrames * travelFrames / 2;
       const robotAngle = Math.atan2(correctedY, distanceX);
       this.drawArcher(this.robot, 'robot', robotAngle, this.time.now < this.robotFlashUntil);
+      const barWidth = 44 * ACTOR_SCALE;
+      const barX = this.robot.x - barWidth / 2;
+      const barY = this.robot.footY - 146 * ACTOR_SCALE;
+      this.actorGraphics.fillStyle(PALETTE.redDark, 1).fillRect(barX, barY, barWidth, 8);
+      this.actorGraphics.fillStyle(PALETTE.red, 1).fillRect(barX, barY, barWidth * this.robot.health / 100, 8);
     }
+  }
+
+  drawStrength(side, time) {
+    if (!this.started || this.ended) return 0;
+    if (side === 'player') {
+      return this.chargeStartedAt === null ? 0 : Phaser.Math.Clamp((time - this.chargeStartedAt) / CHARGE_TIME, 0, 1);
+    }
+    if (!this.robot || this.robot.health <= 0) return 0;
+    return Phaser.Math.Clamp(1 - (this.nextRobotShotAt - time) / 900, 0, 1);
   }
 
   drawArcher(actor, side, angle, flash) {
     const graphics = this.actorGraphics;
-    const x = actor.x;
-    const footY = actor.footY;
-    const facingRight = side === 'player';
-    const skinColor = flash ? 0xffffff : 0xe8e8e8;
-    const skinShadow = 0xbdbdbd;
-    const outlineColor = 0x737373;
-    const shirtColor = 0xe3e3e3;
-    const shirtHighlight = 0xf7f7f7;
-    const pantsColor = 0xcfcfcf;
-    const hairColor = 0xe8e8e8;
-    const accent = 0xffa900;
-    const idleWobble = Math.sin(this.time.now / 390 + (facingRight ? 0 : 1.4)) * 2.4;
-    const hitFlail = flash ? (facingRight ? -10 : 10) : 0;
-    const shoulderX = x + idleWobble + hitFlail;
-    const hipX = x - idleWobble * 0.35 + hitFlail * 0.35;
-    const bodyX = (shoulderX + hipX) / 2;
-    const hipY = footY - 44;
-    const shoulderY = footY - 82;
-    const hip = { x: hipX, y: hipY };
-    const shoulder = { x: shoulderX, y: shoulderY + 4 };
-    const frontFoot = { x: x + (facingRight ? 19 : -19), y: footY - 3 };
-    const backFoot = { x: x + (facingRight ? -18 : 18), y: footY - 3 };
-    const frontHand = { x: shoulderX + (facingRight ? 24 : -24) + (flash ? (facingRight ? -8 : 8) : 0), y: footY - 82 + (flash ? 8 : 0) };
-    const backHand = { x: shoulderX + (facingRight ? -22 : 22) + (flash ? (facingRight ? 7 : -7) : 0), y: footY - 58 - (flash ? 7 : 0) };
-    const frontKnee = { x: (hip.x + frontFoot.x) / 2 + (facingRight ? 5 : -5), y: (hipY + footY) / 2 };
-    const backKnee = { x: (hip.x + backFoot.x) / 2 + (facingRight ? -4 : 4), y: (hipY + footY) / 2 + 3 };
-    const frontElbow = { x: (shoulder.x + frontHand.x) / 2, y: (shoulder.y + frontHand.y) / 2 + 10 };
-    const backElbow = { x: (shoulder.x + backHand.x) / 2 + (facingRight ? -6 : 6), y: (shoulder.y + backHand.y) / 2 + 4 };
-    const strokeSegment = (points, color, width) => {
-      graphics.lineStyle(width, color, 1).beginPath();
-      graphics.moveTo(points[0].x, points[0].y);
-      for (const point of points.slice(1)) graphics.lineTo(point.x, point.y);
-      graphics.strokePath();
-    };
-    const segment = (points, width, color = skinColor) => {
-      strokeSegment(points, outlineColor, width + 3);
-      strokeSegment(points, color, width);
-    };
-    const joint = (point, radius, color = skinColor) => {
-      graphics.fillStyle(outlineColor, 1).fillCircle(point.x, point.y, radius + 4);
-      graphics.fillStyle(color, 1).fillCircle(point.x, point.y, radius);
-      graphics.fillStyle(0xffffff, 0.48).fillCircle(point.x - radius * 0.32, point.y - radius * 0.34, Math.max(1.5, radius * 0.22));
-    };
-
-    if (side === 'player' && this.shieldActive) {
-      graphics.lineStyle(3, 0x75e7dc, 0.9).strokeCircle(x, footY - 69, 48);
-      graphics.lineStyle(1, 0xd5fff8, 0.75).strokeCircle(x, footY - 69, 53);
-    }
-    graphics.fillStyle(0x14232a, 0.3).fillEllipse(x, footY + 4, 58, 12);
-    segment([hip, backKnee], 8, pantsColor);
-    segment([backKnee, backFoot], 8, pantsColor);
-    segment([hip, frontKnee], 8.5, pantsColor);
-    segment([frontKnee, frontFoot], 8.5, pantsColor);
-    segment([shoulder, backElbow], 7.5);
-    segment([backElbow, backHand], 7.5);
-    segment([shoulder, frontElbow], 8);
-    segment([frontElbow, frontHand], 8);
-    segment([{ x: shoulderX, y: shoulderY }, hip], 13, shirtColor);
-    graphics.fillStyle(outlineColor, 1).fillRoundedRect(bodyX - 13, shoulderY + 1, 26, 34, 8);
-    graphics.fillStyle(shirtColor, 1).fillRoundedRect(bodyX - 10, shoulderY + 4, 20, 27, 6);
-    graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(bodyX - 7, shoulderY + 17, bodyX - 2, shoulderY + 23);
-    graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(bodyX + 5, shoulderY + 20, bodyX + 1, shoulderY + 25);
-    joint(shoulder, 7, shirtColor);
-    joint(hip, 7, pantsColor);
-    joint(backKnee, 7, pantsColor);
-    joint(frontKnee, 7.5, pantsColor);
-    joint(backElbow, 6.8);
-    joint(frontElbow, 7);
-    graphics.fillStyle(0x9a9a9a, 1).fillRect(hipX - 10, hipY - 2, 20, 5);
-    graphics.fillStyle(accent, 1).fillRect(hipX - 2, hipY - 1, 4, 3);
-    graphics.fillStyle(0x777777, 1).fillRoundedRect(frontFoot.x - 10, footY - 8, 21, 9, 4);
-    graphics.fillStyle(0x929292, 1).fillRoundedRect(backFoot.x - 10, footY - 8, 21, 9, 4);
-    graphics.lineStyle(1.2, 0xd8d8d8, 0.9).lineBetween(frontFoot.x - 5, footY - 3, frontFoot.x + 7, footY - 3);
-    graphics.lineStyle(1.2, 0xd8d8d8, 0.9).lineBetween(backFoot.x - 5, footY - 3, backFoot.x + 7, footY - 3);
-    graphics.fillStyle(outlineColor, 1).fillCircle(frontHand.x, frontHand.y, 5.5);
-    graphics.fillStyle(skinColor, 1).fillCircle(frontHand.x, frontHand.y, 3.5);
-    graphics.fillStyle(outlineColor, 1).fillCircle(backHand.x, backHand.y, 5.5);
-    graphics.fillStyle(skinColor, 1).fillCircle(backHand.x, backHand.y, 3.5);
-    const headX = shoulderX + idleWobble * 0.12;
-    const headY = footY - 108 + (flash ? 2 : 0);
-    const faceDirection = facingRight ? 1 : -1;
-    graphics.fillStyle(outlineColor, 1).fillCircle(headX, headY, 22);
-    graphics.fillStyle(skinColor, 1).fillCircle(headX, headY, 18);
-    graphics.fillStyle(skinShadow, 1).fillCircle(headX - faceDirection * 17, headY, 3.8);
-    graphics.fillStyle(skinColor, 1).fillCircle(headX - faceDirection * 17, headY, 2.1);
-    graphics.fillStyle(hairColor, 1).fillTriangle(
-      headX - faceDirection * 17, headY - 3,
-      headX - faceDirection * 12, headY - 17,
-      headX + faceDirection * 4, headY - 14
-    );
-    graphics.fillStyle(hairColor, 1).fillTriangle(
-      headX + faceDirection * 3, headY - 14,
-      headX + faceDirection * 14, headY - 10,
-      headX + faceDirection * 9, headY - 6
-    );
-    graphics.fillStyle(outlineColor, 1).fillCircle(headX + faceDirection * 6, headY - 2, 1.8);
-    graphics.lineStyle(1.5, outlineColor, 1).lineBetween(headX + faceDirection * 4, headY - 6, headX + faceDirection * 10, headY - 5);
-    graphics.lineStyle(1.5, skinShadow, 1).lineBetween(headX + faceDirection * 10, headY + 5, headX + faceDirection * 14, headY + 4);
+    const time = this.time.now;
+    const facing = side === 'player' ? 1 : -1;
+    const x = 0;
+    const footY = 0;
+    const frontColor = flash ? PALETTE.hit : PALETTE.body;
+    const backColor = flash ? PALETTE.hitBack : PALETTE.bodyBack;
     const armorLevel = side === 'player' ? this.armorLevel : this.robotArmorLevel;
-    if (armorLevel > 0) {
-      const plateFill = side === 'player' ? 0x76513a : 0x80513b;
-      const plateTrim = side === 'player' ? 0xd8ad75 : 0xe1b07a;
-      const chestY = shoulderY + 5;
-      graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
-      graphics.fillRoundedRect(x - 13, chestY, 26, 31, 5).strokeRoundedRect(x - 13, chestY, 26, 31, 5);
-      for (let rib = 0; rib < Math.min(armorLevel, 6); rib++) {
-        const ribY = chestY + 6 + rib * 4;
-        graphics.lineStyle(1.5, plateTrim, 0.85).lineBetween(x - 7, ribY, x + 7, ribY);
-      }
-      if (armorLevel >= 2) {
-        graphics.lineStyle(4, plateFill, 1).lineBetween(x - 10, footY - 118, x + 10, footY - 118);
-        graphics.lineStyle(1.2, plateTrim, 1).lineBetween(x - 10, footY - 118, x + 10, footY - 118);
-      }
-      if (armorLevel >= 3) {
-        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
-        graphics.fillRoundedRect(x - 23, shoulderY, 13, 15, 5).strokeRoundedRect(x - 23, shoulderY, 13, 15, 5);
-        graphics.fillRoundedRect(x + 10, shoulderY, 13, 15, 5).strokeRoundedRect(x + 10, shoulderY, 13, 15, 5);
-      }
-      if (armorLevel >= 4) {
-        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
-        graphics.fillRoundedRect(frontElbow.x - 7, frontElbow.y - 5, 14, 10, 4).strokeRoundedRect(frontElbow.x - 7, frontElbow.y - 5, 14, 10, 4);
-        graphics.fillRoundedRect(backElbow.x - 7, backElbow.y - 5, 14, 10, 4).strokeRoundedRect(backElbow.x - 7, backElbow.y - 5, 14, 10, 4);
-        graphics.fillRoundedRect(x - 22, footY - 40, 12, 16, 4).strokeRoundedRect(x - 22, footY - 40, 12, 16, 4);
-        graphics.fillRoundedRect(x + 10, footY - 40, 12, 16, 4).strokeRoundedRect(x + 10, footY - 40, 12, 16, 4);
-      }
-      if (armorLevel >= 5) {
-        graphics.fillStyle(accent, 1).fillTriangle(x, chestY + 9, x - 5, chestY + 16, x + 5, chestY + 16);
-        graphics.lineStyle(3, plateTrim, 1).lineBetween(x - 9, footY - 46, x + 9, footY - 46);
-      }
-      if (armorLevel >= 6) {
-        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
-        graphics.fillRoundedRect(x - 19, shoulderY + 1, 12, 12, 5).strokeRoundedRect(x - 19, shoulderY + 1, 12, 12, 5);
-        graphics.fillRoundedRect(x + 7, shoulderY + 1, 12, 12, 5).strokeRoundedRect(x + 7, shoulderY + 1, 12, 12, 5);
-      }
-      if (armorLevel >= 7) {
-        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
-        graphics.fillRoundedRect(x - 25, footY - 55, 15, 17, 4).strokeRoundedRect(x - 25, footY - 55, 15, 17, 4);
-        graphics.fillRoundedRect(x + 10, footY - 55, 15, 17, 4).strokeRoundedRect(x + 10, footY - 55, 15, 17, 4);
-        graphics.lineStyle(3, plateTrim, 1).lineBetween(x - 17, chestY + 2, x + 17, chestY + 2);
-      }
-      if (armorLevel >= 8) {
-        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
-        graphics.strokeRoundedRect(x - 17, chestY - 3, 34, 37, 7);
-        graphics.fillStyle(accent, 1).fillCircle(x, chestY + 16, 2.5);
-      }
-    }
-
-    const origin = this.bowOrigin(actor, side);
+    const sway = Math.sin(time / 390 + (facing > 0 ? 0 : 1.4)) * 1.5;
+    const recoil = flash ? -facing * 6 : 0;
+    const hip = { x: x + recoil * 0.4, y: footY - 46 };
+    const neck = { x: x + sway + recoil, y: footY - 88 };
+    const shoulder = { x: neck.x, y: neck.y + 6 };
+    const head = { x: neck.x + facing * 2, y: footY - 107 };
+    const frontFoot = { x: x + facing * 22, y: footY - 5 };
+    const backFoot = { x: x - facing * 18, y: footY - 5 };
+    const strength = this.drawStrength(side, time);
     const dirX = Math.cos(angle);
     const dirY = Math.sin(angle);
     const perpX = -dirY;
     const perpY = dirX;
-    const centerX = origin.x + dirX * 8;
-    const centerY = origin.y + dirY * 8;
-    graphics.lineStyle(8, outlineColor, 0.9).beginPath();
-    for (let step = 0; step <= 10; step++) {
-      const t = step / 10 * 2 - 1;
-      const bowX = centerX + perpX * t * 26 + dirX * (11 * (1 - t * t));
-      const bowY = centerY + perpY * t * 26 + dirY * (11 * (1 - t * t));
-      if (step === 0) graphics.moveTo(bowX, bowY);
-      else graphics.lineTo(bowX, bowY);
+    const origin = { x: facing * 26, y: -82 };
+    const bowCenter = { x: origin.x - dirX * 5, y: origin.y - dirY * 5 };
+    const grip = { x: bowCenter.x + dirX * 11, y: bowCenter.y + dirY * 11 };
+    const pull = 6 + strength * 20;
+    const nock = { x: bowCenter.x - dirX * pull, y: bowCenter.y - dirY * pull };
+    const lerp = (from, to, amount) => ({ x: from.x + (to.x - from.x) * amount, y: from.y + (to.y - from.y) * amount });
+    const bend = (start, end, upper, lower, direction) => {
+      const distance = Math.min(Math.hypot(end.x - start.x, end.y - start.y), upper + lower - 0.01);
+      const cosine = (upper * upper + distance * distance - lower * lower) / (2 * upper * Math.max(distance, 0.01));
+      const jointAngle = Math.atan2(end.y - start.y, end.x - start.x) + Math.acos(Phaser.Math.Clamp(cosine, -1, 1)) * direction;
+      return { x: start.x + Math.cos(jointAngle) * upper, y: start.y + Math.sin(jointAngle) * upper };
+    };
+    const frontKnee = bend(hip, frontFoot, 24, 23, -facing);
+    const backKnee = bend(hip, backFoot, 24, 23, -facing);
+    const bowElbow = bend(shoulder, grip, 17, 17, facing);
+    const drawElbow = bend(shoulder, nock, 17, 16, facing);
+    const limb = (from, to, width, color) => {
+      graphics.lineStyle(width, color, 1).lineBetween(from.x, from.y, to.x, to.y);
+      graphics.fillStyle(color, 1).fillCircle(from.x, from.y, width / 2).fillCircle(to.x, to.y, width / 2);
+    };
+    const guard = (from, to, color) => limb(lerp(from, to, 0.18), lerp(from, to, 0.82), 12, color);
+    const spikes = (from, to, count) => {
+      const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+      const ux = (to.x - from.x) / length;
+      const uy = (to.y - from.y) / length;
+      const nx = uy * facing;
+      const ny = -ux * facing;
+      graphics.fillStyle(PALETTE.stud, 1);
+      for (let index = 0; index < count; index++) {
+        const point = lerp(from, to, 0.18 + 0.64 * (index + 0.5) / count);
+        const baseX = point.x + nx * 5;
+        const baseY = point.y + ny * 5;
+        graphics.fillTriangle(baseX - ux * 3, baseY - uy * 3, baseX + ux * 3, baseY + uy * 3, baseX + nx * 5, baseY + ny * 5);
+      }
+    };
+    const radialSpikes = (center, radius, angles, length) => {
+      graphics.fillStyle(PALETTE.stud, 1);
+      for (const spikeAngle of angles) {
+        const cx = Math.cos(spikeAngle);
+        const cy = Math.sin(spikeAngle);
+        const baseX = center.x + cx * radius;
+        const baseY = center.y + cy * radius;
+        graphics.fillTriangle(baseX - cy * 3.2, baseY + cx * 3.2, baseX + cy * 3.2, baseY - cx * 3.2, baseX + cx * length, baseY + cy * length);
+      }
+    };
+    const enterActorSpace = () => {
+      graphics.save();
+      graphics.translateCanvas(actor.x, actor.footY);
+      graphics.scaleCanvas(ACTOR_SCALE, ACTOR_SCALE);
+    };
+
+    enterActorSpace();
+    if (side === 'player' && this.shieldActive) {
+      graphics.fillStyle(0xffffff, 0.07).fillCircle(x, footY - 66, 56);
+      graphics.lineStyle(2, PALETTE.arrow, 0.55).strokeCircle(x, footY - 66, 56);
+    }
+    limb(hip, backKnee, 11, backColor);
+    limb(backKnee, backFoot, 10, backColor);
+    if (armorLevel >= 5) guard(backKnee, backFoot, PALETTE.metalBack);
+    limb(hip, neck, 17, frontColor);
+    limb(hip, frontKnee, 11, frontColor);
+    limb(frontKnee, frontFoot, 10, frontColor);
+    if (armorLevel >= 5) {
+      guard(frontKnee, frontFoot, PALETTE.metal);
+      graphics.fillStyle(PALETTE.metalLight, 1).fillCircle(frontKnee.x, frontKnee.y, 6.5);
+    }
+    if (armorLevel >= 7) spikes(frontKnee, frontFoot, 3);
+    limb(shoulder, bowElbow, 9, frontColor);
+    limb(bowElbow, grip, 8.5, frontColor);
+    if (armorLevel >= 4) guard(bowElbow, grip, PALETTE.metal);
+    if (armorLevel >= 7) spikes(bowElbow, grip, 2);
+    graphics.fillStyle(frontColor, 1).fillCircle(head.x, head.y, 17);
+
+    if (armorLevel >= 1) {
+      const chestX = (hip.x + neck.x) / 2;
+      const chestTop = neck.y + 2;
+      graphics.fillStyle(PALETTE.plate, 1).fillRoundedRect(chestX - 11, chestTop, 22, hip.y - chestTop + 3, 7);
+      graphics.lineStyle(1.5, PALETTE.plateSeam, 1)
+        .lineBetween(chestX, chestTop + 11, chestX, hip.y)
+        .lineBetween(chestX - 9, chestTop + 11, chestX + 9, chestTop + 11)
+        .lineBetween(chestX - 8, chestTop + 21, chestX + 8, chestTop + 21)
+        .lineBetween(chestX - 8, chestTop + 31, chestX + 8, chestTop + 31);
+      if (armorLevel >= 8) {
+        graphics.fillStyle(PALETTE.metal, 1)
+          .fillRoundedRect(chestX - 13, hip.y - 1, 12, 12, 3)
+          .fillRoundedRect(chestX + 1, hip.y - 1, 12, 12, 3);
+        graphics.fillStyle(PALETTE.metalLight, 1).fillRoundedRect(neck.x - 9, neck.y - 4, 18, 7, 3);
+      }
+    }
+    if (armorLevel >= 2) {
+      if (armorLevel >= 8) {
+        graphics.fillStyle(PALETTE.metal, 1).fillTriangle(head.x - 4, head.y - 16, head.x + 4, head.y - 16, head.x, head.y - 27);
+      }
+      graphics.fillStyle(PALETTE.metal, 1).fillCircle(head.x, head.y, 18.5);
+      graphics.fillStyle(PALETTE.metalLight, 1).fillEllipse(head.x - facing * 3, head.y - 10, 20, 7);
+      graphics.fillStyle(PALETTE.visor, 1).fillRect(facing > 0 ? head.x - 2 : head.x - 16, head.y - 4, 18, 4);
+      const faceX = head.x + facing * 9;
+      if (side === 'robot') {
+        graphics.fillStyle(PALETTE.orange, 1)
+          .fillRect(faceX - 8, head.y - 4, 16, 4)
+          .fillRect(faceX - 2, head.y - 10, 4, 20);
+      } else {
+        graphics.fillStyle(PALETTE.visor, 1);
+        for (const [offsetX, offsetY] of [[-2.5, 5], [2.5, 5], [-2.5, 10], [2.5, 10]]) {
+          graphics.fillCircle(faceX + offsetX, head.y + offsetY, 1.4);
+        }
+      }
+    }
+
+    this.drawBow(graphics, bowCenter, dirX, dirY, perpX, perpY, nock);
+    graphics.fillStyle(frontColor, 1).fillCircle(grip.x, grip.y, 4.6);
+    if (strength > 0) {
+      const accent = side === 'player' ? WEAPONS.find(item => item.id === this.selectedWeapon).color : PALETTE.arrow;
+      graphics.restore();
+      this.drawArrowSprite(
+        graphics,
+        actor.x + nock.x * ACTOR_SCALE + dirX * 36,
+        actor.footY + nock.y * ACTOR_SCALE + dirY * 36,
+        dirX,
+        dirY,
+        accent
+      );
+      enterActorSpace();
+    }
+    limb(shoulder, drawElbow, 9, frontColor);
+    limb(drawElbow, nock, 8.5, frontColor);
+    if (armorLevel >= 4) guard(drawElbow, nock, PALETTE.metal);
+    if (armorLevel >= 7) spikes(drawElbow, nock, 2);
+    if (armorLevel >= 3) {
+      const pad = { x: shoulder.x - facing * 2, y: shoulder.y - 1 };
+      if (armorLevel >= 6) {
+        const up = -Math.PI / 2;
+        radialSpikes(pad, 9, [up - facing * 0.4, up - facing * 0.95, up - facing * 1.5], 16);
+      }
+      graphics.fillStyle(PALETTE.metal, 1).fillEllipse(pad.x, pad.y, 22, 16);
+      graphics.fillStyle(PALETTE.metalLight, 1).fillEllipse(pad.x, pad.y - 3, 15, 6);
+    }
+    graphics.restore();
+  }
+
+  drawBow(graphics, center, dirX, dirY, perpX, perpY, nock) {
+    const point = t => ({
+      x: center.x + perpX * t * 27 + dirX * 11 * (1 - t * t),
+      y: center.y + perpY * t * 27 + dirY * 11 * (1 - t * t)
+    });
+    const tips = [point(-1), point(1)];
+    graphics.lineStyle(1.3, PALETTE.bowString, 0.95)
+      .lineBetween(tips[0].x, tips[0].y, nock.x, nock.y)
+      .lineBetween(nock.x, nock.y, tips[1].x, tips[1].y);
+    graphics.lineStyle(5, PALETTE.bow, 1).beginPath();
+    for (let step = 0; step <= 12; step++) {
+      const bowPoint = point(step / 12 * 2 - 1);
+      if (step === 0) graphics.moveTo(bowPoint.x, bowPoint.y);
+      else graphics.lineTo(bowPoint.x, bowPoint.y);
     }
     graphics.strokePath();
-    graphics.lineStyle(4, 0xffa900, 1).beginPath();
-    for (let step = 0; step <= 10; step++) {
-      const t = step / 10 * 2 - 1;
-      const bowX = centerX + perpX * t * 26 + dirX * (11 * (1 - t * t));
-      const bowY = centerY + perpY * t * 26 + dirY * (11 * (1 - t * t));
-      if (step === 0) graphics.moveTo(bowX, bowY);
-      else graphics.lineTo(bowX, bowY);
+    graphics.lineStyle(3, PALETTE.bow, 1);
+    for (const tip of tips) {
+      graphics.lineBetween(tip.x, tip.y, tip.x + dirX * 5, tip.y + dirY * 5);
     }
-    graphics.strokePath();
-    graphics.lineStyle(1.2, 0xf1d7ad, 0.92).lineBetween(centerX - perpX * 26, centerY - perpY * 26, centerX + perpX * 26, centerY + perpY * 26);
   }
 
   removeArrow(index) {
@@ -845,7 +970,7 @@ class ArcherScene extends Phaser.Scene {
     if (this.points < cost) return;
     this.points -= cost;
     this.armorLevel++;
-    const reduction = ARMOR_DAMAGE_REDUCTION[this.armorLevel] * 100;
+    const reduction = Math.round(ARMOR_DAMAGE_REDUCTION[this.armorLevel] * 100);
     this.setNotice(`ARMOR ${this.armorLevel} - ${reduction}% LESS DAMAGE`);
     this.syncHud();
   }
@@ -863,6 +988,7 @@ class ArcherScene extends Phaser.Scene {
     ui.robotPosition.textContent = this.robot ? `RIVAL: ${this.robot.label}` : 'RIVAL DEFEATED';
     ui.playerHealth.style.width = `${this.playerHealth}%`;
     ui.playerHealthText.textContent = this.playerHealth;
+    ui.playerArmor.textContent = this.armorLevel;
     const robotHealth = this.robot ? this.robot.health : 0;
     ui.robotHealth.style.width = `${robotHealth}%`;
     ui.robotHealthText.textContent = robotHealth;
@@ -876,65 +1002,76 @@ class ArcherScene extends Phaser.Scene {
       button.type = 'button';
       button.className = 'weapon-button';
       button.dataset.weapon = weapon.id;
-      button.style.setProperty('--weapon-color', `#${weapon.color.toString(16).padStart(6, '0')}`);
       button.disabled = !this.started || this.ended || (!owned && this.points < weapon.cost);
       button.setAttribute('aria-pressed', String(selected));
+      button.title = weapon.detail;
+      button.setAttribute('aria-label', `${weapon.name}: ${weapon.detail}. ${selected ? 'Equipped' : owned ? 'Owned' : `Costs ${weapon.cost} points`}`);
+      if (selected) {
+        button.style.setProperty('--item-bg', toCssColor(weapon.color));
+        button.style.setProperty('--item-ink', '#262626');
+      } else if (owned) {
+        button.style.setProperty('--item-bg', '#d9d9d9');
+        button.style.setProperty('--item-ink', '#4b4b4b');
+      }
+      if (!owned) button.append(createLockBadge(weapon.cost));
       const name = document.createElement('span');
       name.className = 'weapon-name';
       name.textContent = weapon.name;
-      const detail = document.createElement('small');
-      detail.textContent = weapon.detail;
-      const state = document.createElement('strong');
-      state.textContent = selected ? 'EQUIPPED' : owned ? 'EQUIP' : `${weapon.cost} PTS`;
-      button.append(name, detail, state);
+      button.append(name, createArrowIcon(selected ? shadeColor(weapon.color, 0.62) : weapon.color));
       return button;
     }));
     const armorCost = ARMOR_COST * (this.armorLevel + 1);
-    const upgradeButton = (id, name, detail, state, color, disabled, pressed = false) => {
+    const upgradeButton = ({ id, label, color, cost, state, disabled, pressed = false, description }) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'weapon-button';
+      button.className = state ? 'upgrade-button is-complete' : 'upgrade-button';
       button.dataset.upgrade = id;
-      button.style.setProperty('--weapon-color', color);
+      button.style.setProperty('--stat-color', color);
       button.disabled = disabled;
       button.setAttribute('aria-pressed', String(pressed));
-      const nameElement = document.createElement('span');
-      nameElement.className = 'weapon-name';
-      nameElement.textContent = name;
-      const detailElement = document.createElement('small');
-      detailElement.textContent = detail;
-      const stateElement = document.createElement('strong');
-      stateElement.textContent = state;
-      button.append(nameElement, detailElement, stateElement);
+      button.title = description;
+      button.setAttribute('aria-label', `${label}. ${description}. ${state || `Costs ${cost} points`}`);
+      const chip = document.createElement('span');
+      chip.className = 'price-chip';
+      if (state) chip.textContent = state;
+      else chip.append(createSkullIcon(), document.createTextNode(formatCost(cost)));
+      const text = document.createElement('span');
+      text.className = 'stat-label';
+      text.textContent = label;
+      button.append(chip, text);
       return button;
     };
+    const closed = !this.started || this.ended;
     ui.upgrades.replaceChildren(
-      upgradeButton(
-        'armor',
-        'ARMOR',
-        `${ARMOR_DAMAGE_REDUCTION[this.armorLevel] * 100}% LESS DAMAGE · ${this.armorLevel}/${ARMOR_MAX_LEVEL}`,
-        this.armorLevel >= ARMOR_MAX_LEVEL ? 'MAX' : `${armorCost} PTS`,
-        '#84d8bd',
-        !this.started || this.ended || this.armorLevel >= ARMOR_MAX_LEVEL || this.points < armorCost,
-        this.armorLevel > 0
-      ),
-      upgradeButton(
-        'medkit',
-        'MEDKIT',
-        `RESTORE UP TO ${MEDKIT_HEAL} HEALTH`,
-        this.playerHealth >= 100 ? 'FULL' : `${MEDKIT_COST} PTS`,
-        '#f08c62',
-        !this.started || this.ended || this.playerHealth >= 100 || this.points < MEDKIT_COST
-      ),
-      upgradeButton(
-        'shield',
-        'SHIELD',
-        'BLOCK THE NEXT HIT',
-        this.shieldActive ? 'ACTIVE' : `${SHIELD_COST} PTS`,
-        '#75e7dc',
-        !this.started || this.ended || this.shieldActive || this.points < SHIELD_COST,
-        this.shieldActive
-      )
+      upgradeButton({
+        id: 'armor',
+        label: `ARMOR +${this.armorLevel}`,
+        color: toCssColor(PALETTE.red),
+        cost: armorCost,
+        state: this.armorLevel >= ARMOR_MAX_LEVEL ? 'MAX' : null,
+        disabled: closed || this.armorLevel >= ARMOR_MAX_LEVEL || this.points < armorCost,
+        pressed: this.armorLevel > 0,
+        description: `${Math.round(ARMOR_DAMAGE_REDUCTION[this.armorLevel] * 100)}% less damage, level ${this.armorLevel} of ${ARMOR_MAX_LEVEL}`
+      }),
+      upgradeButton({
+        id: 'medkit',
+        label: `HEALTH +${MEDKIT_HEAL}`,
+        color: toCssColor(PALETTE.red),
+        cost: MEDKIT_COST,
+        state: this.playerHealth >= 100 ? 'FULL' : null,
+        disabled: closed || this.playerHealth >= 100 || this.points < MEDKIT_COST,
+        description: `Medkit restores up to ${MEDKIT_HEAL} health`
+      }),
+      upgradeButton({
+        id: 'shield',
+        label: `SHIELD +${this.shieldActive ? 1 : 0}`,
+        color: '#4d8ff0',
+        cost: SHIELD_COST,
+        state: this.shieldActive ? 'ACTIVE' : null,
+        disabled: closed || this.shieldActive || this.points < SHIELD_COST,
+        pressed: this.shieldActive,
+        description: 'Blocks the next hit'
+      })
     );
   }
 }
@@ -944,7 +1081,7 @@ const game = new Phaser.Game({
   width: WIDTH,
   height: HEIGHT,
   parent: 'game',
-  backgroundColor: '#3c3c3c',
+  backgroundColor: '#3d3d3d',
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#292929">
+  <meta name="theme-color" content="#3d3d3d">
   <title>Ragdoll Archers</title>
   <link rel="stylesheet" href="style.css">
   <script defer src="../mario-1.1/vendor/phaser.min.js"></script>
@@ -20,24 +20,25 @@
       <div class="arena-frame">
         <div id="game">
           <div class="hud">
-            <section class="fighter-status player-status" aria-label="Your status">
-              <div class="status-line"><span>YOU</span><strong id="player-health-text">100</strong></div>
-              <div class="health-track"><span id="player-health"></span></div>
+            <section class="player-status" aria-label="Your status">
+              <div class="stat-bar health-bar"><span id="player-health"></span><strong><span class="visually-hidden">Health </span><span id="player-health-text">100</span></strong></div>
+              <div class="armor-badge" title="Armor level">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.5 2 3 6 3 11v7.5c0 .8.7 1.5 1.5 1.5H10v-6H6.5v-2.5h11V14H14v6h5.5c.8 0 1.5-.7 1.5-1.5V11c0-5-3.5-9-9-9Z"/></svg>
+                <strong><span class="visually-hidden">Armor </span><span id="player-armor">0</span></strong>
+              </div>
             </section>
-            <div class="round-status">
-              <span>ROUND</span>
-              <strong id="round">01</strong>
-              <small id="robot-position">RIVAL: LOWER PLATFORM</small>
+            <section class="visually-hidden" aria-label="Rival status">
+              <span>Rival health</span> <strong id="robot-health-text">100</strong><span id="robot-health"></span>
+            </section>
+            <div class="match-status">
+              <span class="round-label">ROUND <strong id="round">01</strong></span>
+              <span class="score-label">SCORE <strong id="score">0000</strong></span>
+              <small id="robot-position" class="visually-hidden">RIVAL: LOWER PLATFORM</small>
             </div>
-            <section class="fighter-status robot-status" aria-label="Rival status">
-              <div class="status-line"><span>RIVAL</span><strong id="robot-health-text">100</strong></div>
-              <div class="health-track"><span id="robot-health"></span></div>
-            </section>
-            <div class="score-label">SCORE <strong id="score">0000</strong></div>
           </div>
           <div class="charge-readout" aria-live="off">
-            <div class="charge-copy"><span id="charge-label">SHOT POWER</span><strong id="charge-percent">0%</strong></div>
-            <div class="charge-track"><span id="charge-fill"></span></div>
+            <span id="charge-label">SHOT POWER</span>
+            <div class="stat-bar charge-bar"><span id="charge-fill"></span><strong id="charge-percent">0%</strong></div>
           </div>
           <div id="notice" role="status" aria-live="polite"></div>
         </div>
@@ -59,11 +60,16 @@
       <aside class="weapon-shop" aria-label="Weapon and armor shop">
         <div class="shop-heading">
           <h2>ARROWS</h2>
-          <span>POINTS <strong id="points">0</strong> <kbd id="infinite-points-hint" title="Press M for infinite points">M</kbd></span>
+          <span class="currency" title="Points">
+            <svg class="skull-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 2C6.9 2 3 5.7 3 10.6c0 2.8 1.3 5 3.5 6.3V20a1 1 0 0 0 1 1H9v-2h2v2h2v-2h2v2h1.5a1 1 0 0 0 1-1v-3.1c2.2-1.3 3.5-3.5 3.5-6.3C21 5.7 17.1 2 12 2ZM8.5 13.5a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6Zm7 0a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6ZM12 14.2l1.2 2h-2.4Z"/></svg>
+            <span class="visually-hidden">Points</span>
+            <strong id="points">0</strong>
+            <kbd id="infinite-points-hint" title="Press M for infinite points">M</kbd>
+          </span>
         </div>
         <div id="weapons" class="weapon-list"></div>
         <h3 class="shop-section-heading">DEFENSE</h3>
-        <div id="upgrades" class="weapon-list upgrade-list"></div>
+        <div id="upgrades" class="upgrade-list"></div>
       </aside>
     </section>
     <footer><span>RAGDOLL ARCHERS</span><span id="robot-timer">RIVAL SHOT READY</span></footer>
