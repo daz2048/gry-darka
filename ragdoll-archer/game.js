@@ -7,6 +7,13 @@ const PLAYER_FOOT_Y = 430;
 const CHARGE_TIME = 1300;
 const MATTER = Phaser.Physics.Matter.Matter;
 
+const WEAPONS = [
+  { id: 'default', name: 'DEFAULT', cost: 0, speed: 1, damage: 1, color: 0xf3f0e9, detail: 'BALANCED' },
+  { id: 'swift', name: 'SWIFT', cost: 500, speed: 1.3, damage: 1, color: 0x70a7ff, detail: 'FASTER SHOTS' },
+  { id: 'power', name: 'POWER', cost: 1000, speed: 1, damage: 1.4, color: 0xf5a623, detail: 'MORE DAMAGE' },
+  { id: 'elite', name: 'ELITE', cost: 2000, speed: 1.25, damage: 1.5, color: 0xff6259, detail: 'FAST + POWERFUL' }
+];
+
 const ROBOT_POSITIONS = [
   { x: 790, footY: 430, label: 'LOWER PLATFORM' },
   { x: 730, footY: 350, label: 'LEFT HIGH PLATFORM' },
@@ -34,7 +41,9 @@ const ui = {
   chargeFill: document.getElementById('charge-fill'),
   notice: document.getElementById('notice'),
   robotTimer: document.getElementById('robot-timer'),
-  pause: document.getElementById('pause')
+  pause: document.getElementById('pause'),
+  points: document.getElementById('points'),
+  weapons: document.getElementById('weapons')
 };
 
 class ArcherScene extends Phaser.Scene {
@@ -46,6 +55,9 @@ class ArcherScene extends Phaser.Scene {
     this.matter.world.setGravity(0, MATTER_GRAVITY);
     this.round = 1;
     this.score = 0;
+    this.points = 0;
+    this.ownedWeapons = new Set(['default']);
+    this.selectedWeapon = 'default';
     this.playerHealth = 100;
     this.robotHealth = 100;
     this.started = false;
@@ -82,6 +94,10 @@ class ArcherScene extends Phaser.Scene {
     ui.primary.addEventListener('click', () => this.startGame());
     ui.pause.addEventListener('click', () => this.togglePause());
     document.getElementById('restart').addEventListener('click', () => this.startGame());
+    ui.weapons.addEventListener('click', event => {
+      const button = event.target.closest('button[data-weapon]');
+      if (button) this.selectWeapon(button.dataset.weapon);
+    });
   }
 
   createKeyboardInput() {
@@ -132,6 +148,9 @@ class ArcherScene extends Phaser.Scene {
     this.ended = false;
     this.round = 1;
     this.score = 0;
+    this.points = 0;
+    this.ownedWeapons = new Set(['default']);
+    this.selectedWeapon = 'default';
     this.playerHealth = 100;
     this.chargeStartedAt = null;
     this.robot = null;
@@ -168,7 +187,8 @@ class ArcherScene extends Phaser.Scene {
     this.updateAim(pointer);
     const power = Phaser.Math.Clamp(chargeDuration / CHARGE_TIME, 0.12, 1);
     const origin = this.bowOrigin(this.player, 'player');
-    this.launchArrow('player', origin.x, origin.y, this.aimAngle, 7 + power * 14, power);
+    const weapon = WEAPONS.find(item => item.id === this.selectedWeapon);
+    this.launchArrow('player', origin.x, origin.y, this.aimAngle, (7 + power * 14) * weapon.speed, power, weapon);
     ui.chargeLabel.textContent = 'SHOT POWER';
     ui.chargeFill.style.width = '0%';
     ui.chargePercent.textContent = '0%';
@@ -188,7 +208,7 @@ class ArcherScene extends Phaser.Scene {
     };
   }
 
-  launchArrow(side, x, y, angle, speed, power) {
+  launchArrow(side, x, y, angle, speed, power, weapon = WEAPONS[0]) {
     const body = MATTER.Bodies.rectangle(x, y, 42, 4, {
       label: `${side}-arrow`,
       frictionAir: 0.0015,
@@ -199,7 +219,7 @@ class ArcherScene extends Phaser.Scene {
     MATTER.Body.setAngle(body, angle);
     MATTER.Body.setVelocity(body, { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed });
     this.matter.world.add(body);
-    this.arrows.push({ body, side, power, bornAt: this.time.now });
+    this.arrows.push({ body, side, power, weapon, bornAt: this.time.now });
   }
 
   robotShoot() {
@@ -251,7 +271,7 @@ class ArcherScene extends Phaser.Scene {
       const target = arrow.side === 'player' ? this.robot : this.player;
       if (target && this.arrowHitsTarget(body.position, angle, target)) {
         this.removeArrow(index);
-        this.hitTarget(arrow.side, arrow.power);
+        this.hitTarget(arrow.side, arrow.power, arrow.weapon);
         continue;
       }
       if (time - arrow.bornAt > 6500 || x < -70 || x > WIDTH + 70 || y > HEIGHT + 70) {
@@ -269,14 +289,14 @@ class ArcherScene extends Phaser.Scene {
     return headDistance < 22 || torsoDistance < 31;
   }
 
-  hitTarget(side, power) {
-    const damage = Math.round(15 + power * 34);
+  hitTarget(side, power, weapon = WEAPONS[0]) {
+    const damage = Math.round((15 + power * 34) * weapon.damage);
     if (side === 'player') {
       if (!this.robot || this.robot.health <= 0) return;
       this.robot.health = Math.max(0, this.robot.health - damage);
       this.robotHealth = this.robot.health;
       this.robotFlashUntil = this.time.now + 180;
-      this.score += damage * 10;
+      this.awardPoints(damage * 10);
       this.setNotice(`ROBOT -${damage}`);
       if (this.robot.health <= 0) this.defeatRobot();
     } else {
@@ -289,7 +309,7 @@ class ArcherScene extends Phaser.Scene {
   }
 
   defeatRobot() {
-    this.score += 250;
+    this.awardPoints(250);
     this.robot = null;
     this.nextRobotShotAt = Infinity;
     if (this.robotPlatformBody) this.matter.world.remove(this.robotPlatformBody);
@@ -341,7 +361,8 @@ class ArcherScene extends Phaser.Scene {
     if (!this.started || this.ended || !this.player) return;
     const origin = this.bowOrigin(this.player, 'player');
     const power = this.chargeStartedAt === null ? 0.28 : Phaser.Math.Clamp((time - this.chargeStartedAt) / CHARGE_TIME, 0.12, 1);
-    const speed = 7 + power * 14;
+    const weapon = WEAPONS.find(item => item.id === this.selectedWeapon);
+    const speed = (7 + power * 14) * weapon.speed;
     this.aimGraphics.fillStyle(0xf4f3ef, this.chargeStartedAt === null ? 0.32 : 0.66);
     for (let frame = 2; frame <= 32; frame += 4) {
       const x = origin.x + Math.cos(this.aimAngle) * speed * frame;
@@ -358,7 +379,7 @@ class ArcherScene extends Phaser.Scene {
       const angle = arrow.body.angle;
       const dx = Math.cos(angle);
       const dy = Math.sin(angle);
-      const color = arrow.side === 'player' ? 0xf3f0e9 : 0xf26a5f;
+      const color = arrow.side === 'player' ? arrow.weapon.color : 0xf26a5f;
       this.arrowGraphics.lineStyle(3, color, 1).lineBetween(x - dx * 19, y - dy * 19, x + dx * 14, y + dy * 14);
       this.arrowGraphics.fillStyle(color, 1).fillTriangle(x + dx * 21, y + dy * 21, x + dx * 10 - dy * 5, y + dy * 10 + dx * 5, x + dx * 10 + dy * 5, y + dy * 10 - dx * 5);
     }
@@ -452,6 +473,25 @@ class ArcherScene extends Phaser.Scene {
     this.noticeUntil = this.time.now + 950;
   }
 
+  awardPoints(amount) {
+    this.score += amount;
+    this.points += amount;
+  }
+
+  selectWeapon(id) {
+    if (!this.started || this.ended) return;
+    const weapon = WEAPONS.find(item => item.id === id);
+    if (!weapon) return;
+    if (!this.ownedWeapons.has(id)) {
+      if (this.points < weapon.cost) return;
+      this.points -= weapon.cost;
+      this.ownedWeapons.add(id);
+    }
+    this.selectedWeapon = id;
+    this.setNotice(`${weapon.name} EQUIPPED`);
+    this.syncHud();
+  }
+
   syncHud() {
     ui.round.textContent = String(this.round).padStart(2, '0');
     ui.robotPosition.textContent = this.robot ? `ROBOT: ${this.robot.label}` : 'ROBOT DEFEATED';
@@ -461,6 +501,27 @@ class ArcherScene extends Phaser.Scene {
     ui.robotHealth.style.width = `${robotHealth}%`;
     ui.robotHealthText.textContent = robotHealth;
     ui.score.textContent = String(this.score).padStart(4, '0');
+    ui.points.textContent = this.points;
+    ui.weapons.replaceChildren(...WEAPONS.map(weapon => {
+      const button = document.createElement('button');
+      const owned = this.ownedWeapons.has(weapon.id);
+      const selected = this.selectedWeapon === weapon.id;
+      button.type = 'button';
+      button.className = 'weapon-button';
+      button.dataset.weapon = weapon.id;
+      button.style.setProperty('--weapon-color', `#${weapon.color.toString(16).padStart(6, '0')}`);
+      button.disabled = !this.started || this.ended || (!owned && this.points < weapon.cost);
+      button.setAttribute('aria-pressed', String(selected));
+      const name = document.createElement('span');
+      name.className = 'weapon-name';
+      name.textContent = weapon.name;
+      const detail = document.createElement('small');
+      detail.textContent = weapon.detail;
+      const state = document.createElement('strong');
+      state.textContent = selected ? 'EQUIPPED' : owned ? 'EQUIP' : `${weapon.cost} PTS`;
+      button.append(name, detail, state);
+      return button;
+    }));
   }
 }
 

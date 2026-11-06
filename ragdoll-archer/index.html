@@ -13,7 +13,7 @@
   <main class="app-shell">
     <header class="topbar">
       <a class="icon-button back" href="../index.html" aria-label="Game menu" title="Game menu">&#8592;</a>
-      <div class="brand">RAGDOLL <strong>ARCHERS</strong><span>SOLO VS MACHINE</span></div>
+      <div class="brand">RAGDOLL <strong>ARCHERS</strong><span>VERSION 0.1</span></div>
       <button id="restart" class="icon-button" aria-label="Restart duel" title="Restart duel">&#8635;</button>
     </header>
     <section class="game-layout" aria-label="Ragdoll archery duel">
@@ -56,6 +56,10 @@
         <span><kbd>RELEASE</kbd> FIRE</span>
         <span class="control-note">The robot can shoot while you charge.</span>
       </div>
+      <aside class="weapon-shop" aria-label="Weapon shop">
+        <div class="shop-heading"><h2>ARROWS</h2><span>POINTS <strong id="points">0</strong></span></div>
+        <div id="weapons" class="weapon-list"></div>
+      </aside>
     </section>
     <footer><span>RAGDOLL ARCHERS</span><span id="robot-timer">ROBOT SHOT READY</span></footer>
   </main>
