@@ -199,7 +199,9 @@ button, a { font: inherit; }
 .shop-heading h2 { margin: 0; font: 900 20px/1 Impact, "Arial Black", sans-serif; }
 .shop-heading span { color: var(--muted); font: 900 9px/1 Arial, sans-serif; white-space: nowrap; }
 .shop-heading strong { color: var(--orange); font-size: 14px; }
+.shop-section-heading { margin: 14px 0 8px; color: #84d8bd; font: 900 12px/1 Impact, "Arial Black", sans-serif; letter-spacing: 1px; }
 .weapon-list { display: grid; gap: 8px; }
+.upgrade-list .weapon-button { grid-column: 1 / -1; }
 .weapon-button { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; min-height: 58px; padding: 9px 10px; text-align: left; color: var(--ink); background: #454545; border: 1px solid #676767; border-left: 4px solid var(--weapon-color); border-radius: 4px; cursor: pointer; }
 .weapon-button:hover:not(:disabled), .weapon-button[aria-pressed="true"] { border-color: var(--weapon-color); background: #555; }
 .weapon-button:disabled { opacity: .55; cursor: not-allowed; }

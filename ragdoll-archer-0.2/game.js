@@ -5,6 +5,8 @@ const MATTER_GRAVITY = 1.6;
 const PLAYER_X = 156;
 const PLAYER_FOOT_Y = 430;
 const CHARGE_TIME = 1300;
+const ARMOR_COST = 750;
+const ARMOR_DAMAGE_REDUCTION = 0.4;
 const MATTER = Phaser.Physics.Matter.Matter;
 
 const WEAPONS = [
@@ -43,7 +45,8 @@ const ui = {
   robotTimer: document.getElementById('robot-timer'),
   pause: document.getElementById('pause'),
   points: document.getElementById('points'),
-  weapons: document.getElementById('weapons')
+  weapons: document.getElementById('weapons'),
+  upgrades: document.getElementById('upgrades')
 };
 
 class ArcherScene extends Phaser.Scene {
@@ -58,6 +61,7 @@ class ArcherScene extends Phaser.Scene {
     this.points = 0;
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
+    this.hasArmor = false;
     this.playerHealth = 100;
     this.robotHealth = 100;
     this.started = false;
@@ -98,6 +102,9 @@ class ArcherScene extends Phaser.Scene {
       const button = event.target.closest('button[data-weapon]');
       if (button) this.selectWeapon(button.dataset.weapon);
     });
+    ui.upgrades.addEventListener('click', event => {
+      if (event.target.closest('button[data-upgrade="armor"]')) this.buyArmor();
+    });
   }
 
   createKeyboardInput() {
@@ -125,7 +132,7 @@ class ArcherScene extends Phaser.Scene {
       { x: PLAYER_X, footY: PLAYER_FOOT_Y, width: 196, solid: true },
       ...ROBOT_POSITIONS.map(position => ({ x: position.x, footY: position.footY, width: 166, solid: false }))
     ];
-    this.platformGraphics = this.add.graphics().setDepth(1);
+    this.platformGraphics = this.add.graphics().setDepth(1).setVisible(false);
     for (const platform of platforms) {
       const y = platform.footY + 10;
       if (platform.solid) {
@@ -151,6 +158,7 @@ class ArcherScene extends Phaser.Scene {
     this.points = 0;
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
+    this.hasArmor = false;
     this.playerHealth = 100;
     this.chargeStartedAt = null;
     this.robot = null;
@@ -290,7 +298,10 @@ class ArcherScene extends Phaser.Scene {
   }
 
   hitTarget(side, power, weapon = WEAPONS[0]) {
-    const damage = Math.round((15 + power * 34) * weapon.damage);
+    const baseDamage = Math.round((15 + power * 34) * weapon.damage);
+    const damage = side === 'robot' && this.hasArmor
+      ? Math.round(baseDamage * (1 - ARMOR_DAMAGE_REDUCTION))
+      : baseDamage;
     if (side === 'player') {
       if (!this.robot || this.robot.health <= 0) return;
       this.robot.health = Math.max(0, this.robot.health - damage);
@@ -492,6 +503,14 @@ class ArcherScene extends Phaser.Scene {
     this.syncHud();
   }
 
+  buyArmor() {
+    if (!this.started || this.ended || this.hasArmor || this.points < ARMOR_COST) return;
+    this.points -= ARMOR_COST;
+    this.hasArmor = true;
+    this.setNotice('ARMOR EQUIPPED - 40% LESS DAMAGE');
+    this.syncHud();
+  }
+
   syncHud() {
     ui.round.textContent = String(this.round).padStart(2, '0');
     ui.robotPosition.textContent = this.robot ? `ROBOT: ${this.robot.label}` : 'ROBOT DEFEATED';
@@ -522,6 +541,22 @@ class ArcherScene extends Phaser.Scene {
       button.append(name, detail, state);
       return button;
     }));
+    const armorButton = document.createElement('button');
+    armorButton.type = 'button';
+    armorButton.className = 'weapon-button';
+    armorButton.dataset.upgrade = 'armor';
+    armorButton.style.setProperty('--weapon-color', '#84d8bd');
+    armorButton.disabled = !this.started || this.ended || this.hasArmor || this.points < ARMOR_COST;
+    armorButton.setAttribute('aria-pressed', String(this.hasArmor));
+    const armorName = document.createElement('span');
+    armorName.className = 'weapon-name';
+    armorName.textContent = 'ARMOR';
+    const armorDetail = document.createElement('small');
+    armorDetail.textContent = '40% LESS DAMAGE';
+    const armorState = document.createElement('strong');
+    armorState.textContent = this.hasArmor ? 'ACTIVE' : `${ARMOR_COST} PTS`;
+    armorButton.append(armorName, armorDetail, armorState);
+    ui.upgrades.replaceChildren(armorButton);
   }
 }
 
