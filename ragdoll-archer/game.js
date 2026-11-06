@@ -33,7 +33,8 @@ const ui = {
   chargePercent: document.getElementById('charge-percent'),
   chargeFill: document.getElementById('charge-fill'),
   notice: document.getElementById('notice'),
-  robotTimer: document.getElementById('robot-timer')
+  robotTimer: document.getElementById('robot-timer'),
+  pause: document.getElementById('pause')
 };
 
 class ArcherScene extends Phaser.Scene {
@@ -59,6 +60,9 @@ class ArcherScene extends Phaser.Scene {
     this.robot = { ...ROBOT_POSITIONS[0], health: 100 };
     this.robotPlatformBody = null;
     this.nextRobotShotAt = Infinity;
+    this.paused = false;
+    this.pausedAt = 0;
+    this.pendingSpawnAt = null;
 
     this.drawArena();
     this.addPlatforms();
@@ -76,6 +80,7 @@ class ArcherScene extends Phaser.Scene {
     this.input.on('pointerup', pointer => this.releaseShot(pointer));
     this.input.on('pointerupoutside', pointer => this.releaseShot(pointer));
     ui.primary.addEventListener('click', () => this.startGame());
+    ui.pause.addEventListener('click', () => this.togglePause());
     document.getElementById('restart').addEventListener('click', () => this.startGame());
   }
 
@@ -107,7 +112,12 @@ class ArcherScene extends Phaser.Scene {
     this.platformGraphics = this.add.graphics().setDepth(1);
     for (const platform of platforms) {
       const y = platform.footY + 10;
-      if (platform.solid) this.matter.add.rectangle(platform.x, y, platform.width, 20, { isStatic: true, label: 'platform', friction: 0.9 });
+      if (platform.solid) {
+        this.matter.add.rectangle(platform.x, y, platform.width, 20, { isStatic: true, label: 'platform', friction: 0.9 });
+        for (const merlonX of [platform.x - platform.width / 2 + 2, platform.x + platform.width / 2 - 22]) {
+          this.platformGraphics.fillStyle(0x666666).fillRoundedRect(merlonX, platform.footY - 16, 20, 18, 2);
+        }
+      }
       this.platformGraphics.fillStyle(0x666666).fillRoundedRect(platform.x - platform.width / 2, y - 10, platform.width, 20, 3);
       this.platformGraphics.fillStyle(0x898989, 0.45).fillRect(platform.x - platform.width / 2 + 5, y - 7, platform.width - 10, 3);
       this.platformGraphics.fillStyle(0x4c4c4c, 0.5).fillRect(platform.x - platform.width / 2, y + 10, platform.width, 5);
@@ -115,6 +125,8 @@ class ArcherScene extends Phaser.Scene {
   }
 
   startGame() {
+    if (this.paused) this.togglePause();
+    this.pendingSpawnAt = null;
     this.clearArrows();
     this.started = true;
     this.ended = false;
@@ -142,7 +154,7 @@ class ArcherScene extends Phaser.Scene {
   }
 
   beginCharge(pointer) {
-    if (!this.started || this.ended || this.chargeStartedAt !== null) return;
+    if (!this.started || this.ended || this.paused || this.chargeStartedAt !== null) return;
     this.updateAim(pointer);
     this.chargeStartedAt = this.time.now;
     ui.chargeLabel.textContent = 'CHARGING';
@@ -207,6 +219,11 @@ class ArcherScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    if (this.paused) return;
+    if (this.pendingSpawnAt !== null && time >= this.pendingSpawnAt) {
+      this.pendingSpawnAt = null;
+      if (this.started && !this.ended) this.spawnRobot();
+    }
     if (this.chargeStartedAt !== null) {
       const power = Phaser.Math.Clamp((time - this.chargeStartedAt) / CHARGE_TIME, 0, 1);
       ui.chargeFill.style.width = `${power * 100}%`;
@@ -281,9 +298,32 @@ class ArcherScene extends Phaser.Scene {
     this.round++;
     this.syncHud();
     this.setNotice('ROBOT DOWN - NEXT ROUND');
-    this.time.delayedCall(900, () => {
-      if (this.started && !this.ended) this.spawnRobot();
-    });
+    this.pendingSpawnAt = this.time.now + 900;
+  }
+
+  togglePause() {
+    if (!this.started || this.ended) return;
+    this.paused = !this.paused;
+    ui.pause.innerHTML = this.paused ? '&#9654;' : '&#10074;&#10074;';
+    ui.pause.setAttribute('aria-label', this.paused ? 'Resume duel' : 'Pause duel');
+    if (this.paused) {
+      this.pausedAt = this.time.now;
+      this.chargeStartedAt = null;
+      ui.chargeLabel.textContent = 'SHOT POWER';
+      ui.chargeFill.style.width = '0%';
+      ui.chargePercent.textContent = '0%';
+      this.matter.world.pause();
+      ui.notice.textContent = 'PAUSED';
+      this.noticeUntil = Infinity;
+      return;
+    }
+    const pausedFor = this.time.now - this.pausedAt;
+    this.matter.world.resume();
+    this.nextRobotShotAt += pausedFor;
+    if (this.pendingSpawnAt !== null) this.pendingSpawnAt += pausedFor;
+    for (const arrow of this.arrows) arrow.bornAt += pausedFor;
+    this.noticeUntil = 0;
+    ui.notice.textContent = '';
   }
 
   finishGame() {
@@ -347,16 +387,35 @@ class ArcherScene extends Phaser.Scene {
     const accent = side === 'player' ? 0xf5a623 : 0xe75d52;
     const hipY = footY - 44;
     const shoulderY = footY - 82;
-    const frontLegX = x + (facingRight ? 19 : -19);
-    const backLegX = x + (facingRight ? -18 : 18);
-    const frontHandX = x + (facingRight ? 24 : -24);
+    const hip = { x, y: hipY };
+    const shoulder = { x, y: shoulderY + 4 };
+    const frontFoot = { x: x + (facingRight ? 19 : -19), y: footY - 3 };
+    const backFoot = { x: x + (facingRight ? -18 : 18), y: footY - 3 };
+    const frontHand = { x: x + (facingRight ? 24 : -24), y: footY - 82 };
+    const backHand = { x: x + (facingRight ? -22 : 22), y: footY - 58 };
+    const frontKnee = { x: (hip.x + frontFoot.x) / 2 + (facingRight ? 5 : -5), y: (hipY + footY) / 2 };
+    const backKnee = { x: (hip.x + backFoot.x) / 2 + (facingRight ? -4 : 4), y: (hipY + footY) / 2 + 3 };
+    const frontElbow = { x: (shoulder.x + frontHand.x) / 2, y: (shoulder.y + frontHand.y) / 2 + 10 };
+    const backElbow = { x: (shoulder.x + backHand.x) / 2 + (facingRight ? -6 : 6), y: (shoulder.y + backHand.y) / 2 + 4 };
+    const segment = (points, width) => {
+      graphics.lineStyle(width, bodyColor, 1).beginPath();
+      graphics.moveTo(points[0].x, points[0].y);
+      for (const point of points.slice(1)) graphics.lineTo(point.x, point.y);
+      graphics.strokePath();
+    };
+    const joint = (point, radius) => graphics.fillStyle(bodyColor, 1).fillCircle(point.x, point.y, radius);
 
-    graphics.lineStyle(12, bodyColor, 1).lineBetween(x, shoulderY, x + 1, hipY);
-    graphics.lineStyle(10, bodyColor, 1).lineBetween(x, hipY, frontLegX, footY - 3);
-    graphics.lineStyle(10, bodyColor, 1).lineBetween(x, hipY, backLegX, footY - 3);
-    graphics.lineStyle(9, bodyColor, 1).lineBetween(x, shoulderY + 4, frontHandX, footY - 82);
-    graphics.lineStyle(9, bodyColor, 1).lineBetween(x, shoulderY + 7, x + (facingRight ? -22 : 22), footY - 58);
+    segment([{ x, y: shoulderY }, hip], 12);
+    segment([hip, frontKnee, frontFoot], 10);
+    segment([hip, backKnee, backFoot], 10);
+    segment([shoulder, frontElbow, frontHand], 9);
+    segment([shoulder, backElbow, backHand], 9);
+    joint(frontKnee, 5);
+    joint(backKnee, 5);
+    joint(frontElbow, 4.5);
+    joint(backElbow, 4.5);
     graphics.fillStyle(bodyColor, 1).fillCircle(x, footY - 108, 16);
+    if (side === 'robot') graphics.fillStyle(0x8c8c8c, 1).fillRoundedRect(x - 15, footY - 124, 30, 13, 5);
     graphics.fillStyle(side === 'player' ? 0x70a7ff : 0xff6a5e, 1).fillCircle(x + (facingRight ? 5 : -5), footY - 109, 2.3);
     graphics.fillStyle(accent, 1).fillRoundedRect(x - 5, footY - 71, 10, 8, 2);
 

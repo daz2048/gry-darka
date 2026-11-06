@@ -152,6 +152,23 @@ button, a { font: inherit; }
   pointer-events: none;
 }
 
+.pause-button {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3;
+  width: 34px;
+  height: 34px;
+  color: var(--ink);
+  background: #242424c9;
+  border: 1px solid #ffffff30;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.pause-button:hover { border-color: var(--orange); color: var(--orange); }
+
 .overlay {
   position: absolute;
   inset: 0;
