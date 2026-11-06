@@ -145,15 +145,37 @@ class ArcherScene extends Phaser.Scene {
 
   drawArena() {
     const background = this.add.graphics().setDepth(-10);
-    background.fillGradientStyle(0x414141, 0x414141, 0x303030, 0x303030, 1).fillRect(0, 0, WIDTH, HEIGHT);
-    background.fillStyle(0xffffff, 0.08);
-    for (let index = 0; index < 34; index++) {
-      const x = (index * 197 + 41) % WIDTH;
-      const y = (index * 113 + 27) % 450;
-      background.fillCircle(x, y, index % 4 === 0 ? 2 : 1.2);
+    background.fillGradientStyle(0x16333d, 0x24444a, 0xc77a61, 0xe4a36a, 1).fillRect(0, 0, WIDTH, HEIGHT);
+    background.fillStyle(0xffd28a, 0.82).fillCircle(746, 178, 52);
+    background.lineStyle(2, 0xffdca2, 0.22).strokeCircle(746, 178, 66);
+    background.fillStyle(0x53656a, 0.72);
+    background.fillTriangle(0, 415, 150, 252, 345, 415);
+    background.fillTriangle(210, 420, 435, 230, 690, 420);
+    background.fillTriangle(590, 420, 810, 264, 1010, 420);
+    background.fillStyle(0x364c52, 0.84);
+    background.fillTriangle(-70, 464, 170, 321, 392, 464);
+    background.fillTriangle(290, 464, 560, 300, 850, 464);
+    background.fillTriangle(665, 464, 890, 330, 1080, 464);
+    background.fillStyle(0x193942, 0.55);
+    for (let index = 0; index < 9; index++) {
+      const x = index * 124 + 24;
+      const height = 76 + (index * 47) % 92;
+      background.fillRect(x, 442 - height, 48, height);
+      background.fillRect(x - 7, 436 - height, 62, 9);
+      for (let window = 0; window < 3; window++) {
+        background.fillStyle(window % 2 === 0 ? 0xffc77d : 0x78d5c9, 0.22);
+        background.fillRect(x + 10 + window * 13, 455 - height + 22, 4, 17);
+      }
+      background.fillStyle(0x193942, 0.55);
     }
-    background.fillStyle(0x292929).fillRect(0, 500, WIDTH, 40);
-    background.fillStyle(0x595959, 0.4).fillRect(0, 500, WIDTH, 3);
+    background.fillStyle(0x1f353b, 0.96).fillRect(0, 464, WIDTH, 76);
+    background.fillGradientStyle(0x31494d, 0x31494d, 0x18272d, 0x18272d, 1).fillRect(0, 464, WIDTH, 76);
+    background.fillStyle(0xf3b573, 0.85).fillRect(0, 499, WIDTH, 2);
+    background.fillStyle(0x67d3c5, 0.78).fillRect(0, 503, WIDTH, 1);
+    background.fillStyle(0xe4b37a, 0.16);
+    for (let index = 0; index < 16; index++) {
+      background.fillRoundedRect(20 + index * 64, 516, 34, 3, 1);
+    }
     this.matter.add.rectangle(WIDTH / 2, 520, WIDTH, 40, { isStatic: true, label: 'floor', friction: 0.9 });
   }
 
@@ -605,8 +627,12 @@ class ArcherScene extends Phaser.Scene {
     const x = actor.x;
     const footY = actor.footY;
     const facingRight = side === 'player';
-    const bodyColor = flash ? 0xffd05b : 0xf1f0ec;
-    const accent = side === 'player' ? 0xf5a623 : 0xe75d52;
+    const bodyColor = flash ? 0xffedb5 : side === 'player' ? 0xd8eee7 : 0xf0d4c4;
+    const suitColor = side === 'player' ? 0x3caaa5 : 0xc65f52;
+    const suitShadow = side === 'player' ? 0x1c5a62 : 0x713e45;
+    const outlineColor = side === 'player' ? 0x19343d : 0x382c38;
+    const trimColor = side === 'player' ? 0xa9ece0 : 0xffc08d;
+    const accent = side === 'player' ? 0x57d8c8 : 0xff795f;
     const hipY = footY - 44;
     const shoulderY = footY - 82;
     const hip = { x, y: hipY };
@@ -619,18 +645,32 @@ class ArcherScene extends Phaser.Scene {
     const backKnee = { x: (hip.x + backFoot.x) / 2 + (facingRight ? -4 : 4), y: (hipY + footY) / 2 + 3 };
     const frontElbow = { x: (shoulder.x + frontHand.x) / 2, y: (shoulder.y + frontHand.y) / 2 + 10 };
     const backElbow = { x: (shoulder.x + backHand.x) / 2 + (facingRight ? -6 : 6), y: (shoulder.y + backHand.y) / 2 + 4 };
-    const segment = (points, width) => {
-      graphics.lineStyle(width, bodyColor, 1).beginPath();
+    const strokeSegment = (points, color, width) => {
+      graphics.lineStyle(width, color, 1).beginPath();
       graphics.moveTo(points[0].x, points[0].y);
       for (const point of points.slice(1)) graphics.lineTo(point.x, point.y);
       graphics.strokePath();
     };
-    const joint = (point, radius) => graphics.fillStyle(bodyColor, 1).fillCircle(point.x, point.y, radius);
+    const segment = (points, width) => {
+      strokeSegment(points, outlineColor, width + 4);
+      strokeSegment(points, bodyColor, width);
+    };
+    const joint = (point, radius) => {
+      graphics.fillStyle(outlineColor, 1).fillCircle(point.x, point.y, radius + 2);
+      graphics.fillStyle(bodyColor, 1).fillCircle(point.x, point.y, radius);
+    };
 
     if (side === 'player' && this.shieldActive) {
       graphics.lineStyle(3, 0x75e7dc, 0.9).strokeCircle(x, footY - 69, 48);
       graphics.lineStyle(1, 0xd5fff8, 0.75).strokeCircle(x, footY - 69, 53);
     }
+    graphics.fillStyle(0x14232a, 0.3).fillEllipse(x, footY + 4, 58, 12);
+    const capeDirection = facingRight ? -1 : 1;
+    graphics.fillStyle(suitShadow, 0.9).fillTriangle(
+      x + capeDirection * 7, shoulderY + 8,
+      x + capeDirection * 34, footY - 49,
+      x + capeDirection * 14, footY - 66
+    );
     segment([{ x, y: shoulderY }, hip], 12);
     segment([hip, frontKnee, frontFoot], 10);
     segment([hip, backKnee, backFoot], 10);
@@ -640,10 +680,27 @@ class ArcherScene extends Phaser.Scene {
     joint(backKnee, 5);
     joint(frontElbow, 4.5);
     joint(backElbow, 4.5);
-    graphics.fillStyle(bodyColor, 1).fillCircle(x, footY - 108, 16);
-    if (side === 'robot') graphics.fillStyle(0x8c8c8c, 1).fillRoundedRect(x - 15, footY - 124, 30, 13, 5);
-    graphics.fillStyle(side === 'player' ? 0x70a7ff : 0xff6a5e, 1).fillCircle(x + (facingRight ? 5 : -5), footY - 109, 2.3);
-    graphics.fillStyle(accent, 1).fillRoundedRect(x - 5, footY - 71, 10, 8, 2);
+    graphics.fillStyle(outlineColor, 1).fillRoundedRect(x - 15, shoulderY + 2, 30, 32, 7);
+    graphics.fillStyle(suitColor, 1).fillRoundedRect(x - 12, shoulderY + 4, 24, 27, 6);
+    graphics.lineStyle(2, trimColor, 0.92).strokeRoundedRect(x - 12, shoulderY + 4, 24, 27, 6);
+    graphics.fillStyle(accent, 1).fillTriangle(x, shoulderY + 9, x - 5, shoulderY + 18, x + 5, shoulderY + 18);
+    graphics.fillStyle(suitShadow, 1).fillRoundedRect(x - 6, footY - 51, 12, 8, 2);
+    graphics.fillStyle(accent, 1).fillRect(x - 4, footY - 49, 8, 2);
+    graphics.fillStyle(outlineColor, 1).fillRoundedRect(frontFoot.x - 9, footY - 9, 19, 10, 4);
+    graphics.fillStyle(suitColor, 1).fillRoundedRect(frontFoot.x - 6, footY - 7, 15, 6, 3);
+    graphics.fillStyle(outlineColor, 1).fillRoundedRect(backFoot.x - 9, footY - 9, 19, 10, 4);
+    graphics.fillStyle(suitColor, 1).fillRoundedRect(backFoot.x - 6, footY - 7, 15, 6, 3);
+    graphics.fillStyle(outlineColor, 1).fillCircle(frontHand.x, frontHand.y, 6);
+    graphics.fillStyle(accent, 1).fillCircle(frontHand.x, frontHand.y, 3.5);
+    graphics.fillStyle(outlineColor, 1).fillCircle(backHand.x, backHand.y, 6);
+    graphics.fillStyle(suitColor, 1).fillCircle(backHand.x, backHand.y, 3.5);
+    graphics.fillStyle(outlineColor, 1).fillCircle(x, footY - 108, 18);
+    graphics.fillStyle(bodyColor, 1).fillCircle(x, footY - 108, 14);
+    graphics.fillStyle(suitColor, 1).fillRoundedRect(x - 16, footY - 124, 32, 9, 4);
+    graphics.lineStyle(1.5, trimColor, 1).lineBetween(x - 11, footY - 120, x + 11, footY - 120);
+    const visorX = x + (facingRight ? 2 : -11);
+    graphics.fillStyle(outlineColor, 1).fillRoundedRect(visorX, footY - 113, 9, 5, 2);
+    graphics.fillStyle(accent, 1).fillRect(visorX + (facingRight ? 5 : 1), footY - 112, 3, 1.5);
     const armorLevel = side === 'player' ? this.armorLevel : this.robotArmorLevel;
     if (armorLevel > 0) {
       const plateFill = side === 'player' ? 0x527f72 : 0x814b45;
@@ -702,6 +759,15 @@ class ArcherScene extends Phaser.Scene {
     const perpY = dirX;
     const centerX = origin.x + dirX * 8;
     const centerY = origin.y + dirY * 8;
+    graphics.lineStyle(9, outlineColor, 0.9).beginPath();
+    for (let step = 0; step <= 10; step++) {
+      const t = step / 10 * 2 - 1;
+      const bowX = centerX + perpX * t * 26 + dirX * (11 * (1 - t * t));
+      const bowY = centerY + perpY * t * 26 + dirY * (11 * (1 - t * t));
+      if (step === 0) graphics.moveTo(bowX, bowY);
+      else graphics.lineTo(bowX, bowY);
+    }
+    graphics.strokePath();
     graphics.lineStyle(5, accent, 1).beginPath();
     for (let step = 0; step <= 10; step++) {
       const t = step / 10 * 2 - 1;
@@ -711,7 +777,7 @@ class ArcherScene extends Phaser.Scene {
       else graphics.lineTo(bowX, bowY);
     }
     graphics.strokePath();
-    graphics.lineStyle(1.3, 0xffe6bc, 0.9).lineBetween(centerX - perpX * 26, centerY - perpY * 26, centerX + perpX * 26, centerY + perpY * 26);
+    graphics.lineStyle(1.3, trimColor, 0.92).lineBetween(centerX - perpX * 26, centerY - perpY * 26, centerX + perpX * 26, centerY + perpY * 26);
   }
 
   removeArrow(index) {
