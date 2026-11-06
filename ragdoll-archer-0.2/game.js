@@ -22,7 +22,7 @@ const WEAPONS = [
   { id: 'frost', name: 'FROST', cost: 1800, speed: 0.95, damage: 0.85, color: 0x74e1f4, detail: 'SLOWS ROBOT', effect: 'frost' },
   { id: 'poison', name: 'POISON', cost: 2200, speed: 1, damage: 0.85, color: 0x8cdb77, detail: 'DAMAGE OVER TIME', effect: 'poison' },
   { id: 'ricochet', name: 'RICOCHET', cost: 2400, speed: 1.1, damage: 1.1, color: 0xb692ff, detail: 'BOUNCES OFF PLATFORMS', effect: 'ricochet' },
-  { id: 'laser', name: 'LASER', cost: 2800, speed: 2, damage: 1.8, color: 0xff4ce1, detail: 'HIGH-SPEED BEAM', effect: 'laser' },
+  { id: 'laser', name: 'LASER', cost: 2800, speed: 2, damage: 1.8, color: 0xff4ce1, detail: 'INSTANT BEAM', effect: 'laser' },
   { id: 'elite', name: 'ELITE', cost: 3000, speed: 1.25, damage: 1.5, color: 0xff6259, detail: 'FAST + POWERFUL' }
 ];
 
@@ -235,7 +235,9 @@ class ArcherScene extends Phaser.Scene {
     const origin = this.bowOrigin(this.player, 'player');
     const weapon = WEAPONS.find(item => item.id === this.selectedWeapon);
     const speed = (7 + power * 14) * weapon.speed;
-    if (weapon.id === 'minigun') {
+    if (weapon.effect === 'laser') {
+      if (!this.fireLaser(origin, this.aimAngle, power, weapon)) this.setNotice('LASER FIRED');
+    } else if (weapon.id === 'minigun') {
       this.pendingBurst = {
         origin,
         angle: this.aimAngle,
@@ -253,6 +255,37 @@ class ArcherScene extends Phaser.Scene {
     ui.chargeLabel.textContent = 'SHOT POWER';
     ui.chargeFill.style.width = '0%';
     ui.chargePercent.textContent = '0%';
+  }
+
+  fireLaser(origin, angle, power, weapon) {
+    const directionX = Math.cos(angle);
+    const directionY = Math.sin(angle);
+    const maxDistance = Math.hypot(WIDTH, HEIGHT);
+    let beamDistance = maxDistance;
+    let hit = false;
+    if (this.robot && this.robot.health > 0) {
+      for (let distance = 0; distance <= maxDistance; distance += 8) {
+        const position = {
+          x: origin.x + directionX * distance,
+          y: origin.y + directionY * distance
+        };
+        if (!this.arrowHitsTarget(position, angle, this.robot)) continue;
+        beamDistance = distance + 24;
+        hit = true;
+        this.hitTarget('player', power, weapon);
+        break;
+      }
+    }
+    this.effects.push({
+      type: 'laser',
+      x: origin.x,
+      y: origin.y,
+      endX: origin.x + directionX * beamDistance,
+      endY: origin.y + directionY * beamDistance,
+      color: weapon.color,
+      bornAt: this.time.now
+    });
+    return hit;
   }
 
   updatePlayerBurst(time) {
@@ -485,6 +518,16 @@ class ArcherScene extends Phaser.Scene {
     const origin = this.bowOrigin(this.player, 'player');
     const power = this.chargeStartedAt === null ? 0.28 : Phaser.Math.Clamp((time - this.chargeStartedAt) / CHARGE_TIME, 0.12, 1);
     const weapon = WEAPONS.find(item => item.id === this.selectedWeapon);
+    if (weapon.effect === 'laser') {
+      const directionX = Math.cos(this.aimAngle);
+      const directionY = Math.sin(this.aimAngle);
+      const guideDistance = Math.hypot(WIDTH, HEIGHT);
+      this.aimGraphics.lineStyle(2, weapon.color, this.chargeStartedAt === null ? 0.4 : 0.75)
+        .lineBetween(origin.x, origin.y, origin.x + directionX * guideDistance, origin.y + directionY * guideDistance);
+      this.aimGraphics.lineStyle(0.8, 0xfff7ff, this.chargeStartedAt === null ? 0.35 : 0.8)
+        .lineBetween(origin.x, origin.y, origin.x + directionX * guideDistance, origin.y + directionY * guideDistance);
+      return;
+    }
     const speed = (7 + power * 14) * weapon.speed;
     this.aimGraphics.fillStyle(0xf4f3ef, this.chargeStartedAt === null ? 0.32 : 0.66);
     for (let frame = 2; frame <= 32; frame += 4) {
@@ -503,13 +546,7 @@ class ArcherScene extends Phaser.Scene {
       const dx = Math.cos(angle);
       const dy = Math.sin(angle);
       const color = arrow.side === 'player' ? arrow.weapon.color : 0xf26a5f;
-      if (arrow.side === 'player' && arrow.weapon.effect === 'laser') {
-        this.arrowGraphics.lineStyle(10, color, 0.24).lineBetween(x - dx * 36, y - dy * 36, x + dx * 18, y + dy * 18);
-        this.arrowGraphics.lineStyle(4, color, 0.72).lineBetween(x - dx * 30, y - dy * 30, x + dx * 16, y + dy * 16);
-        this.arrowGraphics.lineStyle(1.5, 0xffeafa, 1).lineBetween(x - dx * 27, y - dy * 27, x + dx * 14, y + dy * 14);
-      } else {
-        this.arrowGraphics.lineStyle(3, color, 1).lineBetween(x - dx * 19, y - dy * 19, x + dx * 14, y + dy * 14);
-      }
+      this.arrowGraphics.lineStyle(3, color, 1).lineBetween(x - dx * 19, y - dy * 19, x + dx * 14, y + dy * 14);
       this.arrowGraphics.fillStyle(color, 1).fillTriangle(x + dx * 21, y + dy * 21, x + dx * 10 - dy * 5, y + dy * 10 + dx * 5, x + dx * 10 + dy * 5, y + dy * 10 - dx * 5);
     }
   }
@@ -530,9 +567,17 @@ class ArcherScene extends Phaser.Scene {
 
   drawEffects(time) {
     this.effectGraphics.clear();
-    this.effects = this.effects.filter(effect => time - effect.bornAt < 520);
+    this.effects = this.effects.filter(effect => time - effect.bornAt < (effect.type === 'laser' ? 180 : 520));
     for (const effect of this.effects) {
       const age = time - effect.bornAt;
+      if (effect.type === 'laser') {
+        const opacity = 1 - age / 180;
+        this.effectGraphics.lineStyle(18, effect.color, opacity * 0.14).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
+        this.effectGraphics.lineStyle(8, effect.color, opacity * 0.4).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
+        this.effectGraphics.lineStyle(3, effect.color, opacity * 0.9).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
+        this.effectGraphics.lineStyle(1.2, 0xfff7ff, opacity).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
+        continue;
+      }
       const progress = age / 520;
       const distance = effect.speed * age * 0.045;
       const x = effect.x + Math.cos(effect.angle) * distance;
