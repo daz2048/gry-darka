@@ -14,7 +14,12 @@ const WEAPONS = [
   { id: 'default', name: 'DEFAULT', cost: 0, speed: 1, damage: 1, color: 0xf3f0e9, detail: 'BALANCED' },
   { id: 'swift', name: 'SWIFT', cost: 500, speed: 1.3, damage: 1, color: 0x70a7ff, detail: 'FASTER SHOTS' },
   { id: 'power', name: 'POWER', cost: 1000, speed: 1, damage: 1.4, color: 0xf5a623, detail: 'MORE DAMAGE' },
-  { id: 'elite', name: 'ELITE', cost: 2000, speed: 1.25, damage: 1.5, color: 0xff6259, detail: 'FAST + POWERFUL' }
+  { id: 'firework', name: 'FIREWORK', cost: 1400, speed: 0.9, damage: 1.5, color: 0xff7ac6, detail: 'BURST ON IMPACT', effect: 'firework' },
+  { id: 'minigun', name: 'MINIGUN', cost: 1600, speed: 1.05, damage: 0.42, color: 0xffcf56, detail: '5-ARROW BURST', burstCount: 5, spread: 0.045 },
+  { id: 'frost', name: 'FROST', cost: 1800, speed: 0.95, damage: 0.85, color: 0x74e1f4, detail: 'SLOWS ROBOT', effect: 'frost' },
+  { id: 'poison', name: 'POISON', cost: 2200, speed: 1, damage: 0.85, color: 0x8cdb77, detail: 'DAMAGE OVER TIME', effect: 'poison' },
+  { id: 'ricochet', name: 'RICOCHET', cost: 2400, speed: 1.1, damage: 1.1, color: 0xb692ff, detail: 'BOUNCES OFF PLATFORMS', effect: 'ricochet' },
+  { id: 'elite', name: 'ELITE', cost: 3000, speed: 1.25, damage: 1.5, color: 0xff6259, detail: 'FAST + POWERFUL' }
 ];
 
 const ROBOT_POSITIONS = [
@@ -39,7 +44,6 @@ const ui = {
   robotHealth: document.getElementById('robot-health'),
   robotHealthText: document.getElementById('robot-health-text'),
   score: document.getElementById('score'),
-  infiniteScore: document.getElementById('infinite-score'),
   chargeLabel: document.getElementById('charge-label'),
   chargePercent: document.getElementById('charge-percent'),
   chargeFill: document.getElementById('charge-fill'),
@@ -47,6 +51,7 @@ const ui = {
   robotTimer: document.getElementById('robot-timer'),
   pause: document.getElementById('pause'),
   points: document.getElementById('points'),
+  infinitePointsHint: document.getElementById('infinite-points-hint'),
   weapons: document.getElementById('weapons'),
   upgrades: document.getElementById('upgrades')
 };
@@ -61,9 +66,11 @@ class ArcherScene extends Phaser.Scene {
     this.round = 1;
     this.score = 0;
     this.points = 0;
-    this.infiniteScore = false;
+    this.infinitePoints = false;
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
+    this.effects = [];
+    this.robotPoison = null;
     this.armorLevel = 0;
     this.playerHealth = 100;
     this.robotHealth = 100;
@@ -89,6 +96,7 @@ class ArcherScene extends Phaser.Scene {
     this.aimGraphics = this.add.graphics().setDepth(3);
     this.arrowGraphics = this.add.graphics().setDepth(4);
     this.actorGraphics = this.add.graphics().setDepth(5);
+    this.effectGraphics = this.add.graphics().setDepth(6);
     this.createKeyboardInput();
     this.drawActors();
     this.syncHud();
@@ -101,7 +109,6 @@ class ArcherScene extends Phaser.Scene {
     ui.primary.addEventListener('click', () => this.startGame());
     ui.pause.addEventListener('click', () => this.togglePause());
     document.getElementById('restart').addEventListener('click', () => this.startGame());
-    ui.infiniteScore.addEventListener('click', () => this.enableInfiniteScore());
     ui.weapons.addEventListener('click', event => {
       const button = event.target.closest('button[data-weapon]');
       if (button) this.selectWeapon(button.dataset.weapon);
@@ -115,6 +122,7 @@ class ArcherScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ENTER', () => {
       if (!this.started || this.ended) this.startGame();
     });
+    this.input.keyboard.on('keydown-M', () => this.enableInfinitePoints());
   }
 
   drawArena() {
@@ -155,18 +163,21 @@ class ArcherScene extends Phaser.Scene {
     if (this.paused) this.togglePause();
     this.pendingSpawnAt = null;
     this.clearArrows();
+    this.effects = [];
+    this.robotPoison = null;
     this.started = true;
     this.ended = false;
     this.round = 1;
     this.score = 0;
     this.points = 0;
-    this.infiniteScore = false;
+    this.infinitePoints = false;
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
     this.armorLevel = 0;
     this.playerHealth = 100;
     this.chargeStartedAt = null;
     this.robot = null;
+    this.robotPoison = null;
     this.spawnRobot();
     ui.overlay.hidden = true;
     this.setNotice('SHOOT WHENEVER YOU ARE READY');
@@ -178,6 +189,7 @@ class ArcherScene extends Phaser.Scene {
     if (this.robotPlatformBody) this.matter.world.remove(this.robotPlatformBody);
     this.robotPlatformBody = this.matter.add.rectangle(spawn.x, spawn.footY + 10, 166, 20, { isStatic: true, label: 'active-robot-platform', friction: 0.9 });
     this.robot = { x: spawn.x, footY: spawn.footY, health: 100, label: spawn.label };
+    this.robotPoison = null;
     this.robotHealth = 100;
     this.robotFlashUntil = 0;
     this.nextRobotShotAt = this.time.now + Phaser.Math.Between(1900, 2900);
@@ -201,7 +213,11 @@ class ArcherScene extends Phaser.Scene {
     const power = Phaser.Math.Clamp(chargeDuration / CHARGE_TIME, 0.12, 1);
     const origin = this.bowOrigin(this.player, 'player');
     const weapon = WEAPONS.find(item => item.id === this.selectedWeapon);
-    this.launchArrow('player', origin.x, origin.y, this.aimAngle, (7 + power * 14) * weapon.speed, power, weapon);
+    const shotCount = weapon.burstCount || 1;
+    for (let shot = 0; shot < shotCount; shot++) {
+      const spread = (shot - (shotCount - 1) / 2) * (weapon.spread || 0);
+      this.launchArrow('player', origin.x, origin.y, this.aimAngle + spread, (7 + power * 14) * weapon.speed, power, weapon);
+    }
     ui.chargeLabel.textContent = 'SHOT POWER';
     ui.chargeFill.style.width = '0%';
     ui.chargePercent.textContent = '0%';
@@ -226,7 +242,7 @@ class ArcherScene extends Phaser.Scene {
       label: `${side}-arrow`,
       frictionAir: 0.0015,
       friction: 0.04,
-      restitution: 0.16,
+      restitution: weapon.effect === 'ricochet' ? 0.88 : 0.16,
       density: 0.0012
     });
     MATTER.Body.setAngle(body, angle);
@@ -257,6 +273,7 @@ class ArcherScene extends Phaser.Scene {
       this.pendingSpawnAt = null;
       if (this.started && !this.ended) this.spawnRobot();
     }
+    this.updateRobotPoison(time);
     if (this.chargeStartedAt !== null) {
       const power = Phaser.Math.Clamp((time - this.chargeStartedAt) / CHARGE_TIME, 0, 1);
       ui.chargeFill.style.width = `${power * 100}%`;
@@ -267,6 +284,7 @@ class ArcherScene extends Phaser.Scene {
     this.updateArrows(time);
     this.drawActors();
     this.drawAimGuide(time);
+    this.drawEffects(time);
     if (this.started && this.robot && this.robot.health > 0) {
       const remaining = Math.max(0, (this.nextRobotShotAt - time) / 1000);
       ui.robotTimer.textContent = `ROBOT SHOT IN ${remaining.toFixed(1)}s`;
@@ -284,6 +302,7 @@ class ArcherScene extends Phaser.Scene {
       const target = arrow.side === 'player' ? this.robot : this.player;
       if (target && this.arrowHitsTarget(body.position, angle, target)) {
         this.removeArrow(index);
+        if (arrow.side === 'player' && arrow.weapon.effect === 'firework') this.spawnFirework(x, y, time);
         this.hitTarget(arrow.side, arrow.power, arrow.weapon);
         continue;
       }
@@ -313,7 +332,12 @@ class ArcherScene extends Phaser.Scene {
       this.robotHealth = this.robot.health;
       this.robotFlashUntil = this.time.now + 180;
       this.awardPoints(damage * 10);
-      this.setNotice(`ROBOT -${damage}`);
+      if (weapon.effect === 'frost' && this.robot) this.nextRobotShotAt += 1400;
+      if (weapon.effect === 'poison' && this.robot) {
+        this.robotPoison = { remaining: 3, damage: 5, nextAt: this.time.now + 350 };
+      }
+      const notice = weapon.effect === 'frost' ? 'ROBOT SLOWED' : weapon.effect === 'poison' ? 'ROBOT POISONED' : `ROBOT -${damage}`;
+      this.setNotice(notice);
       if (this.robot.health <= 0) this.defeatRobot();
     } else {
       this.playerHealth = Math.max(0, this.playerHealth - damage);
@@ -356,6 +380,7 @@ class ArcherScene extends Phaser.Scene {
     const pausedFor = this.time.now - this.pausedAt;
     this.matter.world.resume();
     this.nextRobotShotAt += pausedFor;
+    if (this.robotPoison) this.robotPoison.nextAt += pausedFor;
     if (this.pendingSpawnAt !== null) this.pendingSpawnAt += pausedFor;
     for (const arrow of this.arrows) arrow.bornAt += pausedFor;
     this.noticeUntil = 0;
@@ -367,10 +392,27 @@ class ArcherScene extends Phaser.Scene {
     this.started = false;
     this.chargeStartedAt = null;
     ui.overlayTitle.innerHTML = 'DUEL<br><em>OVER</em>';
-    const finalScore = this.infiniteScore ? '\u221e' : this.score;
-    ui.overlayCopy.textContent = `You reached round ${this.round} and scored ${finalScore}. The robot won this time.`;
+    ui.overlayCopy.textContent = `You reached round ${this.round} and scored ${this.score}. The robot won this time.`;
     ui.primary.textContent = 'TRY AGAIN';
     ui.overlay.hidden = false;
+  }
+
+  updateRobotPoison(time) {
+    if (!this.started || !this.robot || !this.robotPoison || time < this.robotPoison.nextAt) return;
+    const poison = this.robotPoison;
+    this.robot.health = Math.max(0, this.robot.health - poison.damage);
+    this.robotHealth = this.robot.health;
+    this.robotFlashUntil = time + 120;
+    this.awardPoints(poison.damage * 10);
+    poison.remaining--;
+    poison.nextAt = time + 450;
+    if (this.robot.health <= 0) {
+      this.robotPoison = null;
+      this.defeatRobot();
+    } else if (poison.remaining <= 0) {
+      this.robotPoison = null;
+    }
+    this.syncHud();
   }
 
   drawAimGuide(time) {
@@ -399,6 +441,33 @@ class ArcherScene extends Phaser.Scene {
       const color = arrow.side === 'player' ? arrow.weapon.color : 0xf26a5f;
       this.arrowGraphics.lineStyle(3, color, 1).lineBetween(x - dx * 19, y - dy * 19, x + dx * 14, y + dy * 14);
       this.arrowGraphics.fillStyle(color, 1).fillTriangle(x + dx * 21, y + dy * 21, x + dx * 10 - dy * 5, y + dy * 10 + dx * 5, x + dx * 10 + dy * 5, y + dy * 10 - dx * 5);
+    }
+  }
+
+  spawnFirework(x, y, time) {
+    const colors = [0xff7ac6, 0xffcf56, 0x74e1f4, 0xf3f0e9];
+    for (let spark = 0; spark < 20; spark++) {
+      this.effects.push({
+        x,
+        y,
+        angle: Math.PI * 2 * spark / 20,
+        speed: Phaser.Math.FloatBetween(1.4, 3.8),
+        color: colors[spark % colors.length],
+        bornAt: time
+      });
+    }
+  }
+
+  drawEffects(time) {
+    this.effectGraphics.clear();
+    this.effects = this.effects.filter(effect => time - effect.bornAt < 520);
+    for (const effect of this.effects) {
+      const age = time - effect.bornAt;
+      const progress = age / 520;
+      const distance = effect.speed * age * 0.045;
+      const x = effect.x + Math.cos(effect.angle) * distance;
+      const y = effect.y + Math.sin(effect.angle) * distance + progress * progress * 12;
+      this.effectGraphics.fillStyle(effect.color, 1 - progress).fillCircle(x, y, 2.8 * (1 - progress) + 0.5);
     }
   }
 
@@ -539,11 +608,11 @@ class ArcherScene extends Phaser.Scene {
     this.syncHud();
   }
 
-  enableInfiniteScore() {
-    if (!this.started || this.ended || this.infiniteScore) return;
-    this.infiniteScore = true;
-    this.score = Infinity;
-    this.setNotice('INFINITE SCORE ENABLED');
+  enableInfinitePoints() {
+    if (!this.started || this.ended || this.infinitePoints) return;
+    this.infinitePoints = true;
+    this.points = Infinity;
+    this.setNotice('INFINITE POINTS ENABLED');
     this.syncHud();
   }
 
@@ -555,10 +624,9 @@ class ArcherScene extends Phaser.Scene {
     const robotHealth = this.robot ? this.robot.health : 0;
     ui.robotHealth.style.width = `${robotHealth}%`;
     ui.robotHealthText.textContent = robotHealth;
-    ui.score.textContent = this.infiniteScore ? '\u221e' : String(this.score).padStart(4, '0');
-    ui.infiniteScore.disabled = !this.started || this.ended || this.infiniteScore;
-    ui.infiniteScore.setAttribute('aria-pressed', String(this.infiniteScore));
-    ui.points.textContent = this.points;
+    ui.score.textContent = String(this.score).padStart(4, '0');
+    ui.points.textContent = this.infinitePoints ? '\u221e' : this.points;
+    ui.infinitePointsHint.hidden = this.infinitePoints;
     ui.weapons.replaceChildren(...WEAPONS.map(weapon => {
       const button = document.createElement('button');
       const owned = this.ownedWeapons.has(weapon.id);

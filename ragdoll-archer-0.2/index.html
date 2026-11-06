@@ -33,13 +33,7 @@
               <div class="status-line"><span>ROBOT</span><strong id="robot-health-text">100</strong></div>
               <div class="health-track"><span id="robot-health"></span></div>
             </section>
-            <div class="score-label">
-              <div class="score-heading">
-                <span>SCORE</span>
-                <button id="infinite-score" class="infinite-score-button" type="button" title="Enable infinite score" aria-label="Enable infinite score" aria-pressed="false" disabled>&#8734;</button>
-              </div>
-              <strong id="score">0000</strong>
-            </div>
+            <div class="score-label">SCORE <strong id="score">0000</strong></div>
           </div>
           <div class="charge-readout" aria-live="off">
             <div class="charge-copy"><span id="charge-label">SHOT POWER</span><strong id="charge-percent">0%</strong></div>
@@ -65,7 +59,7 @@
       <aside class="weapon-shop" aria-label="Weapon and armor shop">
         <div class="shop-heading">
           <h2>ARROWS</h2>
-          <span>POINTS <strong id="points">0</strong></span>
+          <span>POINTS <strong id="points">0</strong> <kbd id="infinite-points-hint" title="Press M for infinite points">M</kbd></span>
         </div>
         <div id="weapons" class="weapon-list"></div>
         <h3 class="shop-section-heading">DEFENSE</h3>
