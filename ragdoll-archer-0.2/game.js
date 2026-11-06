@@ -8,6 +8,9 @@ const CHARGE_TIME = 1300;
 const ARMOR_COST = 750;
 const ARMOR_MAX_LEVEL = 8;
 const ARMOR_DAMAGE_REDUCTION = [0, 0.4, 0.55, 0.68, 0.78, 0.86, 0.88, 0.9, 0.92];
+const MEDKIT_COST = 600;
+const MEDKIT_HEAL = 35;
+const SHIELD_COST = 1200;
 const MATTER = Phaser.Physics.Matter.Matter;
 
 const WEAPONS = [
@@ -86,6 +89,7 @@ class ArcherScene extends Phaser.Scene {
     this.player = { x: PLAYER_X, footY: PLAYER_FOOT_Y };
     this.robot = { ...ROBOT_POSITIONS[0], health: 100 };
     this.robotArmorLevel = 1;
+    this.shieldActive = false;
     this.robotPlatformBody = null;
     this.nextRobotShotAt = Infinity;
     this.paused = false;
@@ -116,7 +120,10 @@ class ArcherScene extends Phaser.Scene {
       if (button) this.selectWeapon(button.dataset.weapon);
     });
     ui.upgrades.addEventListener('click', event => {
-      if (event.target.closest('button[data-upgrade="armor"]')) this.buyArmor();
+      const upgrade = event.target.closest('button[data-upgrade]')?.dataset.upgrade;
+      if (upgrade === 'armor') this.buyArmor();
+      if (upgrade === 'medkit') this.buyMedkit();
+      if (upgrade === 'shield') this.buyShield();
     });
   }
 
@@ -176,6 +183,7 @@ class ArcherScene extends Phaser.Scene {
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
     this.armorLevel = 0;
+    this.shieldActive = false;
     this.playerHealth = 100;
     this.chargeStartedAt = null;
     this.robot = null;
@@ -344,6 +352,13 @@ class ArcherScene extends Phaser.Scene {
       this.setNotice(notice);
       if (this.robot.health <= 0) this.defeatRobot();
     } else {
+      if (this.shieldActive) {
+        this.shieldActive = false;
+        this.playerFlashUntil = this.time.now + 220;
+        this.setNotice('SHIELD BLOCKED THE HIT');
+        this.syncHud();
+        return;
+      }
       this.playerHealth = Math.max(0, this.playerHealth - damage);
       this.playerFlashUntil = this.time.now + 220;
       this.setNotice(`YOU -${damage}`);
@@ -522,6 +537,10 @@ class ArcherScene extends Phaser.Scene {
     };
     const joint = (point, radius) => graphics.fillStyle(bodyColor, 1).fillCircle(point.x, point.y, radius);
 
+    if (side === 'player' && this.shieldActive) {
+      graphics.lineStyle(3, 0x75e7dc, 0.9).strokeCircle(x, footY - 69, 48);
+      graphics.lineStyle(1, 0xd5fff8, 0.75).strokeCircle(x, footY - 69, 53);
+    }
     segment([{ x, y: shoulderY }, hip], 12);
     segment([hip, frontKnee, frontFoot], 10);
     segment([hip, backKnee, backFoot], 10);
@@ -638,6 +657,23 @@ class ArcherScene extends Phaser.Scene {
     this.syncHud();
   }
 
+  buyMedkit() {
+    if (!this.started || this.ended || this.playerHealth >= 100 || this.points < MEDKIT_COST) return;
+    this.points -= MEDKIT_COST;
+    const restored = Math.min(MEDKIT_HEAL, 100 - this.playerHealth);
+    this.playerHealth += restored;
+    this.setNotice(`MEDKIT +${restored} HEALTH`);
+    this.syncHud();
+  }
+
+  buyShield() {
+    if (!this.started || this.ended || this.shieldActive || this.points < SHIELD_COST) return;
+    this.points -= SHIELD_COST;
+    this.shieldActive = true;
+    this.setNotice('SHIELD READY - NEXT HIT BLOCKED');
+    this.syncHud();
+  }
+
   buyArmor() {
     if (!this.started || this.ended || this.armorLevel >= ARMOR_MAX_LEVEL) return;
     const cost = ARMOR_COST * (this.armorLevel + 1);
@@ -688,23 +724,53 @@ class ArcherScene extends Phaser.Scene {
       button.append(name, detail, state);
       return button;
     }));
-    const armorButton = document.createElement('button');
-    armorButton.type = 'button';
-    armorButton.className = 'weapon-button';
-    armorButton.dataset.upgrade = 'armor';
-    armorButton.style.setProperty('--weapon-color', '#84d8bd');
     const armorCost = ARMOR_COST * (this.armorLevel + 1);
-    armorButton.disabled = !this.started || this.ended || this.armorLevel >= ARMOR_MAX_LEVEL || this.points < armorCost;
-    armorButton.setAttribute('aria-pressed', String(this.armorLevel > 0));
-    const armorName = document.createElement('span');
-    armorName.className = 'weapon-name';
-    armorName.textContent = 'ARMOR';
-    const armorDetail = document.createElement('small');
-    armorDetail.textContent = `${ARMOR_DAMAGE_REDUCTION[this.armorLevel] * 100}% LESS DAMAGE · ${this.armorLevel}/${ARMOR_MAX_LEVEL}`;
-    const armorState = document.createElement('strong');
-    armorState.textContent = this.armorLevel >= ARMOR_MAX_LEVEL ? 'MAX' : `${armorCost} PTS`;
-    armorButton.append(armorName, armorDetail, armorState);
-    ui.upgrades.replaceChildren(armorButton);
+    const upgradeButton = (id, name, detail, state, color, disabled, pressed = false) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'weapon-button';
+      button.dataset.upgrade = id;
+      button.style.setProperty('--weapon-color', color);
+      button.disabled = disabled;
+      button.setAttribute('aria-pressed', String(pressed));
+      const nameElement = document.createElement('span');
+      nameElement.className = 'weapon-name';
+      nameElement.textContent = name;
+      const detailElement = document.createElement('small');
+      detailElement.textContent = detail;
+      const stateElement = document.createElement('strong');
+      stateElement.textContent = state;
+      button.append(nameElement, detailElement, stateElement);
+      return button;
+    };
+    ui.upgrades.replaceChildren(
+      upgradeButton(
+        'armor',
+        'ARMOR',
+        `${ARMOR_DAMAGE_REDUCTION[this.armorLevel] * 100}% LESS DAMAGE · ${this.armorLevel}/${ARMOR_MAX_LEVEL}`,
+        this.armorLevel >= ARMOR_MAX_LEVEL ? 'MAX' : `${armorCost} PTS`,
+        '#84d8bd',
+        !this.started || this.ended || this.armorLevel >= ARMOR_MAX_LEVEL || this.points < armorCost,
+        this.armorLevel > 0
+      ),
+      upgradeButton(
+        'medkit',
+        'MEDKIT',
+        `RESTORE UP TO ${MEDKIT_HEAL} HEALTH`,
+        this.playerHealth >= 100 ? 'FULL' : `${MEDKIT_COST} PTS`,
+        '#f08c62',
+        !this.started || this.ended || this.playerHealth >= 100 || this.points < MEDKIT_COST
+      ),
+      upgradeButton(
+        'shield',
+        'SHIELD',
+        'BLOCK THE NEXT HIT',
+        this.shieldActive ? 'ACTIVE' : `${SHIELD_COST} PTS`,
+        '#75e7dc',
+        !this.started || this.ended || this.shieldActive || this.points < SHIELD_COST,
+        this.shieldActive
+      )
+    );
   }
 }
 
