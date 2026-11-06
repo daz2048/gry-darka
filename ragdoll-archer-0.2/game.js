@@ -19,6 +19,7 @@ const WEAPONS = [
   { id: 'frost', name: 'FROST', cost: 1800, speed: 0.95, damage: 0.85, color: 0x74e1f4, detail: 'SLOWS ROBOT', effect: 'frost' },
   { id: 'poison', name: 'POISON', cost: 2200, speed: 1, damage: 0.85, color: 0x8cdb77, detail: 'DAMAGE OVER TIME', effect: 'poison' },
   { id: 'ricochet', name: 'RICOCHET', cost: 2400, speed: 1.1, damage: 1.1, color: 0xb692ff, detail: 'BOUNCES OFF PLATFORMS', effect: 'ricochet' },
+  { id: 'laser', name: 'LASER', cost: 2800, speed: 2, damage: 1.8, color: 0xff4ce1, detail: 'HIGH-SPEED BEAM', effect: 'laser' },
   { id: 'elite', name: 'ELITE', cost: 3000, speed: 1.25, damage: 1.5, color: 0xff6259, detail: 'FAST + POWERFUL' }
 ];
 
@@ -442,7 +443,13 @@ class ArcherScene extends Phaser.Scene {
       const dx = Math.cos(angle);
       const dy = Math.sin(angle);
       const color = arrow.side === 'player' ? arrow.weapon.color : 0xf26a5f;
-      this.arrowGraphics.lineStyle(3, color, 1).lineBetween(x - dx * 19, y - dy * 19, x + dx * 14, y + dy * 14);
+      if (arrow.side === 'player' && arrow.weapon.effect === 'laser') {
+        this.arrowGraphics.lineStyle(10, color, 0.24).lineBetween(x - dx * 36, y - dy * 36, x + dx * 18, y + dy * 18);
+        this.arrowGraphics.lineStyle(4, color, 0.72).lineBetween(x - dx * 30, y - dy * 30, x + dx * 16, y + dy * 16);
+        this.arrowGraphics.lineStyle(1.5, 0xffeafa, 1).lineBetween(x - dx * 27, y - dy * 27, x + dx * 14, y + dy * 14);
+      } else {
+        this.arrowGraphics.lineStyle(3, color, 1).lineBetween(x - dx * 19, y - dy * 19, x + dx * 14, y + dy * 14);
+      }
       this.arrowGraphics.fillStyle(color, 1).fillTriangle(x + dx * 21, y + dy * 21, x + dx * 10 - dy * 5, y + dy * 10 + dx * 5, x + dx * 10 + dy * 5, y + dy * 10 - dx * 5);
     }
   }
