@@ -145,37 +145,36 @@ class ArcherScene extends Phaser.Scene {
 
   drawArena() {
     const background = this.add.graphics().setDepth(-10);
-    background.fillGradientStyle(0x16333d, 0x24444a, 0xc77a61, 0xe4a36a, 1).fillRect(0, 0, WIDTH, HEIGHT);
-    background.fillStyle(0xffd28a, 0.82).fillCircle(746, 178, 52);
-    background.lineStyle(2, 0xffdca2, 0.22).strokeCircle(746, 178, 66);
-    background.fillStyle(0x53656a, 0.72);
-    background.fillTriangle(0, 415, 150, 252, 345, 415);
-    background.fillTriangle(210, 420, 435, 230, 690, 420);
-    background.fillTriangle(590, 420, 810, 264, 1010, 420);
-    background.fillStyle(0x364c52, 0.84);
-    background.fillTriangle(-70, 464, 170, 321, 392, 464);
-    background.fillTriangle(290, 464, 560, 300, 850, 464);
-    background.fillTriangle(665, 464, 890, 330, 1080, 464);
-    background.fillStyle(0x193942, 0.55);
-    for (let index = 0; index < 9; index++) {
-      const x = index * 124 + 24;
-      const height = 76 + (index * 47) % 92;
-      background.fillRect(x, 442 - height, 48, height);
-      background.fillRect(x - 7, 436 - height, 62, 9);
-      for (let window = 0; window < 3; window++) {
-        background.fillStyle(window % 2 === 0 ? 0xffc77d : 0x78d5c9, 0.22);
-        background.fillRect(x + 10 + window * 13, 455 - height + 22, 4, 17);
-      }
-      background.fillStyle(0x193942, 0.55);
+    background.fillGradientStyle(0x76b7d0, 0xb8d7d4, 0xe8d1ad, 0xf0d8ad, 1).fillRect(0, 0, WIDTH, HEIGHT);
+    background.fillStyle(0xf8f3e7, 0.58);
+    for (const cloud of [
+      { x: 138, y: 112, width: 188, height: 24 },
+      { x: 422, y: 77, width: 234, height: 28 },
+      { x: 785, y: 137, width: 168, height: 22 }
+    ]) {
+      background.fillEllipse(cloud.x, cloud.y, cloud.width, cloud.height);
+      background.fillEllipse(cloud.x - cloud.width * 0.2, cloud.y + 6, cloud.width * 0.44, cloud.height * 0.72);
+      background.fillEllipse(cloud.x + cloud.width * 0.2, cloud.y + 5, cloud.width * 0.38, cloud.height * 0.68);
     }
-    background.fillStyle(0x1f353b, 0.96).fillRect(0, 464, WIDTH, 76);
-    background.fillGradientStyle(0x31494d, 0x31494d, 0x18272d, 0x18272d, 1).fillRect(0, 464, WIDTH, 76);
-    background.fillStyle(0xf3b573, 0.85).fillRect(0, 499, WIDTH, 2);
-    background.fillStyle(0x67d3c5, 0.78).fillRect(0, 503, WIDTH, 1);
-    background.fillStyle(0xe4b37a, 0.16);
-    for (let index = 0; index < 16; index++) {
-      background.fillRoundedRect(20 + index * 64, 516, 34, 3, 1);
+    background.fillStyle(0x91aa91, 0.8);
+    background.fillEllipse(120, 375, 520, 154);
+    background.fillEllipse(502, 367, 610, 170);
+    background.fillEllipse(918, 382, 470, 160);
+    background.fillStyle(0x728c69, 0.9);
+    background.fillEllipse(-8, 427, 450, 138);
+    background.fillEllipse(395, 423, 560, 144);
+    background.fillEllipse(948, 427, 430, 138);
+    background.fillGradientStyle(0x77905c, 0x6d8755, 0x594a39, 0x443a31, 1).fillRect(0, 442, WIDTH, 98);
+    background.fillStyle(0x98a765, 0.9).fillRect(0, 459, WIDTH, 3);
+    for (let index = 0; index < 52; index++) {
+      const x = (index * 71 + 13) % WIDTH;
+      const y = 462 + (index * 29) % 32;
+      const height = 4 + index % 6;
+      background.lineStyle(1.3, index % 3 === 0 ? 0xc5b36f : 0x9ca25c, 0.55)
+        .lineBetween(x, y, x + (index % 2 === 0 ? 2 : -2), y - height);
     }
+    background.fillStyle(0x493d32, 0.6).fillRect(0, 500, WIDTH, 40);
+    background.fillStyle(0x332f2c, 0.35).fillRect(0, 500, WIDTH, 3);
     this.matter.add.rectangle(WIDTH / 2, 520, WIDTH, 40, { isStatic: true, label: 'floor', friction: 0.9 });
   }
 
@@ -672,14 +671,16 @@ class ArcherScene extends Phaser.Scene {
     segment([shoulder, backElbow, backHand], 7.5);
     segment([shoulder, frontElbow, frontHand], 8);
     segment([{ x, y: shoulderY }, hip], 13, shirtColor);
-    joint(backKnee, 4.5, pantsColor);
-    joint(frontKnee, 4.5, pantsColor);
-    joint(backElbow, 4.2);
-    joint(frontElbow, 4.5);
     graphics.fillStyle(outlineColor, 1).fillRoundedRect(x - 13, shoulderY + 1, 26, 34, 8);
     graphics.fillStyle(shirtColor, 1).fillRoundedRect(x - 10, shoulderY + 4, 20, 27, 6);
     graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(x - 7, shoulderY + 17, x - 2, shoulderY + 23);
     graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(x + 5, shoulderY + 20, x + 1, shoulderY + 25);
+    joint(shoulder, 6, shirtColor);
+    joint(hip, 6, pantsColor);
+    joint(backKnee, 6, pantsColor);
+    joint(frontKnee, 6.5, pantsColor);
+    joint(backElbow, 5.8);
+    joint(frontElbow, 6.2);
     graphics.fillStyle(0x65432f, 1).fillRect(x - 10, hipY - 2, 20, 5);
     graphics.fillStyle(accent, 1).fillRect(x - 2, hipY - 1, 4, 3);
     graphics.fillStyle(0x55382d, 1).fillRoundedRect(frontFoot.x - 10, footY - 8, 21, 9, 4);
