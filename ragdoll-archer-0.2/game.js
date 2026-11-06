@@ -19,7 +19,7 @@ const WEAPONS = [
   { id: 'power', name: 'POWER', cost: 1000, speed: 1, damage: 1.4, color: 0xf5a623, detail: 'MORE DAMAGE' },
   { id: 'firework', name: 'FIREWORK', cost: 1400, speed: 0.9, damage: 1.5, color: 0xff7ac6, detail: 'BURST ON IMPACT', effect: 'firework' },
   { id: 'minigun', name: 'MINIGUN', cost: 1000000, speed: 1.05, damage: 0.12, color: 0xffcf56, detail: '100-ARROW BURST', burstCount: 100, burstInterval: 16, spread: 0.0025 },
-  { id: 'frost', name: 'FROST', cost: 1800, speed: 0.95, damage: 0.85, color: 0x74e1f4, detail: 'SLOWS ROBOT', effect: 'frost' },
+  { id: 'frost', name: 'FROST', cost: 1800, speed: 0.95, damage: 0.85, color: 0x74e1f4, detail: 'SLOWS RIVAL', effect: 'frost' },
   { id: 'poison', name: 'POISON', cost: 2200, speed: 1, damage: 0.85, color: 0x8cdb77, detail: 'DAMAGE OVER TIME', effect: 'poison' },
   { id: 'ricochet', name: 'RICOCHET', cost: 2400, speed: 1.1, damage: 1.1, color: 0xb692ff, detail: 'BOUNCES OFF PLATFORMS', effect: 'ricochet' },
   { id: 'laser', name: 'LASER', cost: 2800, speed: 2, damage: 1.8, color: 0xff4ce1, detail: 'INSTANT BEAM', effect: 'laser' },
@@ -237,7 +237,7 @@ class ArcherScene extends Phaser.Scene {
     this.robotFlashUntil = 0;
     this.nextRobotShotAt = this.time.now + Phaser.Math.Between(1900, 2900);
     this.syncHud();
-    this.setNotice(this.round === 1 ? 'ROBOT INCOMING' : `ROBOT ${String(this.round).padStart(2, '0')} INCOMING`);
+    this.setNotice(this.round === 1 ? 'RIVAL INCOMING' : `RIVAL ${String(this.round).padStart(2, '0')} INCOMING`);
   }
 
   beginCharge(pointer) {
@@ -372,7 +372,7 @@ class ArcherScene extends Phaser.Scene {
     this.launchArrow('robot', origin.x, origin.y, angle, speed, 0.52);
     const interval = Math.max(1350, 2650 - this.round * 70);
     this.nextRobotShotAt = this.time.now + interval + Phaser.Math.Between(-180, 240);
-    this.setNotice('ROBOT FIRED');
+    this.setNotice('RIVAL FIRED');
   }
 
   update(time, delta) {
@@ -396,8 +396,8 @@ class ArcherScene extends Phaser.Scene {
     this.drawEffects(time);
     if (this.started && this.robot && this.robot.health > 0) {
       const remaining = Math.max(0, (this.nextRobotShotAt - time) / 1000);
-      ui.robotTimer.textContent = `ROBOT SHOT IN ${remaining.toFixed(1)}s`;
-    } else ui.robotTimer.textContent = 'ROBOT SHOT READY';
+      ui.robotTimer.textContent = `RIVAL SHOT IN ${remaining.toFixed(1)}s`;
+    } else ui.robotTimer.textContent = 'RIVAL SHOT READY';
     if (time > this.noticeUntil) ui.notice.textContent = '';
   }
 
@@ -446,7 +446,7 @@ class ArcherScene extends Phaser.Scene {
       if (weapon.effect === 'poison' && this.robot) {
         this.robotPoison = { remaining: 3, damage: 5, nextAt: this.time.now + 350 };
       }
-      const notice = weapon.effect === 'frost' ? 'ROBOT SLOWED' : weapon.effect === 'poison' ? 'ROBOT POISONED' : `ROBOT -${damage}`;
+      const notice = weapon.effect === 'frost' ? 'RIVAL SLOWED' : weapon.effect === 'poison' ? 'RIVAL POISONED' : `RIVAL -${damage}`;
       this.setNotice(notice);
       if (this.robot.health <= 0) this.defeatRobot();
     } else {
@@ -474,7 +474,7 @@ class ArcherScene extends Phaser.Scene {
     this.playerHealth = Math.min(100, this.playerHealth + 12);
     this.round++;
     this.syncHud();
-    this.setNotice('ROBOT DOWN - NEXT ROUND');
+    this.setNotice('RIVAL DOWN - NEXT ROUND');
     this.pendingSpawnAt = this.time.now + 900;
   }
 
@@ -511,7 +511,7 @@ class ArcherScene extends Phaser.Scene {
     this.pendingBurst = null;
     this.chargeStartedAt = null;
     ui.overlayTitle.innerHTML = 'DUEL<br><em>OVER</em>';
-    ui.overlayCopy.textContent = `You reached round ${this.round} and scored ${this.score}. The robot won this time.`;
+    ui.overlayCopy.textContent = `You reached round ${this.round} and scored ${this.score}. Your rival won this time.`;
     ui.primary.textContent = 'TRY AGAIN';
     ui.overlay.hidden = false;
   }
@@ -627,12 +627,14 @@ class ArcherScene extends Phaser.Scene {
     const x = actor.x;
     const footY = actor.footY;
     const facingRight = side === 'player';
-    const bodyColor = flash ? 0xffedb5 : side === 'player' ? 0xd8eee7 : 0xf0d4c4;
-    const suitColor = side === 'player' ? 0x3caaa5 : 0xc65f52;
-    const suitShadow = side === 'player' ? 0x1c5a62 : 0x713e45;
-    const outlineColor = side === 'player' ? 0x19343d : 0x382c38;
-    const trimColor = side === 'player' ? 0xa9ece0 : 0xffc08d;
-    const accent = side === 'player' ? 0x57d8c8 : 0xff795f;
+    const skinColor = flash ? 0xffedb5 : side === 'player' ? 0xf0c6a5 : 0xc98d6a;
+    const skinShadow = side === 'player' ? 0xc58769 : 0x8e5847;
+    const outlineColor = 0x302630;
+    const shirtColor = side === 'player' ? 0x477caf : 0xb95047;
+    const shirtHighlight = side === 'player' ? 0x8eb9d1 : 0xe28268;
+    const pantsColor = side === 'player' ? 0x39435c : 0x51404a;
+    const hairColor = side === 'player' ? 0x53392d : 0x352b2c;
+    const accent = side === 'player' ? 0xe4a45d : 0xe7a16b;
     const hipY = footY - 44;
     const shoulderY = footY - 82;
     const hip = { x, y: hipY };
@@ -651,13 +653,13 @@ class ArcherScene extends Phaser.Scene {
       for (const point of points.slice(1)) graphics.lineTo(point.x, point.y);
       graphics.strokePath();
     };
-    const segment = (points, width) => {
-      strokeSegment(points, outlineColor, width + 4);
-      strokeSegment(points, bodyColor, width);
+    const segment = (points, width, color = skinColor) => {
+      strokeSegment(points, outlineColor, width + 3);
+      strokeSegment(points, color, width);
     };
-    const joint = (point, radius) => {
+    const joint = (point, radius, color = skinColor) => {
       graphics.fillStyle(outlineColor, 1).fillCircle(point.x, point.y, radius + 2);
-      graphics.fillStyle(bodyColor, 1).fillCircle(point.x, point.y, radius);
+      graphics.fillStyle(color, 1).fillCircle(point.x, point.y, radius);
     };
 
     if (side === 'player' && this.shieldActive) {
@@ -665,57 +667,62 @@ class ArcherScene extends Phaser.Scene {
       graphics.lineStyle(1, 0xd5fff8, 0.75).strokeCircle(x, footY - 69, 53);
     }
     graphics.fillStyle(0x14232a, 0.3).fillEllipse(x, footY + 4, 58, 12);
-    const capeDirection = facingRight ? -1 : 1;
-    graphics.fillStyle(suitShadow, 0.9).fillTriangle(
-      x + capeDirection * 7, shoulderY + 8,
-      x + capeDirection * 34, footY - 49,
-      x + capeDirection * 14, footY - 66
-    );
-    segment([{ x, y: shoulderY }, hip], 12);
-    segment([hip, frontKnee, frontFoot], 10);
-    segment([hip, backKnee, backFoot], 10);
-    segment([shoulder, frontElbow, frontHand], 9);
-    segment([shoulder, backElbow, backHand], 9);
-    joint(frontKnee, 5);
-    joint(backKnee, 5);
+    segment([hip, backKnee, backFoot], 8, pantsColor);
+    segment([hip, frontKnee, frontFoot], 9, pantsColor);
+    segment([shoulder, backElbow, backHand], 7.5);
+    segment([shoulder, frontElbow, frontHand], 8);
+    segment([{ x, y: shoulderY }, hip], 13, shirtColor);
+    joint(backKnee, 4.5, pantsColor);
+    joint(frontKnee, 4.5, pantsColor);
+    joint(backElbow, 4.2);
     joint(frontElbow, 4.5);
-    joint(backElbow, 4.5);
-    graphics.fillStyle(outlineColor, 1).fillRoundedRect(x - 15, shoulderY + 2, 30, 32, 7);
-    graphics.fillStyle(suitColor, 1).fillRoundedRect(x - 12, shoulderY + 4, 24, 27, 6);
-    graphics.lineStyle(2, trimColor, 0.92).strokeRoundedRect(x - 12, shoulderY + 4, 24, 27, 6);
-    graphics.fillStyle(accent, 1).fillTriangle(x, shoulderY + 9, x - 5, shoulderY + 18, x + 5, shoulderY + 18);
-    graphics.fillStyle(suitShadow, 1).fillRoundedRect(x - 6, footY - 51, 12, 8, 2);
-    graphics.fillStyle(accent, 1).fillRect(x - 4, footY - 49, 8, 2);
-    graphics.fillStyle(outlineColor, 1).fillRoundedRect(frontFoot.x - 9, footY - 9, 19, 10, 4);
-    graphics.fillStyle(suitColor, 1).fillRoundedRect(frontFoot.x - 6, footY - 7, 15, 6, 3);
-    graphics.fillStyle(outlineColor, 1).fillRoundedRect(backFoot.x - 9, footY - 9, 19, 10, 4);
-    graphics.fillStyle(suitColor, 1).fillRoundedRect(backFoot.x - 6, footY - 7, 15, 6, 3);
-    graphics.fillStyle(outlineColor, 1).fillCircle(frontHand.x, frontHand.y, 6);
-    graphics.fillStyle(accent, 1).fillCircle(frontHand.x, frontHand.y, 3.5);
-    graphics.fillStyle(outlineColor, 1).fillCircle(backHand.x, backHand.y, 6);
-    graphics.fillStyle(suitColor, 1).fillCircle(backHand.x, backHand.y, 3.5);
-    graphics.fillStyle(outlineColor, 1).fillCircle(x, footY - 108, 18);
-    graphics.fillStyle(bodyColor, 1).fillCircle(x, footY - 108, 14);
-    graphics.fillStyle(suitColor, 1).fillRoundedRect(x - 16, footY - 124, 32, 9, 4);
-    graphics.lineStyle(1.5, trimColor, 1).lineBetween(x - 11, footY - 120, x + 11, footY - 120);
-    const visorX = x + (facingRight ? 2 : -11);
-    graphics.fillStyle(outlineColor, 1).fillRoundedRect(visorX, footY - 113, 9, 5, 2);
-    graphics.fillStyle(accent, 1).fillRect(visorX + (facingRight ? 5 : 1), footY - 112, 3, 1.5);
+    graphics.fillStyle(outlineColor, 1).fillRoundedRect(x - 13, shoulderY + 1, 26, 34, 8);
+    graphics.fillStyle(shirtColor, 1).fillRoundedRect(x - 10, shoulderY + 4, 20, 27, 6);
+    graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(x - 7, shoulderY + 17, x - 2, shoulderY + 23);
+    graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(x + 5, shoulderY + 20, x + 1, shoulderY + 25);
+    graphics.fillStyle(0x65432f, 1).fillRect(x - 10, hipY - 2, 20, 5);
+    graphics.fillStyle(accent, 1).fillRect(x - 2, hipY - 1, 4, 3);
+    graphics.fillStyle(0x55382d, 1).fillRoundedRect(frontFoot.x - 10, footY - 8, 21, 9, 4);
+    graphics.fillStyle(0x76513b, 1).fillRoundedRect(backFoot.x - 10, footY - 8, 21, 9, 4);
+    graphics.lineStyle(1.2, 0xb47c50, 0.9).lineBetween(frontFoot.x - 5, footY - 3, frontFoot.x + 7, footY - 3);
+    graphics.lineStyle(1.2, 0xb47c50, 0.9).lineBetween(backFoot.x - 5, footY - 3, backFoot.x + 7, footY - 3);
+    graphics.fillStyle(outlineColor, 1).fillCircle(frontHand.x, frontHand.y, 5.5);
+    graphics.fillStyle(skinColor, 1).fillCircle(frontHand.x, frontHand.y, 3.5);
+    graphics.fillStyle(outlineColor, 1).fillCircle(backHand.x, backHand.y, 5.5);
+    graphics.fillStyle(skinColor, 1).fillCircle(backHand.x, backHand.y, 3.5);
+    const headY = footY - 108;
+    const faceDirection = facingRight ? 1 : -1;
+    graphics.fillStyle(outlineColor, 1).fillCircle(x, headY, 18);
+    graphics.fillStyle(skinColor, 1).fillCircle(x, headY, 15);
+    graphics.fillStyle(skinShadow, 1).fillCircle(x - faceDirection * 14, headY, 3.2);
+    graphics.fillStyle(skinColor, 1).fillCircle(x - faceDirection * 14, headY, 1.8);
+    graphics.fillStyle(hairColor, 1).fillTriangle(
+      x - faceDirection * 14, headY - 3,
+      x - faceDirection * 10, headY - 14,
+      x + faceDirection * 3, headY - 12
+    );
+    graphics.fillStyle(hairColor, 1).fillTriangle(
+      x + faceDirection * 2, headY - 12,
+      x + faceDirection * 12, headY - 9,
+      x + faceDirection * 8, headY - 5
+    );
+    graphics.fillStyle(outlineColor, 1).fillCircle(x + faceDirection * 5, headY - 2, 1.5);
+    graphics.lineStyle(1.3, outlineColor, 1).lineBetween(x + faceDirection * 3, headY - 5, x + faceDirection * 8, headY - 5);
+    graphics.lineStyle(1.5, skinShadow, 1).lineBetween(x + faceDirection * 8, headY + 4, x + faceDirection * 12, headY + 3);
     const armorLevel = side === 'player' ? this.armorLevel : this.robotArmorLevel;
     if (armorLevel > 0) {
-      const plateFill = side === 'player' ? 0x527f72 : 0x814b45;
-      const plateTrim = side === 'player' ? 0xd9eee5 : 0xffc1a8;
+      const plateFill = side === 'player' ? 0x76513a : 0x80513b;
+      const plateTrim = side === 'player' ? 0xd8ad75 : 0xe1b07a;
       const chestY = shoulderY + 5;
       graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
       graphics.fillRoundedRect(x - 13, chestY, 26, 31, 5).strokeRoundedRect(x - 13, chestY, 26, 31, 5);
       for (let rib = 0; rib < Math.min(armorLevel, 6); rib++) {
         const ribY = chestY + 6 + rib * 4;
-        graphics.lineStyle(2, 0xb9dbcf, 1).lineBetween(x - 7, ribY, x + 7, ribY);
+        graphics.lineStyle(1.5, plateTrim, 0.85).lineBetween(x - 7, ribY, x + 7, ribY);
       }
       if (armorLevel >= 2) {
-        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
-        graphics.fillRoundedRect(x - 16, footY - 126, 32, 13, 5).strokeRoundedRect(x - 16, footY - 126, 32, 13, 5);
-        graphics.lineStyle(2, accent, 1).lineBetween(x - 9, footY - 120, x + 9, footY - 120);
+        graphics.lineStyle(4, plateFill, 1).lineBetween(x - 10, footY - 118, x + 10, footY - 118);
+        graphics.lineStyle(1.2, plateTrim, 1).lineBetween(x - 10, footY - 118, x + 10, footY - 118);
       }
       if (armorLevel >= 3) {
         graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
@@ -735,8 +742,8 @@ class ArcherScene extends Phaser.Scene {
       }
       if (armorLevel >= 6) {
         graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
-        graphics.fillRoundedRect(x - 27, shoulderY - 2, 19, 19, 6).strokeRoundedRect(x - 27, shoulderY - 2, 19, 19, 6);
-        graphics.fillRoundedRect(x + 8, shoulderY - 2, 19, 19, 6).strokeRoundedRect(x + 8, shoulderY - 2, 19, 19, 6);
+        graphics.fillRoundedRect(x - 19, shoulderY + 1, 12, 12, 5).strokeRoundedRect(x - 19, shoulderY + 1, 12, 12, 5);
+        graphics.fillRoundedRect(x + 7, shoulderY + 1, 12, 12, 5).strokeRoundedRect(x + 7, shoulderY + 1, 12, 12, 5);
       }
       if (armorLevel >= 7) {
         graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
@@ -746,9 +753,8 @@ class ArcherScene extends Phaser.Scene {
       }
       if (armorLevel >= 8) {
         graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
-        graphics.fillRoundedRect(x - 18, footY - 132, 36, 8, 4).strokeRoundedRect(x - 18, footY - 132, 36, 8, 4);
         graphics.strokeRoundedRect(x - 17, chestY - 3, 34, 37, 7);
-        graphics.fillStyle(accent, 1).fillCircle(x, footY - 128, 2.5);
+        graphics.fillStyle(accent, 1).fillCircle(x, chestY + 16, 2.5);
       }
     }
 
@@ -759,7 +765,7 @@ class ArcherScene extends Phaser.Scene {
     const perpY = dirX;
     const centerX = origin.x + dirX * 8;
     const centerY = origin.y + dirY * 8;
-    graphics.lineStyle(9, outlineColor, 0.9).beginPath();
+    graphics.lineStyle(8, outlineColor, 0.9).beginPath();
     for (let step = 0; step <= 10; step++) {
       const t = step / 10 * 2 - 1;
       const bowX = centerX + perpX * t * 26 + dirX * (11 * (1 - t * t));
@@ -768,7 +774,7 @@ class ArcherScene extends Phaser.Scene {
       else graphics.lineTo(bowX, bowY);
     }
     graphics.strokePath();
-    graphics.lineStyle(5, accent, 1).beginPath();
+    graphics.lineStyle(4, 0x76513a, 1).beginPath();
     for (let step = 0; step <= 10; step++) {
       const t = step / 10 * 2 - 1;
       const bowX = centerX + perpX * t * 26 + dirX * (11 * (1 - t * t));
@@ -777,7 +783,7 @@ class ArcherScene extends Phaser.Scene {
       else graphics.lineTo(bowX, bowY);
     }
     graphics.strokePath();
-    graphics.lineStyle(1.3, trimColor, 0.92).lineBetween(centerX - perpX * 26, centerY - perpY * 26, centerX + perpX * 26, centerY + perpY * 26);
+    graphics.lineStyle(1.2, 0xf1d7ad, 0.92).lineBetween(centerX - perpX * 26, centerY - perpY * 26, centerX + perpX * 26, centerY + perpY * 26);
   }
 
   removeArrow(index) {
@@ -851,7 +857,7 @@ class ArcherScene extends Phaser.Scene {
 
   syncHud() {
     ui.round.textContent = String(this.round).padStart(2, '0');
-    ui.robotPosition.textContent = this.robot ? `ROBOT: ${this.robot.label}` : 'ROBOT DEFEATED';
+    ui.robotPosition.textContent = this.robot ? `RIVAL: ${this.robot.label}` : 'RIVAL DEFEATED';
     ui.playerHealth.style.width = `${this.playerHealth}%`;
     ui.playerHealthText.textContent = this.playerHealth;
     const robotHealth = this.robot ? this.robot.health : 0;
