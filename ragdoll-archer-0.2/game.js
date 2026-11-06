@@ -6,8 +6,8 @@ const PLAYER_X = 156;
 const PLAYER_FOOT_Y = 430;
 const CHARGE_TIME = 1300;
 const ARMOR_COST = 750;
-const ARMOR_MAX_LEVEL = 5;
-const ARMOR_DAMAGE_REDUCTION = [0, 0.4, 0.55, 0.68, 0.78, 0.86];
+const ARMOR_MAX_LEVEL = 8;
+const ARMOR_DAMAGE_REDUCTION = [0, 0.4, 0.55, 0.68, 0.78, 0.86, 0.88, 0.9, 0.92];
 const MATTER = Phaser.Physics.Matter.Matter;
 
 const WEAPONS = [
@@ -542,8 +542,8 @@ class ArcherScene extends Phaser.Scene {
       const chestY = shoulderY + 5;
       graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
       graphics.fillRoundedRect(x - 13, chestY, 26, 31, 5).strokeRoundedRect(x - 13, chestY, 26, 31, 5);
-      for (let rib = 0; rib < Math.min(armorLevel, 4); rib++) {
-        const ribY = chestY + 8 + rib * 6;
+      for (let rib = 0; rib < Math.min(armorLevel, 6); rib++) {
+        const ribY = chestY + 6 + rib * 4;
         graphics.lineStyle(2, 0xb9dbcf, 1).lineBetween(x - 7, ribY, x + 7, ribY);
       }
       if (armorLevel >= 2) {
@@ -566,6 +566,23 @@ class ArcherScene extends Phaser.Scene {
       if (armorLevel >= 5) {
         graphics.fillStyle(accent, 1).fillTriangle(x, chestY + 9, x - 5, chestY + 16, x + 5, chestY + 16);
         graphics.lineStyle(3, plateTrim, 1).lineBetween(x - 9, footY - 46, x + 9, footY - 46);
+      }
+      if (armorLevel >= 6) {
+        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
+        graphics.fillRoundedRect(x - 27, shoulderY - 2, 19, 19, 6).strokeRoundedRect(x - 27, shoulderY - 2, 19, 19, 6);
+        graphics.fillRoundedRect(x + 8, shoulderY - 2, 19, 19, 6).strokeRoundedRect(x + 8, shoulderY - 2, 19, 19, 6);
+      }
+      if (armorLevel >= 7) {
+        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
+        graphics.fillRoundedRect(x - 25, footY - 55, 15, 17, 4).strokeRoundedRect(x - 25, footY - 55, 15, 17, 4);
+        graphics.fillRoundedRect(x + 10, footY - 55, 15, 17, 4).strokeRoundedRect(x + 10, footY - 55, 15, 17, 4);
+        graphics.lineStyle(3, plateTrim, 1).lineBetween(x - 17, chestY + 2, x + 17, chestY + 2);
+      }
+      if (armorLevel >= 8) {
+        graphics.fillStyle(plateFill, 1).lineStyle(2, plateTrim, 1);
+        graphics.fillRoundedRect(x - 18, footY - 132, 36, 8, 4).strokeRoundedRect(x - 18, footY - 132, 36, 8, 4);
+        graphics.strokeRoundedRect(x - 17, chestY - 3, 34, 37, 7);
+        graphics.fillStyle(accent, 1).fillCircle(x, footY - 128, 2.5);
       }
     }
 
