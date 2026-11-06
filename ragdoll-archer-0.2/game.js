@@ -39,6 +39,7 @@ const ui = {
   robotHealth: document.getElementById('robot-health'),
   robotHealthText: document.getElementById('robot-health-text'),
   score: document.getElementById('score'),
+  infiniteScore: document.getElementById('infinite-score'),
   chargeLabel: document.getElementById('charge-label'),
   chargePercent: document.getElementById('charge-percent'),
   chargeFill: document.getElementById('charge-fill'),
@@ -60,6 +61,7 @@ class ArcherScene extends Phaser.Scene {
     this.round = 1;
     this.score = 0;
     this.points = 0;
+    this.infiniteScore = false;
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
     this.armorLevel = 0;
@@ -99,6 +101,7 @@ class ArcherScene extends Phaser.Scene {
     ui.primary.addEventListener('click', () => this.startGame());
     ui.pause.addEventListener('click', () => this.togglePause());
     document.getElementById('restart').addEventListener('click', () => this.startGame());
+    ui.infiniteScore.addEventListener('click', () => this.enableInfiniteScore());
     ui.weapons.addEventListener('click', event => {
       const button = event.target.closest('button[data-weapon]');
       if (button) this.selectWeapon(button.dataset.weapon);
@@ -157,6 +160,7 @@ class ArcherScene extends Phaser.Scene {
     this.round = 1;
     this.score = 0;
     this.points = 0;
+    this.infiniteScore = false;
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
     this.armorLevel = 0;
@@ -363,7 +367,8 @@ class ArcherScene extends Phaser.Scene {
     this.started = false;
     this.chargeStartedAt = null;
     ui.overlayTitle.innerHTML = 'DUEL<br><em>OVER</em>';
-    ui.overlayCopy.textContent = `You reached round ${this.round} and scored ${this.score}. The robot won this time.`;
+    const finalScore = this.infiniteScore ? '\u221e' : this.score;
+    ui.overlayCopy.textContent = `You reached round ${this.round} and scored ${finalScore}. The robot won this time.`;
     ui.primary.textContent = 'TRY AGAIN';
     ui.overlay.hidden = false;
   }
@@ -534,6 +539,14 @@ class ArcherScene extends Phaser.Scene {
     this.syncHud();
   }
 
+  enableInfiniteScore() {
+    if (!this.started || this.ended || this.infiniteScore) return;
+    this.infiniteScore = true;
+    this.score = Infinity;
+    this.setNotice('INFINITE SCORE ENABLED');
+    this.syncHud();
+  }
+
   syncHud() {
     ui.round.textContent = String(this.round).padStart(2, '0');
     ui.robotPosition.textContent = this.robot ? `ROBOT: ${this.robot.label}` : 'ROBOT DEFEATED';
@@ -542,7 +555,9 @@ class ArcherScene extends Phaser.Scene {
     const robotHealth = this.robot ? this.robot.health : 0;
     ui.robotHealth.style.width = `${robotHealth}%`;
     ui.robotHealthText.textContent = robotHealth;
-    ui.score.textContent = String(this.score).padStart(4, '0');
+    ui.score.textContent = this.infiniteScore ? '\u221e' : String(this.score).padStart(4, '0');
+    ui.infiniteScore.disabled = !this.started || this.ended || this.infiniteScore;
+    ui.infiniteScore.setAttribute('aria-pressed', String(this.infiniteScore));
     ui.points.textContent = this.points;
     ui.weapons.replaceChildren(...WEAPONS.map(weapon => {
       const button = document.createElement('button');
