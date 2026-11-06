@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" role="img" aria-labelledby="title desc">
   <title id="title">Ragdoll Archers 0.2</title>
-  <desc id="desc">A ragdoll archer fires a glowing blue upgraded arrow beside a points-powered arrow shop.</desc>
+  <desc id="desc">Two pale ragdoll archers face off on gray platforms, with an upgraded blue arrow and the 0.2 arrow shop.</desc>
   <defs>
     <linearGradient id="arena" x2="0" y2="1">
       <stop stop-color="#414141"/>
@@ -28,6 +28,11 @@
   <path d="m189 115 1 79" stroke="#fff0c8" stroke-width="1.5"/>
   <path d="M181 131 350 83" stroke="url(#shot)" stroke-width="8" stroke-linecap="round"/>
   <path d="m350 83-18-2 8 15z" fill="#b9ddff"/>
+  <g stroke="#f1f1ef" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="322" cy="156" r="11" fill="#deded9" stroke="none"/>
+    <path d="m320 168-6 28 10 15m-10-15-13 18m12-32 15 9 10 17m-24-26 16-6" stroke-width="9"/>
+  </g>
+  <path d="m335 78 7 11-11 1" fill="none" stroke="#e9f4ff" stroke-width="2"/>
   <g fill="#70a7ff" opacity=".8">
     <circle cx="224" cy="120" r="2.5"/><circle cx="248" cy="113" r="2"/><circle cx="273" cy="106" r="1.6"/><circle cx="302" cy="97" r="1.3"/>
   </g>
