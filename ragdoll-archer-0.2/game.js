@@ -634,14 +634,19 @@ class ArcherScene extends Phaser.Scene {
     const pantsColor = side === 'player' ? 0x39435c : 0x51404a;
     const hairColor = side === 'player' ? 0x53392d : 0x352b2c;
     const accent = side === 'player' ? 0xe4a45d : 0xe7a16b;
+    const idleWobble = Math.sin(this.time.now / 390 + (facingRight ? 0 : 1.4)) * 2.4;
+    const hitFlail = flash ? (facingRight ? -10 : 10) : 0;
+    const shoulderX = x + idleWobble + hitFlail;
+    const hipX = x - idleWobble * 0.35 + hitFlail * 0.35;
+    const bodyX = (shoulderX + hipX) / 2;
     const hipY = footY - 44;
     const shoulderY = footY - 82;
-    const hip = { x, y: hipY };
-    const shoulder = { x, y: shoulderY + 4 };
+    const hip = { x: hipX, y: hipY };
+    const shoulder = { x: shoulderX, y: shoulderY + 4 };
     const frontFoot = { x: x + (facingRight ? 19 : -19), y: footY - 3 };
     const backFoot = { x: x + (facingRight ? -18 : 18), y: footY - 3 };
-    const frontHand = { x: x + (facingRight ? 24 : -24), y: footY - 82 };
-    const backHand = { x: x + (facingRight ? -22 : 22), y: footY - 58 };
+    const frontHand = { x: shoulderX + (facingRight ? 24 : -24) + (flash ? (facingRight ? -8 : 8) : 0), y: footY - 82 + (flash ? 8 : 0) };
+    const backHand = { x: shoulderX + (facingRight ? -22 : 22) + (flash ? (facingRight ? 7 : -7) : 0), y: footY - 58 - (flash ? 7 : 0) };
     const frontKnee = { x: (hip.x + frontFoot.x) / 2 + (facingRight ? 5 : -5), y: (hipY + footY) / 2 };
     const backKnee = { x: (hip.x + backFoot.x) / 2 + (facingRight ? -4 : 4), y: (hipY + footY) / 2 + 3 };
     const frontElbow = { x: (shoulder.x + frontHand.x) / 2, y: (shoulder.y + frontHand.y) / 2 + 10 };
@@ -657,8 +662,9 @@ class ArcherScene extends Phaser.Scene {
       strokeSegment(points, color, width);
     };
     const joint = (point, radius, color = skinColor) => {
-      graphics.fillStyle(outlineColor, 1).fillCircle(point.x, point.y, radius + 2);
+      graphics.fillStyle(outlineColor, 1).fillCircle(point.x, point.y, radius + 4);
       graphics.fillStyle(color, 1).fillCircle(point.x, point.y, radius);
+      graphics.fillStyle(0xffffff, 0.48).fillCircle(point.x - radius * 0.32, point.y - radius * 0.34, Math.max(1.5, radius * 0.22));
     };
 
     if (side === 'player' && this.shieldActive) {
@@ -666,23 +672,27 @@ class ArcherScene extends Phaser.Scene {
       graphics.lineStyle(1, 0xd5fff8, 0.75).strokeCircle(x, footY - 69, 53);
     }
     graphics.fillStyle(0x14232a, 0.3).fillEllipse(x, footY + 4, 58, 12);
-    segment([hip, backKnee, backFoot], 8, pantsColor);
-    segment([hip, frontKnee, frontFoot], 9, pantsColor);
-    segment([shoulder, backElbow, backHand], 7.5);
-    segment([shoulder, frontElbow, frontHand], 8);
-    segment([{ x, y: shoulderY }, hip], 13, shirtColor);
-    graphics.fillStyle(outlineColor, 1).fillRoundedRect(x - 13, shoulderY + 1, 26, 34, 8);
-    graphics.fillStyle(shirtColor, 1).fillRoundedRect(x - 10, shoulderY + 4, 20, 27, 6);
-    graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(x - 7, shoulderY + 17, x - 2, shoulderY + 23);
-    graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(x + 5, shoulderY + 20, x + 1, shoulderY + 25);
-    joint(shoulder, 6, shirtColor);
-    joint(hip, 6, pantsColor);
-    joint(backKnee, 6, pantsColor);
-    joint(frontKnee, 6.5, pantsColor);
-    joint(backElbow, 5.8);
-    joint(frontElbow, 6.2);
-    graphics.fillStyle(0x65432f, 1).fillRect(x - 10, hipY - 2, 20, 5);
-    graphics.fillStyle(accent, 1).fillRect(x - 2, hipY - 1, 4, 3);
+    segment([hip, backKnee], 8, pantsColor);
+    segment([backKnee, backFoot], 8, pantsColor);
+    segment([hip, frontKnee], 8.5, pantsColor);
+    segment([frontKnee, frontFoot], 8.5, pantsColor);
+    segment([shoulder, backElbow], 7.5);
+    segment([backElbow, backHand], 7.5);
+    segment([shoulder, frontElbow], 8);
+    segment([frontElbow, frontHand], 8);
+    segment([{ x: shoulderX, y: shoulderY }, hip], 13, shirtColor);
+    graphics.fillStyle(outlineColor, 1).fillRoundedRect(bodyX - 13, shoulderY + 1, 26, 34, 8);
+    graphics.fillStyle(shirtColor, 1).fillRoundedRect(bodyX - 10, shoulderY + 4, 20, 27, 6);
+    graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(bodyX - 7, shoulderY + 17, bodyX - 2, shoulderY + 23);
+    graphics.lineStyle(1.5, shirtHighlight, 0.9).lineBetween(bodyX + 5, shoulderY + 20, bodyX + 1, shoulderY + 25);
+    joint(shoulder, 7, shirtColor);
+    joint(hip, 7, pantsColor);
+    joint(backKnee, 7, pantsColor);
+    joint(frontKnee, 7.5, pantsColor);
+    joint(backElbow, 6.8);
+    joint(frontElbow, 7);
+    graphics.fillStyle(0x65432f, 1).fillRect(hipX - 10, hipY - 2, 20, 5);
+    graphics.fillStyle(accent, 1).fillRect(hipX - 2, hipY - 1, 4, 3);
     graphics.fillStyle(0x55382d, 1).fillRoundedRect(frontFoot.x - 10, footY - 8, 21, 9, 4);
     graphics.fillStyle(0x76513b, 1).fillRoundedRect(backFoot.x - 10, footY - 8, 21, 9, 4);
     graphics.lineStyle(1.2, 0xb47c50, 0.9).lineBetween(frontFoot.x - 5, footY - 3, frontFoot.x + 7, footY - 3);
@@ -691,25 +701,26 @@ class ArcherScene extends Phaser.Scene {
     graphics.fillStyle(skinColor, 1).fillCircle(frontHand.x, frontHand.y, 3.5);
     graphics.fillStyle(outlineColor, 1).fillCircle(backHand.x, backHand.y, 5.5);
     graphics.fillStyle(skinColor, 1).fillCircle(backHand.x, backHand.y, 3.5);
-    const headY = footY - 108;
+    const headX = shoulderX + idleWobble * 0.12;
+    const headY = footY - 108 + (flash ? 2 : 0);
     const faceDirection = facingRight ? 1 : -1;
-    graphics.fillStyle(outlineColor, 1).fillCircle(x, headY, 18);
-    graphics.fillStyle(skinColor, 1).fillCircle(x, headY, 15);
-    graphics.fillStyle(skinShadow, 1).fillCircle(x - faceDirection * 14, headY, 3.2);
-    graphics.fillStyle(skinColor, 1).fillCircle(x - faceDirection * 14, headY, 1.8);
+    graphics.fillStyle(outlineColor, 1).fillCircle(headX, headY, 22);
+    graphics.fillStyle(skinColor, 1).fillCircle(headX, headY, 18);
+    graphics.fillStyle(skinShadow, 1).fillCircle(headX - faceDirection * 17, headY, 3.8);
+    graphics.fillStyle(skinColor, 1).fillCircle(headX - faceDirection * 17, headY, 2.1);
     graphics.fillStyle(hairColor, 1).fillTriangle(
-      x - faceDirection * 14, headY - 3,
-      x - faceDirection * 10, headY - 14,
-      x + faceDirection * 3, headY - 12
+      headX - faceDirection * 17, headY - 3,
+      headX - faceDirection * 12, headY - 17,
+      headX + faceDirection * 4, headY - 14
     );
     graphics.fillStyle(hairColor, 1).fillTriangle(
-      x + faceDirection * 2, headY - 12,
-      x + faceDirection * 12, headY - 9,
-      x + faceDirection * 8, headY - 5
+      headX + faceDirection * 3, headY - 14,
+      headX + faceDirection * 14, headY - 10,
+      headX + faceDirection * 9, headY - 6
     );
-    graphics.fillStyle(outlineColor, 1).fillCircle(x + faceDirection * 5, headY - 2, 1.5);
-    graphics.lineStyle(1.3, outlineColor, 1).lineBetween(x + faceDirection * 3, headY - 5, x + faceDirection * 8, headY - 5);
-    graphics.lineStyle(1.5, skinShadow, 1).lineBetween(x + faceDirection * 8, headY + 4, x + faceDirection * 12, headY + 3);
+    graphics.fillStyle(outlineColor, 1).fillCircle(headX + faceDirection * 6, headY - 2, 1.8);
+    graphics.lineStyle(1.5, outlineColor, 1).lineBetween(headX + faceDirection * 4, headY - 6, headX + faceDirection * 10, headY - 5);
+    graphics.lineStyle(1.5, skinShadow, 1).lineBetween(headX + faceDirection * 10, headY + 5, headX + faceDirection * 14, headY + 4);
     const armorLevel = side === 'player' ? this.armorLevel : this.robotArmorLevel;
     if (armorLevel > 0) {
       const plateFill = side === 'player' ? 0x76513a : 0x80513b;
