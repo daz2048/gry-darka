@@ -18,7 +18,7 @@ const WEAPONS = [
   { id: 'swift', name: 'SWIFT', cost: 500, speed: 1.3, damage: 1, color: 0x70a7ff, detail: 'FASTER SHOTS' },
   { id: 'power', name: 'POWER', cost: 1000, speed: 1, damage: 1.4, color: 0xf5a623, detail: 'MORE DAMAGE' },
   { id: 'firework', name: 'FIREWORK', cost: 1400, speed: 0.9, damage: 1.5, color: 0xff7ac6, detail: 'BURST ON IMPACT', effect: 'firework' },
-  { id: 'minigun', name: 'MINIGUN', cost: 1600, speed: 1.05, damage: 0.42, color: 0xffcf56, detail: '5-ARROW BURST', burstCount: 5, spread: 0.045 },
+  { id: 'minigun', name: 'MINIGUN', cost: 1600, speed: 1.05, damage: 0.12, color: 0xffcf56, detail: '100-ARROW BURST', burstCount: 100, burstInterval: 16, spread: 0.0025 },
   { id: 'frost', name: 'FROST', cost: 1800, speed: 0.95, damage: 0.85, color: 0x74e1f4, detail: 'SLOWS ROBOT', effect: 'frost' },
   { id: 'poison', name: 'POISON', cost: 2200, speed: 1, damage: 0.85, color: 0x8cdb77, detail: 'DAMAGE OVER TIME', effect: 'poison' },
   { id: 'ricochet', name: 'RICOCHET', cost: 2400, speed: 1.1, damage: 1.1, color: 0xb692ff, detail: 'BOUNCES OFF PLATFORMS', effect: 'ricochet' },
@@ -83,6 +83,7 @@ class ArcherScene extends Phaser.Scene {
     this.chargeStartedAt = null;
     this.aimAngle = -0.3;
     this.arrows = [];
+    this.pendingBurst = null;
     this.noticeUntil = 0;
     this.playerFlashUntil = 0;
     this.robotFlashUntil = 0;
@@ -171,6 +172,7 @@ class ArcherScene extends Phaser.Scene {
   startGame() {
     if (this.paused) this.togglePause();
     this.pendingSpawnAt = null;
+    this.pendingBurst = null;
     this.clearArrows();
     this.effects = [];
     this.robotPoison = null;
@@ -209,7 +211,7 @@ class ArcherScene extends Phaser.Scene {
   }
 
   beginCharge(pointer) {
-    if (!this.started || this.ended || this.paused || this.chargeStartedAt !== null) return;
+    if (!this.started || this.ended || this.paused || this.chargeStartedAt !== null || this.pendingBurst) return;
     this.updateAim(pointer);
     this.chargeStartedAt = this.time.now;
     ui.chargeLabel.textContent = 'CHARGING';
@@ -224,15 +226,47 @@ class ArcherScene extends Phaser.Scene {
     const power = Phaser.Math.Clamp(chargeDuration / CHARGE_TIME, 0.12, 1);
     const origin = this.bowOrigin(this.player, 'player');
     const weapon = WEAPONS.find(item => item.id === this.selectedWeapon);
-    const shotCount = weapon.burstCount || 1;
-    for (let shot = 0; shot < shotCount; shot++) {
-      const spread = (shot - (shotCount - 1) / 2) * (weapon.spread || 0);
-      this.launchArrow('player', origin.x, origin.y, this.aimAngle + spread, (7 + power * 14) * weapon.speed, power, weapon);
+    const speed = (7 + power * 14) * weapon.speed;
+    if (weapon.id === 'minigun') {
+      this.pendingBurst = {
+        origin,
+        angle: this.aimAngle,
+        speed,
+        power,
+        weapon,
+        shot: 0,
+        nextShotAt: this.time.now
+      };
+      this.setNotice('MINIGUN: 100 SHOTS FIRING');
+    } else {
+      this.launchArrow('player', origin.x, origin.y, this.aimAngle, speed, power, weapon);
+      this.setNotice(power > 0.75 ? 'FULL POWER' : 'ARROW AWAY');
     }
     ui.chargeLabel.textContent = 'SHOT POWER';
     ui.chargeFill.style.width = '0%';
     ui.chargePercent.textContent = '0%';
-    this.setNotice(power > 0.75 ? 'FULL POWER' : 'ARROW AWAY');
+  }
+
+  updatePlayerBurst(time) {
+    const burst = this.pendingBurst;
+    if (!burst || time < burst.nextShotAt) return;
+    if (!this.started || this.ended) {
+      this.pendingBurst = null;
+      return;
+    }
+    const spread = (burst.shot - (burst.weapon.burstCount - 1) / 2) * burst.weapon.spread;
+    this.launchArrow(
+      'player',
+      burst.origin.x,
+      burst.origin.y,
+      burst.angle + spread,
+      burst.speed,
+      burst.power,
+      burst.weapon
+    );
+    burst.shot++;
+    if (burst.shot >= burst.weapon.burstCount) this.pendingBurst = null;
+    else burst.nextShotAt = time + burst.weapon.burstInterval;
   }
 
   updateAim(pointer) {
@@ -280,6 +314,7 @@ class ArcherScene extends Phaser.Scene {
 
   update(time, delta) {
     if (this.paused) return;
+    this.updatePlayerBurst(time);
     if (this.pendingSpawnAt !== null && time >= this.pendingSpawnAt) {
       this.pendingSpawnAt = null;
       if (this.started && !this.ended) this.spawnRobot();
@@ -401,6 +436,7 @@ class ArcherScene extends Phaser.Scene {
     this.nextRobotShotAt += pausedFor;
     if (this.robotPoison) this.robotPoison.nextAt += pausedFor;
     if (this.pendingSpawnAt !== null) this.pendingSpawnAt += pausedFor;
+    if (this.pendingBurst) this.pendingBurst.nextShotAt += pausedFor;
     for (const arrow of this.arrows) arrow.bornAt += pausedFor;
     this.noticeUntil = 0;
     ui.notice.textContent = '';
@@ -409,6 +445,7 @@ class ArcherScene extends Phaser.Scene {
   finishGame() {
     this.ended = true;
     this.started = false;
+    this.pendingBurst = null;
     this.chargeStartedAt = null;
     ui.overlayTitle.innerHTML = 'DUEL<br><em>OVER</em>';
     ui.overlayCopy.textContent = `You reached round ${this.round} and scored ${this.score}. The robot won this time.`;
