@@ -51,7 +51,7 @@ button, a { font: inherit; letter-spacing: inherit; }
   width: min(1280px, 100%);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 40px 1fr 40px;
+  grid-template-columns: 40px 40px 1fr 40px;
   align-items: center;
   gap: 16px;
   min-height: 44px;
@@ -79,6 +79,10 @@ kbd {
 }
 
 .icon-button:hover, .pause-button:hover, .primary-button:hover { background: var(--chip-hover); }
+.sound-button svg { width: 20px; height: 20px; }
+.sound-mute { display: none; }
+.sound-button.is-muted .sound-wave { display: none; }
+.sound-button.is-muted .sound-mute { display: block; }
 
 .brand {
   display: flex;
@@ -253,7 +257,7 @@ footer { width: min(1280px, 100%); margin: 0 auto; justify-content: space-betwee
 
 @media (max-width: 700px) {
   .app-shell { gap: 8px; padding: 8px 8px 7px; }
-  .topbar { grid-template-columns: 36px 1fr 36px; gap: 8px; min-height: 40px; }
+  .topbar { grid-template-columns: 36px 36px 1fr 36px; gap: 8px; min-height: 40px; }
   .icon-button { width: 34px; height: 34px; font-size: 19px; }
   .brand { display: grid; justify-items: center; gap: 0; font-size: 17px; line-height: 1.1; }
   .brand span { margin: 2px 0 0; font-size: 9px; }

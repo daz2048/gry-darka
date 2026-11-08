@@ -13,6 +13,13 @@
   <main class="app-shell">
     <header class="topbar">
       <a class="icon-button back" href="../index.html" aria-label="Game menu" title="Game menu">&#8592;</a>
+      <button id="sound-toggle" class="icon-button sound-button" aria-label="Mute sounds" aria-pressed="true" title="Mute sounds">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3Z"/>
+          <path class="sound-wave" d="M15 8c2.5 2 2.5 6 0 8M18 5c4.5 4 4.5 10 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="sound-mute" d="m16 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
       <div class="brand">RAGDOLL <strong>ARCHERS</strong><span>VERSION 0.3</span></div>
       <button id="restart" class="icon-button" aria-label="Restart duel" title="Restart duel">&#8635;</button>
     </header>

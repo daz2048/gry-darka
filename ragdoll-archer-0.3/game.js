@@ -6,9 +6,15 @@ const PLAYER_X = 156;
 const PLAYER_FOOT_Y = 430;
 const ACTOR_SCALE = 1.35;
 const CHARGE_TIME = 1300;
+const FALL_DURATION = 850;
+const BOMB_BLAST_RADIUS = 120;
+const BOSS_ROUND_INTERVAL = 10;
+const BOSS_HEALTH = 1000;
+const BOSS_SIZE = 2.15;
+const BOSS_ARROW_SIZE = 2.4;
 const ARMOR_COST = 750;
-const ARMOR_MAX_LEVEL = 8;
-const ARMOR_DAMAGE_REDUCTION = [0, 0.4, 0.55, 0.68, 0.78, 0.86, 0.88, 0.9, 0.92];
+const ARMOR_MAX_LEVEL = 12;
+const ARMOR_DAMAGE_REDUCTION = [0, 0.4, 0.55, 0.68, 0.78, 0.86, 0.88, 0.9, 0.92, 0.93, 0.94, 0.95, 0.96];
 const MEDKIT_COST = 600;
 const MEDKIT_HEAL = 35;
 const SHIELD_COST = 1200;
@@ -57,7 +63,12 @@ const WEAPONS = [
   { id: 'poison', name: 'POISON', cost: 2200, speed: 1, damage: 0.85, color: 0xc3e37a, detail: 'DAMAGE OVER TIME', effect: 'poison' },
   { id: 'ricochet', name: 'RICOCHET', cost: 2400, speed: 1.1, damage: 1.1, color: 0xb39af0, detail: 'BOUNCES OFF PLATFORMS', effect: 'ricochet' },
   { id: 'laser', name: 'LASER', cost: 2800, speed: 2, damage: 1.8, color: 0xe86bd3, detail: 'INSTANT BEAM', effect: 'laser' },
-  { id: 'elite', name: 'ELITE', cost: 3000, speed: 1.25, damage: 1.5, color: 0xe45050, detail: 'FAST + POWERFUL' }
+  { id: 'elite', name: 'ELITE', cost: 3000, speed: 1.25, damage: 1.5, color: 0xe45050, detail: 'FAST + POWERFUL' },
+  { id: 'vampire', name: 'VAMPIRE', cost: 3800, speed: 0.95, damage: 0.9, color: 0x9c2020, detail: 'STEALS HEALTH', effect: 'vampire' },
+  { id: 'chainsaw', name: 'CHAINSAW', cost: 6500, speed: 0.85, damage: 1, color: 0xf57b27, detail: 'CUTS RIVAL IN HALF', effect: 'chainsaw' },
+  { id: 'bomb', name: 'BOMB', cost: 7200, speed: 0.8, damage: 1.35, color: 0xf05a3e, detail: 'EXPLODES ON IMPACT', effect: 'bomb' },
+  { id: 'triple', name: 'TRIPLE', cost: 4800, speed: 1, damage: 0.62, color: 0x51c4ad, detail: 'FIRES THREE ARROWS', effect: 'triple', arrowCount: 3, spread: 0.075 },
+  { id: 'super-arow', name: 'SUPER AROW', cost: 1000000000000, speed: 2, damage: 1, color: 0x52e6ff, detail: 'UNBREAKABLE INSTANT-KILL LASER', effect: 'laser', instantKill: true, pierces: true }
 ];
 
 const ROBOT_POSITIONS = [
@@ -70,6 +81,15 @@ const ROBOT_POSITIONS = [
   { x: 845, footY: 330, label: 'RIGHT PLATFORM' }
 ];
 
+const ARCHER_POSES = [
+  { lean: 0, crouch: 0, frontStep: 0, backStep: 0, frontLift: 0, backLift: 0, shoulderLift: 0 },
+  { lean: 8, crouch: -3, frontStep: 10, backStep: 2, frontLift: 5, backLift: 0, shoulderLift: -3 },
+  { lean: -6, crouch: 5, frontStep: -4, backStep: 13, frontLift: 0, backLift: 5, shoulderLift: 4 },
+  { lean: 3, crouch: 12, frontStep: 8, backStep: 10, frontLift: 0, backLift: 0, shoulderLift: 7 },
+  { lean: 10, crouch: 2, frontStep: 16, backStep: 5, frontLift: 8, backLift: 0, shoulderLift: -5 },
+  { lean: -9, crouch: -4, frontStep: -6, backStep: 14, frontLift: 0, backLift: 7, shoulderLift: -2 }
+];
+
 const toCssColor = color => `#${color.toString(16).padStart(6, '0')}`;
 
 const shadeColor = (color, factor) => {
@@ -78,6 +98,7 @@ const shadeColor = (color, factor) => {
 };
 
 const formatCost = cost => {
+  if (cost >= 1000000000000) return `${cost / 1000000000000}T`;
   if (cost >= 1000000) return `${cost / 1000000}M`;
   if (cost >= 10000) return `${Math.round(cost / 1000)}K`;
   return String(cost);
@@ -109,7 +130,7 @@ function createLockBadge(cost) {
   return badge;
 }
 
-function createArrowIcon(accentColor) {
+function createArrowIcon(accentColor, weapon) {
   const accent = toCssColor(accentColor);
   const stripe = toCssColor(shadeColor(accentColor, 0.7));
   const svg = svgElement('svg', { viewBox: '0 0 214 16', class: 'arrow-icon', 'aria-hidden': 'true' });
@@ -119,6 +140,50 @@ function createArrowIcon(accentColor) {
     svgElement('path', { d: 'M184 8 192 1h21l-8 7 8 7h-21Z', fill: accent }),
     svgElement('path', { d: 'M195 1.5l6 6.5-6 6.5M203 1.5l6 6.5-6 6.5', fill: 'none', stroke: stripe, 'stroke-width': '1.6' })
   );
+  const mark = (tag, attributes) => svg.append(svgElement(tag, attributes));
+  switch (weapon.id) {
+    case 'swift':
+      mark('path', { d: 'M20 3h18M15 8h18M20 13h18', fill: 'none', stroke: stripe, 'stroke-width': '1.5' });
+      break;
+    case 'power':
+      mark('path', { d: 'M92 3v10M88 8h8', fill: 'none', stroke: stripe, 'stroke-width': '2.5' });
+      break;
+    case 'firework':
+      mark('path', { d: 'm104 2 1.7 4.3L110 8l-4.3 1.7L104 14l-1.7-4.3L98 8l4.3-1.7Z', fill: '#fff' });
+      break;
+    case 'minigun':
+      mark('path', { d: 'M38 5h156M38 11h156', fill: 'none', stroke: stripe, 'stroke-width': '1.2' });
+      break;
+    case 'frost':
+      mark('path', { d: 'm104 1 4 7-4 7-4-7ZM97 8h14M101 4l6 8M107 4l-6 8', fill: 'none', stroke: '#fff', 'stroke-width': '1.2' });
+      break;
+    case 'poison':
+      mark('path', { d: 'M102 2c0 3-4 5-4 8a4 4 0 0 0 8 0c0-3-4-5-4-8Z', fill: stripe });
+      break;
+    case 'ricochet':
+      mark('path', { d: 'M82 3 88 8 94 3 100 8', fill: 'none', stroke: '#fff', 'stroke-width': '2' });
+      break;
+    case 'laser':
+    case 'super-arow':
+      mark('path', { d: 'M25 5h165M25 11h165', fill: 'none', stroke: '#fff', 'stroke-width': '1.2' });
+      break;
+    case 'elite':
+      mark('path', { d: 'M78 2v12M84 2v12M90 2v12', stroke: '#fff', 'stroke-width': '1.5' });
+      break;
+    case 'vampire':
+      mark('path', { d: 'M104 2c0 3-4 5-4 8a4 4 0 0 0 8 0c0-3-4-5-4-8ZM116 4c0 2-2 3-2 5a2 2 0 0 0 4 0c0-2-2-3-2-5Z', fill: '#fff' });
+      break;
+    case 'chainsaw':
+      mark('path', { d: 'M80 2 85 6 90 2 95 6 100 2 105 6 110 2 115 6 120 2', fill: 'none', stroke: '#fff', 'stroke-width': '2' });
+      break;
+    case 'bomb':
+      mark('circle', { cx: '104', cy: '8', r: '5', fill: stripe, stroke: '#fff', 'stroke-width': '1' });
+      mark('path', { d: 'm108 4 4-3m-1 0 2 2', fill: 'none', stroke: '#fff', 'stroke-width': '1.5' });
+      break;
+    case 'triple':
+      mark('path', { d: 'M30 3h160M30 13h160', fill: 'none', stroke: stripe, 'stroke-width': '1.4' });
+      break;
+  }
   return svg;
 }
 
@@ -141,11 +206,66 @@ const ui = {
   notice: document.getElementById('notice'),
   robotTimer: document.getElementById('robot-timer'),
   pause: document.getElementById('pause'),
+  soundToggle: document.getElementById('sound-toggle'),
   points: document.getElementById('points'),
   infinitePointsHint: document.getElementById('infinite-points-hint'),
   weapons: document.getElementById('weapons'),
   upgrades: document.getElementById('upgrades')
 };
+
+class GameAudio {
+  constructor() {
+    this.enabled = true;
+    this.context = null;
+    this.notes = {
+      start: [[440, 0.09], [587, 0.12]],
+      shot: [[360, 0.07], [220, 0.1]],
+      rivalShot: [[240, 0.08], [150, 0.1]],
+      hit: [[125, 0.11]],
+      vampire: [[180, 0.1], [260, 0.14]],
+      chainsaw: [[90, 0.08], [130, 0.06], [95, 0.08], [140, 0.06]],
+      bomb: [[120, 0.16], [70, 0.22]],
+      shield: [[520, 0.08], [780, 0.12]],
+      defeat: [[330, 0.12], [440, 0.12], [660, 0.2]],
+      lose: [[220, 0.16], [165, 0.24]]
+    };
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    if (this.enabled) this.play('start');
+    return this.enabled;
+  }
+
+  play(name, intensity = 1) {
+    if (!this.enabled) return;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    try {
+      this.context ??= new AudioContext();
+      if (this.context.state === 'suspended') this.context.resume().catch(() => {});
+      for (const [index, [frequency, duration]] of this.notes[name]?.entries() ?? []) {
+        const oscillator = this.context.createOscillator();
+        const volume = this.context.createGain();
+        const startAt = this.context.currentTime + index * 0.075;
+        oscillator.type = name === 'hit' ? 'square' : name === 'chainsaw' ? 'sawtooth' : 'triangle';
+        oscillator.frequency.setValueAtTime(frequency, startAt);
+        oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.68, startAt + duration);
+        volume.gain.setValueAtTime(0.0001, startAt);
+        volume.gain.exponentialRampToValueAtTime(0.12 * intensity, startAt + 0.012);
+        volume.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+        oscillator.connect(volume);
+        volume.connect(this.context.destination);
+        oscillator.start(startAt);
+        oscillator.stop(startAt + duration);
+      }
+    } catch {
+      this.context = null;
+    }
+  }
+}
+
+const gameAudio = new GameAudio();
 
 class ArcherScene extends Phaser.Scene {
   constructor() {
@@ -160,11 +280,12 @@ class ArcherScene extends Phaser.Scene {
     this.score = 0;
     this.points = 0;
     this.infinitePoints = false;
+    this.armorLevel = 0;
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
     this.effects = [];
     this.robotPoison = null;
-    this.armorLevel = 0;
+    this.armorLevel = Phaser.Math.Between(6, ARMOR_MAX_LEVEL);
     this.playerHealth = 100;
     this.robotHealth = 100;
     this.started = false;
@@ -176,8 +297,12 @@ class ArcherScene extends Phaser.Scene {
     this.noticeUntil = 0;
     this.playerFlashUntil = 0;
     this.robotFlashUntil = 0;
-    this.player = { x: PLAYER_X, footY: PLAYER_FOOT_Y };
+    this.player = { x: PLAYER_X, footY: PLAYER_FOOT_Y, pose: 0 };
     this.robot = { ...ROBOT_POSITIONS[0], health: 100 };
+    this.lastRobotSpawnIndex = -1;
+    this.lastPlayerPose = -1;
+    this.lastRobotPose = -1;
+    this.lastRobotArmorLevel = -1;
     this.robotArmorLevel = 1;
     this.shieldActive = false;
     this.robotPlatformBody = null;
@@ -204,6 +329,13 @@ class ArcherScene extends Phaser.Scene {
     this.input.on('pointerupoutside', pointer => this.releaseShot(pointer));
     ui.primary.addEventListener('click', () => this.startGame());
     ui.pause.addEventListener('click', () => this.togglePause());
+    ui.soundToggle.addEventListener('click', () => {
+      const enabled = gameAudio.toggle();
+      ui.soundToggle.classList.toggle('is-muted', !enabled);
+      ui.soundToggle.setAttribute('aria-pressed', String(enabled));
+      ui.soundToggle.setAttribute('aria-label', enabled ? 'Mute sounds' : 'Enable sounds');
+      ui.soundToggle.title = enabled ? 'Mute sounds' : 'Enable sounds';
+    });
     document.getElementById('restart').addEventListener('click', () => this.startGame());
     ui.weapons.addEventListener('click', event => {
       const button = event.target.closest('button[data-weapon]');
@@ -232,6 +364,12 @@ class ArcherScene extends Phaser.Scene {
     fullscreenChange.catch(() => this.setNotice('FULLSCREEN UNAVAILABLE'));
   }
 
+  randomPose(previous = -1, exclude = -1) {
+    const choices = ARCHER_POSES.map((_, index) => index)
+      .filter(index => index !== previous && index !== exclude);
+    return choices[Phaser.Math.Between(0, choices.length - 1)];
+  }
+
   drawArena() {
     const background = this.add.graphics().setDepth(-10);
     background.fillStyle(PALETTE.background).fillRect(0, 0, WIDTH, HEIGHT);
@@ -256,7 +394,7 @@ class ArcherScene extends Phaser.Scene {
     this.drawPlatforms(ROBOT_POSITIONS[0]);
   }
 
-  drawPlatforms(spawn) {
+  drawPlatforms(spawn, isBoss = false) {
     const graphics = this.platformGraphics.clear();
     const towerLeft = PLAYER_X - TOWER_WIDTH / 2;
     const tile = TOWER_WIDTH / 3;
@@ -270,10 +408,13 @@ class ArcherScene extends Phaser.Scene {
     graphics.fillStyle(PALETTE.block)
       .fillRect(towerLeft, PLAYER_FOOT_Y - 22, 26, 22)
       .fillRect(towerLeft + TOWER_WIDTH - 26, PLAYER_FOOT_Y - 22, 26, 22);
-    const rivalLeft = spawn.x - RIVAL_BLOCKS_WIDTH / 2;
+    const blockSize = isBoss ? 72 : RIVAL_BLOCK_SIZE;
+    const blockGap = RIVAL_BLOCK_GAP;
+    const rivalBlocksWidth = blockSize * 3 + blockGap * 2;
+    const rivalLeft = spawn.x - rivalBlocksWidth / 2;
     for (let block = 0; block < 3; block++) {
       graphics.fillStyle(block === 1 ? PALETTE.blockAlt : PALETTE.block)
-        .fillRect(rivalLeft + block * (RIVAL_BLOCK_SIZE + RIVAL_BLOCK_GAP), spawn.footY, RIVAL_BLOCK_SIZE, RIVAL_BLOCK_SIZE);
+        .fillRect(rivalLeft + block * (blockSize + blockGap), spawn.footY, blockSize, blockSize);
     }
   }
 
@@ -292,35 +433,64 @@ class ArcherScene extends Phaser.Scene {
     this.infinitePoints = false;
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
-    this.armorLevel = 0;
+    this.armorLevel = Phaser.Math.Between(6, ARMOR_MAX_LEVEL);
     this.shieldActive = false;
     this.playerHealth = 100;
     this.chargeStartedAt = null;
+    this.player.x = PLAYER_X;
+    this.player.footY = PLAYER_FOOT_Y;
+    this.player.fall = null;
+    this.player.rotation = 0;
+    this.player.pose = this.randomPose(this.lastPlayerPose);
+    this.lastPlayerPose = this.player.pose;
     this.robot = null;
+    this.lastRobotSpawnIndex = -1;
     this.robotPoison = null;
     this.spawnRobot();
+    gameAudio.play('start');
     ui.overlay.hidden = true;
     this.setNotice('SHOOT WHENEVER YOU ARE READY');
     this.syncHud();
   }
 
   spawnRobot() {
-    const spawn = ROBOT_POSITIONS[(this.round - 1) % ROBOT_POSITIONS.length];
+    const isBoss = this.round % BOSS_ROUND_INTERVAL === 0;
+    const spawnChoices = ROBOT_POSITIONS.map((spawn, index) => ({ spawn, index }))
+      .filter(({ spawn }) => !isBoss || spawn.footY >= 390)
+      .filter(({ index }) => index !== this.lastRobotSpawnIndex);
+    const { spawn, index: spawnIndex } = spawnChoices[Phaser.Math.Between(0, spawnChoices.length - 1)];
+    this.lastRobotSpawnIndex = spawnIndex;
+    const pose = this.randomPose(this.lastRobotPose, this.player.pose);
+    this.lastRobotPose = pose;
+    const armorChoices = Array.from({ length: ARMOR_MAX_LEVEL }, (_, index) => index + 1)
+      .filter(level => level !== this.armorLevel && level !== this.lastRobotArmorLevel);
+    this.robotArmorLevel = armorChoices[Phaser.Math.Between(0, armorChoices.length - 1)];
+    this.lastRobotArmorLevel = this.robotArmorLevel;
+    const platformSize = isBoss ? 72 : RIVAL_BLOCK_SIZE;
+    const platformWidth = platformSize * 3 + RIVAL_BLOCK_GAP * 2;
     if (this.robotPlatformBody) this.matter.world.remove(this.robotPlatformBody);
-    this.robotPlatformBody = this.matter.add.rectangle(spawn.x, spawn.footY + RIVAL_BLOCK_SIZE / 2, RIVAL_BLOCKS_WIDTH, RIVAL_BLOCK_SIZE, { isStatic: true, label: 'active-robot-platform', friction: 0.9 });
-    this.drawPlatforms(spawn);
-    this.robot = { x: spawn.x, footY: spawn.footY, health: 100, label: spawn.label };
-    this.robotArmorLevel = Math.min(this.round, ARMOR_MAX_LEVEL);
+    this.robotPlatformBody = this.matter.add.rectangle(spawn.x, spawn.footY + platformSize / 2, platformWidth, platformSize, { isStatic: true, label: 'active-robot-platform', friction: 0.9 });
+    this.drawPlatforms(spawn, isBoss);
+    this.robot = {
+      x: spawn.x,
+      footY: spawn.footY,
+      health: isBoss ? BOSS_HEALTH : 100,
+      maxHealth: isBoss ? BOSS_HEALTH : 100,
+      size: isBoss ? BOSS_SIZE : 1,
+      isBoss,
+      label: isBoss ? 'BOSS - GIANT' : spawn.label,
+      pose
+    };
     this.robotPoison = null;
-    this.robotHealth = 100;
+    this.robotHealth = this.robot.health;
     this.robotFlashUntil = 0;
     this.nextRobotShotAt = this.time.now + Phaser.Math.Between(1900, 2900);
     this.syncHud();
-    this.setNotice(this.round === 1 ? 'RIVAL INCOMING' : `RIVAL ${String(this.round).padStart(2, '0')} INCOMING`);
+    this.setNotice(isBoss ? 'BOSS APPROACHES' : this.round === 1 ? 'RIVAL INCOMING' : `RIVAL ${String(this.round).padStart(2, '0')} INCOMING`);
   }
 
   beginCharge(pointer) {
-    if (!this.started || this.ended || this.paused || this.chargeStartedAt !== null || this.pendingBurst) return;
+    if (!this.started || this.ended || this.paused || this.player.fall || this.chargeStartedAt !== null || this.pendingBurst) return;
     this.updateAim(pointer);
     this.chargeStartedAt = this.time.now;
     ui.chargeLabel.textContent = 'CHARGING';
@@ -337,8 +507,10 @@ class ArcherScene extends Phaser.Scene {
     const weapon = WEAPONS.find(item => item.id === this.selectedWeapon);
     const speed = (7 + power * 14) * weapon.speed;
     if (weapon.effect === 'laser') {
+      gameAudio.play('shot', power);
       if (!this.fireLaser(origin, this.aimAngle, power, weapon)) this.setNotice('LASER FIRED');
     } else if (weapon.id === 'minigun') {
+      gameAudio.play('shot', power);
       this.pendingBurst = {
         origin,
         angle: this.aimAngle,
@@ -349,7 +521,15 @@ class ArcherScene extends Phaser.Scene {
         nextShotAt: this.time.now
       };
       this.setNotice('MINIGUN: 100 SHOTS FIRING');
+    } else if (weapon.effect === 'triple') {
+      gameAudio.play('shot', power);
+      for (let index = 0; index < weapon.arrowCount; index++) {
+        const spread = (index - (weapon.arrowCount - 1) / 2) * weapon.spread;
+        this.launchArrow('player', origin.x, origin.y, this.aimAngle + spread, speed, power, weapon);
+      }
+      this.setNotice('TRIPLE SHOT');
     } else {
+      gameAudio.play('shot', power);
       this.launchArrow('player', origin.x, origin.y, this.aimAngle, speed, power, weapon);
       this.setNotice(power > 0.75 ? 'FULL POWER' : 'ARROW AWAY');
     }
@@ -371,7 +551,7 @@ class ArcherScene extends Phaser.Scene {
           y: origin.y + directionY * distance
         };
         if (!this.arrowHitsTarget(position, angle, this.robot)) continue;
-        beamDistance = distance + 24;
+        if (!weapon.pierces) beamDistance = distance + 24;
         hit = true;
         this.hitTarget('player', power, weapon);
         break;
@@ -418,14 +598,15 @@ class ArcherScene extends Phaser.Scene {
   }
 
   bowOrigin(actor, side) {
+    const scale = ACTOR_SCALE * (actor.size ?? 1);
     return {
-      x: actor.x + (side === 'player' ? 26 : -26) * ACTOR_SCALE,
-      y: actor.footY - 82 * ACTOR_SCALE
+      x: actor.x + (side === 'player' ? 26 : -26) * scale,
+      y: actor.footY - 82 * scale
     };
   }
 
-  launchArrow(side, x, y, angle, speed, power, weapon = WEAPONS[0]) {
-    const body = MATTER.Bodies.rectangle(x, y, 42, 4, {
+  launchArrow(side, x, y, angle, speed, power, weapon = WEAPONS[0], size = 1) {
+    const body = MATTER.Bodies.rectangle(x, y, 42 * size, 4 * size, {
       label: `${side}-arrow`,
       frictionAir: 0.0015,
       friction: 0.04,
@@ -435,11 +616,11 @@ class ArcherScene extends Phaser.Scene {
     MATTER.Body.setAngle(body, angle);
     MATTER.Body.setVelocity(body, { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed });
     this.matter.world.add(body);
-    this.arrows.push({ body, side, power, weapon, bornAt: this.time.now });
+    this.arrows.push({ body, side, power, weapon, size, bornAt: this.time.now });
   }
 
   robotShoot() {
-    if (!this.robot || this.robot.health <= 0) return;
+    if (!this.robot || this.robot.health <= 0 || this.robot.fall) return;
     const origin = this.bowOrigin(this.robot, 'robot');
     const targetX = this.player.x + 5;
     const targetY = this.player.footY - 82 * ACTOR_SCALE;
@@ -448,7 +629,12 @@ class ArcherScene extends Phaser.Scene {
     const travelFrames = Math.abs(distanceX) / speed;
     const compensatedY = targetY - origin.y - GRAVITY * travelFrames * travelFrames / 2;
     const angle = Math.atan2(compensatedY, distanceX) + Phaser.Math.FloatBetween(-0.035, 0.035);
-    this.launchArrow('robot', origin.x, origin.y, angle, speed, 0.52);
+    const bossArrow = this.robot.isBoss;
+    const weapon = bossArrow
+      ? { id: 'boss-arrow', effect: 'boss-arrow', damage: 1, color: PALETTE.arrow }
+      : WEAPONS[0];
+    this.launchArrow('robot', origin.x, origin.y, angle, speed, 0.52, weapon, bossArrow ? BOSS_ARROW_SIZE : 1);
+    gameAudio.play('rivalShot');
     const interval = Math.max(1350, 2650 - this.round * 70);
     this.nextRobotShotAt = this.time.now + interval + Phaser.Math.Between(-180, 240);
     this.setNotice('RIVAL FIRED');
@@ -456,6 +642,7 @@ class ArcherScene extends Phaser.Scene {
 
   update(time, delta) {
     if (this.paused) return;
+    this.updateKnockdowns(delta);
     this.updatePlayerBurst(time);
     if (this.pendingSpawnAt !== null && time >= this.pendingSpawnAt) {
       this.pendingSpawnAt = null;
@@ -481,17 +668,41 @@ class ArcherScene extends Phaser.Scene {
   }
 
   updateArrows(time) {
+    const blockBodies = this.matter.world.localWorld.bodies.filter(body =>
+      body.isStatic && (body.label === 'platform' || body.label === 'active-robot-platform')
+    );
     for (let index = this.arrows.length - 1; index >= 0; index--) {
       const arrow = this.arrows[index];
+      if (arrow.attached) continue;
       const body = arrow.body;
       const { x, y } = body.position;
       const angle = Math.atan2(body.velocity.y, body.velocity.x);
       MATTER.Body.setAngle(body, angle);
       const target = arrow.side === 'player' ? this.robot : this.player;
-      if (target && this.arrowHitsTarget(body.position, angle, target)) {
-        this.removeArrow(index);
-        if (arrow.side === 'player' && arrow.weapon.effect === 'firework') this.spawnFirework(x, y, time);
-        this.hitTarget(arrow.side, arrow.power, arrow.weapon);
+      if (target && this.arrowHitsTarget(body.position, angle, target, arrow.size)) {
+        if (arrow.side === 'player' && arrow.weapon.effect === 'bomb') {
+          this.detonateBomb(index, x, y, time, arrow);
+        } else {
+          this.attachArrow(index);
+          if (arrow.side === 'player' && arrow.weapon.effect === 'firework') this.spawnFirework(x, y, time);
+          this.hitTarget(arrow.side, arrow.power, arrow.weapon);
+        }
+        if (!this.robot) {
+          this.clearArrows();
+          break;
+        }
+        continue;
+      }
+      if (MATTER.Query.collides(body, blockBodies).length > 0) {
+        if (arrow.side === 'player' && arrow.weapon.effect === 'bomb') {
+          this.detonateBomb(index, x, y, time, arrow);
+          if (!this.robot) {
+            this.clearArrows();
+            break;
+          }
+        } else {
+          this.attachArrow(index);
+        }
         continue;
       }
       if (time - arrow.bornAt > 6500 || x < -70 || x > WIDTH + 70 || y > HEIGHT + 70) {
@@ -501,36 +712,84 @@ class ArcherScene extends Phaser.Scene {
     this.drawArrows();
   }
 
-  arrowHitsTarget(position, angle, target) {
-    const tipX = position.x + Math.cos(angle) * 18;
-    const tipY = position.y + Math.sin(angle) * 18;
-    const headDistance = Phaser.Math.Distance.Between(tipX, tipY, target.x, target.footY - 107 * ACTOR_SCALE);
-    const torsoDistance = Phaser.Math.Distance.Between(tipX, tipY, target.x, target.footY - 65 * ACTOR_SCALE);
-    return headDistance < 22 * ACTOR_SCALE || torsoDistance < 31 * ACTOR_SCALE;
+  arrowHitsTarget(position, angle, target, arrowSize = 1) {
+    const targetScale = ACTOR_SCALE * (target.size ?? 1);
+    const tipX = position.x + Math.cos(angle) * 18 * arrowSize;
+    const tipY = position.y + Math.sin(angle) * 18 * arrowSize;
+    const headDistance = Phaser.Math.Distance.Between(tipX, tipY, target.x, target.footY - 107 * targetScale);
+    const torsoDistance = Phaser.Math.Distance.Between(tipX, tipY, target.x, target.footY - 65 * targetScale);
+    return headDistance < 22 * targetScale || torsoDistance < 31 * targetScale;
+  }
+
+  detonateBomb(index, x, y, time, arrow) {
+    this.removeArrow(index);
+    this.effects.push({ type: 'bomb', x, y, bornAt: time });
+    const colors = [PALETTE.orange, PALETTE.red, 0xffd166, 0xffffff];
+    for (let spark = 0; spark < 16; spark++) {
+      this.effects.push({
+        x,
+        y,
+        angle: Math.PI * 2 * spark / 16,
+        speed: Phaser.Math.FloatBetween(2, 5),
+        color: colors[spark % colors.length],
+        bornAt: time
+      });
+    }
+    gameAudio.play('bomb');
+    if (this.robot && Phaser.Math.Distance.Between(x, y, this.robot.x, this.robot.footY - 65 * ACTOR_SCALE) <= BOMB_BLAST_RADIUS) {
+      this.hitTarget('player', arrow.power, arrow.weapon);
+    }
   }
 
   hitTarget(side, power, weapon = WEAPONS[0]) {
     const baseDamage = Math.round((15 + power * 34) * weapon.damage);
     const armorLevel = side === 'robot' ? this.armorLevel : this.robotArmorLevel;
-    const damage = armorLevel > 0
+    const damage = side === 'robot' && weapon.effect === 'boss-arrow'
+      ? this.playerHealth
+      : armorLevel > 0
       ? Math.round(baseDamage * (1 - ARMOR_DAMAGE_REDUCTION[armorLevel]))
       : baseDamage;
+    gameAudio.play('hit', side === 'player' ? 0.9 : 0.7);
     if (side === 'player') {
       if (!this.robot || this.robot.health <= 0) return;
-      this.robot.health = Math.max(0, this.robot.health - damage);
+      const appliedDamage = weapon.instantKill || (weapon.effect === 'chainsaw' && !this.robot.isBoss)
+        ? this.robot.health
+        : Math.min(damage, this.robot.health);
+      this.robot.health = Math.max(0, this.robot.health - appliedDamage);
       this.robotHealth = this.robot.health;
       this.robotFlashUntil = this.time.now + 180;
-      this.awardPoints(damage * 10);
+      this.awardPoints(appliedDamage * 10);
+      let stolenHealth = 0;
+      if (weapon.effect === 'vampire') {
+        stolenHealth = Math.min(appliedDamage, 100 - this.playerHealth);
+        this.playerHealth += stolenHealth;
+      }
+      if (weapon.effect === 'chainsaw') {
+        this.spawnChainsawCut(this.robot, this.time.now);
+        gameAudio.play('chainsaw');
+      } else if (weapon.effect === 'vampire') {
+        gameAudio.play('vampire');
+      }
+      this.knockDownActor(this.robot, Math.sign(this.robot.x - this.player.x) || 1);
       if (weapon.effect === 'frost' && this.robot) this.nextRobotShotAt += 1400;
       if (weapon.effect === 'poison' && this.robot) {
         this.robotPoison = { remaining: 3, damage: 5, nextAt: this.time.now + 350 };
       }
-      const notice = weapon.effect === 'frost' ? 'RIVAL SLOWED' : weapon.effect === 'poison' ? 'RIVAL POISONED' : `RIVAL -${damage}`;
+      const notice = weapon.effect === 'chainsaw'
+        ? 'RIVAL CUT IN HALF'
+        : weapon.effect === 'vampire'
+          ? `LIFE STOLEN +${stolenHealth}`
+          : weapon.effect === 'frost'
+            ? 'RIVAL SLOWED'
+            : weapon.effect === 'poison'
+              ? 'RIVAL POISONED'
+              : `RIVAL -${appliedDamage}`;
       this.setNotice(notice);
       if (this.robot.health <= 0) this.defeatRobot();
     } else {
       if (this.shieldActive) {
         this.shieldActive = false;
+        gameAudio.play('shield');
         this.playerFlashUntil = this.time.now + 220;
         this.setNotice('SHIELD BLOCKED THE HIT');
         this.syncHud();
@@ -538,13 +797,52 @@ class ArcherScene extends Phaser.Scene {
       }
       this.playerHealth = Math.max(0, this.playerHealth - damage);
       this.playerFlashUntil = this.time.now + 220;
+      this.chargeStartedAt = null;
+      ui.chargeLabel.textContent = 'SHOT POWER';
+      ui.chargeFill.style.width = '0%';
+      ui.chargePercent.textContent = '0%';
       this.setNotice(`YOU -${damage}`);
-      if (this.playerHealth <= 0) this.finishGame();
+      if (this.playerHealth <= 0) {
+        this.knockDownActor(this.player, Math.sign(this.player.x - this.robot.x) || -1);
+        this.finishGame();
+      }
     }
     this.syncHud();
   }
 
+  knockDownActor(actor, direction) {
+    if (actor.fall) return;
+    actor.fall = {
+      homeX: actor.x,
+      homeFootY: actor.footY,
+      direction,
+      elapsed: 0
+    };
+  }
+
+  updateKnockdowns(delta) {
+    const elapsed = Math.min(delta, 50);
+    for (const actor of [this.player, this.robot]) {
+      if (!actor?.fall) continue;
+      const fall = actor.fall;
+      fall.elapsed += elapsed;
+      const progress = Math.min(fall.elapsed / FALL_DURATION, 1);
+      actor.x = fall.homeX + fall.direction * 70 * progress;
+      actor.footY = fall.homeFootY + 320 * progress * progress;
+      actor.rotation = fall.direction * 1.25 * Math.sin(progress * Math.PI / 2);
+      if (progress === 1) {
+        actor.x = fall.homeX;
+        actor.footY = fall.homeFootY;
+        actor.rotation = 0;
+        actor.fall = null;
+      }
+    }
+  }
+
   defeatRobot() {
+    gameAudio.play('defeat');
+    this.pendingBurst = null;
+    this.clearArrows();
     this.awardPoints(250);
     this.robot = null;
     this.nextRobotShotAt = Infinity;
@@ -585,6 +883,7 @@ class ArcherScene extends Phaser.Scene {
   }
 
   finishGame() {
+    gameAudio.play('lose');
     this.ended = true;
     this.started = false;
     this.pendingBurst = null;
@@ -644,15 +943,34 @@ class ArcherScene extends Phaser.Scene {
       const { x, y } = arrow.body.position;
       const angle = arrow.body.angle;
       const accent = arrow.side === 'player' ? arrow.weapon.color : PALETTE.arrow;
-      this.drawArrowSprite(this.arrowGraphics, x, y, Math.cos(angle), Math.sin(angle), accent);
+      const weapon = arrow.side === 'player' ? arrow.weapon : WEAPONS[0];
+      const size = arrow.size ?? 1;
+      this.arrowGraphics.save();
+      this.arrowGraphics.translateCanvas(x, y);
+      this.arrowGraphics.scaleCanvas(size, size);
+      this.drawArrowSprite(this.arrowGraphics, 0, 0, Math.cos(angle), Math.sin(angle), accent, weapon);
+      this.arrowGraphics.restore();
     }
   }
 
-  drawArrowSprite(graphics, x, y, dx, dy, accent) {
+  drawArrowSprite(graphics, x, y, dx, dy, accent, weapon = WEAPONS[0]) {
     const px = -dy;
     const py = dx;
     const tailX = x - dx * 36;
     const tailY = y - dy * 36;
+    const pointAt = (distance, offset = 0) => ({
+      x: x + dx * distance + px * offset,
+      y: y + dy * distance + py * offset
+    });
+    const band = (distance, color = accent, width = 5) => {
+      const center = pointAt(distance);
+      graphics.lineStyle(width, color, 1).lineBetween(
+        center.x - px * 5,
+        center.y - py * 5,
+        center.x + px * 5,
+        center.y + py * 5
+      );
+    };
     graphics.lineStyle(2.8, PALETTE.arrow, 1).lineBetween(tailX, tailY, x + dx * 13, y + dy * 13);
     graphics.fillStyle(accent, 1).fillTriangle(
       x + dx * 24, y + dy * 24,
@@ -665,6 +983,95 @@ class ArcherScene extends Phaser.Scene {
       const baseY = tailY + dy * offset;
       graphics.lineBetween(baseX, baseY, baseX - dx * 6 + px * 5, baseY - dy * 6 + py * 5);
       graphics.lineBetween(baseX, baseY, baseX - dx * 6 - px * 5, baseY - dy * 6 - py * 5);
+    }
+    switch (weapon.id) {
+      case 'swift':
+        for (const distance of [-31, -23, -15]) {
+          const center = pointAt(distance);
+          graphics.lineStyle(1.5, accent, 0.9)
+            .lineBetween(center.x - dx * 6 + px * 3, center.y - dy * 6 + py * 3, center.x + dx * 2 + px * 3, center.y + dy * 2 + py * 3)
+            .lineBetween(center.x - dx * 6 - px * 3, center.y - dy * 6 - py * 3, center.x + dx * 2 - px * 3, center.y + dy * 2 - py * 3);
+        }
+        break;
+      case 'power':
+        graphics.lineStyle(4.5, accent, 1).lineBetween(tailX + dx * 8, tailY + dy * 8, x + dx * 14, y + dy * 14);
+        band(-12, PALETTE.metalLight, 3);
+        break;
+      case 'firework': {
+        const spark = pointAt(-8);
+        graphics.fillStyle(accent, 1).fillCircle(spark.x, spark.y, 3.5);
+        graphics.lineStyle(1.5, 0xffffff, 1)
+          .lineBetween(spark.x - px * 7, spark.y - py * 7, spark.x + px * 7, spark.y + py * 7)
+          .lineBetween(spark.x - dx * 7, spark.y - dy * 7, spark.x + dx * 7, spark.y + dy * 7);
+        break;
+      }
+      case 'minigun':
+        for (const offset of [-3, 3]) {
+          graphics.lineStyle(1.5, accent, 1).lineBetween(tailX + dx * 8 + px * offset, tailY + dy * 8 + py * offset, x + dx * 12 + px * offset, y + dy * 12 + py * offset);
+        }
+        band(4, PALETTE.metalLight, 2);
+        break;
+      case 'frost':
+        graphics.fillStyle(accent, 1)
+          .fillTriangle(x + dx * 17, y + dy * 17, x + dx * 5 + px * 5, y + dy * 5 + py * 5, x + dx * 5 - px * 5, y + dy * 5 - py * 5)
+          .fillTriangle(x - dx * 1 + px * 5, y - dy + py * 5, x - dx * 10 + px * 10, y - dy * 10 + py * 10, x - dx * 8, y - dy * 8);
+        break;
+      case 'poison':
+        for (const [distance, offset] of [[-13, 3], [0, -3], [10, 4]]) {
+          const drop = pointAt(distance, offset);
+          graphics.fillStyle(accent, 1).fillCircle(drop.x, drop.y, 2.5);
+          graphics.fillTriangle(drop.x, drop.y - py * 5, drop.x - px * 2.5, drop.y - py * 1.5 - px * 2.5, drop.x + px * 2.5, drop.y - py * 1.5 + px * 2.5);
+        }
+        break;
+      case 'ricochet': {
+        const points = [-23, -15, -7, 1, 9].map((distance, index) => pointAt(distance, index % 2 === 0 ? -3 : 3));
+        graphics.lineStyle(2.2, accent, 1).beginPath().moveTo(points[0].x, points[0].y);
+        for (const point of points.slice(1)) graphics.lineTo(point.x, point.y);
+        graphics.strokePath();
+        break;
+      }
+      case 'laser':
+      case 'super-arow':
+        graphics.lineStyle(6, accent, 0.45).lineBetween(tailX, tailY, x + dx * 23, y + dy * 23);
+        graphics.lineStyle(2, 0xffffff, 1).lineBetween(tailX, tailY, x + dx * 23, y + dy * 23);
+        break;
+      case 'elite':
+        band(-18, PALETTE.metalLight, 4);
+        band(-7, accent, 3);
+        break;
+      case 'vampire':
+        for (const [distance, offset] of [[-19, 3], [-7, -3], [4, 3]]) {
+          const drop = pointAt(distance, offset);
+          graphics.fillStyle(accent, 1).fillCircle(drop.x, drop.y, 2.5);
+          graphics.fillTriangle(drop.x, drop.y + py * 5, drop.x - px * 2.5, drop.y + py * 1.5 + px * 2.5, drop.x + px * 2.5, drop.y + py * 1.5 - px * 2.5);
+        }
+        break;
+      case 'chainsaw':
+        for (const distance of [-24, -16, -8, 0, 8]) {
+          const base = pointAt(distance, -3);
+          graphics.fillStyle(accent, 1).fillTriangle(
+            base.x - dx * 3,
+            base.y - dy * 3,
+            base.x + dx * 3,
+            base.y + dy * 3,
+            base.x - px * 5,
+            base.y - py * 5
+          );
+        }
+        break;
+      case 'bomb': {
+        const bomb = pointAt(-10);
+        graphics.fillStyle(PALETTE.redDark, 1).fillCircle(bomb.x, bomb.y, 6);
+        graphics.fillStyle(accent, 1).fillCircle(bomb.x - px * 1.5, bomb.y - py * 1.5, 4);
+        graphics.lineStyle(2, PALETTE.metalLight, 1).lineBetween(bomb.x + px * 4, bomb.y + py * 4, bomb.x + dx * 8 + px * 8, bomb.y + dy * 8 + py * 8);
+        graphics.fillStyle(PALETTE.orange, 1).fillCircle(bomb.x + dx * 9 + px * 8, bomb.y + dy * 9 + py * 8, 2);
+        break;
+      }
+      case 'triple':
+        for (const offset of [-5, 5]) {
+          graphics.lineStyle(2, accent, 1).lineBetween(tailX + dx * 8 + px * offset, tailY + dy * 8 + py * offset, x + dx * 2 + px * offset, y + dy * 2 + py * offset);
+        }
+        break;
     }
   }
 
@@ -682,9 +1089,18 @@ class ArcherScene extends Phaser.Scene {
     }
   }
 
+  spawnChainsawCut(robot, time) {
+    this.effects.push({
+      type: 'chainsaw-cut',
+      x: robot.x,
+      y: robot.footY - 65 * ACTOR_SCALE,
+      bornAt: time
+    });
+  }
+
   drawEffects(time) {
     this.effectGraphics.clear();
-    this.effects = this.effects.filter(effect => time - effect.bornAt < (effect.type === 'laser' ? 180 : 520));
+    this.effects = this.effects.filter(effect => time - effect.bornAt < (effect.type === 'laser' ? 180 : effect.type === 'chainsaw-cut' ? 460 : 520));
     for (const effect of this.effects) {
       const age = time - effect.bornAt;
       if (effect.type === 'laser') {
@@ -692,6 +1108,26 @@ class ArcherScene extends Phaser.Scene {
         this.effectGraphics.lineStyle(8, effect.color, opacity * 0.3).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
         this.effectGraphics.lineStyle(3, effect.color, opacity).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
         this.effectGraphics.lineStyle(1, 0xffffff, opacity).lineBetween(effect.x, effect.y, effect.endX, effect.endY);
+        continue;
+      }
+      if (effect.type === 'bomb') {
+        const progress = age / 520;
+        const radius = 16 + progress * BOMB_BLAST_RADIUS;
+        const opacity = 1 - progress;
+        this.effectGraphics.fillStyle(PALETTE.orange, opacity * 0.14).fillCircle(effect.x, effect.y, radius);
+        this.effectGraphics.lineStyle(7 * opacity + 1, PALETTE.orange, opacity).strokeCircle(effect.x, effect.y, radius);
+        this.effectGraphics.lineStyle(2, 0xffffff, opacity).strokeCircle(effect.x, effect.y, radius * 0.72);
+        continue;
+      }
+      if (effect.type === 'chainsaw-cut') {
+        const progress = age / 460;
+        const opacity = 1 - progress;
+        const separation = progress * 18;
+        this.effectGraphics.fillStyle(PALETTE.body, opacity)
+          .fillRoundedRect(effect.x - 11, effect.y - 25 - separation, 22, 24, 4)
+          .fillRoundedRect(effect.x - 11, effect.y + 2 + separation, 22, 24, 4);
+        this.effectGraphics.lineStyle(9, PALETTE.orange, opacity * 0.35).lineBetween(effect.x - 38, effect.y, effect.x + 38, effect.y);
+        this.effectGraphics.lineStyle(3, 0xffffff, opacity).lineBetween(effect.x - 38, effect.y, effect.x + 38, effect.y);
         continue;
       }
       const progress = age / 520;
@@ -713,11 +1149,12 @@ class ArcherScene extends Phaser.Scene {
       const correctedY = targetY - origin.y - GRAVITY * travelFrames * travelFrames / 2;
       const robotAngle = Math.atan2(correctedY, distanceX);
       this.drawArcher(this.robot, 'robot', robotAngle, this.time.now < this.robotFlashUntil);
-      const barWidth = 44 * ACTOR_SCALE;
+      const robotScale = ACTOR_SCALE * (this.robot.size ?? 1);
+      const barWidth = 44 * robotScale;
       const barX = this.robot.x - barWidth / 2;
-      const barY = this.robot.footY - 146 * ACTOR_SCALE;
+      const barY = this.robot.footY - 146 * robotScale;
       this.actorGraphics.fillStyle(PALETTE.redDark, 1).fillRect(barX, barY, barWidth, 8);
-      this.actorGraphics.fillStyle(PALETTE.red, 1).fillRect(barX, barY, barWidth * this.robot.health / 100, 8);
+      this.actorGraphics.fillStyle(PALETTE.red, 1).fillRect(barX, barY, barWidth * this.robot.health / this.robot.maxHealth, 8);
     }
   }
 
@@ -726,7 +1163,7 @@ class ArcherScene extends Phaser.Scene {
     if (side === 'player') {
       return this.chargeStartedAt === null ? 0 : Phaser.Math.Clamp((time - this.chargeStartedAt) / CHARGE_TIME, 0, 1);
     }
-    if (!this.robot || this.robot.health <= 0) return 0;
+    if (!this.robot || this.robot.health <= 0 || this.robot.fall) return 0;
     return Phaser.Math.Clamp(1 - (this.nextRobotShotAt - time) / 900, 0, 1);
   }
 
@@ -736,17 +1173,18 @@ class ArcherScene extends Phaser.Scene {
     const facing = side === 'player' ? 1 : -1;
     const x = 0;
     const footY = 0;
+    const pose = ARCHER_POSES[actor.pose ?? 0];
     const frontColor = flash ? PALETTE.hit : PALETTE.body;
     const backColor = flash ? PALETTE.hitBack : PALETTE.bodyBack;
     const armorLevel = side === 'player' ? this.armorLevel : this.robotArmorLevel;
     const sway = Math.sin(time / 390 + (facing > 0 ? 0 : 1.4)) * 1.5;
     const recoil = flash ? -facing * 6 : 0;
-    const hip = { x: x + recoil * 0.4, y: footY - 46 };
-    const neck = { x: x + sway + recoil, y: footY - 88 };
-    const shoulder = { x: neck.x, y: neck.y + 6 };
-    const head = { x: neck.x + facing * 2, y: footY - 107 };
-    const frontFoot = { x: x + facing * 22, y: footY - 5 };
-    const backFoot = { x: x - facing * 18, y: footY - 5 };
+    const hip = { x: x + recoil * 0.4 + facing * pose.lean * 0.35, y: footY - 46 + pose.crouch * 0.55 };
+    const neck = { x: x + sway + recoil + facing * pose.lean, y: footY - 88 + pose.crouch * 0.65 };
+    const shoulder = { x: neck.x, y: neck.y + 6 + pose.shoulderLift };
+    const head = { x: neck.x + facing * 2, y: footY - 107 + pose.crouch * 0.7 };
+    const frontFoot = { x: x + facing * (22 + pose.frontStep), y: footY - 5 - pose.frontLift };
+    const backFoot = { x: x - facing * (18 + pose.backStep), y: footY - 5 - pose.backLift };
     const strength = this.drawStrength(side, time);
     const dirX = Math.cos(angle);
     const dirY = Math.sin(angle);
@@ -800,7 +1238,9 @@ class ArcherScene extends Phaser.Scene {
     const enterActorSpace = () => {
       graphics.save();
       graphics.translateCanvas(actor.x, actor.footY);
-      graphics.scaleCanvas(ACTOR_SCALE, ACTOR_SCALE);
+      if (actor.rotation) graphics.rotateCanvas(actor.rotation);
+      const actorScale = ACTOR_SCALE * (actor.size ?? 1);
+      graphics.scaleCanvas(actorScale, actorScale);
     };
 
     enterActorSpace();
@@ -819,6 +1259,7 @@ class ArcherScene extends Phaser.Scene {
       graphics.fillStyle(PALETTE.metalLight, 1).fillCircle(frontKnee.x, frontKnee.y, 6.5);
     }
     if (armorLevel >= 7) spikes(frontKnee, frontFoot, 3);
+    if (armorLevel >= 10) spikes(frontKnee, frontFoot, 5);
     limb(shoulder, bowElbow, 9, frontColor);
     limb(bowElbow, grip, 8.5, frontColor);
     if (armorLevel >= 4) guard(bowElbow, grip, PALETTE.metal);
@@ -840,6 +1281,13 @@ class ArcherScene extends Phaser.Scene {
           .fillRoundedRect(chestX + 1, hip.y - 1, 12, 12, 3);
         graphics.fillStyle(PALETTE.metalLight, 1).fillRoundedRect(neck.x - 9, neck.y - 4, 18, 7, 3);
       }
+      if (armorLevel >= 9) {
+        graphics.fillStyle(PALETTE.metal, 1)
+          .fillRoundedRect(chestX - 15, chestTop + 7, 6, hip.y - chestTop - 8, 3)
+          .fillRoundedRect(chestX + 9, chestTop + 7, 6, hip.y - chestTop - 8, 3);
+        graphics.fillStyle(PALETTE.metalLight, 1)
+          .fillRoundedRect(chestX - 7, chestTop + 4, 14, 5, 2);
+      }
     }
     if (armorLevel >= 2) {
       if (armorLevel >= 8) {
@@ -847,6 +1295,9 @@ class ArcherScene extends Phaser.Scene {
       }
       graphics.fillStyle(PALETTE.metal, 1).fillCircle(head.x, head.y, 18.5);
       graphics.fillStyle(PALETTE.metalLight, 1).fillEllipse(head.x - facing * 3, head.y - 10, 20, 7);
+      if (armorLevel >= 11) {
+        radialSpikes(head, 18, [-Math.PI / 2 - 0.55, -Math.PI / 2, -Math.PI / 2 + 0.55], 12);
+      }
       graphics.fillStyle(PALETTE.visor, 1).fillRect(facing > 0 ? head.x - 2 : head.x - 16, head.y - 4, 18, 4);
       const faceX = head.x + facing * 9;
       if (side === 'robot') {
@@ -864,15 +1315,18 @@ class ArcherScene extends Phaser.Scene {
     this.drawBow(graphics, bowCenter, dirX, dirY, perpX, perpY, nock);
     graphics.fillStyle(frontColor, 1).fillCircle(grip.x, grip.y, 4.6);
     if (strength > 0) {
-      const accent = side === 'player' ? WEAPONS.find(item => item.id === this.selectedWeapon).color : PALETTE.arrow;
+      const weapon = side === 'player' ? WEAPONS.find(item => item.id === this.selectedWeapon) : WEAPONS[0];
+      const accent = side === 'player' ? weapon.color : PALETTE.arrow;
+      const actorScale = ACTOR_SCALE * (actor.size ?? 1);
       graphics.restore();
       this.drawArrowSprite(
         graphics,
-        actor.x + nock.x * ACTOR_SCALE + dirX * 36,
-        actor.footY + nock.y * ACTOR_SCALE + dirY * 36,
+        actor.x + nock.x * actorScale + dirX * 36 * (actor.size ?? 1),
+        actor.footY + nock.y * actorScale + dirY * 36 * (actor.size ?? 1),
         dirX,
         dirY,
-        accent
+        accent,
+        weapon
       );
       enterActorSpace();
     }
@@ -882,12 +1336,15 @@ class ArcherScene extends Phaser.Scene {
     if (armorLevel >= 7) spikes(drawElbow, nock, 2);
     if (armorLevel >= 3) {
       const pad = { x: shoulder.x - facing * 2, y: shoulder.y - 1 };
+      const up = -Math.PI / 2;
       if (armorLevel >= 6) {
-        const up = -Math.PI / 2;
         radialSpikes(pad, 9, [up - facing * 0.4, up - facing * 0.95, up - facing * 1.5], 16);
       }
       graphics.fillStyle(PALETTE.metal, 1).fillEllipse(pad.x, pad.y, 22, 16);
       graphics.fillStyle(PALETTE.metalLight, 1).fillEllipse(pad.x, pad.y - 3, 15, 6);
+      if (armorLevel >= 12) {
+        radialSpikes(pad, 11, [up - facing * 0.25, up - facing * 0.8, up - facing * 1.35, up - facing * 1.9], 19);
+      }
     }
     graphics.restore();
   }
@@ -916,6 +1373,12 @@ class ArcherScene extends Phaser.Scene {
 
   removeArrow(index) {
     const [arrow] = this.arrows.splice(index, 1);
+    if (!arrow.attached) this.matter.world.remove(arrow.body);
+  }
+
+  attachArrow(index) {
+    const arrow = this.arrows[index];
+    arrow.attached = true;
     this.matter.world.remove(arrow.body);
   }
 
@@ -990,7 +1453,7 @@ class ArcherScene extends Phaser.Scene {
     ui.playerHealthText.textContent = this.playerHealth;
     ui.playerArmor.textContent = this.armorLevel;
     const robotHealth = this.robot ? this.robot.health : 0;
-    ui.robotHealth.style.width = `${robotHealth}%`;
+    ui.robotHealth.style.width = `${this.robot ? robotHealth / this.robot.maxHealth * 100 : 0}%`;
     ui.robotHealthText.textContent = robotHealth;
     ui.score.textContent = String(this.score).padStart(4, '0');
     ui.points.textContent = this.infinitePoints ? '\u221e' : this.points;
@@ -1017,7 +1480,7 @@ class ArcherScene extends Phaser.Scene {
       const name = document.createElement('span');
       name.className = 'weapon-name';
       name.textContent = weapon.name;
-      button.append(name, createArrowIcon(selected ? shadeColor(weapon.color, 0.62) : weapon.color));
+      button.append(name, createArrowIcon(selected ? shadeColor(weapon.color, 0.62) : weapon.color, weapon));
       return button;
     }));
     const armorCost = ARMOR_COST * (this.armorLevel + 1);
