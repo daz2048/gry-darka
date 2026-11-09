@@ -134,6 +134,7 @@ kbd {
 .charge-bar > span { width: 0; background: var(--blue); }
 .armor-badge { display: flex; align-items: center; gap: 4px; color: #fff; font-size: 15px; }
 .armor-badge svg { width: 24px; height: 24px; }
+.armor-badge kbd { padding: 2px 5px; font-size: 9px; }
 
 .match-status { position: absolute; top: 0; left: 50%; display: flex; align-items: baseline; gap: 16px; transform: translateX(-50%); white-space: nowrap; }
 .round-label { color: var(--orange); font-size: 15px; transform: rotate(-3deg); }

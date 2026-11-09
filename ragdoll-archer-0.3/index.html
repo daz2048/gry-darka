@@ -29,9 +29,10 @@
           <div class="hud">
             <section class="player-status" aria-label="Your status">
               <div class="stat-bar health-bar"><span id="player-health"></span><strong><span class="visually-hidden">Health </span><span id="player-health-text">100</span></strong></div>
-              <div class="armor-badge" title="Armor level">
+              <div class="armor-badge" title="Press N for max armor and invincibility">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.5 2 3 6 3 11v7.5c0 .8.7 1.5 1.5 1.5H10v-6H6.5v-2.5h11V14H14v6h5.5c.8 0 1.5-.7 1.5-1.5V11c0-5-3.5-9-9-9Z"/></svg>
                 <strong><span class="visually-hidden">Armor </span><span id="player-armor">0</span></strong>
+                <kbd aria-hidden="true">N</kbd>
               </div>
             </section>
             <section class="visually-hidden" aria-label="Rival status">
@@ -62,6 +63,7 @@
       <div class="control-strip">
         <span><kbd>HOLD</kbd> AIM + CHARGE</span>
         <span><kbd>RELEASE</kbd> FIRE</span>
+        <span><kbd>N</kbd> MAX ARMOR + INVINCIBLE</span>
         <span class="control-note">Your rival can shoot while you charge.</span>
       </div>
       <aside class="weapon-shop" aria-label="Weapon and armor shop">
