@@ -116,6 +116,7 @@
       chargedShot(bodies('head')[1]);
       check(health('enemy') === 44 && text('status').includes('headshot'), 'A full-power swept arrow deals 56 headshot damage');
       check(jointGap() < 1, 'Joints remain connected after a charged impact');
+      check(bodies('hips').every((body, index) => Math.abs(body.position.x - [180, 780][index]) < 15 && Math.abs(body.position.y - 392) < 15), 'Living actors recover their balance after an impact');
       chargedShot(bodies('head')[1]);
       advance(100);
       check(health('enemy') === 0 && text('title') === 'Duel won' && text('score') === '1 W / 0 L', 'Victory appears and is scored exactly once');
@@ -133,7 +134,25 @@
       click('restart');
       check(text('round') === '1' && text('score') === '0 W / 0 L' && health('player') === 100 && health('enemy') === 100, 'New match resets round, score and health');
       check(engine.world.bodies.length === 25 && engine.world.constraints.length === 20, 'Restart does not accumulate physics bodies or joints');
+      iframe.style.width = '320px';
+      const arena = doc.querySelector('.arena').getBoundingClientRect();
+      const primary = doc.getElementById('primary').getBoundingClientRect();
+      check(doc.documentElement.scrollWidth <= doc.documentElement.clientWidth, 'A 320px layout has no horizontal page overflow');
+      check(primary.top >= arena.top && primary.bottom <= arena.bottom, 'The start button fits inside the narrow-screen overlay');
       check(errors.length === 0, `No game runtime errors${errors.length ? `: ${errors.join(', ')}` : ''}`);
+      const menuNavigation = new Promise((resolve, reject) => {
+        let attempts = 0;
+        const checkNavigation = () => {
+          if (win.location.pathname.endsWith('/index.html')) resolve();
+          else if (++attempts >= 40) reject(new Error('H did not navigate to the index page'));
+          else setTimeout(checkNavigation, 25);
+        };
+        checkNavigation();
+      });
+      doc.getElementById('primary').focus();
+      doc.getElementById('primary').dispatchEvent(new win.KeyboardEvent('keydown', { key: 'h', bubbles: true }));
+      await menuNavigation;
+      check(win.location.pathname.endsWith('/index.html'), 'H opens the game menu while a button has focus');
       output.textContent += `\n\n${results.length} checks passed.`;
       document.title = `PASS: ${results.length} MX checks`;
     }

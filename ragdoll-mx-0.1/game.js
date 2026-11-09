@@ -360,14 +360,18 @@
   canvas.addEventListener('pointercancel', cancelCharge);
   canvas.addEventListener('lostpointercapture', cancelCharge);
   window.addEventListener('keydown', event => {
-    if (event.target instanceof HTMLButtonElement || event.target instanceof HTMLAnchorElement) return;
     const key = event.key.toLowerCase();
+    if (!event.repeat && key === 'h') {
+      event.preventDefault();
+      location.href = '../index.html';
+      return;
+    }
+    if (event.target instanceof HTMLButtonElement || event.target instanceof HTMLAnchorElement) return;
     if (event.code === 'Space') {
       event.preventDefault();
       if (!event.repeat) beginCharge();
     } else if (!event.repeat && key === 'p') pause();
     else if (!event.repeat && key === 'r') reset(true);
-    else if (key === 'h') location.href = '../index.html';
   });
   window.addEventListener('keyup', event => {
     if (event.code === 'Space' && pointerId === null) releaseShot();
