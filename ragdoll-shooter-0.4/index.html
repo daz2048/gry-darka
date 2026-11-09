@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3d3d3d">
+  <title>Ragdoll Shooters 0.4</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="../mario-0.3/vendor/phaser.min.js"></script>
+  <script defer src="game.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="icon-button back" href="../index.html" aria-label="Game menu (H)" title="Game menu (H)">&#8592;</a>
+      <button id="sound-toggle" class="icon-button sound-button" aria-label="Mute sounds" aria-pressed="true" title="Mute sounds">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M3 9v6h4l5 4V5L7 9H3Z"/>
+          <path class="sound-wave" d="M15 8c2.5 2 2.5 6 0 8M18 5c4.5 4 4.5 10 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="sound-mute" d="m16 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="brand">RAGDOLL <strong>SHOOTERS</strong><span>VERSION 0.4</span></div>
+      <button id="restart" class="icon-button" aria-label="Restart duel" title="Restart duel">&#8635;</button>
+    </header>
+    <section class="game-layout" aria-label="Ragdoll archery duel">
+      <div class="arena-frame">
+        <div id="game">
+          <div class="hud">
+            <section class="player-status" aria-label="Your status">
+              <div class="stat-bar health-bar"><span id="player-health"></span><strong><span class="visually-hidden">Health </span><span id="player-health-text">100</span></strong></div>
+              <div class="armor-badge" title="Press N for max armor and invincibility">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.5 2 3 6 3 11v7.5c0 .8.7 1.5 1.5 1.5H10v-6H6.5v-2.5h11V14H14v6h5.5c.8 0 1.5-.7 1.5-1.5V11c0-5-3.5-9-9-9Z"/></svg>
+                <strong><span class="visually-hidden">Armor </span><span id="player-armor">0</span></strong>
+                <kbd aria-hidden="true">N</kbd>
+              </div>
+            </section>
+            <section class="visually-hidden" aria-label="Rival status">
+              <span>Rival health</span> <strong id="robot-health-text">100</strong><span id="robot-health"></span>
+            </section>
+            <div class="match-status">
+              <span class="round-label">ROUND <strong id="round">01</strong></span>
+              <span class="score-label">SCORE <strong id="score">0000</strong></span>
+              <small id="robot-position" class="visually-hidden">RIVAL: LOWER PLATFORM</small>
+            </div>
+          </div>
+          <div class="charge-readout" aria-live="off">
+            <span id="charge-label">SHOT POWER</span>
+            <div class="stat-bar charge-bar"><span id="charge-fill"></span><strong id="charge-percent">0%</strong></div>
+          </div>
+          <div id="notice" role="status" aria-live="polite"></div>
+        </div>
+        <button id="pause" class="pause-button" aria-label="Pause duel" title="Pause duel">&#10074;&#10074;</button>
+        <div id="overlay" class="overlay">
+          <div class="overlay-panel">
+            <span class="kicker">SOLO DUEL</span>
+            <h1 id="overlay-title">RAGDOLL<br><em>SHOOTERS</em></h1>
+            <p id="overlay-copy">Aim with the mouse. Hold to charge, then release to shoot. Your rival fires on its own timer.</p>
+            <button id="primary" class="primary-button">START DUEL <span aria-hidden="true">&#8594;</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="control-strip">
+        <span><kbd>HOLD</kbd> AIM + CHARGE</span>
+        <span><kbd>RELEASE</kbd> FIRE</span>
+        <span><kbd>N</kbd> MAX ARMOR + INVINCIBLE</span>
+        <span class="control-note">Your rival can shoot while you charge.</span>
+      </div>
+      <aside class="weapon-shop" aria-label="Weapon and armor shop">
+        <div class="shop-heading">
+          <h2>ARROWS</h2>
+          <span class="currency" title="Points">
+            <svg class="skull-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 2C6.9 2 3 5.7 3 10.6c0 2.8 1.3 5 3.5 6.3V20a1 1 0 0 0 1 1H9v-2h2v2h2v-2h2v2h1.5a1 1 0 0 0 1-1v-3.1c2.2-1.3 3.5-3.5 3.5-6.3C21 5.7 17.1 2 12 2ZM8.5 13.5a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6Zm7 0a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6ZM12 14.2l1.2 2h-2.4Z"/></svg>
+            <span class="visually-hidden">Points</span>
+            <strong id="points">0</strong>
+            <kbd id="infinite-points-hint" title="Press M for infinite points">M</kbd>
+          </span>
+        </div>
+        <div id="weapons" class="weapon-list"></div>
+        <h3 class="shop-section-heading">DEFENSE</h3>
+        <div id="upgrades" class="upgrade-list"></div>
+      </aside>
+    </section>
+    <footer><span>RAGDOLL SHOOTERS</span><span id="robot-timer">RIVAL SHOT READY</span></footer>
+  </main>
+</body>
+</html>
