@@ -16,22 +16,22 @@ Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
 
 ## 📋 Dostępne gry
 
-### Mario Vanilla
+### Mario 0.1
 Klasyczny wariant platformowej przygody z trzema światami, przeciwnikami, monetami i punktami kontrolnymi.
 - **Sterowanie:** strzałki / A i D, skok: spacja / W / strzałka w górę; na telefonie przyciski dotykowe.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/mario-vanilla/)
-- [Instrukcja i szczegóły](mario-vanilla/README.md)
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/mario-0.1/)
+- [Instrukcja i szczegóły](mario-0.1/README.md)
 
-### Mario 1.0
+### Mario 0.2
 Pierwsze wydanie przygody Maksa, zachowane jako osobna wersja.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/mario-1.0/)
-- [Instrukcja i szczegóły](mario-1.0/README.md)
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/mario-0.2/)
+- [Instrukcja i szczegóły](mario-0.2/README.md)
 
-### Mario 1.1 (Maks Jump Quest)
+### Mario 0.3 (Maks Jump Quest)
 Najnowsza wersja platformowej przygody Maksa: 100 poziomów, zmienne światy i sześć rodzajów przeciwników.
 - **Sterowanie:** strzałki / A i D, skok: spacja / W / strzałka w górę; na telefonie przyciski dotykowe.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/mario-1.1/)
-- [Instrukcja i szczegóły](mario-1.1/README.md)
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/mario-0.3/)
+- [Instrukcja i szczegóły](mario-0.3/README.md)
 
 ### 🏰 Pojedynek Zamków
 Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.
@@ -52,13 +52,9 @@ Dotychczasowy wariant Maksa.
 Nowa wersja rozwijana jako osobny wariant.
 - [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/)
 
-#### AX (prowadzony przez Aleksa)
+#### Alx (prowadzony przez Aleksa)
 Wariant dla zespołu AX.
 - [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-ax/)
-
-#### Daz (prowadzony przez Daza)
-Wariant osobiści dla Daza.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-daz/)
 
 ---
 

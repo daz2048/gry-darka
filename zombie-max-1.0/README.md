@@ -90,8 +90,7 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 
 - [Vanilla (1.0)](https://dariusz22p.github.io/gry-darka/zombie-vanilla/) — prototyp bazowy
 - [Max 2.0](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/) — nowa wersja w przygotowaniu
-- [AX](https://dariusz22p.github.io/gry-darka/zombie-ax/) — wariant Aleksa
-- [Daz](https://dariusz22p.github.io/gry-darka/zombie-daz/) — wariant Daza
+- [Alx](https://dariusz22p.github.io/gry-darka/zombie-ax/) — wariant Aleksa
 
 ---
 

@@ -1,7 +1,7 @@
-# Maks Jump Quest 1.1
+# Maks Jump Quest 0.3
 
 Original side-scrolling platformer inspired by classic run-and-jump games.
-Listed as **Mario 1.1** in the collection's main menu and developed as the active release on this branch.
+Listed as **Mario 0.3** in the collection's main menu and developed as the active release on this branch.
 100 generated levels with unique layouts and palettes, coins, hidden star bonuses, six stompable enemy types,
 shield blocks,
 moving platforms, checkpoints, and a final gate. No Nintendo assets or levels.
