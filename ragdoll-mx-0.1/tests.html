@@ -88,6 +88,7 @@
         advance(50);
       }
 
+      check(doc.querySelector('h1 .version').textContent === 'v0.1', 'Game version is displayed in the header');
       check(engine.world.bodies.length === 25 && engine.world.constraints.length === 20, 'Two 11-part ragdolls, 20 joints and three terrain bodies');
       advance(3600);
       check(bodies('hips').every((body, index) => Math.abs(body.position.x - [180, 780][index]) < 5 && Math.abs(body.position.y - 392) < 8), 'Both ragdolls remain upright for 60 simulated seconds');

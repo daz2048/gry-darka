@@ -6,6 +6,7 @@ header, .toolbar, .hud { display: flex; align-items: center; justify-content: sp
 header { margin-bottom: 24px; }
 h1 { margin: 0; font-size: clamp(18px, 3vw, 30px); letter-spacing: 3px; }
 h1 span { color: #ffc078; }
+h1 .version { display: inline-block; vertical-align: middle; padding: 3px 6px; border: 1px solid #536a70; border-radius: 4px; color: #c2d1d2; font-size: 12px; letter-spacing: 0; }
 small { display: block; font-size: 10px; letter-spacing: 3px; color: #9cbbb8; margin-top: 5px; }
 a { color: #9cbbb8; font-size: 12px; text-decoration: none; }
 button { font: inherit; font-size: 13px; padding: 10px 16px; background: #293c45; border: 1px solid #536a70; border-radius: 6px; color: #e8eee8; cursor: pointer; }
