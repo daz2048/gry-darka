@@ -16,7 +16,7 @@ Z katalogu repozytorium uruchom:
 ./scripts/game-server.sh
 ```
 
-Otwórz **http://localhost:8765/** lub np. **http://localhost:8765/ragdoll-mx-0.1/**. Serwer działa w tle także po zamknięciu terminala, dopóki trwa sesja użytkownika macOS.
+Otwórz **http://localhost:8765/** lub np. **http://localhost:8765/ragdoll-archers/**. Serwer działa w tle także po zamknięciu terminala, dopóki trwa sesja użytkownika macOS.
 
 Monitor pokazuje ostatnie i nowe żądania oraz liczbę żądań i błędów HTTP od momentu podłączenia. Kolory oznaczają klasy odpowiedzi HTTP; ustaw `NO_COLOR=1`, aby je wyłączyć. Ctrl+C zamyka monitor, ale nie zatrzymuje serwera. Ponowne uruchomienie monitora podłącza go do działającego serwera.
 
@@ -62,10 +62,9 @@ Self-hosted Unity WebGL build of the ragdoll archery game.
 - [Zagraj »](ragdoll-archers/)
 - Original game by Ericetto; package distributed under the upstream repository's MIT License.
 
-### Ragdoll MX 0.1
-Clone of the Ragdoll Archers Unity WebGL game, with the launcher labeled MX 0.1. Gameplay and compiled assets are unchanged.
-- [Play »](ragdoll-mx-0.1/)
-- [Source and license information](ragdoll-mx-0.1/README.md)
+### Archers 0.4
+Separate clone of Archers 0.3, ready for further development. Gameplay is unchanged; the launcher displays version 0.4. Archers 0.3 remains intact.
+- [Play »](archers-0.4/)
 
 ### Mario 0.1
 Klasyczny wariant platformowej przygody z trzema światami, przeciwnikami, monetami i punktami kontrolnymi.
