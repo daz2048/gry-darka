@@ -381,6 +381,7 @@ class ArcherScene extends Phaser.Scene {
     });
     this.input.keyboard.on('keydown-M', () => this.enableInfinitePoints());
     this.input.keyboard.on('keydown-N', () => this.enableMaxArmorAndInvincibility());
+    this.input.keyboard.on('keydown-H', () => document.querySelector('.back').click());
     this.input.keyboard.on('keydown-F', () => this.toggleFullscreen());
   }
 
