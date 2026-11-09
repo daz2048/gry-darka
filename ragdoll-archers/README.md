@@ -6,8 +6,18 @@ The upstream repository provides the game package under the MIT License; see [LI
 
 The Unity loader page is adapted for this repository. It loads the included Unity build assets locally and does not include the upstream obfuscated `gameloader-helper.js`.
 
+## Frozen vanilla reference
+
+Keep this directory unchanged as the vanilla reference for future comparisons.
+Develop MX in [ragdoll-mx-0.1](../ragdoll-mx-0.1/), not here. Each game has
+independent copies of its startup scripts, styling and compiled assets; do not
+reintroduce shared game code or synchronize MX changes back into this directory.
+The menu link and local HTTP server are infrastructure, not shared gameplay code.
+
 ## Running locally and troubleshooting
 
 Unity assets must be served over HTTP. From the repository root, run `./scripts/game-server.sh`, then open http://localhost:8765/ragdoll-archers/. If you double-click `index.html` (`file://`) while the local server is running, the page now redirects to its HTTP URL; if the server is unavailable, it displays instructions and a link.
 
-The page uses the shared [Unity startup script](../scripts/unity-loader.js). Loading and runtime errors appear on screen; expand **Loading diagnostics** for startup stages and Unity warnings. A local-file address checks the server before redirecting, and shows server instructions if it is unavailable instead of hanging at 0%.
+Press H to return to the game menu, including while the game canvas is focused.
+
+The page uses its own frozen [Unity startup script](./unity-loader.js). Loading and runtime errors appear on screen; expand **Loading diagnostics** for startup stages and Unity warnings. A local-file address checks the server before redirecting, and shows server instructions if it is unavailable instead of hanging at 0%.

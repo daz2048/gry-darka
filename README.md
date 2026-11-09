@@ -63,10 +63,9 @@ Self-hosted Unity WebGL build of the ragdoll archery game.
 - Original game by Ericetto; package distributed under the upstream repository's MIT License.
 
 ### Ragdoll MX 0.1
-Independent editable archery duel with articulated Matter.js ragdolls, charged shots, an AI rival and round scoring. Not a modification of the Unity build.
-- **Controls:** pointer aim, hold/release to shoot; P pauses, R resets the match.
+Clone of the Ragdoll Archers Unity WebGL game, with the launcher labeled MX 0.1. Gameplay and compiled assets are unchanged.
 - [Play »](ragdoll-mx-0.1/)
-- [Source, controls and development scope](ragdoll-mx-0.1/README.md)
+- [Source and license information](ragdoll-mx-0.1/README.md)
 
 ### Mario 0.1
 Klasyczny wariant platformowej przygody z trzema światami, przeciwnikami, monetami i punktami kontrolnymi.
