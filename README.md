@@ -16,6 +16,16 @@ Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
 
 ## 📋 Dostępne gry
 
+### Ragdoll Archers
+Self-hosted Unity WebGL build of the ragdoll archery game.
+- [Zagraj »](ragdoll-archers/)
+- Original game by Ericetto; package distributed under the upstream repository's MIT License.
+
+### Ragdoll MX 0.1
+Osobna kopia gry Ragdoll Archers, przygotowana do dalszego rozwoju.
+- [Zagraj »](ragdoll-mx-0.1/)
+- [Informacje o źródle i licencji](ragdoll-mx-0.1/README.md)
+
 ### Mario 0.1
 Klasyczny wariant platformowej przygody z trzema światami, przeciwnikami, monetami i punktami kontrolnymi.
 - **Sterowanie:** strzałki / A i D, skok: spacja / W / strzałka w górę; na telefonie przyciski dotykowe.

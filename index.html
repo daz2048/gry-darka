@@ -89,21 +89,21 @@
     cursor: pointer;
     font-family: 'Courier New', monospace;
   }
-  .card:nth-child(1) { border-color: #ff6b35; }
-  .card:nth-child(1) .btn { background: #ff6b35; color: #000; border-color: #ff6b35; }
-  .card:nth-child(1) .btn:hover { box-shadow: 0 0 15px #ff6b35, inset 0 0 10px #ff6b35; }
-  .card:nth-child(2) { border-color: #7209b7; }
-  .card:nth-child(2) .btn { background: #7209b7; color: #fff; border-color: #7209b7; }
-  .card:nth-child(2) .btn:hover { box-shadow: 0 0 15px #7209b7, inset 0 0 10px #7209b7; }
-  .card:nth-child(3) { border-color: #00d9ff; }
-  .card:nth-child(3) .btn { background: #00d9ff; color: #000; border-color: #00d9ff; }
-  .card:nth-child(3) .btn:hover { box-shadow: 0 0 15px #00d9ff, inset 0 0 10px #00d9ff; }
-  .card:nth-child(4) { border-color: #0096c7; }
-  .card:nth-child(4) .btn { background: #0096c7; color: #fff; border-color: #0096c7; }
-  .card:nth-child(4) .btn:hover { box-shadow: 0 0 15px #0096c7, inset 0 0 10px #0096c7; }
-  .card:nth-child(5) { border-color: #ff006e; }
-  .card:nth-child(5) .btn { background: #ff006e; color: #fff; border-color: #ff006e; }
-  .card:nth-child(5) .btn:hover { box-shadow: 0 0 15px #ff006e, inset 0 0 10px #ff006e; }
+  .card:nth-child(3) { border-color: #ff6b35; }
+  .card:nth-child(3) .btn { background: #ff6b35; color: #000; border-color: #ff6b35; }
+  .card:nth-child(3) .btn:hover { box-shadow: 0 0 15px #ff6b35, inset 0 0 10px #ff6b35; }
+  .card:nth-child(4) { border-color: #7209b7; }
+  .card:nth-child(4) .btn { background: #7209b7; color: #fff; border-color: #7209b7; }
+  .card:nth-child(4) .btn:hover { box-shadow: 0 0 15px #7209b7, inset 0 0 10px #7209b7; }
+  .card:nth-child(5) { border-color: #00d9ff; }
+  .card:nth-child(5) .btn { background: #00d9ff; color: #000; border-color: #00d9ff; }
+  .card:nth-child(5) .btn:hover { box-shadow: 0 0 15px #00d9ff, inset 0 0 10px #00d9ff; }
+  .card:nth-child(6) { border-color: #0096c7; }
+  .card:nth-child(6) .btn { background: #0096c7; color: #fff; border-color: #0096c7; }
+  .card:nth-child(6) .btn:hover { box-shadow: 0 0 15px #0096c7, inset 0 0 10px #0096c7; }
+  .card:nth-child(7) { border-color: #ff006e; }
+  .card:nth-child(7) .btn { background: #ff006e; color: #fff; border-color: #ff006e; }
+  .card:nth-child(7) .btn:hover { box-shadow: 0 0 15px #ff006e, inset 0 0 10px #ff006e; }
   .card.mario-game { border-color: #ffdd57; }
   .card.mario-game .btn { background: #ffdd57; color: #173c36; border-color: #ffdd57; }
   .card.mario-game-0-1 { border-color: #ff795f; }
@@ -114,8 +114,9 @@
   .card.ragdoll-archer .thumb.preview img { object-fit: contain; background: #3b3b3b; }
   .card.ragdoll-archer-03 { border-color: #8eb6d1; }
   .card.ragdoll-archer-03 .btn { background: #8eb6d1; color: #20272b; border-color: #8eb6d1; cursor: pointer; }
-  .card.ragdoll-shooter-04 { border-color: #bd9cf2; }
-  .card.ragdoll-shooter-04 .btn { background: #bd9cf2; color: #27222e; border-color: #bd9cf2; cursor: pointer; }
+  .card.ragdoll-archers-community { border-color: #8eb6d1; }
+  .card.ragdoll-archers-community .btn { background: #8eb6d1; color: #20272b; border-color: #8eb6d1; }
+  .card.ragdoll-archers-community .thumb.preview img { object-fit: cover; background: #252525; }
   footer { text-align: center; margin-top: 48px; font-size: 11px; opacity: .5; font-family: "Segoe UI", sans-serif; }
   @media (max-width: 600px) {
     h1 { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
@@ -130,6 +131,20 @@
     </header>
 
     <main class="grid">
+      <a class="card ragdoll-archers-community" href="ragdoll-archers/">
+        <div class="thumb preview"><img src="ragdoll-archers/favicon.jpeg" alt="Ragdoll Archers game icon" loading="lazy"></div>
+        <h2>Ragdoll Archers</h2>
+        <p>Self-hosted Unity WebGL game. Play the original ragdoll archery game in your browser.</p>
+        <span class="btn">Graj</span>
+      </a>
+
+      <a class="card ragdoll-archers-community" href="ragdoll-mx-0.1/">
+        <div class="thumb preview"><img src="ragdoll-mx-0.1/favicon.jpeg" alt="Ragdoll MX 0.1 game icon" loading="lazy"></div>
+        <h2>Ragdoll MX 0.1</h2>
+        <p>Osobna kopia gry Ragdoll Archers, przygotowana do dalszego rozwoju.</p>
+        <span class="btn">Graj</span>
+      </a>
+
       <a class="card" href="pojedynek-zamkow-janek-i-baranek/">
         <div class="thumb castle preview"><img src="menu-previews/castle-duel.svg" alt="Dwa zamki i kula armatnia nad polem bitwy" loading="lazy"></div>
         <h2>Pojedynek Zamków (Janek i Baranek)</h2>
@@ -189,31 +204,25 @@
 
       <a class="card ragdoll-archer" href="ragdoll-archers-0.1/index.html">
         <div class="thumb preview"><img src="menu-previews/ragdoll-archer.svg" alt="Pojedynek z robotem z paskami zdrowia, ladowaniem strzalu i sklepem z czterema typami strzal" loading="lazy"></div>
-        <h2>Ragdoll Archers 0.1</h2>
+        <h2>Archers 0.1</h2>
         <p>Pojedynek lukiem z robotem. Celuj, laduj sile strzalu i przechodz kolejne rundy.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card ragdoll-archer" href="ragdoll-archers-0.2/index.html">
         <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.2.svg" alt="Pojedynek lukowy z niebieska strzala SWIFT, paskiem zdrowia i sklepem z bronia" loading="lazy"></div>
-        <h2>Ragdoll Archers 0.2</h2>
+        <h2>Archers 0.2</h2>
         <p>Pojedynek lukiem z robotem. Celuj, laduj sile strzalu i przechodz kolejne rundy.</p>
         <span class="btn">Graj</span>
       </a>
 
       <a class="card ragdoll-archer ragdoll-archer-03" href="ragdoll-shooters-0.3/index.html">
         <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.3.svg" alt="Lucznik w niebiesko-zlotej zbroi mierzy do rywala w wersji 0.3" loading="lazy"></div>
-        <h2>Ragdoll Shooters 0.3</h2>
+        <h2>Archers 0.3</h2>
         <p>Osobna wersja pojedynku lukiem z robotem, zachowana jako wydanie 0.3.</p>
         <span class="btn">Graj</span>
       </a>
 
-      <a class="card ragdoll-shooter-04" href="ragdoll-shooters-0.4/index.html">
-        <div class="thumb preview"><img src="menu-previews/ragdoll-shooter-0.4.svg" alt="Pojedynek Ragdoll Shooters w wersji 0.4" loading="lazy"></div>
-        <h2>Ragdoll Shooters 0.4</h2>
-        <p>Wersja startowa 0.4, oparta na pojedynku z wydania 0.3 i gotowa do dalszego rozwoju.</p>
-        <span class="btn">Graj</span>
-      </a>
     </main>
 
     <footer>github.com/dariusz22p/gry-darka</footer>
