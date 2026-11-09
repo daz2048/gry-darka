@@ -18,44 +18,18 @@
           <div id="unity-progress-bar-full"></div>
         </div>
         <p id="loading-status" role="status" aria-live="polite">Loading game...</p>
+        <div id="local-server-help" hidden>
+          <p>Run this command from the repository folder:</p>
+          <pre>./scripts/game-server.sh</pre>
+          <a id="local-game-link" href="http://localhost:8765/ragdoll-mx-0.1/">Open game on the local server</a>
+        </div>
+        <details>
+          <summary>Loading diagnostics</summary>
+          <pre id="loading-diagnostics"></pre>
+        </details>
       </div>
     </div>
   </main>
-  <script>
-    const buildUrl = '.';
-    const canvas = document.getElementById('unity-canvas');
-    const loadingCover = document.getElementById('loading-cover');
-    const progressBar = document.getElementById('unity-progress-bar-empty');
-    const progressFill = document.getElementById('unity-progress-bar-full');
-    const loadingStatus = document.getElementById('loading-status');
-    const config = {
-      dataUrl: `${buildUrl}/6697b6deba8b617c67b69c55dcd07cb1.data.unityweb`,
-      frameworkUrl: `${buildUrl}/0be3c3ee7115b26e1ae28e643afdf1f2.js.unityweb`,
-      codeUrl: `${buildUrl}/b3397c29f6878557c1c614cbf9e196ea.wasm.unityweb`,
-      streamingAssetsUrl: `${buildUrl}/StreamingAssets`,
-      companyName: 'Ericetto',
-      productName: 'Ragdoll Archers',
-      productVersion: '0.1'
-    };
-    const loader = document.createElement('script');
-    loader.src = `${buildUrl}/v11121212.js`;
-    loader.onload = () => {
-      createUnityInstance(canvas, config, progress => {
-        const percent = Math.round(progress * 100);
-        progressFill.style.width = `${percent}%`;
-        progressBar.setAttribute('aria-valuenow', String(percent));
-        loadingStatus.textContent = `Loading game... ${percent}%`;
-      }).then(() => {
-        loadingCover.hidden = true;
-      }).catch(showLoadError);
-    };
-    loader.onerror = () => showLoadError('Unity loader could not be loaded.');
-    document.body.appendChild(loader);
-
-    function showLoadError(error) {
-      loadingStatus.textContent = `Unable to load the game: ${error}`;
-      loadingCover.classList.add('error');
-    }
-  </script>
+  <script src="../scripts/unity-loader.js"></script>
 </body>
 </html>

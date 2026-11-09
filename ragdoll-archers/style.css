@@ -30,6 +30,7 @@ body {
   justify-content: center;
   padding: 24px;
   background: #252525;
+  overflow: auto;
 }
 
 #loading-cover[hidden] { display: none; }
@@ -64,3 +65,20 @@ body {
 #loading-status { min-height: 1.5em; }
 
 #loading-cover.error { color: #ffb3a7; }
+
+#unity-loading-bar { margin: auto; }
+
+#unity-loading-bar a { color: #f5a623; }
+
+#unity-loading-bar details {
+  margin-top: 20px;
+  text-align: left;
+}
+
+#unity-loading-bar summary { cursor: pointer; }
+
+#unity-loading-bar pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}

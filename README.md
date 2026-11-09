@@ -18,10 +18,21 @@ Z katalogu repozytorium uruchom:
 
 Otwórz **http://localhost:8765/** lub np. **http://localhost:8765/ragdoll-mx-0.1/**. Serwer działa w tle także po zamknięciu terminala, dopóki trwa sesja użytkownika macOS.
 
-Monitor pokazuje ostatnie i nowe żądania oraz liczbę żądań i błędów HTTP od momentu podłączenia. Ctrl+C zamyka monitor, ale nie zatrzymuje serwera. Ponowne uruchomienie monitora podłącza go do działającego serwera.
+Monitor pokazuje ostatnie i nowe żądania oraz liczbę żądań i błędów HTTP od momentu podłączenia. Kolory oznaczają klasy odpowiedzi HTTP; ustaw `NO_COLOR=1`, aby je wyłączyć. Ctrl+C zamyka monitor, ale nie zatrzymuje serwera. Ponowne uruchomienie monitora podłącza go do działającego serwera.
+
+W monitorze naciskaj pojedyncze klawisze (bez Enter):
+
+- `r` — uruchom serwer ponownie
+- `s` — sprawdź stan serwera
+- `q` — zamknij monitor, pozostawiając serwer w tle
+- `x` — zatrzymaj serwer i zamknij monitor
+- `h` lub `?` — pokaż skróty
+
+Skróty `r`, `s`, `q`, `x` i `h` działają też jako argumenty skryptu, np. `./scripts/game-server.sh s` sprawdza stan bez otwierania monitora. Sterowanie klawiszami jest aktywne tylko przy wejściu z terminala; wejście z potoku zachowuje tryb samego podglądu logów.
 
 ```bash
 ./scripts/game-server.sh --restart      # uruchom ponownie i podłącz monitor (również -r)
+./scripts/game-server.sh --help         # pokaż szczegółową pomoc (również -h)
 python3 scripts/game-server.py restart  # uruchom ponownie (lub uruchom, jeśli nie działa)
 python3 scripts/game-server.py status   # sprawdź stan
 python3 scripts/game-server.py stop     # zatrzymaj
