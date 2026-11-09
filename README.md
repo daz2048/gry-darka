@@ -65,6 +65,7 @@ Self-hosted Unity WebGL build of the ragdoll archery game.
 ### Archers 0.4
 Separate clone of Archers 0.3, ready for further development. Gameplay is unchanged; the launcher displays version 0.4. Archers 0.3 remains intact.
 - [Play »](archers-0.4/)
+- [Original editable Unity game: assessment and implementation backlog](backlog/README.md)
 
 ### Mario 0.1
 Klasyczny wariant platformowej przygody z trzema światami, przeciwnikami, monetami i punktami kontrolnymi.
