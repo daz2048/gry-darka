@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" role="img" aria-labelledby="title desc">
+  <title id="title">Ragdoll Shooters 0.3</title>
+  <desc id="desc">A blue-and-gold armored archer faces an armored rival across a charcoal arena.</desc>
+  <defs>
+    <linearGradient id="arena" x2="0" y2="1">
+      <stop stop-color="#414141"/>
+      <stop offset="1" stop-color="#292929"/>
+    </linearGradient>
+    <linearGradient id="shot" x2="1" y2="0">
+      <stop stop-color="#f5a623" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#ffe0a2"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="320" fill="url(#arena)"/>
+  <g fill="#a3a3a3" opacity=".4">
+    <circle cx="56" cy="49" r="2"/><circle cx="168" cy="77" r="1.7"/><circle cx="288" cy="39" r="2.3"/>
+    <circle cx="392" cy="67" r="1.5"/><circle cx="548" cy="45" r="2"/><circle cx="586" cy="266" r="1.8"/>
+    <circle cx="92" cy="269" r="2"/><circle cx="276" cy="286" r="2.4"/><circle cx="436" cy="278" r="1.8"/>
+  </g>
+  <path d="M18 258h604v15H18z" fill="#656565"/>
+  <path d="M60 239h56v19H60zm274 0h62v19h-62zm201 0h52v19h-52z" fill="#747474"/>
+  <g stroke="#f1f1ef" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="152" cy="143" r="16" fill="#f5f4ef" stroke="none"/>
+    <path d="m148 160-9 42 13 27m-13-27-23 27m21-47 25 12 19 27m-44-39 27-9" stroke-width="13"/>
+    <path d="m159 165 20-10" stroke-width="7"/>
+    <circle cx="484" cy="144" r="16" fill="#deded9" stroke="none"/>
+    <path d="m480 161-7 41-13 25m13-25 23 25m-21-46-26 13-18 25m45-38-27-9" stroke-width="13"/>
+    <path d="m468 166-20-10" stroke-width="7"/>
+  </g>
+  <g stroke="#f2c94c" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m148 192-8 12 12 24m-12-24-23 24" fill="none" stroke-width="12"/>
+    <path d="m148 192-8 12 12 24m-12-24-23 24" fill="none" stroke="#2878d0" stroke-width="8"/>
+    <path d="m151 162-12 30 3 12 18-3 5-31z" fill="#2878d0" stroke-width="3"/>
+    <path d="m151 174 8 5-8 6-7-5z" fill="#f2c94c" stroke-width="1"/>
+    <path d="m138 180 24 13 14 20m-36-32 25-8" fill="none" stroke-width="10"/>
+    <path d="m138 180 24 13 14 20m-36-32 25-8" fill="none" stroke="#2878d0" stroke-width="7"/>
+    <circle cx="152" cy="143" r="17" fill="#2878d0" stroke-width="3"/>
+    <path d="M136 139h30m-14-12v30" fill="none" stroke-width="3"/>
+    <path d="m140 129-5-10 10 5 7-11 7 11 10-5-5 10" fill="#f2c94c" stroke-width="2"/>
+    <path d="m146 187 9 1m-15 9 15 1" fill="none" stroke-width="2"/>
+  </g>
+  <g stroke="#5f5f5f" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m479 162-6 34 3 8 15-3-3-30z" fill="#8e8e8e" stroke-width="3"/>
+    <path d="m476 181-24 13-16 20m39-33-24-8" fill="none" stroke="#8e8e8e" stroke-width="9"/>
+    <circle cx="484" cy="144" r="17" fill="#8e8e8e" stroke-width="3"/>
+    <path d="M469 140h29m-14-12v29" fill="none" stroke="#f5a623" stroke-width="3"/>
+    <path d="m472 130-4-9 10 5 6-11 6 11 10-5-4 9" fill="#5f5f5f" stroke-width="2"/>
+  </g>
+  <path d="M179 136Q218 175 180 214" fill="none" stroke="#f5a623" stroke-width="6" stroke-linecap="round"/>
+  <path d="m179 136 1 78" stroke="#fff0c8" stroke-width="1.5"/>
+  <path d="M448 136Q409 175 447 214" fill="none" stroke="#8eb6d1" stroke-width="6" stroke-linecap="round"/>
+  <path d="m448 136-1 78" stroke="#e1edf4" stroke-width="1.5"/>
+  <path d="M183 158 421 133" stroke="url(#shot)" stroke-width="7" stroke-linecap="round"/>
+  <path d="m421 133-17-5 5 15z" fill="#ffe0a2"/>
+  <g fill="#f5a623" opacity=".78">
+    <circle cx="231" cy="153" r="2.4"/><circle cx="263" cy="150" r="2"/><circle cx="298" cy="146" r="1.7"/><circle cx="335" cy="142" r="1.4"/>
+  </g>
+  <rect x="22" y="18" width="596" height="40" rx="5" fill="#252525" stroke="#565656"/>
+  <text x="40" y="43" fill="#f4f2ee" font-family="Arial,sans-serif" font-size="14" font-weight="900" letter-spacing="1">RAGDOLL SHOOTERS</text>
+  <rect x="548" y="26" width="54" height="24" rx="4" fill="#8eb6d1"/>
+  <text x="575" y="43" fill="#20272b" font-family="Arial,sans-serif" font-size="12" font-weight="900" text-anchor="middle">0.3</text>
+  <rect x="256" y="278" width="128" height="24" rx="4" fill="#303030" stroke="#626262"/>
+  <text x="320" y="294" fill="#deded9" font-family="Arial,sans-serif" font-size="10" font-weight="900" text-anchor="middle" letter-spacing="1">SOLO DUEL  |  ROUND 01</text>
+</svg>

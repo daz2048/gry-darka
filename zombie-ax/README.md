@@ -1,4 +1,4 @@
-# Napor Zombie — AX (Wariant Aleksa)
+# Zombie Alx — Napor Zombie (Wariant Aleksa)
 
 Wariant rozwijany przez **Aleksandra Panasiuka**. Przepisany od zera jako endless survival w stylu Evony.
 
@@ -69,8 +69,6 @@ Laser to ciągły promień w lewo, multi-hit w pasie +-55 px, 1/5 siły zwykłeg
 - [Vanilla (1.0)](https://dariusz22p.github.io/gry-darka/zombie-vanilla/) — prototyp bazowy
 - [Max 1.0](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/) — poprzedni wariant Maksa
 - [Max 2.0](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/) — nowa wersja
-- [Daz](https://dariusz22p.github.io/gry-darka/zombie-daz/) — wariant Daza
-- [Jan](https://dariusz22p.github.io/gry-darka/zombie-jan/) — wariant Janka
 
 ---
 

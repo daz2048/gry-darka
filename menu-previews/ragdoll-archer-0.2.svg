@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" role="img" aria-labelledby="title desc">
   <title id="title">Ragdoll Archers 0.2</title>
-  <desc id="desc">A ragdoll archer fires a glowing blue upgraded arrow beside a points-powered arrow shop.</desc>
+  <desc id="desc">Two ragdoll archers duel beneath a health and armor HUD, firing a bright blue Swift arrow beside the weapon shop.</desc>
   <defs>
     <linearGradient id="arena" x2="0" y2="1">
       <stop stop-color="#414141"/>
@@ -28,6 +28,11 @@
   <path d="m189 115 1 79" stroke="#fff0c8" stroke-width="1.5"/>
   <path d="M181 131 350 83" stroke="url(#shot)" stroke-width="8" stroke-linecap="round"/>
   <path d="m350 83-18-2 8 15z" fill="#b9ddff"/>
+  <g stroke="#f1f1ef" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="322" cy="156" r="11" fill="#deded9" stroke="none"/>
+    <path d="m320 168-6 28 10 15m-10-15-13 18m12-32 15 9 10 17m-24-26 16-6" stroke-width="9"/>
+  </g>
+  <path d="m335 78 7 11-11 1" fill="none" stroke="#e9f4ff" stroke-width="2"/>
   <g fill="#70a7ff" opacity=".8">
     <circle cx="224" cy="120" r="2.5"/><circle cx="248" cy="113" r="2"/><circle cx="273" cy="106" r="1.6"/><circle cx="302" cy="97" r="1.3"/>
   </g>
@@ -36,6 +41,14 @@
     <rect x="208" y="20" width="48" height="22" rx="4" fill="#f5a623"/>
     <text x="232" y="35" fill="#292929" font-size="11" text-anchor="middle">0.2</text>
     <text x="376" y="39" fill="#f5a623" font-size="11" letter-spacing="1">ARROW SHOP</text>
+  </g>
+  <rect x="22" y="55" width="328" height="29" rx="4" fill="#252525" stroke="#565656"/>
+  <g font-family="Arial,sans-serif" font-weight="900">
+    <text x="33" y="73" fill="#deded9" font-size="8">HEALTH</text>
+    <rect x="76" y="63" width="74" height="11" rx="2" fill="#414141"/>
+    <rect x="76" y="63" width="65" height="11" rx="2" fill="#e45050"/>
+    <text x="160" y="72" fill="#deded9" font-size="8">ARMOR 05</text>
+    <text x="336" y="73" fill="#f5a623" font-size="9" text-anchor="end">ROUND 01</text>
   </g>
   <rect x="368" y="51" width="248" height="226" rx="7" fill="#252525" stroke="#666"/>
   <rect x="382" y="64" width="220" height="28" rx="4" fill="#393939"/>
