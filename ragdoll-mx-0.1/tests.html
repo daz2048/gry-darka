@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>MX 0.1 regression checks</title>
+  <style>
+    body { font: 16px system-ui; background: #101a21; color: #e8eee8; padding: 20px; }
+    iframe { width: min(100%, 1000px); height: 850px; border: 1px solid #536a70; }
+    pre { white-space: pre-wrap; line-height: 1.7; }
+    a { color: #ffc078; }
+  </style>
+</head>
+<body>
+  <h1>MX 0.1 regression checks</h1>
+  <p>Runs the unchanged game in an isolated frame with manually advanced animation frames. No test dependencies.</p>
+  <p><a href="index.html">Play the game</a></p>
+  <pre id="results" role="status">Running...</pre>
+  <script>
+    'use strict';
+    const output = document.getElementById('results');
+    const results = [];
+    function check(condition, message) {
+      if (!condition) throw new Error(message);
+      results.push(`PASS: ${message}`);
+      output.textContent = results.join('\n');
+    }
+
+    async function run() {
+      const response = await fetch('index.html');
+      if (!response.ok) throw new Error(`Game fixture returned HTTP ${response.status}`);
+      const html = await response.text();
+      const iframe = document.createElement('iframe');
+      iframe.title = 'Isolated test duel';
+      document.body.append(iframe);
+      const win = iframe.contentWindow;
+      const doc = iframe.contentDocument;
+      doc.open();
+      doc.write(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ''));
+      doc.close();
+      let callback;
+      let engine;
+      let now = 0;
+      win.requestAnimationFrame = next => { callback = next; return 0; };
+      const load = src => new Promise((resolve, reject) => {
+        const script = doc.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`Unable to load ${src}`));
+        doc.head.append(script);
+      });
+      await load('../pojedynek-zamkow-janek-i-baranek/matter.min.js');
+      const create = win.Matter.Engine.create;
+      win.Matter.Engine.create = (...args) => { engine = create(...args); return engine; };
+      const errors = [];
+      win.addEventListener('error', event => errors.push(event.message));
+      await load('game.js');
+      callback(0);
+      function advance(frames) {
+        for (let i = 0; i < frames; i++) { now += 1000 / 60 + 0.00001; callback(now); }
+      }
+      const text = id => doc.getElementById(id).textContent;
+      const click = id => doc.getElementById(id).click();
+      const keyboard = type => win.dispatchEvent(new win.KeyboardEvent(type, { key: ' ', code: 'Space', bubbles: true }));
+      const health = side => Number(text(`${side}-health`));
+      const bodies = label => engine.world.bodies.filter(body => body.label === label);
+      function jointGap() {
+        return Math.max(...engine.world.constraints.map(joint => {
+          const a = win.Matter.Vector.add(joint.bodyA.position, joint.pointA);
+          const b = win.Matter.Vector.add(joint.bodyB.position, joint.pointB);
+          return Math.hypot(a.x - b.x, a.y - b.y);
+        }));
+      }
+      function aimAt(body, speed = 1100) {
+        const forearm = bodies('frontForearm')[0];
+        const origin = win.Matter.Vector.add(forearm.position, win.Matter.Vector.rotate({ x: 0, y: 13 }, forearm.angle));
+        const flight = (body.position.x - origin.x) / speed;
+        const rect = doc.getElementById('game').getBoundingClientRect();
+        doc.getElementById('game').dispatchEvent(new win.PointerEvent('pointermove', {
+          clientX: rect.left + body.position.x * rect.width / 960,
+          clientY: rect.top + (body.position.y - 150 * flight * flight) * rect.height / 540
+        }));
+      }
+      function chargedShot(target) {
+        aimAt(target);
+        keyboard('keydown');
+        advance(61);
+        keyboard('keyup');
+        advance(50);
+      }
+
+      check(engine.world.bodies.length === 25 && engine.world.constraints.length === 20, 'Two 11-part ragdolls, 20 joints and three terrain bodies');
+      advance(3600);
+      check(bodies('hips').every((body, index) => Math.abs(body.position.x - [180, 780][index]) < 5 && Math.abs(body.position.y - 392) < 8), 'Both ragdolls remain upright for 60 simulated seconds');
+      check(jointGap() < 1, 'Anatomical joints stay connected within one pixel');
+      check(engine.world.bodies.every(body => Number.isFinite(body.angle) && Number.isFinite(body.position.x) && Number.isFinite(body.position.y)), 'All body transforms remain finite');
+      click('primary');
+      keyboard('keydown');
+      advance(30);
+      check(doc.getElementById('power').value > 0.45, 'Keyboard holding charges the bow');
+      click('pause');
+      const positions = JSON.stringify(engine.world.bodies.map(body => body.position));
+      advance(600);
+      check(JSON.stringify(engine.world.bodies.map(body => body.position)) === positions && health('player') === 100, 'Pause freezes physics and enemy firing');
+      check(doc.getElementById('power').value === 0, 'Pause discards a pending shot');
+      click('primary');
+      keyboard('keyup');
+      keyboard('keydown');
+      advance(10);
+      doc.getElementById('game').dispatchEvent(new win.PointerEvent('pointercancel'));
+      check(doc.getElementById('power').value === 0, 'Pointer cancellation clears charging without firing');
+      win.dispatchEvent(new win.Event('blur'));
+      check(text('title') === 'Duel paused', 'Focus loss pauses the duel');
+      click('restart');
+      advance(90);
+      click('primary');
+      chargedShot(bodies('head')[1]);
+      check(health('enemy') === 44 && text('status').includes('headshot'), 'A full-power swept arrow deals 56 headshot damage');
+      check(jointGap() < 1, 'Joints remain connected after a charged impact');
+      chargedShot(bodies('head')[1]);
+      advance(100);
+      check(health('enemy') === 0 && text('title') === 'Duel won' && text('score') === '1 W / 0 L', 'Victory appears and is scored exactly once');
+      check(bodies('head')[1].position.y > 400, 'Defeated ragdoll loses active balance');
+      click('primary');
+      check(text('round') === '2' && text('score') === '1 W / 0 L' && health('enemy') === 100, 'Next round restores health and preserves score');
+      for (let i = 0; i < 2400 && health('player') > 0; i++) advance(1);
+      advance(100);
+      check(health('player') === 0 && text('title') === 'Rival wins' && text('score') === '1 W / 1 L', 'AI arrows can win a complete duel');
+      click('restart');
+      advance(90);
+      click('primary');
+      chargedShot(bodies('backShin')[1]);
+      check(health('enemy') < 100 && !text('status').includes('headshot'), 'Swept arrows hit a thin limb without tunnelling');
+      click('restart');
+      check(text('round') === '1' && text('score') === '0 W / 0 L' && health('player') === 100 && health('enemy') === 100, 'New match resets round, score and health');
+      check(engine.world.bodies.length === 25 && engine.world.constraints.length === 20, 'Restart does not accumulate physics bodies or joints');
+      check(errors.length === 0, `No game runtime errors${errors.length ? `: ${errors.join(', ')}` : ''}`);
+      output.textContent += `\n\n${results.length} checks passed.`;
+      document.title = `PASS: ${results.length} MX checks`;
+    }
+    run().catch(error => {
+      console.error(error);
+      output.textContent += `\nFAIL: ${error.message}`;
+      document.title = 'FAIL: MX checks';
+    });
+  </script>
+</body>
+</html>

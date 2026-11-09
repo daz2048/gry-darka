@@ -8,6 +8,6 @@ The Unity loader page is adapted for this repository. It loads the included Unit
 
 ## Running locally and troubleshooting
 
-Unity assets must be served over HTTP, not opened by double-clicking `index.html` (`file://`). From the repository root, run `./scripts/game-server.sh`, then open http://localhost:8765/ragdoll-archers/.
+Unity assets must be served over HTTP. From the repository root, run `./scripts/game-server.sh`, then open http://localhost:8765/ragdoll-archers/. If you double-click `index.html` (`file://`) while the local server is running, the page now redirects to its HTTP URL; if the server is unavailable, it displays instructions and a link.
 
-The page uses the shared [Unity startup script](../scripts/unity-loader.js). Loading and runtime errors appear on screen; expand **Loading diagnostics** for startup stages and Unity warnings. A local-file address shows server instructions immediately instead of hanging at 0%.
+The page uses the shared [Unity startup script](../scripts/unity-loader.js). Loading and runtime errors appear on screen; expand **Loading diagnostics** for startup stages and Unity warnings. A local-file address checks the server before redirecting, and shows server instructions if it is unavailable instead of hanging at 0%.

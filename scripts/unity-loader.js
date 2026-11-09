@@ -31,10 +31,21 @@
   });
 
   if (location.protocol === 'file:') {
-    showLoadError('Unity cannot load its assets from a file:// address. Start the local server and open the HTTP link below.');
-    document.getElementById('local-server-help').hidden = false;
     const gameFolder = location.pathname.split('/').slice(-2, -1)[0];
-    document.getElementById('local-game-link').href = `http://localhost:8765/${gameFolder}/`;
+    const gameUrl = `http://localhost:8765/${encodeURIComponent(gameFolder)}/`;
+    const help = document.getElementById('local-server-help');
+    const gameLink = document.getElementById('local-game-link');
+    gameLink.href = gameUrl;
+    loadingStatus.textContent = 'Checking the local game server...';
+    log(`Checking local game server: ${gameUrl}`);
+
+    const serverCheck = new Image();
+    serverCheck.onload = () => location.replace(gameUrl);
+    serverCheck.onerror = () => {
+      showLoadError('Unity cannot load its assets from a file:// address. Start the local server and open the HTTP link below.');
+      help.hidden = false;
+    };
+    serverCheck.src = `${gameUrl}favicon.jpeg?server-check=${Date.now()}`;
     return;
   }
 

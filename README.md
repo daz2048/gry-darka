@@ -26,9 +26,12 @@ W monitorze naciskaj pojedyncze klawisze (bez Enter):
 - `s` — sprawdź stan serwera
 - `q` — zamknij monitor, pozostawiając serwer w tle
 - `x` — zatrzymaj serwer i zamknij monitor
+- `d` — włącz lub wyłącz diagnostykę wrappera
 - `h` lub `?` — pokaż skróty
 
-Skróty `r`, `s`, `q`, `x` i `h` działają też jako argumenty skryptu, np. `./scripts/game-server.sh s` sprawdza stan bez otwierania monitora. Sterowanie klawiszami jest aktywne tylko przy wejściu z terminala; wejście z potoku zachowuje tryb samego podglądu logów.
+Diagnostykę można też włączyć od razu flagą `-d` lub `--debug`, np. `./scripts/game-server.sh --debug`. Pokazuje dodatkowe informacje o działaniach wrappera na standardowym wyjściu błędów; `d` przełącza ją podczas pracy monitora.
+
+Skróty `r`, `s`, `q`, `x` i `h` działają też jako argumenty skryptu, np. `./scripts/game-server.sh s` sprawdza stan bez otwierania monitora. Flagę debugowania można łączyć z akcją, np. `./scripts/game-server.sh --debug --restart`. Sterowanie klawiszami jest aktywne tylko przy wejściu z terminala; wejście z potoku zachowuje tryb samego podglądu logów.
 
 ```bash
 ./scripts/game-server.sh --restart      # uruchom ponownie i podłącz monitor (również -r)
@@ -39,6 +42,8 @@ python3 scripts/game-server.py stop     # zatrzymaj
 ```
 
 Serwer nasłuchuje tylko na tym komputerze. Pliki statyczne są odczytywane na bieżąco, więc zwykle wystarczy odświeżyć stronę; gdy przeglądarka używa pamięci podręcznej, wykonaj twarde odświeżenie. Ten skrypt wymaga Python 3 i zalogowanej sesji macOS. W razie błędu wskazuje plik dziennika.
+
+Dziennik żądań HTTP i błędów serwera jest przechowywany w `~/Library/Application Support/gry-darka/`; dokładną ścieżkę pokazuje monitor i `--help`. Po osiągnięciu 1 MiB plik jest rotowany: zachowywany jest bieżący plik oraz trzy starsze (`.1`–`.3`), bez limitu wieku. Katalog i pliki dziennika są dostępne tylko dla właściciela. Dziennik nie zawiera konsoli przeglądarki ani diagnostyki wrappera, która trafia do terminala. Aby włączyć rotację dla już działającego serwera, uruchom go ponownie (`r` w monitorze lub `./scripts/game-server.sh --restart`).
 
 Opcja restart zatrzymuje również ręcznie uruchomiony serwer tego repozytorium na porcie 8765. Nie zatrzymuje niezwiązanych procesów zajmujących ten port.
 
@@ -58,9 +63,10 @@ Self-hosted Unity WebGL build of the ragdoll archery game.
 - Original game by Ericetto; package distributed under the upstream repository's MIT License.
 
 ### Ragdoll MX 0.1
-Osobna kopia gry Ragdoll Archers, przygotowana do dalszego rozwoju.
-- [Zagraj »](ragdoll-mx-0.1/)
-- [Informacje o źródle i licencji](ragdoll-mx-0.1/README.md)
+Independent editable archery duel with articulated Matter.js ragdolls, charged shots, an AI rival and round scoring. Not a modification of the Unity build.
+- **Controls:** pointer aim, hold/release to shoot; P pauses, R resets the match.
+- [Play »](ragdoll-mx-0.1/)
+- [Source, controls and development scope](ragdoll-mx-0.1/README.md)
 
 ### Mario 0.1
 Klasyczny wariant platformowej przygody z trzema światami, przeciwnikami, monetami i punktami kontrolnymi.

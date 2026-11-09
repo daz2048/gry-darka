@@ -2,34 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#404040">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17232b">
   <title>Ragdoll MX 0.1</title>
-  <link rel="icon" type="image/jpeg" href="favicon.jpeg">
   <link rel="stylesheet" href="style.css">
+  <script defer src="../pojedynek-zamkow-janek-i-baranek/matter.min.js"></script>
+  <script defer src="game.js"></script>
 </head>
 <body>
-  <main id="unity-container">
-    <canvas id="unity-canvas" aria-label="Ragdoll MX 0.1 game"></canvas>
-    <div id="loading-cover">
-      <div id="unity-loading-bar">
-        <h1>RAGDOLL MX 0.1</h1>
-        <div id="unity-progress-bar-empty" role="progressbar" aria-label="Game loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <div id="unity-progress-bar-full"></div>
+  <main>
+    <header>
+      <a href="../index.html" aria-label="Game menu">MENU</a>
+      <h1>RAGDOLL <span>MX</span> <small>0.1 / PHYSICS DUEL</small></h1>
+      <button id="sound" aria-pressed="false">Sound: off</button>
+    </header>
+    <section class="hud" aria-label="Match status">
+      <label>YOU <strong id="player-health">100</strong><meter id="player-meter" min="0" max="100" value="100">100</meter></label>
+      <div>ROUND <strong id="round">1</strong><br><span id="score">0 W / 0 L</span></div>
+      <label class="enemy">RIVAL <strong id="enemy-health">100</strong><meter id="enemy-meter" min="0" max="100" value="100">100</meter></label>
+    </section>
+    <section class="arena" aria-label="Archery arena">
+      <canvas id="game" width="960" height="540" tabindex="0" aria-label="Aim with the pointer. Hold and release to shoot. P pauses. R restarts."></canvas>
+      <div id="overlay">
+        <div class="panel">
+          <p class="eyebrow">BUILT TO BEND. AIM TO WIN.</p>
+          <h2 id="title">The first duel</h2>
+          <p id="description">Aim above your rival to allow for gravity. Hold to charge, release to fire. Headshots deal extra damage.</p>
+          <button id="primary">Start duel</button>
         </div>
-        <p id="loading-status" role="status" aria-live="polite">Loading game...</p>
-        <div id="local-server-help" hidden>
-          <p>Run this command from the repository folder:</p>
-          <pre>./scripts/game-server.sh</pre>
-          <a id="local-game-link" href="http://localhost:8765/ragdoll-mx-0.1/">Open game on the local server</a>
-        </div>
-        <details>
-          <summary>Loading diagnostics</summary>
-          <pre id="loading-diagnostics"></pre>
-        </details>
       </div>
-    </div>
+    </section>
+    <section class="toolbar">
+      <label class="power">SHOT POWER <progress id="power" max="1" value="0"></progress></label>
+      <button id="pause" disabled>Pause (P)</button>
+      <button id="restart">New match (R)</button>
+    </section>
+    <p id="status" role="status" aria-live="polite">Ready. One arena, one bow, real jointed bodies.</p>
+    <footer>POINTER: AIM / HOLD / RELEASE <span>SPACE: CHARGE + FIRE &middot; P: PAUSE &middot; H: MENU</span></footer>
+    <noscript>This game requires JavaScript.</noscript>
   </main>
-  <script src="../scripts/unity-loader.js"></script>
 </body>
 </html>

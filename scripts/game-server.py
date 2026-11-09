@@ -2,8 +2,11 @@
 """Manage the repository's local game server with macOS launchd."""
 
 import argparse
+from contextlib import redirect_stderr, redirect_stdout
+from functools import partial
 import hashlib
 import http.client
+import http.server
 import os
 from pathlib import Path
 import plistlib
@@ -11,7 +14,9 @@ import re
 import socket
 import subprocess
 import sys
+import threading
 import time
+import traceback
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -26,6 +31,96 @@ SERVICE = f"{DOMAIN}/{LABEL}"
 STATE_DIR = Path.home() / "Library" / "Application Support" / "gry-darka"
 PLIST = STATE_DIR / f"{LABEL}.plist"
 LOG = STATE_DIR / f"{LABEL}.log"
+LOG_SIZE = 1024 * 1024
+LOG_BACKUPS = 3
+
+
+def prepare_logs():
+    STATE_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
+    STATE_DIR.chmod(0o700)
+    descriptor = os.open(LOG, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    try:
+        os.fchmod(descriptor, 0o600)
+    finally:
+        os.close(descriptor)
+    for number in range(1, LOG_BACKUPS + 1):
+        backup = LOG.with_name(f"{LOG.name}.{number}")
+        if backup.exists():
+            backup.chmod(0o600)
+
+
+class RotatingLog:
+    def __init__(self, path, max_bytes=LOG_SIZE, backups=LOG_BACKUPS):
+        self.path = path
+        self.max_bytes = max_bytes
+        self.backups = backups
+        self.lock = threading.Lock()
+        self.file = self.open_file()
+
+    def open_file(self):
+        descriptor = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        try:
+            os.fchmod(descriptor, 0o600)
+            return os.fdopen(descriptor, "ab")
+        except BaseException:
+            os.close(descriptor)
+            raise
+
+    def rotate(self):
+        self.file.close()
+        for number in range(self.backups, 0, -1):
+            source = self.path if number == 1 else self.path.with_name(
+                f"{self.path.name}.{number - 1}"
+            )
+            target = self.path.with_name(f"{self.path.name}.{number}")
+            if source.exists():
+                os.replace(source, target)
+        self.file = self.open_file()
+
+    def write(self, text):
+        data = text.encode("utf-8", errors="backslashreplace")
+        with self.lock:
+            while data:
+                available = self.max_bytes - os.fstat(self.file.fileno()).st_size
+                if available <= 0 or (len(data) <= self.max_bytes and len(data) > available):
+                    self.rotate()
+                    available = self.max_bytes
+                end = min(available, len(data))
+                while end < len(data) and data[end] & 0xC0 == 0x80:
+                    end -= 1
+                if not end:
+                    if available == self.max_bytes:
+                        raise ValueError("Log size is too small for a UTF-8 character")
+                    self.rotate()
+                    continue
+                chunk, data = data[:end], data[end:]
+                self.file.write(chunk)
+                self.file.flush()
+        return len(text)
+
+    def flush(self):
+        with self.lock:
+            self.file.flush()
+
+    def close(self):
+        with self.lock:
+            self.file.close()
+
+
+def serve():
+    prepare_logs()
+    log = RotatingLog(LOG)
+    with redirect_stdout(log), redirect_stderr(log):
+        try:
+            handler = partial(http.server.SimpleHTTPRequestHandler, directory=str(ROOT))
+            with http.server.ThreadingHTTPServer((HOST, PORT), handler) as server:
+                print(f"Serving HTTP on {HOST} port {PORT} ({URL}) ...", flush=True)
+                server.serve_forever()
+        except Exception:
+            traceback.print_exc()
+            raise SystemExit(1) from None
+        finally:
+            log.close()
 
 
 def launchctl(*args, check=True):
@@ -96,12 +191,11 @@ def start():
         except OSError as error:
             raise RuntimeError(f"Cannot use {HOST}:{PORT}: {error}. Another service may be using it.") from error
 
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    prepare_logs()
     config = {
         "Label": LABEL,
         "ProgramArguments": [
-            sys.executable, "-u", "-m", "http.server", str(PORT),
-            "--bind", HOST, "--directory", str(ROOT),
+            sys.executable, "-u", str(Path(__file__).resolve()), "--serve",
         ],
         "RunAtLoad": True,
         "KeepAlive": True,
@@ -131,6 +225,9 @@ def stop():
 
 
 def main():
+    if sys.argv[1:] == ["--serve"]:
+        serve()
+        return
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", nargs="?", choices=("start", "restart", "stop", "status"),
                         default="start")
