@@ -1,23 +1,23 @@
 # Pojedynek Zamków — Backlog
 
-Gra artyleryjska 2-osobowa (hotseat). Plik gry: `pojedynek-zamkow/index.html`.
+Gra artyleryjska 2-osobowa (hotseat). Plik gry: `pojedynek-zamkow-janek-i-baranek/index.html`.
 Stack: HTML5 Canvas + JavaScript + [Matter.js](https://brm.io/matter-js/) (fizyka 2D, self-hosted — offline). PWA: manifest + service worker.
 
 ## Struktura repo (layout pod wiele gier)
 - `index.html` — strona-hub z listą gier.
-- `pojedynek-zamkow/index.html` — gra „Pojedynek Zamków (Janek i Darek)".
-- `pojedynek-zamkow/` — PWA: `manifest.webmanifest`, `sw.js`, `icon.svg`, `matter.min.js` (self-host).
+- `pojedynek-zamkow-janek-i-baranek/index.html` — gra „Pojedynek Zamków (Janek i Baranek)".
+- `pojedynek-zamkow-janek-i-baranek/` — PWA: `manifest.webmanifest`, `sw.js`, `icon.svg`, `matter.min.js` (self-host).
 - `napor-zombie/index.html` — gra „Napór Zombie" (top-down survival, jeden plik).
 - `.nojekyll` — wyłącza przetwarzanie Jekyll na GitHub Pages.
 
 ## Jak uruchomić
 - Online (GitHub Pages): <https://dariusz22p.github.io/gry-darka/>
-- Lokalnie: otwórz `index.html` (hub) lub `pojedynek-zamkow/index.html` (gra) — Matter.js jest lokalny, działa offline.
+- Lokalnie: otwórz `index.html` (hub) lub `pojedynek-zamkow-janek-i-baranek/index.html` (gra) — Matter.js jest lokalny, działa offline.
 - Na telefonie (PWA): wejdź na hosting, otwórz grę i „Dodaj do ekranu głównego" (instalowalna, offline).
 - Sterowanie: `↑`/`↓` kąt, `←`/`→` moc, `Spacja` strzał, `R` nowy mecz, `F` pełny ekran, `M` dźwięk.
 - 2 graczy na zmianę na jednej klawiaturze. Wygrywa ten, kto zbije HP przeciwnika do 0.
 
-## Gdzie co jest (mapa kodu w pojedynek-zamkow/index.html)
+## Gdzie co jest (mapa kodu w pojedynek-zamkow-janek-i-baranek/index.html)
 - `CONFIG` (góra `<script>`) — wszystkie liczby do strojenia balansu: kąt, moc, HP, obrażenia, grawitacja, rozmiar/pozycja zamków.
 - `setupWorld()` / `buildCastle()` — budowa planszy i zamków (cegły to fizyczne bryły).
 - `fire()` — tworzenie i wystrzelenie pocisku.

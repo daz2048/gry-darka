@@ -36,25 +36,25 @@ Najnowsza wersja platformowej przygody Maksa: 100 poziomów, zmienne światy i s
 ### 🏰 Pojedynek Zamków
 Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.
 - **Gracze:** Janek i Darek
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/pojedynek-zamkow/)
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/pojedynek-zamkow-janek-i-baranek/)
 
 ### 🧟 Napór Zombie — Warianty
 
-#### Vanilla (Prototyp 1.0)
+#### Napór Zombie (Vanilla)
 Oryginalna gra — broń bazę przed falami zombie. Przesuwaj ekipę w pionie, strzelaj prosto, dobieraj ludzi i moc.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-vanilla/)
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/napor-zombie-vanilla/)
 
-#### Max 1.0 (prowadzony przez Maksa)
+#### Zombie Max 0.1 (prowadzony przez Maksa)
 Dotychczasowy wariant Maksa.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/)
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-0.1/)
 
-#### Max 2.0 (w przygotowaniu)
+#### Zombie Max 0.2 (w przygotowaniu)
 Nowa wersja rozwijana jako osobny wariant.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/)
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-0.2/)
 
-#### Alx (prowadzony przez Aleksa)
+#### Zombie Aleksa
 Wariant dla zespołu AX.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-ax/)
+- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-aleksa/)
 
 ---
 

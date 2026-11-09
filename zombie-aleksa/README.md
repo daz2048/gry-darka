@@ -4,7 +4,7 @@ Wariant rozwijany przez **Aleksandra Panasiuka**. Przepisany od zera jako endles
 
 ## Graj teraz
 
-**[ZAGRAJ](https://dariusz22p.github.io/gry-darka/zombie-ax/)**
+**[ZAGRAJ](https://dariusz22p.github.io/gry-darka/zombie-aleksa/)**
 
 ## Jak grac
 
@@ -66,9 +66,9 @@ Laser to ciągły promień w lewo, multi-hit w pasie +-55 px, 1/5 siły zwykłeg
 
 ## Inne warianty
 
-- [Vanilla (1.0)](https://dariusz22p.github.io/gry-darka/zombie-vanilla/) — prototyp bazowy
-- [Max 1.0](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/) — poprzedni wariant Maksa
-- [Max 2.0](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/) — nowa wersja
+- [Napór Zombie (Vanilla)](https://dariusz22p.github.io/gry-darka/napor-zombie-vanilla/) — prototyp bazowy
+- [Max 0.1](https://dariusz22p.github.io/gry-darka/zombie-max-0.1/) — poprzedni wariant Maksa
+- [Max 0.2](https://dariusz22p.github.io/gry-darka/zombie-max-0.2/) — nowa wersja
 
 ---
 

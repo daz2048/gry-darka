@@ -4,7 +4,7 @@ Nowa wersja rozwijana przez **Maksymiliana Panasiuka**. Zaczyna jako osobny wari
 
 ## 🎮 Graj teraz
 
-**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/)**
+**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/zombie-max-0.2/)**
 
 ## 📖 Jak grać
 
@@ -126,9 +126,9 @@ The nightmare scenes add cracked, candlelit memorials and hanging lichen in Easy
 
 ## 🔀 Inne warianty
 
-- [Vanilla (1.0)](https://dariusz22p.github.io/gry-darka/zombie-vanilla/) — prototyp bazowy
-- [Max 1.0](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/) — poprzednia wersja
-- [Alx](https://dariusz22p.github.io/gry-darka/zombie-ax/) — wariant Aleksa
+- [Napór Zombie (Vanilla)](https://dariusz22p.github.io/gry-darka/napor-zombie-vanilla/) — prototyp bazowy
+- [Max 0.1](https://dariusz22p.github.io/gry-darka/zombie-max-0.1/) — poprzednia wersja
+- [Aleksa](https://dariusz22p.github.io/gry-darka/zombie-aleksa/) — wariant Aleksa
 
 ---
 
