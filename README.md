@@ -13,18 +13,23 @@ Zbiór małych gier przeglądarowe — **graj od razu, bez instalacji**.
 Z katalogu repozytorium uruchom:
 
 ```bash
-python3 scripts/game-server.py start
+./scripts/game-server.sh
 ```
 
 Otwórz **http://localhost:8765/** lub np. **http://localhost:8765/ragdoll-mx-0.1/**. Serwer działa w tle także po zamknięciu terminala, dopóki trwa sesja użytkownika macOS.
 
+Monitor pokazuje ostatnie i nowe żądania oraz liczbę żądań i błędów HTTP od momentu podłączenia. Ctrl+C zamyka monitor, ale nie zatrzymuje serwera. Ponowne uruchomienie monitora podłącza go do działającego serwera.
+
 ```bash
+./scripts/game-server.sh --restart      # uruchom ponownie i podłącz monitor (również -r)
 python3 scripts/game-server.py restart  # uruchom ponownie (lub uruchom, jeśli nie działa)
 python3 scripts/game-server.py status   # sprawdź stan
 python3 scripts/game-server.py stop     # zatrzymaj
 ```
 
 Serwer nasłuchuje tylko na tym komputerze. Pliki statyczne są odczytywane na bieżąco, więc zwykle wystarczy odświeżyć stronę; gdy przeglądarka używa pamięci podręcznej, wykonaj twarde odświeżenie. Ten skrypt wymaga Python 3 i zalogowanej sesji macOS. W razie błędu wskazuje plik dziennika.
+
+Opcja restart zatrzymuje również ręcznie uruchomiony serwer tego repozytorium na porcie 8765. Nie zatrzymuje niezwiązanych procesów zajmujących ten port.
 
 ---
 
