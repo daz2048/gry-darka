@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" role="img" aria-labelledby="title desc">
+  <title id="title">Archers 0.4</title>
+  <desc id="desc">A mint-green archer fires a glowing arrow at an orange robot across elevated platforms.</desc>
+  <defs>
+    <linearGradient id="background" x2="0" y2="1">
+      <stop stop-color="#142d39"/>
+      <stop offset="1" stop-color="#09141f"/>
+    </linearGradient>
+    <linearGradient id="trail">
+      <stop stop-color="#66f6d2" stop-opacity="0"/>
+      <stop offset="1" stop-color="#d5fff3"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="320" fill="url(#background)"/>
+  <g stroke="#365364" stroke-width="1" opacity=".35">
+    <path d="M0 100H640M0 160H640M0 220H640M80 60V320M160 60V320M240 60V320M320 60V320M400 60V320M480 60V320M560 60V320"/>
+  </g>
+  <circle cx="340" cy="170" r="94" fill="none" stroke="#66f6d2" stroke-opacity=".15" stroke-width="2"/>
+  <circle cx="340" cy="170" r="68" fill="none" stroke="#66f6d2" stroke-opacity=".12" stroke-dasharray="6 12"/>
+  <path d="M38 259H228V320H38ZM432 220H604V320H432Z" fill="#263e4c"/>
+  <path d="M38 259H228M432 220H604" stroke="#66f6d2" stroke-width="5"/>
+  <g fill="none" stroke="#91f7d8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M134 165 130 210 112 252M130 210 155 252M135 178 161 187 190 174M135 178 154 161 178 174" stroke-width="12"/>
+    <circle cx="136" cy="141" r="18" fill="#91f7d8" stroke="none"/>
+  </g>
+  <path d="M145 136h8" stroke="#142d39" stroke-width="5"/>
+  <path d="M191 141Q226 174 191 207" fill="none" stroke="#ffbf69" stroke-width="5"/>
+  <path d="m191 141-13 33 13 33" fill="none" stroke="#d5fff3" stroke-width="1.5"/>
+  <g fill="none" stroke="#ffae70" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M515 129 519 169 502 212M519 169 540 212M516 140 489 156 465 147M516 140 492 131 478 145" stroke-width="12"/>
+    <rect x="497" y="88" width="36" height="34" rx="8" fill="#ffae70" stroke="none"/>
+  </g>
+  <path d="M503 103h24" stroke="#142d39" stroke-width="6"/>
+  <path d="M467 115Q435 148 467 179" fill="none" stroke="#ffae70" stroke-width="5"/>
+  <path d="M467 115v64" stroke="#ffe0bd" stroke-width="1.5"/>
+  <path d="M226 174 428 135" stroke="url(#trail)" stroke-width="7" stroke-linecap="round"/>
+  <path d="m438 133-21-5 5 17Z" fill="#d5fff3"/>
+  <g stroke="#ffbf69" stroke-width="3">
+    <path d="m447 116 6-10m0 33 13 2m-30 13 3 12"/>
+  </g>
+  <rect x="20" y="16" width="600" height="44" rx="8" fill="#0b1822" stroke="#365364"/>
+  <text x="36" y="45" fill="#e2fff7" font-family="Arial,sans-serif" font-size="21" font-weight="900" letter-spacing="2">ARCHERS</text>
+  <rect x="513" y="23" width="96" height="30" rx="5" fill="#66f6d2"/>
+  <text x="561" y="45" fill="#102733" font-family="Arial,sans-serif" font-size="22" font-weight="900" text-anchor="middle">0.4</text>
+  <text x="320" y="300" fill="#91f7d8" font-family="Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="4" text-anchor="middle">AIM. CHARGE. RELEASE.</text>
+</svg>
