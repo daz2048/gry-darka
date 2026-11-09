@@ -4,7 +4,7 @@ Wariant rozwijany przez **Maksymiliana Panasiuka**. Oparty na prototypie Vanilla
 
 ## 🎮 Graj teraz
 
-**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/)**
+**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/zombie-max-0.1/)**
 
 ## 📖 Jak grać
 
@@ -88,9 +88,9 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 
 ## 🔀 Inne warianty
 
-- [Vanilla (1.0)](https://dariusz22p.github.io/gry-darka/zombie-vanilla/) — prototyp bazowy
-- [Max 2.0](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/) — nowa wersja w przygotowaniu
-- [Alx](https://dariusz22p.github.io/gry-darka/zombie-ax/) — wariant Aleksa
+- [Napór Zombie (Vanilla)](https://dariusz22p.github.io/gry-darka/napor-zombie-vanilla/) — prototyp bazowy
+- [Max 0.2](https://dariusz22p.github.io/gry-darka/zombie-max-0.2/) — nowa wersja w przygotowaniu
+- [Aleksa](https://dariusz22p.github.io/gry-darka/zombie-aleksa/) — wariant Aleksa
 
 ---
 

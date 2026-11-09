@@ -4,7 +4,7 @@ Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i z
 
 ## 🎮 Graj teraz
 
-**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/pojedynek-zamkow/)**
+**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/pojedynek-zamkow-janek-i-baranek/)**
 
 ## 📖 Jak grać
 

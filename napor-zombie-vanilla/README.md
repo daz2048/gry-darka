@@ -4,7 +4,7 @@
 
 ## 🎮 Graj teraz
 
-**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/zombie-vanilla/)**
+**[👉 ZAGRAJ](https://dariusz22p.github.io/gry-darka/napor-zombie-vanilla/)**
 
 ## 📖 Jak grać
 
@@ -63,9 +63,9 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 
 ## 🔀 Inne warianty
 
-- [Max 1.0](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/) — poprzedni wariant Maksa
-- [Max 2.0](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/) — nowa wersja
-- [Alx](https://dariusz22p.github.io/gry-darka/zombie-ax/) — wariant Aleksa
+- [Max 0.1](https://dariusz22p.github.io/gry-darka/zombie-max-0.1/) — poprzedni wariant Maksa
+- [Max 0.2](https://dariusz22p.github.io/gry-darka/zombie-max-0.2/) — nowa wersja
+- [Aleksa](https://dariusz22p.github.io/gry-darka/zombie-aleksa/) — wariant Aleksa
 
 ---
 
