@@ -130,7 +130,6 @@ The nightmare scenes add cracked, candlelit memorials and hanging lichen in Easy
 - [Max 1.0](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/) — poprzednia wersja
 - [AX](https://dariusz22p.github.io/gry-darka/zombie-ax/) — wariant Aleksa
 - [Daz](https://dariusz22p.github.io/gry-darka/zombie-daz/) — wariant Daza
-- [Jan](https://dariusz22p.github.io/gry-darka/zombie-jan/) — wariant Janka
 
 ---
 

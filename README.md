@@ -60,10 +60,6 @@ Wariant dla zespołu AX.
 Wariant osobiści dla Daza.
 - [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-daz/)
 
-#### Jan (prowadzony przez Janka)
-Wariant osobisty dla Janka.
-- [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-jan/)
-
 ---
 
 > **💡 Szybki powrót z gry:** Wciśnij **ESC** lub **H** z dowolnej gry, aby wrócić do menu głównego.

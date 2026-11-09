@@ -56,7 +56,6 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 - [Max 1.0](https://dariusz22p.github.io/gry-darka/zombie-max-1.0/) — poprzedni wariant Maksa
 - [Max 2.0](https://dariusz22p.github.io/gry-darka/zombie-max-2.0/) — nowa wersja
 - [AX](https://dariusz22p.github.io/gry-darka/zombie-ax/) — wariant Aleksa
-- [Jan](https://dariusz22p.github.io/gry-darka/zombie-jan/) — wariant Janka
 
 ---
 
