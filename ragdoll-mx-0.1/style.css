@@ -18,7 +18,7 @@ body {
 #version-badge {
   position: absolute;
   top: max(12px, env(safe-area-inset-top));
-  right: max(12px, env(safe-area-inset-right));
+  left: calc(max(100px, 8vw) + env(safe-area-inset-left));
   z-index: 10;
   padding: 8px 12px;
   border: 1px solid #f5a623;
