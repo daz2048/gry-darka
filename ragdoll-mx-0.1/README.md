@@ -2,7 +2,9 @@
 
 A clone of the local [Ragdoll Archers](../ragdoll-archers/) Unity WebGL game,
 with the launcher title and loading heading changed to **Ragdoll MX 0.1**.
-Gameplay, styling and compiled game assets are unchanged. The compiled game's
+A persistent **RAGDOLL MX 0.1** badge in the top-right corner identifies the
+version during loading and gameplay without intercepting game input.
+Gameplay and compiled game assets are unchanged. The compiled game's
 internal title remains Ragdoll Archers; the original Unity source is not included.
 
 The build comes from [GameConsoleClub/Ragdoll-Archers](https://github.com/GameConsoleClub/Ragdoll-Archers),

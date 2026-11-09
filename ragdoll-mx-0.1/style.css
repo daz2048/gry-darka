@@ -15,6 +15,22 @@ body {
 
 #unity-container { position: relative; }
 
+#version-badge {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 10;
+  padding: 8px 12px;
+  border: 1px solid #f5a623;
+  border-radius: 6px;
+  background: #252525;
+  color: #f5a623;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
 #unity-canvas {
   display: block;
   width: 100%;
