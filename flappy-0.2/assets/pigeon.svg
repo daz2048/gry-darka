@@ -16,6 +16,9 @@
       <path d="M40 14h4v2h-4Z" fill="#e2ded1"/>
       <path d="M42 16h4v2h-4Z" fill="#667480"/>
       <path d="M20 30h2v2h4v2h-8v-2h2ZM30 30h2v2h4v2h-8v-2h2Z" fill="#c8797a"/>
+      <path d="M28 21h4l2 3 2-3h4l-4 6-2-2-2 2Z" fill="#f3f0e2"/>
+      <path d="M32 23h4v3h-4Zm0 3h4v4l-2 3-2-3Z" fill="#873846"/>
+      <path d="M33 24h2v2h-2Zm0 3h2v3h-2Z" fill="#d76976"/>
     </g>
     <g id="hat">
       <path d="M28 0h12v8h4v4H24V8h4Z" fill="#252832"/>

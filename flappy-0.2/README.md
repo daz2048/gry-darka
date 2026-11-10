@@ -17,7 +17,7 @@ python3 scripts/game-server.py start
 Press **Lecimy** to start. Tap/click the playfield, Space, or Up to flap. Pass a whole gate to score one point. Ground, ceiling, and gate collisions end the run. Use the explicit restart button for another flight.
 
 - **P** / pause button: pause or resume. Switching tabs or apps pauses automatically; resume explicitly.
-- **M**: become an animated gray pigeon wearing a black top hat with a red ribbon in immortal turbo mode. Scroll at 4x speed (384 units/second), ignore pipes, and survive the ceiling and ground; the bird stays on-screen at either edge. A visible indicator marks the mode. Press M again to restore the yellow bird, normal speed, and collisions, or reload the page to reset it. Both skins use the same hitbox.
+- **M**: become an animated gray pigeon wearing a black top hat with a red ribbon and a matching red tie in immortal turbo mode. Scroll at 4x speed (384 units/second), ignore pipes, and survive the ceiling and ground; the bird stays on-screen at either edge. A visible indicator marks the mode. Press M again to restore the yellow bird, normal speed, and collisions, or reload the page to reset it. Both skins use the same hitbox.
 - **S** / sound button: toggle sound effects and background music together. The original eight-bar tune "Little Wings" loops quietly during play: a bright square-wave melody, soft triangle arpeggios, and a rounded sine-wave bass at 108 BPM. Music stops on pause, mute, game-over, or switching tabs, continues its sequence on resume, and starts over on a new run. Playback begins only after interaction; unavailable audio does not block the game.
 - **H**, **Esc**, or home button: return to the portfolio.
 
