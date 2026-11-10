@@ -71,7 +71,7 @@ Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
 
 ## 📋 Dostępne gry
 
-### Flappy Podlasie 0.2
+### Flappy Bird 0.2
 Wersja rozwojowa, skopiowana z 0.1. W menu portfolio wersja 0.1 jest pierwsza, a 0.2 druga. Dalsze zmiany na galezi `archer-0.4-works-starts-n0w` dotycza domyslnie katalogu `flappy-0.2/`.
 - [Zagraj »](flappy-0.2/)
 - [Szczegoly](flappy-0.2/README.md)

@@ -1,14 +1,14 @@
-# Flappy Podlasie 0.2
+# Flappy Bird 0.2
 
 Original Flappy Bird-style browser game from Ekipa spod Lipy. Fly between shaded green pipes over a pixel skyline. Three-frame pixel bird animation, crisp nearest-neighbor rendering, striped scrolling ground, arcade typography, and synthesized sound effects. All artwork is original; no copied Flappy Bird assets. Version 0.1 retains its original meadow graphics.
 
-Working version on branch `archer-0.4-works-starts-n0w`, cloned from `../flappy-0.1/`. Make future Flappy Podlasie changes here by default; keep 0.1 as the preserved release unless explicitly requested otherwise.
+Working version on branch `archer-0.4-works-starts-n0w`, cloned from `../flappy-0.1/`. Make future Flappy Bird changes here by default; keep 0.1 as the preserved release unless explicitly requested otherwise.
 
 ## Play
 
 You can open this directory's `index.html` directly in a browser with the full repository present. Artwork loads through native image elements rather than XHR, avoiding local-file CORS restrictions. Browser policies may still prevent local score storage; this displays a warning without blocking play.
 
-Choose Flappy Podlasie 0.2 in the portfolio (after version 0.1), or visit http://localhost:8765/flappy-0.2/ after starting the repository game server:
+Choose Flappy Bird 0.2 in the portfolio (after version 0.1), or visit http://localhost:8765/flappy-0.2/ after starting the repository game server:
 
 ```sh
 python3 scripts/game-server.py start
