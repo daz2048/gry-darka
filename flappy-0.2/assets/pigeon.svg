@@ -3,13 +3,13 @@
     <g id="body">
       <path d="M12 21H4v2H2v6h12Z" fill="#897a9f"/>
       <path d="M10 23H6v2H4v2h8Z" fill="#e2dff2"/>
-      <path d="M18 10h16v2h6v4h2v4h2v6h-4v4h-6v2H16v-2h-6v-4H6v-8h4v-4h8Z" fill="#897a9f"/>
-      <path d="M18 12h16v2h4v4h2v4h2v2h-4v4h-6v2H16v-2h-4v-4H8v-4h4v-4h6Z" fill="#d5d0ed"/>
+      <path d="M16 10h18v2h6v4h2v4h2v8h-4v4h-6v2H14v-2H8v-4H4v-8h4v-4h8Z" fill="#897a9f"/>
+      <path d="M16 12h18v2h4v4h2v4h2v4h-4v4h-6v2H14v-2h-4v-4H6v-4h4v-4h6Z" fill="#d5d0ed"/>
       <path d="M18 12h12v2H18ZM14 16h10v2H14ZM10 20h4v2h-4Z" fill="#fff8ff"/>
       <path d="M12 26h8v2h12v2H16v-2h-4Z" fill="#b6acd2"/>
       <path d="M24 21h8v2h4v2H24Z" fill="#a4d8cf"/>
       <path d="M24 24h10v2H24Z" fill="#cbb2e4"/>
-      <path d="M20 24h14v2h2v2h-6v2H18v-2h2Z" fill="#fff7e9"/>
+      <path d="M18 24h16v2h2v4h-6v2H16v-2h-4v-4h6Z" fill="#fff7e9"/>
       <path d="M32 12h4v2h2v7h-2v2h-5v-2h-1v-7h2Z" fill="#44364f"/>
       <path d="M31 19h2v2h-2Z" fill="#866c98"/>
       <path d="M32 14h3v4h-3ZM35 20h2v1h-2Z" fill="#ffffff"/>

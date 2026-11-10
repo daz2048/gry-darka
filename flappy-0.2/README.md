@@ -26,6 +26,8 @@ The fixed 360 x 640 world scales to the viewport without changing difficulty. Th
 
 ## Technology
 
+M mode keeps the normal blue sky, city, and green pipes. The plump pigeon skin is accompanied only by slightly brighter, softer colors; pressing M again restores the exact normal appearance.
+
 Phaser Arcade Physics for gravity and flight; scene delta time for scrolling. Uses the existing locally vendored engine at `../mario-0.3/vendor/phaser.min.js`, covered by its adjacent `PHASER-LICENSE.txt`. Keep that shared path available when deploying. No package install, build step, backend, or external runtime scripts required. Optional Google Fonts have local font fallbacks.
 
 Music and effects are synthesized locally with the Web Audio API. The soundtrack is an original composition in `game.js`; no MP3, external music request, or third-party recording is used. Audio-clock scheduling keeps notes steady, and stopping music releases both scheduled and active voices.

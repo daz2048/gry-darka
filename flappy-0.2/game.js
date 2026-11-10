@@ -456,6 +456,7 @@ function boot() {
     toggleImmortality() {
       this.immortal = !this.immortal;
       this.applySkin();
+      document.body.classList.toggle('pigeon-world', this.immortal);
       ui.immortal.hidden = !this.immortal;
     }
 

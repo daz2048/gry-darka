@@ -9,6 +9,8 @@ body {
   display: grid; place-items: center; min-height: 100svh;
 }
 .shell { width: min(440px, 100%); padding: 0 12px; }
+body.pigeon-world { background: repeating-linear-gradient(0deg, #e1ece7 0 3px, #eaf2ec 3px 6px); }
+.pigeon-world #game canvas { filter: brightness(1.04) saturate(.94); }
 .topbar { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .brand { font-size: 20px; line-height: .95; white-space: nowrap; }
 .brand strong { display: block; font-size: 25px; }
@@ -39,7 +41,7 @@ h1 em { font-style: normal; color: #f5cb3d; }
 .primary:hover { background: #ffdd79; }
 .primary:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
 footer { height: 40px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; }
-#immortal { position: absolute; right: 8px; bottom: 8px; max-width: calc(100% - 16px); padding: 3px 6px; border: 2px solid var(--ink); background: #fff2ac; color: var(--ink); font-size: 15px; text-align: center; overflow-wrap: anywhere; pointer-events: none; }
+#immortal { position: absolute; right: 8px; bottom: 8px; max-width: calc(100% - 16px); padding: 2px 4px; border: 2px solid var(--ink); background: #fff2ac; color: var(--ink); font-size: 12px; line-height: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 #notice, #fatal { position: absolute; inset: auto 8px 8px; padding: 10px; font-size: 11px; background: #fff0dd; color: #732b20; border: 1px solid #b9503a; overflow-wrap: anywhere; }
 #fatal { inset: 35% 12px auto; }
 [hidden] { display: none !important; }
