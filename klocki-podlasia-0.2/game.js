@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { PointerLockControls } from './vendor/PointerLockControls.js';
 import { World, BLOCKS, chunkGeometry, pick } from './world.js';
 import { createPlayer, collides, stepPlayer } from './player.js';
+import { createMobs, createMobModel, stepMobs } from './mobs.js';
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
   'pause', 'recover', 'new-world', 'fullscreen', 'palette', 'palette-pages', 'target', 'notice', 'crosshair',
@@ -29,6 +30,8 @@ outline.visible = false;
 scene.add(outline);
 let world = new World();
 let player = createPlayer(world);
+let mobs = [];
+let mobModels = [];
 let selected = 7;
 let palettePage = 0;
 const PALETTE_SIZE = 8;
@@ -79,6 +82,27 @@ function rebuild() {
   }
   world.dirty.clear();
 }
+
+function resetMobs() {
+  for (const model of mobModels) {
+    scene.remove(model.group);
+    const geometries = new Set();
+    for (const material of model.materials.values()) material.dispose();
+    model.group.traverse(object => {
+      if (object.geometry && !geometries.has(object.geometry)) {
+        geometries.add(object.geometry);
+        object.geometry.dispose();
+      }
+    });
+  }
+  mobs = createMobs(world);
+  mobModels = mobs.map(mob => createMobModel(THREE, mob));
+  for (let index = 0; index < mobs.length; index++) {
+    mobs[index].model = mobModels[index];
+    scene.add(mobModels[index].group);
+  }
+}
+resetMobs();
 
 function syncCamera() {
   camera.position.set(player.x, player.y + 1.6, player.z);
@@ -232,6 +256,7 @@ ui['confirm-reset'].addEventListener('click', () => {
   chunks.clear();
   world = new World(crypto.getRandomValues(new Uint32Array(1))[0]);
   player = createPlayer(world);
+  resetMobs();
   camera.rotation.set(-0.13, 0, 0);
   edits = 0;
   rebuild();
@@ -307,6 +332,16 @@ renderer.domElement.addEventListener('webglcontextlost', event => {
 function frame(now) {
   const elapsed = Math.max(0, now - lastTime);
   lastTime = now;
+  stepMobs(world, mobs, elapsed / 1000);
+  for (const mob of mobs) {
+    const bob = mob.walking ? Math.abs(Math.sin(mob.animation * 9 + mob.phase)) * 0.035 : 0;
+    mob.model.group.position.set(mob.x, mob.groundY + bob, mob.z);
+    mob.model.group.rotation.y = mob.yaw;
+    const gait = mob.walking ? Math.sin(mob.animation * 9 + mob.phase) * 0.48 : 0;
+    mob.model.legs.forEach((leg, index) => {
+      leg.rotation.x = gait * (index % 2 ? -1 : 1);
+    });
+  }
   if (playing) {
     frames.push(elapsed);
     if (frames.length > 3600) frames.shift();

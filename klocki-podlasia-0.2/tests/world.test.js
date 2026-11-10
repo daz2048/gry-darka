@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { World, SIZE, BLOCKS, chunkGeometry, pick } from '../world.js';
 import { createPlayer, collides, stepPlayer } from '../player.js';
+import { createMobs, stepMobs } from '../mobs.js';
 
 function empty() {
   const world = new World();
@@ -38,6 +39,37 @@ test('generation includes two distinct houses with open doors and a clear spawn'
     for (let y = 9; y <= 11; y++) assert.equal(world.get(doorX, y, house.maxZ), 0);
   }
   assert.equal(collides(world, createPlayer(world)), false);
+});
+
+test('farm animals spawn safely and wander deterministically within their pasture', () => {
+  const world = new World();
+  const comparisonWorld = new World();
+  const mobs = createMobs(world);
+  const comparison = createMobs(comparisonWorld);
+  assert.deepEqual(mobs.map(mob => mob.kind), ['cow', 'sheep', 'pig', 'chicken']);
+  for (const mob of mobs) {
+    assert.ok(world.get(Math.floor(mob.x), mob.groundY - 1, Math.floor(mob.z)));
+    assert.ok(mob.x >= mob.bounds.minX && mob.x <= mob.bounds.maxX);
+    assert.ok(mob.z >= mob.bounds.minZ && mob.z <= mob.bounds.maxZ);
+  }
+  for (let frame = 0; frame < 600; frame++) {
+    stepMobs(world, mobs, 1 / 30);
+    stepMobs(comparisonWorld, comparison, 1 / 30);
+  }
+  assert.deepEqual(mobs.map(({ x, z }) => [x, z]), comparison.map(({ x, z }) => [x, z]));
+  assert.ok(Math.hypot(mobs[0].x - 25.4, mobs[0].z - 28.2) > 0.2);
+  for (const mob of mobs) {
+    assert.ok(mob.x >= mob.bounds.minX && mob.x <= mob.bounds.maxX);
+    assert.ok(mob.z >= mob.bounds.minZ && mob.z <= mob.bounds.maxZ);
+    for (let x = Math.floor(mob.x - mob.radius); x <= Math.floor(mob.x + mob.radius); x++) {
+      for (let z = Math.floor(mob.z - mob.radius); z <= Math.floor(mob.z + mob.radius); z++) {
+        assert.ok(world.get(x, mob.groundY - 1, z));
+        for (let y = mob.groundY; y < mob.groundY + mob.height; y++) {
+          assert.equal(world.get(x, y, z), 0);
+        }
+      }
+    }
+  }
 });
 
 test('coordinates never alias another row, column or layer', () => {

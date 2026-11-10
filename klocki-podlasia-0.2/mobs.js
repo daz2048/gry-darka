@@ -1,0 +1,186 @@
+import { SIZE } from './world.js';
+
+const PASTURES = [
+  { kind: 'cow', x: 25.4, z: 28.2, radius: 0.58, height: 1.62, speed: 0.55,
+    bounds: { minX: 24, maxX: 27.2, minZ: 25.5, maxZ: 30.6 } },
+  { kind: 'sheep', x: 25.5, z: 33.2, radius: 0.5, height: 1.42, speed: 0.42,
+    bounds: { minX: 24, maxX: 27.2, minZ: 32.4, maxZ: 34.2 } },
+  { kind: 'pig', x: 40, z: 28.2, radius: 0.52, height: 1.38, speed: 0.62,
+    bounds: { minX: 38.6, maxX: 41.4, minZ: 25.5, maxZ: 30.6 } },
+  { kind: 'chicken', x: 40, z: 33.2, radius: 0.32, height: 1.38, speed: 0.7,
+    bounds: { minX: 38.6, maxX: 41.4, minZ: 32.4, maxZ: 34.2 } }
+];
+
+function random(mob) {
+  mob.randomState = (Math.imul(mob.randomState, 1664525) + 1013904223) >>> 0;
+  return mob.randomState / 4294967296;
+}
+
+function openAt(world, mob, x, z) {
+  const minX = Math.floor(x - mob.radius);
+  const maxX = Math.floor(x + mob.radius);
+  const minZ = Math.floor(z - mob.radius);
+  const maxZ = Math.floor(z + mob.radius);
+  for (let cellX = minX; cellX <= maxX; cellX++) {
+    for (let cellZ = minZ; cellZ <= maxZ; cellZ++) {
+      if (!world.get(cellX, mob.groundY - 1, cellZ)) return false;
+      for (let y = mob.groundY; y < mob.groundY + mob.height; y++) {
+        if (world.get(cellX, y, cellZ)) return false;
+      }
+    }
+  }
+  return true;
+}
+
+function chooseTarget(world, mob) {
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const x = mob.bounds.minX + mob.radius + random(mob) *
+      (mob.bounds.maxX - mob.bounds.minX - mob.radius * 2);
+    const z = mob.bounds.minZ + mob.radius + random(mob) *
+      (mob.bounds.maxZ - mob.bounds.minZ - mob.radius * 2);
+    if (openAt(world, mob, x, z)) {
+      mob.targetX = x;
+      mob.targetZ = z;
+      return;
+    }
+  }
+  mob.targetX = mob.x;
+  mob.targetZ = mob.z;
+}
+
+export function createMobs(world) {
+  return PASTURES.flatMap((pasture, index) => {
+    const mob = {
+      ...pasture,
+      bounds: { ...pasture.bounds },
+      groundY: 0,
+      yaw: 0,
+      wait: 0,
+      animation: 0,
+      phase: 0,
+      walking: false,
+      randomState: (world.seed + Math.imul(index + 1, 0x9e3779b9)) >>> 0
+    };
+    const cellX = Math.floor(mob.x);
+    const cellZ = Math.floor(mob.z);
+    for (let y = SIZE[1] - 1; y >= 0; y--) {
+      if (world.get(cellX, y, cellZ)) {
+        mob.groundY = y + 1;
+        break;
+      }
+    }
+    mob.phase = random(mob) * Math.PI * 2;
+    if (!mob.groundY || !openAt(world, mob, mob.x, mob.z)) return [];
+    chooseTarget(world, mob);
+    mob.wait = random(mob) * 0.8;
+    return [mob];
+  });
+}
+
+export function stepMobs(world, mobs, elapsed) {
+  const delta = Math.min(Math.max(elapsed, 0), 0.1);
+  for (const mob of mobs) {
+    mob.animation += delta;
+    mob.walking = false;
+    if (mob.wait > 0) {
+      mob.wait = Math.max(0, mob.wait - delta);
+      continue;
+    }
+    const dx = mob.targetX - mob.x;
+    const dz = mob.targetZ - mob.z;
+    const distance = Math.hypot(dx, dz);
+    if (distance < 0.12) {
+      chooseTarget(world, mob);
+      mob.wait = 0.5 + random(mob) * 1.3;
+      continue;
+    }
+    mob.yaw = Math.atan2(dx, dz);
+    const travel = Math.min(distance, mob.speed * delta);
+    const nextX = mob.x + dx / distance * travel;
+    const nextZ = mob.z + dz / distance * travel;
+    if (!openAt(world, mob, nextX, nextZ)) {
+      chooseTarget(world, mob);
+      mob.wait = 0.25;
+      continue;
+    }
+    mob.x = nextX;
+    mob.z = nextZ;
+    mob.walking = true;
+  }
+}
+
+function addCube(THREE, group, materials, color, size, position) {
+  if (!materials.has(color)) materials.set(color, new THREE.MeshBasicMaterial({ color }));
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), materials.get(color));
+  mesh.position.set(...position);
+  group.add(mesh);
+  return mesh;
+}
+
+function addLegs(THREE, group, materials, mob, color, offsets, length) {
+  const legs = [];
+  for (const [x, z] of offsets) {
+    const leg = new THREE.Group();
+    leg.position.set(x, length + 0.06, z);
+    addCube(THREE, leg, materials, color, [0.17, length, 0.17], [0, -length / 2, 0]);
+    group.add(leg);
+    legs.push(leg);
+  }
+  mob.legs = legs;
+}
+
+export function createMobModel(THREE, mob) {
+  const group = new THREE.Group();
+  const materials = new Map();
+  const cube = (color, size, position) => addCube(THREE, group, materials, color, size, position);
+  const eyes = (color, y, z, offset = 0.2) => {
+    cube(color, [0.07, 0.07, 0.035], [-offset, y, z]);
+    cube(color, [0.07, 0.07, 0.035], [offset, y, z]);
+  };
+
+  if (mob.kind === 'pig') {
+    cube('#e89b88', [0.96, 0.65, 0.72], [0, 0.8, 0]);
+    cube('#eda893', [0.48, 0.48, 0.44], [0, 0.91, 0.47]);
+    cube('#cb7768', [0.31, 0.22, 0.18], [0, 0.78, 0.77]);
+    cube('#d78575', [0.16, 0.23, 0.12], [-0.16, 1.23, 0.42]);
+    cube('#d78575', [0.16, 0.23, 0.12], [0.16, 1.23, 0.42]);
+    eyes('#302b2a', 1.02, 0.68, 0.17);
+    addLegs(THREE, group, materials, mob, '#b96f64',
+      [[-0.31, -0.23], [0.31, -0.23], [-0.31, 0.23], [0.31, 0.23]], 0.38);
+  } else if (mob.kind === 'cow') {
+    cube('#f0eee3', [1.12, 0.78, 0.76], [0, 0.88, 0]);
+    cube('#3d3935', [0.035, 0.34, 0.27], [-0.57, 0.91, -0.2]);
+    cube('#3d3935', [0.035, 0.28, 0.25], [0.57, 0.77, 0.19]);
+    cube('#3d3935', [0.3, 0.035, 0.28], [-0.24, 1.28, 0.1]);
+    cube('#3d3935', [0.27, 0.035, 0.24], [0.28, 1.28, -0.19]);
+    cube('#f0eee3', [0.5, 0.57, 0.46], [0, 1.08, 0.52]);
+    cube('#c68f7e', [0.35, 0.23, 0.2], [0, 0.87, 0.83]);
+    cube('#d9c49b', [0.12, 0.23, 0.12], [-0.23, 1.47, 0.45]);
+    cube('#d9c49b', [0.12, 0.23, 0.12], [0.23, 1.47, 0.45]);
+    eyes('#292a27', 1.13, 0.75, 0.2);
+    addLegs(THREE, group, materials, mob, '#62594e',
+      [[-0.37, -0.25], [0.37, -0.25], [-0.37, 0.25], [0.37, 0.25]], 0.46);
+  } else if (mob.kind === 'sheep') {
+    cube('#eee8d8', [1, 0.82, 0.83], [0, 0.91, 0]);
+    for (const [x, y, z] of [[-0.36, 1.17, 0], [0.36, 1.17, 0],
+      [-0.28, 0.8, 0.4], [0.28, 0.8, 0.4], [-0.32, 0.8, -0.38], [0.32, 0.8, -0.38]]) {
+      cube('#f5f0e4', [0.35, 0.34, 0.35], [x, y, z]);
+    }
+    cube('#a68b70', [0.43, 0.5, 0.42], [0, 1.02, 0.55]);
+    cube('#bda287', [0.13, 0.16, 0.18], [-0.27, 1.02, 0.53]);
+    cube('#bda287', [0.13, 0.16, 0.18], [0.27, 1.02, 0.53]);
+    eyes('#302b2a', 1.1, 0.77, 0.17);
+    addLegs(THREE, group, materials, mob, '#5e5147',
+      [[-0.31, -0.25], [0.31, -0.25], [-0.31, 0.25], [0.31, 0.25]], 0.4);
+  } else {
+    cube('#f5f1e7', [0.58, 0.67, 0.62], [0, 0.72, 0]);
+    cube('#fffaf0', [0.37, 0.39, 0.38], [0, 1.12, 0.29]);
+    cube('#e4aa38', [0.2, 0.14, 0.2], [0, 1.04, 0.58]);
+    cube('#c84d43', [0.17, 0.18, 0.16], [0, 1.4, 0.28]);
+    cube('#e8ded0', [0.18, 0.35, 0.42], [-0.34, 0.75, 0]);
+    cube('#e8ded0', [0.18, 0.35, 0.42], [0.34, 0.75, 0]);
+    eyes('#272826', 1.19, 0.46, 0.14);
+    addLegs(THREE, group, materials, mob, '#d08b3f', [[-0.13, -0.12], [0.13, -0.12]], 0.27);
+  }
+  return { group, legs: mob.legs, materials };
+}
