@@ -6,6 +6,8 @@ Working version on branch `archer-0.4-works-starts-n0w`, cloned from `../flappy-
 
 ## Play
 
+You can open this directory's `index.html` directly in a browser with the full repository present. Artwork loads through native image elements rather than XHR, avoiding local-file CORS restrictions. Browser policies may still prevent local score storage; this displays a warning without blocking play.
+
 Choose Flappy Podlasie 0.2 in the portfolio (after version 0.1), or visit http://localhost:8765/flappy-0.2/ after starting the repository game server:
 
 ```sh
@@ -28,4 +30,4 @@ Personal best and sound preference use `localStorage/flappy-podlasie-v2`, indepe
 
 ## Verification
 
-Browser checks should cover: start, keyboard and pointer flap, collision, one point per gate, obstacle recycling, clean restart, pause/resume, background pause, persisted best and mute settings, unavailable storage, and home navigation. Inspect desktop, portrait mobile, and short landscape viewports for overflow and canvas rendering. The portfolio's 0.2 card must link here and load its gameplay preview; version 0.1 is listed first.
+Browser checks should cover: direct `file://` startup with asset XHR blocked, HTTP startup, start, keyboard and pointer flap, collision, one point per gate, obstacle recycling, clean restart, pause/resume, background pause, persisted best and mute settings, unavailable storage, and home navigation. Inspect desktop, portrait mobile, and short landscape viewports for overflow and canvas rendering. The portfolio's 0.2 card must link here and load its gameplay preview; version 0.1 is listed first.

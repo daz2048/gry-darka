@@ -78,8 +78,8 @@ function boot() {
     constructor() { super('flight'); }
 
     preload() {
-      this.load.svg('bird-sheet', 'assets/bird.svg', { width: 144, height: 36 });
-      this.load.svg('landscape', 'assets/landscape.svg', { width: 720, height: 640 });
+      this.load.image('bird-sheet', 'assets/bird.svg');
+      this.load.image('landscape', 'assets/landscape.svg');
       this.load.on('loaderror', () => { ui.fatal.hidden = false; });
     }
 
@@ -251,6 +251,7 @@ function boot() {
   window.flappyGame = new Phaser.Game({
     type: Phaser.CANVAS, parent: 'game', width: WIDTH, height: HEIGHT,
     backgroundColor: '#78c6ce', render: { antialias: false, pixelArt: true, roundPixels: true },
+    loader: { imageLoadType: 'HTMLImageElement', crossOrigin: null },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     physics: { default: 'arcade', arcade: { gravity: { y: 1000 }, fixedStep: false } },
     scene: FlightScene, audio: { noAudio: true }
