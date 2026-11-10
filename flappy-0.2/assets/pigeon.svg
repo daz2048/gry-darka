@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="36" viewBox="0 0 144 36" shape-rendering="crispEdges">
+  <defs>
+    <g id="body">
+      <path d="M12 21H4v2H2v6h12Z" fill="#897a9f"/>
+      <path d="M10 23H6v2H4v2h8Z" fill="#e2dff2"/>
+      <path d="M16 10h18v2h6v4h2v4h2v8h-4v4h-6v2H14v-2H8v-4H4v-8h4v-4h8Z" fill="#897a9f"/>
+      <path d="M16 12h18v2h4v4h2v4h2v4h-4v4h-6v2H14v-2h-4v-4H6v-4h4v-4h6Z" fill="#d5d0ed"/>
+      <path d="M18 12h12v2H18ZM14 16h10v2H14ZM10 20h4v2h-4Z" fill="#fff8ff"/>
+      <path d="M12 26h8v2h12v2H16v-2h-4Z" fill="#b6acd2"/>
+      <path d="M24 21h8v2h4v2H24Z" fill="#a4d8cf"/>
+      <path d="M24 24h10v2H24Z" fill="#cbb2e4"/>
+      <path d="M18 24h16v2h2v4h-6v2H16v-2h-4v-4h6Z" fill="#fff7e9"/>
+      <path d="M24 12h10v2h5v7h-3v3h-6v-2h-6v-3h-2v-5h2Z" fill="#faf3ff"/>
+      <path d="M32 12h4v2h2v7h-2v2h-5v-2h-1v-7h2Z" fill="#44364f"/>
+      <path d="M31 19h2v2h-2Z" fill="#866c98"/>
+      <path d="M32 14h3v4h-3ZM35 19h2v2h-2Z" fill="#ffffff"/>
+      <path d="M23 22h2v-1h3v1h2v3h-2v1h-3v-1h-2ZM37 23h3v3h-3Z" fill="#f2a4c0"/>
+      <path d="M25 22h3v1h-3ZM24 24h1v1h-1ZM37 23h2v1h-2Z" fill="#ffe0ee"/>
+      <path d="M40 20h4v1h2v3h-6Z" fill="#9c7993"/>
+      <path d="M40 21h4v2h-4Z" fill="#ffd2af"/>
+      <path d="M18 31h2v2h4v2h-8v-2h2ZM30 31h2v2h4v2h-8v-2h2Z" fill="#d78da2"/>
+      <path d="M27 25h3l3 2 3-2h3l-3 5-3-2-3 2Z" fill="#fff8f1"/>
+      <path d="M31 27h4v3h-4Zm0 3h4v2l-2 3-2-3Z" fill="#a45070"/>
+      <path d="M32 28h2v1h-2Zm0 3h2v2h-2Z" fill="#f29cb6"/>
+      <path d="M31 30h1v1h1v-1h1v2h-1v1h-1v-1h-1Z" fill="#ffe2ee"/>
+      <path d="M23 26h2v1h1v-1h2v2h-1v1h-1v1h-1v-1h-1v-1h-1Z" fill="#ef9abb"/>
+      <path d="M23 26h1v1h-1Z" fill="#ffd7e8"/>
+    </g>
+    <g id="hat">
+      <path d="M26 0h12v8h4v3H22V8h4Z" fill="#373349"/>
+      <path d="M28 2h2v4h-2Z" fill="#77738d"/>
+      <path d="M28 6h8v2h-8Z" fill="#f5b1d0"/>
+      <path d="M24 9h16v2H24Z" fill="#5b5570"/>
+      <path d="M35 3h2v1h1V3h2v2h-1v1h-1v1h-1V6h-1V5h-1Z" fill="#fff0b5"/>
+    </g>
+    <g id="hearts">
+      <path d="M3 9h2v1h1V9h2v3H7v1H6v1H5v-1H4v-1H3Z" fill="#f5adc9"/>
+      <path d="M4 10h1v1H4Z" fill="#fff5fb"/>
+      <path d="M43 10h1v1h1v-1h1v2h-1v1h-1v-1h-1Z" fill="#fff0b5"/>
+    </g>
+  </defs>
+  <g>
+    <use href="#body"/>
+    <path d="M12 20h8v2h2v6h-4v2h-6v-2h-2v-6h2Z" fill="#a195bb"/>
+    <path d="M12 22h8v4h-4v2h-4Z" fill="#f1edfc"/>
+    <path d="M14 24h2v2h-2ZM18 22h2v2h-2Z" fill="#c7bddf"/>
+    <path d="M13 22h3v1h-3ZM12 23h2v2h-2Z" fill="#fffaff"/>
+  </g>
+  <use href="#hat"/>
+  <use href="#hearts"/>
+  <g transform="translate(48)">
+    <g>
+      <use href="#body"/>
+      <path d="M10 18h10v2h2v6H12v-2H8v-4h2Z" fill="#a195bb"/>
+      <path d="M10 20h10v4h-8v-2h-2Z" fill="#f1edfc"/>
+      <path d="M12 22h2v2h-2ZM18 20h2v2h-2Z" fill="#c7bddf"/>
+      <path d="M10 20h3v1h-3ZM10 21h2v1h-2Z" fill="#fffaff"/>
+    </g>
+    <use href="#hat"/>
+    <use href="#hearts"/>
+  </g>
+  <g transform="translate(96)">
+    <g>
+      <use href="#body"/>
+      <path d="M12 12h6v4h2v4h2v6H12v-4h-2v-8h2Z" fill="#a195bb"/>
+      <path d="M12 14h4v4h2v4h2v2h-6v-4h-2Z" fill="#f1edfc"/>
+      <path d="M14 18h2v2h-2ZM16 22h2v2h-2Z" fill="#c7bddf"/>
+      <path d="M12 14h3v1h-3ZM12 15h2v2h-2Z" fill="#fffaff"/>
+    </g>
+    <use href="#hat"/>
+    <use href="#hearts"/>
+  </g>
+</svg>
