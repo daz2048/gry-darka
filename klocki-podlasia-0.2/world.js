@@ -10,7 +10,23 @@ export const BLOCKS = [
   { name: 'Liście', color: '#478751' },
   { name: 'Piasek', color: '#e6ce8b' },
   { name: 'Deski', color: '#ce9d62' },
-  { name: 'Dachówka', color: '#b55c46' }
+  { name: 'Dachówka', color: '#b55c46' },
+  { name: 'Cegła', color: '#bf6e57' },
+  { name: 'Jasna cegła', color: '#dfbfa1' },
+  { name: 'Bruk', color: '#727e7a' },
+  { name: 'Marmur', color: '#eee8df' },
+  { name: 'Granit', color: '#b6a1a1' },
+  { name: 'Bazalt', color: '#454b58' },
+  { name: 'Beton', color: '#c3c6c0' },
+  { name: 'Ciemne deski', color: '#563e35' },
+  { name: 'Białe deski', color: '#f1e4cf' },
+  { name: 'Mech', color: '#57864d' },
+  { name: 'Śnieg', color: '#f0f8ff' },
+  { name: 'Miedź', color: '#cb865b' },
+  { name: 'Stal', color: '#95b3c2' },
+  { name: 'Złoto', color: '#f4cc52' },
+  { name: 'Koral', color: '#e992a1' },
+  { name: 'Turkus', color: '#55c4b8' }
 ];
 
 export function randomGenerator(seed) {

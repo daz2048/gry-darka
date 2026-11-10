@@ -3,7 +3,7 @@
 Active working version on branch `feature/klocki-podlasia-0.2`, independently cloned from `../klocki-podlasia-0.1/`. Future game-development requests on this branch target this directory by default. Keep 0.1 preserved unless explicitly asked otherwise. This copy initially retains the same gameplay and prototype limitations.
 
 Original desktop-first creative voxel sandbox for Ekipa spod Lipy. Explore a
-64 × 32 × 64 Podlasie meadow and build with eight unlimited materials. Includes
+64 × 32 × 64 Podlasie meadow and build with 24 unlimited solid materials. Includes
 a small original cottage, trees, bounded terrain, exposed-face chunk rendering,
 walking/jumping, block picking, placement checks and safe position recovery.
 
@@ -32,7 +32,7 @@ Requires a desktop keyboard/mouse and a browser with WebGL2.
 - In the alternate mode, drag across the world to look and use Q/E to edit.
 - WASD / arrows: move; Space: jump; mouse: look.
 - Left click / Q: remove; right click / E: place (click editing in captured mode).
-- 1–8 / wheel / palette buttons: select a material. Reach is five blocks.
+- Choose a palette set: **Podstawowe**, **Budowlane**, or **Ozdobne**. Keys 1–8 select a material within the current set; the mouse wheel cycles through all 24 materials and switches sets automatically. Palette swatches also select materials. Reach is five blocks.
 - P / Escape: pause; H / **Menu gier**: return to the portfolio.
 - **Wróć na start**: find a safe supported position without resetting the world.
 - **Nowa łąka**: confirmed replacement with a different seed, not a saved slot.
@@ -41,6 +41,10 @@ Requires a desktop keyboard/mouse and a browser with WebGL2.
 **Navigation exception:** unlike the 2D games, Escape pauses instead of returning
 to the portfolio because browsers use it to release pointer lock. H still goes home.
 Switching apps/tabs pauses and clears held movement; resuming is always explicit.
+
+## Building Materials
+
+The original eight materials remain unchanged. Version 0.2 adds brick, light brick, cobblestone, marble, granite, basalt, concrete, dark planks, white planks, moss, snow, copper, steel, gold, coral pink, and turquoise. Each has a distinct color. All blocks are solid, unlimited building materials; metal, snow, and decorative colors do not introduce new physics or special effects. The generated meadow and cottage are unchanged.
 
 ## Development and verification
 

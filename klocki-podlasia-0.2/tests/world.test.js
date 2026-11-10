@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { World, SIZE, chunkGeometry, pick } from '../world.js';
+import { World, SIZE, BLOCKS, chunkGeometry, pick } from '../world.js';
 import { createPlayer, collides, stepPlayer } from '../player.js';
 
 function empty() {
@@ -38,7 +38,7 @@ test('coordinates never alias another row, column or layer', () => {
 test('edit rejects floor, invalid IDs, occupied cells and player overlap', () => {
   const world = empty();
   const player = { x: 4.5, y: 3, z: 4.5 };
-  for (const args of [[1, 0, 1, 0], [64, 2, 2, 1], [2, 2, 2, 9], [2, 2, 2, 1.5]]) {
+  for (const args of [[1, 0, 1, 0], [64, 2, 2, 1], [2, 2, 2, BLOCKS.length], [2, 2, 2, 1.5]]) {
     assert.equal(typeof world.edit(...args, player), 'string');
   }
   assert.equal(typeof world.edit(4, 3, 4, 1, player), 'string');
@@ -46,6 +46,25 @@ test('edit rejects floor, invalid IDs, occupied cells and player overlap', () =>
   assert.equal(world.edit(4, 5, 4, 1, player), null);
   assert.equal(typeof world.edit(4, 5, 4, 2, player), 'string');
   assert.equal(world.edit(4, 5, 4, 0, player), null);
+});
+
+test('all 24 building materials can be placed, rendered, picked and removed', () => {
+  const world = empty();
+  assert.equal(BLOCKS.length - 1, 24);
+  assert.equal(new Set(BLOCKS.slice(1).map(block => block.name)).size, 24);
+  assert.equal(new Set(BLOCKS.slice(1).map(block => block.color)).size, 24);
+  for (let id = 1; id < BLOCKS.length; id++) {
+    assert.match(BLOCKS[id].color, /^#[0-9a-f]{6}$/i);
+    assert.equal(world.edit(4, 4, 4, id), null);
+    assert.equal(world.get(4, 4, 4), id);
+    assert.equal(world.solid(4, 4, 4), true);
+    const data = chunkGeometry(world, 0, 0, 0);
+    assert.equal(data.indices.length, 36);
+    assert.ok(data.colors.every(color => Number.isFinite(color) && color >= 0 && color <= 1));
+    assert.deepEqual(pick(world, { x: 4.5, y: 4.5, z: 8 }, { x: 0, y: 0, z: -1 }).cell, [4, 4, 4]);
+    assert.equal(world.edit(4, 4, 4, 0), null);
+    assert.equal(world.get(4, 4, 4), 0);
+  }
 });
 
 test('chunk faces cull neighbours and use outward winding', () => {

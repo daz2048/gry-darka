@@ -24,6 +24,11 @@
   <aside class="world-label"><span>PODLASIE / TRYB KREATYWNY</span><strong>Mały świat. Wielkie pomysły.</strong></aside>
   <section id="hud" aria-label="Materiały i stan gry">
     <p id="target">Wybierz materiał i zbuduj coś swojego.</p>
+    <div id="palette-pages" role="group" aria-label="Zestawy materiałów">
+      <button data-page="0" aria-pressed="true">Podstawowe</button>
+      <button data-page="1" aria-pressed="false">Budowlane</button>
+      <button data-page="2" aria-pressed="false">Ozdobne</button>
+    </div>
     <div id="palette" aria-label="Wybór materiału"></div>
     <p class="hint" id="controls-hint">WASD · ruch &nbsp; Spacja · skok &nbsp; 1–8 · klocki &nbsp; Q / E · usuń / dodaj</p>
     <p class="session-note">Prototyp bez zapisu — budowle znikają po odświeżeniu.</p>
@@ -36,7 +41,7 @@
       <p id="intro">Domek pod lipą to dopiero początek. Spaceruj po łące, rozbieraj klocki i buduj po swojemu.</p>
       <div class="instructions">
         <p><b>WASD / strzałki</b> ruch · <b>Spacja</b> skok · mysz obraca widok</p>
-        <p><b>LPM / Q</b> usuń · <b>PPM / E</b> dodaj · <b>1–8 / rolka</b> materiał</p>
+        <p><b>LPM / Q</b> usuń · <b>PPM / E</b> dodaj · <b>1–8</b> materiał z zestawu · <b>rolka</b> wszystkie materiały</p>
         <p><b>Esc / P</b> pauza i uwolnienie myszy · <b>H</b> menu gier</p>
       </div>
       <p id="load-status" role="status">Przygotowujemy łąkę…</p>

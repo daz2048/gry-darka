@@ -4,7 +4,7 @@ import { World, BLOCKS, chunkGeometry, pick } from './world.js';
 import { createPlayer, collides, stepPlayer } from './player.js';
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
-  'pause', 'recover', 'new-world', 'fullscreen', 'palette', 'target', 'notice', 'crosshair',
+  'pause', 'recover', 'new-world', 'fullscreen', 'palette', 'palette-pages', 'target', 'notice', 'crosshair',
   'load-status', 'metrics', 'sensitivity', 'low-quality', 'controls-hint',
   'reset-confirm', 'confirm-reset', 'cancel-reset'].map(id => [id, document.getElementById(id)]));
 const bootTime = performance.now();
@@ -30,6 +30,8 @@ scene.add(outline);
 let world = new World();
 let player = createPlayer(world);
 let selected = 7;
+let palettePage = 0;
+const PALETTE_SIZE = 8;
 let playing = false;
 let dragMode = false;
 let dragging = false;
@@ -83,24 +85,41 @@ function syncCamera() {
 }
 
 function select(id) {
+  if (!Number.isInteger(id) || id < 1 || id >= BLOCKS.length) return;
   selected = id;
-  for (const button of ui.palette.children) button.setAttribute('aria-pressed', String(Number(button.dataset.id) === id));
+  palettePage = Math.floor((id - 1) / PALETTE_SIZE);
+  renderPalette();
+  for (const button of ui['palette-pages'].children) {
+    button.setAttribute('aria-pressed', String(Number(button.dataset.page) === palettePage));
+  }
 }
 
-for (let id = 1; id < BLOCKS.length; id++) {
-  const button = document.createElement('button');
-  button.className = 'slot';
-  button.dataset.id = id;
-  button.title = `${id}: ${BLOCKS[id].name}`;
-  button.setAttribute('aria-label', button.title);
-  const swatch = document.createElement('span');
-  swatch.className = 'swatch';
-  swatch.style.background = BLOCKS[id].color;
-  const key = document.createElement('kbd');
-  key.textContent = id;
-  button.append(key, swatch, BLOCKS[id].name);
-  button.addEventListener('click', () => { select(id); button.blur(); });
-  ui.palette.append(button);
+function renderPalette() {
+  ui.palette.replaceChildren();
+  const first = palettePage * PALETTE_SIZE + 1;
+  for (let id = first; id < Math.min(first + PALETTE_SIZE, BLOCKS.length); id++) {
+    const slot = id - first + 1;
+    const button = document.createElement('button');
+    button.className = 'slot';
+    button.dataset.id = id;
+    button.title = `${slot}: ${BLOCKS[id].name}`;
+    button.setAttribute('aria-label', button.title);
+    button.setAttribute('aria-pressed', String(id === selected));
+    const swatch = document.createElement('span');
+    swatch.className = 'swatch';
+    swatch.style.background = BLOCKS[id].color;
+    const key = document.createElement('kbd');
+    key.textContent = slot;
+    button.append(key, swatch, BLOCKS[id].name);
+    button.addEventListener('click', () => { select(id); button.blur(); });
+    ui.palette.append(button);
+  }
+}
+for (const button of ui['palette-pages'].children) {
+  button.addEventListener('click', () => {
+    select(Number(button.dataset.page) * PALETTE_SIZE + 1);
+    button.blur();
+  });
 }
 select(selected);
 
@@ -251,7 +270,7 @@ window.addEventListener('keydown', event => {
   if (!playing) return;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
   keys.add(event.code);
-  if (/^Digit[1-8]$/.test(event.code)) select(Number(event.code.slice(-1)));
+  if (/^Digit[1-8]$/.test(event.code)) select(palettePage * PALETTE_SIZE + Number(event.code.slice(-1)));
   if (!event.repeat && event.code === 'KeyQ') edit(false);
   if (!event.repeat && event.code === 'KeyE') edit(true);
 });
@@ -275,7 +294,8 @@ renderer.domElement.addEventListener('contextmenu', event => { if (playing) even
 renderer.domElement.addEventListener('wheel', event => {
   if (!playing) return;
   event.preventDefault();
-  select(((selected - 1 + (event.deltaY > 0 ? 1 : 7)) % 8) + 1);
+  const count = BLOCKS.length - 1;
+  select(((selected - 1 + (event.deltaY > 0 ? 1 : count - 1)) % count) + 1);
 }, { passive: false });
 renderer.domElement.addEventListener('webglcontextlost', event => {
   event.preventDefault();
