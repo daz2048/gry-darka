@@ -164,6 +164,7 @@ function boot() {
 
     preload() {
       this.load.image('bird-sheet', 'assets/bird.svg');
+      this.load.image('pigeon-sheet', 'assets/pigeon.svg');
       this.load.image('landscape', 'assets/landscape.svg');
       this.load.on('loaderror', () => { ui.fatal.hidden = false; });
     }
@@ -176,6 +177,7 @@ function boot() {
       this.lastGap = 290;
       this.background = this.add.tileSprite(180, 320, WIDTH, HEIGHT, 'landscape');
       this.textures.addSpriteSheet('bird', this.textures.get('bird-sheet').getSourceImage(), { frameWidth: 48, frameHeight: 36 });
+      this.textures.addSpriteSheet('pigeon', this.textures.get('pigeon-sheet').getSourceImage(), { frameWidth: 48, frameHeight: 36 });
       const graphics = this.make.graphics({ x: 0, y: 0 });
       graphics.fillStyle(0x324d35).fillRect(0, 0, 58, 640);
       graphics.fillStyle(0x527f38).fillRect(3, 0, 52, 640);
@@ -272,6 +274,7 @@ function boot() {
 
     toggleImmortality() {
       this.immortal = !this.immortal;
+      this.bird.setTexture(this.immortal ? 'pigeon' : 'bird', this.bird.frame.name);
       ui.immortal.hidden = !this.immortal;
     }
 
