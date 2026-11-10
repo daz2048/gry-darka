@@ -6,7 +6,7 @@ Working version on branch `archer-0.4-works-starts-n0w`, cloned from `../flappy-
 
 ## Play
 
-Open the portfolio and choose its first game, or visit http://localhost:8765/flappy-0.2/ after starting the repository game server:
+Choose Flappy Podlasie 0.2 in the portfolio (after version 0.1), or visit http://localhost:8765/flappy-0.2/ after starting the repository game server:
 
 ```sh
 python3 scripts/game-server.py start
@@ -28,4 +28,4 @@ Personal best and sound preference use `localStorage/flappy-podlasie-v2`, indepe
 
 ## Verification
 
-Browser checks should cover: start, keyboard and pointer flap, collision, one point per gate, obstacle recycling, clean restart, pause/resume, background pause, persisted best and mute settings, unavailable storage, and home navigation. Inspect desktop, portrait mobile, and short landscape viewports for overflow and canvas rendering. The portfolio's first card must link here and load its gameplay preview.
+Browser checks should cover: start, keyboard and pointer flap, collision, one point per gate, obstacle recycling, clean restart, pause/resume, background pause, persisted best and mute settings, unavailable storage, and home navigation. Inspect desktop, portrait mobile, and short landscape viewports for overflow and canvas rendering. The portfolio's 0.2 card must link here and load its gameplay preview; version 0.1 is listed first.
