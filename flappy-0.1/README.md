@@ -2,9 +2,11 @@
 
 Original Flappy Bird-style browser game from Ekipa spod Lipy. Fly through wooden gates above a Podlasie meadow. Original SVG bird and scenery; synthesized sound effects. No copied Flappy Bird assets.
 
+Preserved version 0.1. Further development takes place in `../flappy-0.2/`.
+
 ## Play
 
-Open the portfolio and choose its first game, or visit http://localhost:8765/flappy-0.1/ after starting the repository game server:
+Choose Flappy Podlasie 0.1 in the portfolio, or visit http://localhost:8765/flappy-0.1/ after starting the repository game server:
 
 ```sh
 python3 scripts/game-server.py start
@@ -26,4 +28,4 @@ Personal best and sound preference use `localStorage/flappy-podlasie-v1`. Storag
 
 ## Verification
 
-Browser checks should cover: start, keyboard and pointer flap, collision, one point per gate, obstacle recycling, clean restart, pause/resume, background pause, persisted best and mute settings, unavailable storage, and home navigation. Inspect desktop, portrait mobile, and short landscape viewports for overflow and canvas rendering. The portfolio's first card must link here and load its gameplay preview.
+Browser checks should cover: start, keyboard and pointer flap, collision, one point per gate, obstacle recycling, clean restart, pause/resume, background pause, persisted best and mute settings, unavailable storage, and home navigation. Inspect desktop, portrait mobile, and short landscape viewports for overflow and canvas rendering. The portfolio's 0.1 card must link here and load its gameplay preview.

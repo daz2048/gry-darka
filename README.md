@@ -71,8 +71,13 @@ Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
 
 ## 📋 Dostępne gry
 
-### Flappy Podlasie
-Oryginalna gra w stylu Flappy Bird: przelatuj przez drewniane bramy nad podlaska laka i pobij swoj rekord. Pierwsza gra w menu portfolio.
+### Flappy Podlasie 0.2
+Wersja rozwojowa, skopiowana z 0.1. Pierwsza gra w menu portfolio. Dalsze zmiany na galezi `archer-0.4-works-starts-n0w` dotycza domyslnie katalogu `flappy-0.2/`.
+- [Zagraj »](flappy-0.2/)
+- [Szczegoly](flappy-0.2/README.md)
+
+### Flappy Podlasie 0.1
+Zachowane pierwsze wydanie gry w stylu Flappy Bird: przelatuj przez drewniane bramy nad podlaska laka i pobij swoj rekord.
 - **Sterowanie:** dotyk / klikniecie / spacja / strzalka w gore; P: pauza; M: dzwiek; H / Esc: menu gier.
 - Rekord i ustawienie dzwieku zapisywane lokalnie. Brak zapisu nie blokuje gry.
 - [Zagraj »](flappy-0.1/)
