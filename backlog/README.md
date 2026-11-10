@@ -1,6 +1,19 @@
 # Development backlog
 
-Planning documents, not implemented features.
+Planning documents and explicitly recorded prototype progress, not release claims.
+
+## Klocki Podlasia: simple browser voxel sandbox
+
+- [Feasibility, theme, effort, technical design and implementation backlog](./voxel-sandbox-backlog.md)
+
+Assessment: 2026-11-10. Recommended scope: an original, desktop-first 3D creative
+block-building game that fits the collection's Podlasie identity, not Minecraft
+feature parity. Estimated desktop release: 175-310 person-hours including
+contingency, beginning with a 16-26-hour scope/feasibility gate.
+Phase one was subsequently authorized: a [local working prototype](../klocki-podlasia-0.1/)
+is available from the portfolio. It has walking, building and pause controls,
+but no save or audio. The standalone-browser/hosted feasibility gate remains open;
+later implementation and publication are not authorized by the plan alone.
 
 ## Fully editable ragdoll archery game
 
