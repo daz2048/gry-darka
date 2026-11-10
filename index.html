@@ -89,21 +89,15 @@
     cursor: pointer;
     font-family: 'Courier New', monospace;
   }
-  .card:nth-child(3) { border-color: #ff6b35; }
-  .card:nth-child(3) .btn { background: #ff6b35; color: #000; border-color: #ff6b35; }
-  .card:nth-child(3) .btn:hover { box-shadow: 0 0 15px #ff6b35, inset 0 0 10px #ff6b35; }
-  .card:nth-child(4) { border-color: #7209b7; }
-  .card:nth-child(4) .btn { background: #7209b7; color: #fff; border-color: #7209b7; }
-  .card:nth-child(4) .btn:hover { box-shadow: 0 0 15px #7209b7, inset 0 0 10px #7209b7; }
-  .card:nth-child(5) { border-color: #00d9ff; }
-  .card:nth-child(5) .btn { background: #00d9ff; color: #000; border-color: #00d9ff; }
-  .card:nth-child(5) .btn:hover { box-shadow: 0 0 15px #00d9ff, inset 0 0 10px #00d9ff; }
-  .card:nth-child(6) { border-color: #0096c7; }
-  .card:nth-child(6) .btn { background: #0096c7; color: #fff; border-color: #0096c7; }
-  .card:nth-child(6) .btn:hover { box-shadow: 0 0 15px #0096c7, inset 0 0 10px #0096c7; }
-  .card:nth-child(7) { border-color: #ff006e; }
-  .card:nth-child(7) .btn { background: #ff006e; color: #fff; border-color: #ff006e; }
-  .card:nth-child(7) .btn:hover { box-shadow: 0 0 15px #ff006e, inset 0 0 10px #ff006e; }
+  .card.castle-game { --card-accent: #ff6b35; --card-ink: #000; }
+  .card.zombie-vanilla { --card-accent: #7209b7; --card-ink: #fff; }
+  .card.zombie-max-one { --card-accent: #00d9ff; --card-ink: #000; }
+  .card.zombie-max-two { --card-accent: #0096c7; --card-ink: #fff; }
+  .card.zombie-aleksa { --card-accent: #ff006e; --card-ink: #fff; }
+  .card.flappy-game { --card-accent: #ffcd53; --card-ink: #183f36; }
+  .card.castle-game, .card.zombie-vanilla, .card.zombie-max-one, .card.zombie-max-two, .card.zombie-aleksa, .card.flappy-game { border-color: var(--card-accent); }
+  .card.castle-game .btn, .card.zombie-vanilla .btn, .card.zombie-max-one .btn, .card.zombie-max-two .btn, .card.zombie-aleksa .btn, .card.flappy-game .btn { background: var(--card-accent); color: var(--card-ink); border-color: var(--card-accent); }
+  .card.castle-game .btn:hover, .card.zombie-vanilla .btn:hover, .card.zombie-max-one .btn:hover, .card.zombie-max-two .btn:hover, .card.zombie-aleksa .btn:hover, .card.flappy-game .btn:hover { box-shadow: 0 0 15px var(--card-accent), inset 0 0 10px var(--card-accent); }
   .card.mario-game { border-color: #ffdd57; }
   .card.mario-game .btn { background: #ffdd57; color: #173c36; border-color: #ffdd57; }
   .card.mario-game-0-1 { border-color: #ff795f; }
@@ -131,6 +125,20 @@
     </header>
 
     <main class="grid">
+      <a class="card flappy-game" href="flappy-0.1/">
+        <div class="thumb preview"><img src="flappy-0.1/preview.png" alt="Flappy Podlasie 0.1: zolty ptak leci pomiedzy drewnianymi bramami nad podlaska laka" fetchpriority="high"></div>
+        <h2>Flappy Podlasie 0.1</h2>
+        <p>Maly ptak, wielka przygoda. Przelatuj przez drewniane bramy nad Podlasiem i pobij swoj rekord!</p>
+        <span class="btn">Graj</span>
+      </a>
+
+      <a class="card flappy-game" href="flappy-0.2/">
+        <div class="thumb preview"><img src="flappy-0.2/preview.png" alt="Flappy Podlasie 0.2: pikselowy zolty ptak pomiedzy zielonymi rurami na tle miasta" loading="lazy"></div>
+        <h2>Flappy Podlasie 0.2</h2>
+        <p>Pikselowy ptak, zielone rury i przewijane miasto. Zlap rytm, przelatuj przez luki i pobij swoj rekord!</p>
+        <span class="btn">Graj</span>
+      </a>
+
       <a class="card ragdoll-archers-community" href="ragdoll-archers/">
         <div class="thumb preview"><img src="ragdoll-archers/favicon.jpeg" alt="Ragdoll Archers game icon" loading="lazy"></div>
         <h2>Ragdoll Archers</h2>
@@ -138,35 +146,35 @@
         <span class="btn">Graj</span>
       </a>
 
-      <a class="card" href="pojedynek-zamkow-janek-i-baranek/">
+      <a class="card castle-game" href="pojedynek-zamkow-janek-i-baranek/">
         <div class="thumb castle preview"><img src="menu-previews/castle-duel.svg" alt="Dwa zamki i kula armatnia nad polem bitwy" loading="lazy"></div>
         <h2>Pojedynek Zamków (Janek i Baranek)</h2>
         <p>Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.</p>
         <span class="btn">Graj</span>
       </a>
 
-      <a class="card" href="napor-zombie-vanilla/">
+      <a class="card zombie-vanilla" href="napor-zombie-vanilla/">
         <div class="thumb zombie-v preview"><img src="menu-previews/zombie-vanilla.svg" alt="Druzyna broni bazy przed nadciagajacymi zombie" loading="lazy"></div>
         <h2>Napór Zombie (Vanilla)</h2>
         <p>Prototyp 1.0 - oryginalna gra. Broń bazy przed falami zombie. Przesuwaj ekipę w pionie, strzelaj prosto, dobieraj ludzi i moc.</p>
         <span class="btn">Graj</span>
       </a>
 
-      <a class="card" href="zombie-max-0.1/">
+      <a class="card zombie-max-one" href="zombie-max-0.1/">
         <div class="thumb zombie-max-1 preview"><img src="menu-previews/zombie-max-1.svg" alt="Obrona przed zombie pod czerwonym ksiezycem" loading="lazy"></div>
         <h2>Zombie Max 0.1</h2>
         <p>Dotychczasowy wariant Maksa. Broń bazy przed falami zombie i rozwijaj swoją ekipę.</p>
         <span class="btn">Graj</span>
       </a>
 
-      <a class="card" href="zombie-max-0.2/">
+      <a class="card zombie-max-two" href="zombie-max-0.2/">
         <div class="thumb zombie-max-2 preview"><img src="menu-previews/zombie-max-2.svg" alt="Mroczne miasto i starcie z demonem" loading="lazy"></div>
         <h2>Zombie Max 0.2</h2>
         <p>Nowsza odsłona strzelanki Maksa: broń bazy przed falami zombie, rozwijaj ulepszenia i zmierz się z Super Hard Demon.</p>
         <span class="btn">Graj</span>
       </a>
 
-      <a class="card" href="zombie-aleksa/">
+      <a class="card zombie-aleksa" href="zombie-aleksa/">
         <div class="thumb zombie-ax preview"><img src="menu-previews/zombie-ax.svg" alt="Strzelec odpiera zombie na cyfrowym polu bitwy" loading="lazy"></div>
         <h2>Zombie Aleksa</h2>
         <p>Wariant prowadzony przez Aleksa. Broń bazy przed falami zombie z innymi strategiami.</p>

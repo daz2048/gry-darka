@@ -9,6 +9,7 @@ LOG="$HOME/Library/Application Support/gry-darka/$LABEL.log"
 ACTION=start
 DEBUG=0
 ACTION_SET=0
+WITH_GAME=0
 
 RESET='' BOLD='' CYAN='' GREEN='' YELLOW='' RED='' DIM=''
 if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != dumb ] && [ -z "${NO_COLOR:-}" ]; then
@@ -21,14 +22,15 @@ heading() {
 }
 
 controls() {
-    printf '%s\n' \
-        'Commands (single key, no Enter needed):' \
-        '  r restart | s status | q quit monitor (server stays running)' \
-        '  x stop server and quit | d toggle debug | h/? help'
+    printf '%s%sCommands (single key, no Enter needed):%s\n' "$BOLD" "$CYAN" "$RESET"
+    printf '  %sr%s restart | %ss%s status | %sq%s quit monitor (server stays running)\n' \
+        "$GREEN" "$RESET" "$GREEN" "$RESET" "$GREEN" "$RESET"
+    printf '  %sx%s stop server and quit | %sd%s toggle debug | %sh/?%s help\n' \
+        "$YELLOW" "$RESET" "$GREEN" "$RESET" "$GREEN" "$RESET"
     if [ "$DEBUG" -eq 1 ]; then
-        printf 'Debug mode: enabled\n'
+        printf 'Debug mode: %senabled%s\n' "$GREEN" "$RESET"
     else
-        printf 'Debug mode: disabled\n'
+        printf 'Debug mode: %sdisabled%s\n' "$DIM" "$RESET"
     fi
 }
 
@@ -38,38 +40,48 @@ debug() {
     fi
 }
 
+help_section() {
+    printf '\n%s%s%s:%s\n' "$BOLD" "$CYAN" "$1" "$RESET"
+}
+
+help_entry() {
+    printf '  %s%-26s%s %s\n' "$GREEN" "$1" "$RESET" "$2"
+}
+
 help() {
     heading 'GAME SERVER // HELP'
+    printf '%s\n' 'Start or attach to the local game server and follow its request log.'
+    printf '\n%s%sUsage:%s %s%s [OPTION]...%s\n' "$BOLD" "$CYAN" "$RESET" "$GREEN" "$0" "$RESET"
+    help_section Options
+    help_entry '-d, --debug' 'Show wrapper diagnostics.'
+    help_entry 'r, -r, --restart' 'Restart the server before attaching.'
+    help_entry 's, status' 'Show server status and exit.'
+    help_entry 'q, quit' 'Exit without changing the server.'
+    help_entry 'x, stop' 'Stop the server and exit.'
+    help_entry 'h, ?, -h, --help' 'Show this help and exit.'
+    help_entry '--install-aliases' 'Install game-server in zsh/bash startup configuration.'
+    help_entry '--with-game' 'Also install game (only with --install-aliases).'
+    help_entry '--uninstall-aliases' 'Remove only the managed alias block.'
+    help_section Examples
+    help_entry "$0" 'Start or attach to the server'
+    help_entry "$0 --debug" 'Start or attach with wrapper diagnostics'
+    help_entry "$0 --restart" 'Restart and attach'
+    help_entry "$0 --install-aliases --with-game" 'Install available shortcuts'
+    help_entry "python3 \"$SERVER\" status" 'Check server status'
+    help_entry "python3 \"$SERVER\" stop" 'Stop the server'
+    help_section Server
+    printf '  URL:        %shttp://localhost:8765/%s\n' "$GREEN" "$RESET"
     printf '%s\n' \
-        'Start or attach to the local game server and follow its request log.' \
-        '' \
-        "Usage: $0 [OPTION]..." \
-        '' \
-        'Options:' \
-        '  -d, --debug        Show wrapper diagnostics.' \
-        '  r, -r, --restart   Restart the server before attaching.' \
-        '  s, status          Show server status and exit.' \
-        '  q, quit            Exit without changing the server.' \
-        '  x, stop            Stop the server and exit.' \
-        '  h, ?, -h, --help    Show this help and exit.' \
-        '' \
-        'Examples:' \
-        "  $0                 Start or attach to the server" \
-        "  $0 --debug         Start or attach with wrapper diagnostics" \
-        "  $0 --restart       Restart and attach" \
-        "  python3 \"$SERVER\" status   Check server status" \
-        "  python3 \"$SERVER\" stop     Stop the server" \
-        '' \
-        'Server:' \
-        '  URL:        http://localhost:8765/' \
         "  Root:       $ROOT" \
         "  Log:        $LOG" \
-        '  Platform:   macOS, Python 3, and a logged-in launchd GUI session' \
-        '' \
-        'Monitor:' \
+        '  Platform:   macOS, Python 3, and a logged-in launchd GUI session'
+    help_section Monitor
+    printf '%s\n' \
         '  Shows the last 10 log lines, then live requests and HTTP error counts.' \
-        '  Counters cover requests observed since attaching, not the recent history.' \
-        '  HTTP status colors: 2xx green, 3xx cyan, 4xx yellow, 5xx red.' \
+        '  Counters cover requests observed since attaching, not the recent history.'
+    printf '  HTTP status colors: %s2xx green%s, %s3xx cyan%s, %s4xx yellow%s, %s5xx red%s.\n' \
+        "$GREEN" "$RESET" "$CYAN" "$RESET" "$YELLOW" "$RESET" "$RED" "$RESET"
+    printf '%s\n' \
         '  Set NO_COLOR to disable colors. Piped output is always plain text.' \
         '  Ctrl+C or closing the terminal detaches; the server keeps running.' \
         '' \
@@ -134,7 +146,8 @@ restart_server() {
 while [ "$#" -gt 0 ]; do
     case "$1" in
         -d|--debug) DEBUG=1 ;;
-        r|-r|--restart|s|status|q|quit|x|stop)
+        --with-game) WITH_GAME=1 ;;
+        r|-r|--restart|s|status|q|quit|x|stop|--install-aliases|--uninstall-aliases)
             if [ "$ACTION_SET" -eq 1 ]; then
                 printf 'Only one action may be specified. Use --help for commands.\n' >&2
                 exit 2
@@ -145,6 +158,8 @@ while [ "$#" -gt 0 ]; do
                 s|status) ACTION=status ;;
                 q|quit) ACTION=quit ;;
                 x|stop) ACTION=stop ;;
+                --install-aliases) ACTION=install-aliases ;;
+                --uninstall-aliases) ACTION=uninstall-aliases ;;
             esac
             ;;
         h|help|-h|--help|\?)
@@ -155,6 +170,21 @@ while [ "$#" -gt 0 ]; do
     esac
     shift
 done
+
+if [ "$WITH_GAME" -eq 1 ] && [ "$ACTION" != install-aliases ]; then
+    printf '%s\n' '--with-game requires --install-aliases.' >&2
+    exit 2
+fi
+
+case "$ACTION" in
+    install-aliases|uninstall-aliases)
+        alias_args=("$ACTION")
+        if [ "$WITH_GAME" -eq 1 ]; then
+            alias_args+=(--with-game)
+        fi
+        exec python3 "$ROOT/scripts/game-server-aliases.py" "${alias_args[@]}"
+        ;;
+esac
 
 if [ "$ACTION" = quit ]; then
     exit 0

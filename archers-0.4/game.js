@@ -8,21 +8,55 @@ const ACTOR_SCALE = 1.35;
 const CHARGE_TIME = 1300;
 const FALL_DURATION = 850;
 const ROBOT_KNOCKDOWN_DURATION = 1100;
-const ROBOT_KNOCKDOWN_CHANCE = 0.3;
-const ROBOT_MOVE_SPEED = 24;
+const ROBOT_KNOCKDOWN_CHANCE = 0.2;
+const ROBOT_MOVE_SPEED = 54;
+const ROBOT_BASE_HEALTH = 180;
+const ROBOT_HEALTH_PER_ROUND = 10;
+const ROBOT_MAX_HEALTH = 300;
 const BOMB_BLAST_RADIUS = 120;
 const BOSS_ROUND_INTERVAL = 10;
-const BOSS_HEALTH = 2000;
+const BOSS_HEALTH = 3000;
 const BOSS_SHOT_INTERVAL_FACTOR = 0.6;
 const BOSS_SIZE = 2.15;
 const BOSS_ARROW_SIZE = 2.4;
 const ARMOR_COST = 750;
 const RIVAL_ARMOR_MAX_LEVEL = 12;
-const ARMOR_DAMAGE_REDUCTION = [0, 0.4, 0.55, 0.68, 0.78, 0.86, 0.88, 0.9, 0.92, 0.93, 0.94, 0.95, 0.96, 0.964, 0.968, 0.972, 0.976, 0.98, 0.984, 0.988, 0.992];
+const ARMOR_DAMAGE_REDUCTION = [
+  0, 0.4, 0.55, 0.68, 0.78, 0.86, 0.88, 0.9, 0.92, 0.93,
+  0.94, 0.95, 0.96, 0.964, 0.968, 0.972, 0.976, 0.98, 0.984, 0.988,
+  0.992, 0.993, 0.994, 0.995, 0.996, 0.9965, 0.997, 0.9975, 0.998, 0.9985, 0.999
+];
 const MAX_ARMOR_LEVEL = ARMOR_DAMAGE_REDUCTION.length - 1;
+const MAX_PLAYER_HEALTH = 200;
+const MAX_HEALTH_STEP = 20;
+const HEALTH_UPGRADE_COST = 1800;
 const MEDKIT_COST = 600;
 const MEDKIT_HEAL = 35;
+const REGEN_COST = 1500;
+const REGEN_DURATION = 6000;
+const REGEN_INTERVAL = 1000;
+const REGEN_HEAL = 6;
 const SHIELD_COST = 1200;
+const MAX_SHIELD_CHARGES = 3;
+const GUARD_COST = 1800;
+const GUARD_DURATION = 8000;
+const GUARD_DAMAGE_FACTOR = 0.5;
+const THORNS_COST = 2200;
+const THORNS_DURATION = 10000;
+const THORNS_DAMAGE_FACTOR = 0.5;
+const ARMOR_TYPES = [
+  { id: 'standard', name: 'STANDARD', cost: 0, color: 0xb4b4b4, detail: 'Normal armor protection' },
+  { id: 'steel', name: 'STEEL', cost: 2000, color: 0x7396b5, detail: 'Takes 25% less direct damage, including piercing and boss arrows', damageFactor: 0.75 },
+  { id: 'fireproof', name: 'FIREPROOF', cost: 2400, color: 0xff7438, detail: 'Blocks burning and halves Ember arrow impact damage', immuneEffect: 'burn' },
+  { id: 'insulated', name: 'INSULATED', cost: 2800, color: 0x7fd1f0, detail: 'Prevents frost, shock, and quake from interrupting your charge', preventsInterrupt: true },
+  { id: 'antidote', name: 'ANTIDOTE', cost: 2400, color: 0xc3e37a, detail: 'Blocks poison and halves Poison arrow impact damage', immuneEffect: 'poison' },
+  { id: 'mirror', name: 'MIRROR', cost: 3500, color: 0xe9a8e8, detail: 'Reflects 25% of direct damage taken; stacks with Thorns', reflection: 0.25 }
+];
+const DEFENSE_ITEMS = [
+  { id: 'barrier', name: 'BARRIER', cost: 3000, color: 0x52e6ff, detail: 'Invincible for 5 seconds, including against boss arrows' },
+  { id: 'cleanse', name: 'CLEANSE', cost: 500, color: 0xc3e37a, detail: 'Instantly removes poison, burning, and freezing' },
+  { id: 'repair', name: 'FULL REPAIR', cost: 2200, color: 0x62db8c, detail: 'Instantly restores all health, including upgraded health' }
+];
 const TOWER_WIDTH = 196;
 const RIVAL_BLOCK_SIZE = 52;
 const RIVAL_BLOCK_GAP = 3;
@@ -75,9 +109,19 @@ const WEAPONS = [
   { id: 'chainsaw', name: 'CHAINSAW', cost: 6500, speed: 0.85, damage: 1, color: 0xf57b27, detail: 'CUTS RIVAL IN HALF', effect: 'chainsaw' },
   { id: 'bomb', name: 'BOMB', cost: 7200, speed: 0.8, damage: 1.35, color: 0xf05a3e, detail: 'EXPLODES ON IMPACT', effect: 'bomb' },
   { id: 'triple', name: 'TRIPLE', cost: 4800, speed: 1, damage: 0.62, color: 0x51c4ad, detail: 'FIRES THREE ARROWS', effect: 'triple', arrowCount: 3, spread: 0.075 },
+  { id: 'scatter', name: 'SCATTER', cost: 2800, speed: 0.95, damage: 0.42, color: 0x70d6b3, detail: 'FIRES FIVE ARROWS IN A WIDE FAN', effect: 'triple', arrowCount: 5, spread: 0.1 },
+  { id: 'piercer', name: 'PIERCER', cost: 3200, speed: 0.9, damage: 1.15, color: 0xd6d6d6, detail: 'PENETRATES ARMOR', armorPiercing: true },
+  { id: 'ember', name: 'EMBER', cost: 4300, speed: 0.95, damage: 0.9, color: 0xff7438, detail: 'BURNS FOR EXTRA DAMAGE OVER TIME', effect: 'burn' },
+  { id: 'shock', name: 'SHOCK', cost: 3900, speed: 1.05, damage: 1.1, color: 0xffdf55, detail: 'STOPS THE RIVAL FROM SHOOTING FOR 2.5 SECONDS', effect: 'shock' },
+  { id: 'quake', name: 'QUAKE', cost: 4600, speed: 0.8, damage: 1.25, color: 0xa87950, detail: 'KNOCKS THE RIVAL DOWN AND DELAYS THEIR SHOT', effect: 'quake' },
+  { id: 'seeker', name: 'SEEKER', cost: 5200, speed: 0.85, damage: 0.8, color: 0x7ce0ed, detail: 'HOMES IN ON THE RIVAL', effect: 'seeker' },
   { id: 'arow-rain', name: 'AROW RAIN', cost: 10000000000000000n, speed: 1, damage: 0.8, color: 0x68bfff, detail: 'ALL ARROW TYPES RAIN ON RIVAL', effect: 'rain', burstInterval: 60 },
   { id: 'super-arow', name: 'SUPER AROW', cost: 1000000000000, speed: 2, damage: 1, color: 0x52e6ff, detail: 'UNBREAKABLE INSTANT-KILL LASER', effect: 'laser', instantKill: true, pierces: true }
 ];
+
+const RIVAL_WEAPONS = WEAPONS.filter(weapon =>
+  ['swift', 'frost', 'poison', 'ricochet', 'vampire', 'scatter', 'piercer', 'ember', 'shock', 'quake', 'seeker'].includes(weapon.id)
+);
 
 const ROBOT_POSITIONS = [
   { x: 790, footY: 430, label: 'LOWER PLATFORM' },
@@ -207,6 +251,25 @@ function createArrowIcon(accentColor, weapon) {
     case 'triple':
       mark('path', { d: 'M30 3h160M30 13h160', fill: 'none', stroke: stripe, 'stroke-width': '1.4' });
       break;
+    case 'scatter':
+      mark('path', { d: 'M30 2 190 8M30 5 190 8M30 8h160M30 11 190 8M30 14 190 8', fill: 'none', stroke: stripe, 'stroke-width': '1.2' });
+      break;
+    case 'piercer':
+      mark('path', { d: 'm104 2 4 6-4 6-4-6Z', fill: '#fff' });
+      break;
+    case 'ember':
+      mark('path', { d: 'M105 1c2 4-2 5 1 7 2-1 3-3 3-4 4 4 2 10-3 11-5 0-7-5-4-9 0 2 1 3 2 3 1-3 0-5 1-8Z', fill: '#fff' });
+      break;
+    case 'shock':
+      mark('path', { d: 'M107 1 99 9h5l-1 6 8-9h-5l1-5Z', fill: '#fff' });
+      break;
+    case 'quake':
+      mark('path', { d: 'M92 4 98 9l6-5 6 5 6-5M98 13l6-4 6 4', fill: 'none', stroke: '#fff', 'stroke-width': '1.6' });
+      break;
+    case 'seeker':
+      mark('circle', { cx: '105', cy: '8', r: '5', fill: 'none', stroke: '#fff', 'stroke-width': '1.5' });
+      mark('circle', { cx: '105', cy: '8', r: '2', fill: '#fff' });
+      break;
   }
   return svg;
 }
@@ -309,7 +372,8 @@ class ArcherScene extends Phaser.Scene {
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
     this.effects = [];
-    this.robotPoison = null;
+    this.robotDamageOverTime = null;
+    this.playerDamageOverTime = null;
     this.armorLevel = BigInt(Phaser.Math.Between(6, RIVAL_ARMOR_MAX_LEVEL));
     this.playerHealth = 100;
     this.robotHealth = 100;
@@ -325,12 +389,21 @@ class ArcherScene extends Phaser.Scene {
     this.player = { x: PLAYER_X, footY: PLAYER_FOOT_Y, pose: 0 };
     this.robot = { ...ROBOT_POSITIONS[0], health: 100 };
     this.fallenRobot = null;
+    this.maxHealth = 100;
     this.lastRobotSpawnIndex = -1;
     this.lastPlayerPose = -1;
     this.lastRobotPose = -1;
     this.lastRobotArmorLevel = -1;
     this.robotArmorLevel = 1;
-    this.shieldActive = false;
+    this.shieldCharges = 0;
+    this.ownedArmorTypes = new Set(['standard']);
+    this.selectedArmorType = 'standard';
+    this.barrierUntil = 0;
+    this.regenUntil = 0;
+    this.nextRegenAt = 0;
+    this.guardUntil = 0;
+    this.thornsUntil = 0;
+    this.playerFrozenUntil = 0;
     this.robotPlatformBody = null;
     this.nextRobotShotAt = Infinity;
     this.paused = false;
@@ -372,6 +445,12 @@ class ArcherScene extends Phaser.Scene {
       if (upgrade === 'armor') this.buyArmor();
       if (upgrade === 'medkit') this.buyMedkit();
       if (upgrade === 'shield') this.buyShield();
+      if (upgrade === 'regen') this.buyRegen();
+      if (upgrade === 'guard') this.buyGuard();
+      if (upgrade === 'health') this.buyHealthUpgrade();
+      if (upgrade === 'thorns') this.buyThorns();
+      if (upgrade?.startsWith('armor-type-')) this.selectArmorType(upgrade.slice('armor-type-'.length));
+      if (DEFENSE_ITEMS.some(item => item.id === upgrade)) this.buyDefenseItem(upgrade);
     });
   }
 
@@ -509,7 +588,8 @@ class ArcherScene extends Phaser.Scene {
     this.pendingBurst = null;
     this.clearArrows();
     this.effects = [];
-    this.robotPoison = null;
+    this.robotDamageOverTime = null;
+    this.playerDamageOverTime = null;
     this.started = true;
     this.ended = false;
     this.round = 1;
@@ -520,7 +600,16 @@ class ArcherScene extends Phaser.Scene {
     this.ownedWeapons = new Set(['default']);
     this.selectedWeapon = 'default';
     this.armorLevel = BigInt(Phaser.Math.Between(6, RIVAL_ARMOR_MAX_LEVEL));
-    this.shieldActive = false;
+    this.maxHealth = 100;
+    this.shieldCharges = 0;
+    this.ownedArmorTypes = new Set(['standard']);
+    this.selectedArmorType = 'standard';
+    this.barrierUntil = 0;
+    this.regenUntil = 0;
+    this.nextRegenAt = 0;
+    this.guardUntil = 0;
+    this.thornsUntil = 0;
+    this.playerFrozenUntil = 0;
     this.playerHealth = 100;
     this.chargeStartedAt = null;
     this.player.x = PLAYER_X;
@@ -535,7 +624,7 @@ class ArcherScene extends Phaser.Scene {
     this.fallingBlockGraphics.clear();
     if (!this.playerPlatformBody) this.addPlayerPlatformBody();
     this.lastRobotSpawnIndex = -1;
-    this.robotPoison = null;
+    this.robotDamageOverTime = null;
     this.spawnRobot();
     gameAudio.play('start');
     ui.overlay.hidden = true;
@@ -545,6 +634,9 @@ class ArcherScene extends Phaser.Scene {
 
   spawnRobot() {
     const isBoss = this.round % BOSS_ROUND_INTERVAL === 0;
+    const health = isBoss
+      ? BOSS_HEALTH
+      : Math.min(ROBOT_MAX_HEALTH, ROBOT_BASE_HEALTH + (this.round - 1) * ROBOT_HEALTH_PER_ROUND);
     const spawnChoices = ROBOT_POSITIONS.map((spawn, index) => ({ spawn, index }))
       .filter(({ spawn }) => !isBoss || spawn.footY >= 390)
       .filter(({ index }) => index !== this.lastRobotSpawnIndex);
@@ -567,24 +659,25 @@ class ArcherScene extends Phaser.Scene {
       platformX: spawn.x,
       moveRange: Math.max(0, platformWidth / 2 - 30 * ACTOR_SCALE * (isBoss ? BOSS_SIZE : 1)),
       moveDirection: Phaser.Math.Between(0, 1) ? 1 : -1,
-      health: isBoss ? BOSS_HEALTH : 100,
-      maxHealth: isBoss ? BOSS_HEALTH : 100,
+      health,
+      maxHealth: health,
       size: isBoss ? BOSS_SIZE : 1,
       isBoss,
+      weapon: RIVAL_WEAPONS[Phaser.Math.Between(0, RIVAL_WEAPONS.length - 1)],
       label: isBoss ? 'BOSS - GIANT' : spawn.label,
       pose
     };
-    this.robotPoison = null;
+    this.robotDamageOverTime = null;
     this.robotHealth = this.robot.health;
     this.robotFlashUntil = 0;
-    const firstShotDelay = Phaser.Math.Between(1900, 2900);
+    const firstShotDelay = Phaser.Math.Between(1100, 1700);
     this.nextRobotShotAt = this.time.now + firstShotDelay * (isBoss ? BOSS_SHOT_INTERVAL_FACTOR : 1);
     this.syncHud();
     this.setNotice(isBoss ? 'BOSS APPROACHES' : this.round === 1 ? 'RIVAL INCOMING' : `RIVAL ${String(this.round).padStart(2, '0')} INCOMING`);
   }
 
   beginCharge(pointer) {
-    if (!this.started || this.ended || this.paused || this.player.fall || this.chargeStartedAt !== null || this.pendingBurst) return;
+    if (!this.started || this.ended || this.paused || this.player.fall || this.playerFrozenUntil > this.time.now || this.chargeStartedAt !== null || this.pendingBurst) return;
     this.updateAim(pointer);
     this.chargeStartedAt = this.time.now;
     ui.chargeLabel.textContent = 'CHARGING';
@@ -629,13 +722,13 @@ class ArcherScene extends Phaser.Scene {
         nextShotAt: this.time.now
       };
       this.setNotice('MINIGUN: 100 SHOTS FIRING');
-    } else if (weapon.effect === 'triple') {
+    } else if (weapon.arrowCount) {
       gameAudio.play('shot', power);
       for (let index = 0; index < weapon.arrowCount; index++) {
         const spread = (index - (weapon.arrowCount - 1) / 2) * weapon.spread;
         this.launchArrow('player', origin.x, origin.y, this.aimAngle + spread, speed, power, weapon);
       }
-      this.setNotice('TRIPLE SHOT');
+      this.setNotice(weapon.id === 'scatter' ? 'SCATTER SHOT' : 'TRIPLE SHOT');
     } else {
       gameAudio.play('shot', power);
       this.launchArrow('player', origin.x, origin.y, this.aimAngle, speed, power, weapon);
@@ -762,12 +855,19 @@ class ArcherScene extends Phaser.Scene {
     const angle = Math.atan2(compensatedY, distanceX) + Phaser.Math.FloatBetween(-0.035, 0.035);
     const bossArrow = this.robot.isBoss;
     const weapon = bossArrow
-      ? { id: 'boss-arrow', effect: 'boss-arrow', damage: 1, color: PALETTE.arrow }
-      : WEAPONS[0];
-    this.launchArrow('robot', origin.x, origin.y, angle, speed, 0.52, weapon, bossArrow ? BOSS_ARROW_SIZE : 1);
+      ? { id: this.robot.weapon.id, effect: 'boss-arrow', damage: 1, color: this.robot.weapon.color }
+      : this.robot.weapon;
+    if (!bossArrow && weapon.arrowCount) {
+      for (let index = 0; index < weapon.arrowCount; index++) {
+        const spread = (index - (weapon.arrowCount - 1) / 2) * weapon.spread;
+        this.launchArrow('robot', origin.x, origin.y, angle + spread, speed, 0.52, weapon);
+      }
+    } else {
+      this.launchArrow('robot', origin.x, origin.y, angle, speed, 0.52, weapon, bossArrow ? BOSS_ARROW_SIZE : 1);
+    }
     gameAudio.play('rivalShot');
-    const interval = Math.max(1350, 2650 - this.round * 70);
-    const shotDelay = interval + Phaser.Math.Between(-180, 240);
+    const interval = Math.max(850, 1800 - this.round * 45);
+    const shotDelay = interval + Phaser.Math.Between(-120, 160);
     this.nextRobotShotAt = this.time.now + shotDelay * (bossArrow ? BOSS_SHOT_INTERVAL_FACTOR : 1);
     this.setNotice('RIVAL FIRED');
   }
@@ -775,6 +875,24 @@ class ArcherScene extends Phaser.Scene {
   update(time, delta) {
     if (this.paused) return;
     this.updateKnockdowns(delta);
+    let defenseExpired = false;
+    if (this.guardUntil && time >= this.guardUntil) {
+      this.guardUntil = 0;
+      defenseExpired = true;
+    }
+    if (this.thornsUntil && time >= this.thornsUntil) {
+      this.thornsUntil = 0;
+      defenseExpired = true;
+    }
+    if (this.barrierUntil && time >= this.barrierUntil) {
+      this.barrierUntil = 0;
+      defenseExpired = true;
+    }
+    if (this.playerFrozenUntil && time >= this.playerFrozenUntil) {
+      this.playerFrozenUntil = 0;
+      defenseExpired = true;
+    }
+    if (defenseExpired) this.syncHud();
     this.updateRobotMovement(delta);
     this.updateFallingBlocks(delta);
     this.updatePlayerBurst(time);
@@ -782,7 +900,8 @@ class ArcherScene extends Phaser.Scene {
       this.pendingSpawnAt = null;
       if (this.started && !this.ended) this.spawnRobot();
     }
-    this.updateRobotPoison(time);
+    this.updateDamageOverTime(time);
+    this.updatePlayerRegeneration(time);
     if (this.chargeStartedAt !== null) {
       const power = Phaser.Math.Clamp((time - this.chargeStartedAt) / CHARGE_TIME, 0, 1);
       ui.chargeFill.style.width = `${power * 100}%`;
@@ -810,15 +929,18 @@ class ArcherScene extends Phaser.Scene {
       if (arrow.attached) continue;
       const body = arrow.body;
       const { x, y } = body.position;
-      if (arrow.fromRain && this.robot && this.robot.health > 0) {
-        const head = this.actorPoint(this.robot, 107);
+      const target = arrow.side === 'player' ? this.robot : this.player;
+      const targetAlive = arrow.side === 'player' ? target?.health > 0 : this.playerHealth > 0;
+      if ((arrow.fromRain || arrow.weapon.effect === 'seeker') && target && targetAlive) {
+        const head = this.actorPoint(target, 107);
         const direction = Math.atan2(head.y - y, head.x - x);
-        const speed = 8 * arrow.weapon.speed;
+        const speed = arrow.fromRain
+          ? 8 * arrow.weapon.speed
+          : Math.max(7, Math.hypot(body.velocity.x, body.velocity.y));
         MATTER.Body.setVelocity(body, { x: Math.cos(direction) * speed, y: Math.sin(direction) * speed });
       }
       const angle = Math.atan2(body.velocity.y, body.velocity.x);
       MATTER.Body.setAngle(body, angle);
-      const target = arrow.side === 'player' ? this.robot : this.player;
       if (target && this.arrowHitsTarget(body.position, angle, target, arrow.size)) {
         if (arrow.side === 'player' && arrow.weapon.effect === 'bomb') {
           this.detonateBomb(index, x, y, time, arrow, true);
@@ -898,7 +1020,7 @@ class ArcherScene extends Phaser.Scene {
     const armorLevel = side === 'robot' ? this.armorLevel : this.robotArmorLevel;
     const damage = side === 'robot' && weapon.effect === 'boss-arrow'
       ? this.playerHealth
-      : armorLevel > 0
+      : armorLevel > 0 && !weapon.armorPiercing
       ? Math.max(side === 'robot' && baseDamage > 0 ? 1 : 0, Math.round(baseDamage * (1 - armorReduction(armorLevel))))
       : baseDamage;
     gameAudio.play('hit', side === 'player' ? 0.9 : 0.7);
@@ -914,11 +1036,11 @@ class ArcherScene extends Phaser.Scene {
       let stolenHealth = 0;
       let restoredHealth = 0;
       if (weapon.effect === 'vampire') {
-        stolenHealth = Math.min(appliedDamage, 100 - this.playerHealth);
+        stolenHealth = Math.min(appliedDamage, this.maxHealth - this.playerHealth);
         this.playerHealth += stolenHealth;
       }
       if (weapon.effect === 'healing') {
-        restoredHealth = Math.min(15, 100 - this.playerHealth);
+        restoredHealth = Math.min(15, this.maxHealth - this.playerHealth);
         this.playerHealth += restoredHealth;
       }
       if (weapon.effect === 'chainsaw') {
@@ -929,8 +1051,14 @@ class ArcherScene extends Phaser.Scene {
       }
       if (weapon.effect === 'frost' && this.robot) this.nextRobotShotAt += 1400;
       if (weapon.effect === 'lightning') this.nextRobotShotAt += 800;
-      if (weapon.effect === 'poison' && this.robot) {
-        this.robotPoison = { remaining: 3, damage: 5, nextAt: this.time.now + 350 };
+      if (weapon.effect === 'poison' || weapon.effect === 'burn') this.applyDamageOverTime('robot', weapon);
+      if (weapon.effect === 'shock') {
+        this.robot.stagger = { elapsed: 0 };
+        this.nextRobotShotAt = Math.max(this.nextRobotShotAt, this.time.now + 2500);
+      }
+      if (weapon.effect === 'quake') {
+        this.robot.stagger = { elapsed: 0 };
+        this.nextRobotShotAt = Math.max(this.nextRobotShotAt, this.time.now + 1600);
       }
       const notice = weapon.effect === 'chainsaw'
         ? 'RIVAL CUT IN HALF'
@@ -944,35 +1072,84 @@ class ArcherScene extends Phaser.Scene {
                 ? 'RIVAL SLOWED'
                 : weapon.effect === 'poison'
                   ? 'RIVAL POISONED'
-                  : `RIVAL -${appliedDamage}`;
+                  : weapon.effect === 'burn'
+                    ? 'RIVAL BURNING'
+                    : weapon.effect === 'shock'
+                      ? 'RIVAL SHOCKED - SHOT DELAYED'
+                      : weapon.effect === 'quake'
+                        ? 'RIVAL KNOCKED DOWN'
+                        : `RIVAL -${appliedDamage}`;
       this.setNotice(notice);
       if (this.robot.health <= 0) this.defeatRobot();
       else if (!this.robot.stagger && Math.random() < ROBOT_KNOCKDOWN_CHANCE) this.robot.stagger = { elapsed: 0 };
     } else {
-      if (this.invincible) {
+      if (this.isPlayerInvincible()) {
         this.setNotice('INVINCIBLE - HIT BLOCKED');
         return;
       }
       if (this.playerHealth <= 0) return;
-      if (this.shieldActive) {
-        this.shieldActive = false;
+      if (this.shieldCharges > 0) {
+        this.shieldCharges--;
         gameAudio.play('shield');
         this.playerFlashUntil = this.time.now + 220;
-        this.setNotice('SHIELD BLOCKED THE HIT');
+        this.setNotice(`SHIELD BLOCKED THE HIT - ${this.shieldCharges} LEFT`);
         this.syncHud();
         return;
       }
-      this.playerHealth = Math.max(0, this.playerHealth - damage);
+      const armor = this.playerArmorType();
+      const impactFactor = armor.damageFactor ?? (armor.immuneEffect && armor.immuneEffect === weapon.effect ? 0.5 : 1);
+      const guardedDamage = Math.ceil(damage * impactFactor * (this.guardUntil > this.time.now ? GUARD_DAMAGE_FACTOR : 1));
+      this.playerHealth = Math.max(0, this.playerHealth - guardedDamage);
+      if (weapon.effect === 'poison' || weapon.effect === 'burn') this.applyDamageOverTime('player', weapon);
+      const interruptBlocked = armor.preventsInterrupt && ['frost', 'shock', 'quake'].includes(weapon.effect);
+      if (weapon.effect === 'frost' && !interruptBlocked) {
+        this.playerFrozenUntil = this.time.now + 1600;
+        this.chargeStartedAt = null;
+        ui.chargeLabel.textContent = 'SHOT POWER';
+        ui.chargeFill.style.width = '0%';
+        ui.chargePercent.textContent = '0%';
+      }
+      if ((weapon.effect === 'shock' || weapon.effect === 'quake') && !interruptBlocked) {
+        this.playerFrozenUntil = this.time.now + (weapon.effect === 'shock' ? 1900 : 1000);
+      }
+      let rivalHealing = 0;
+      if (weapon.effect === 'vampire' && this.robot) {
+        rivalHealing = Math.min(Math.ceil(guardedDamage / 2), this.robot.maxHealth - this.robot.health);
+        this.robot.health += rivalHealing;
+        this.robotHealth = this.robot.health;
+      }
       this.playerFlashUntil = this.time.now + 220;
-      this.chargeStartedAt = null;
-      ui.chargeLabel.textContent = 'SHOT POWER';
-      ui.chargeFill.style.width = '0%';
-      ui.chargePercent.textContent = '0%';
-      this.setNotice(`YOU -${damage}`);
+      if (!interruptBlocked) {
+        this.chargeStartedAt = null;
+        ui.chargeLabel.textContent = 'SHOT POWER';
+        ui.chargeFill.style.width = '0%';
+        ui.chargePercent.textContent = '0%';
+      }
+      this.setNotice(interruptBlocked
+        ? `INSULATED - YOU -${guardedDamage}`
+        : weapon.effect === 'frost'
+        ? `FROZEN - YOU -${guardedDamage}`
+        : weapon.effect === 'vampire'
+          ? `RIVAL DRAINED YOU -${guardedDamage}, HEALED +${rivalHealing}`
+          : this.guardUntil > this.time.now
+            ? `GUARD BLOCKED ${damage - guardedDamage} - YOU -${guardedDamage}`
+            : `YOU -${guardedDamage}`);
       if (this.playerHealth <= 0) {
         this.knockDownActor(this.player, Math.sign(this.player.x - this.robot.x) || -1);
         this.dropPlatform('player', this.player);
         this.finishGame();
+      } else if ((this.thornsUntil > this.time.now || armor.reflection) && this.robot) {
+        const reflection = (armor.reflection ?? 0) + (this.thornsUntil > this.time.now ? THORNS_DAMAGE_FACTOR : 0);
+        const reflectedDamage = Math.min(
+          this.robot.health,
+          Math.max(1, Math.floor(guardedDamage * reflection))
+        );
+        this.robot.health -= reflectedDamage;
+        this.robotHealth = this.robot.health;
+        this.robotFlashUntil = this.time.now + 120;
+        this.awardPoints(reflectedDamage * 10);
+        if (this.robot.health <= 0) this.defeatRobot();
+        else this.setNotice(`ARMOR REFLECTED ${reflectedDamage} DAMAGE`);
       }
     }
     this.syncHud();
@@ -1015,7 +1192,7 @@ class ArcherScene extends Phaser.Scene {
       robot.stagger.elapsed += elapsed;
       const progress = robot.stagger.elapsed / ROBOT_KNOCKDOWN_DURATION;
       const amount = progress < 0.25 ? progress / 0.25 : progress < 0.7 ? 1 : Math.max(0, (1 - progress) / 0.3);
-      robot.rotation = -1.25 * amount;
+      robot.rotation = -Math.PI / 2 * amount;
       if (progress >= 1) {
         robot.rotation = 0;
         robot.stagger = null;
@@ -1040,7 +1217,7 @@ class ArcherScene extends Phaser.Scene {
     this.nextRobotShotAt = Infinity;
     if (this.robotPlatformBody) this.matter.world.remove(this.robotPlatformBody);
     this.robotPlatformBody = null;
-    this.playerHealth = Math.min(100, this.playerHealth + 12);
+    this.playerHealth = Math.min(this.maxHealth, this.playerHealth + 12);
     this.round++;
     this.syncHud();
     this.setNotice('RIVAL DOWN - NEXT ROUND');
@@ -1061,17 +1238,26 @@ class ArcherScene extends Phaser.Scene {
       this.matter.world.pause();
       ui.notice.textContent = 'PAUSED';
       this.noticeUntil = Infinity;
+      this.syncHud();
       return;
     }
     const pausedFor = this.time.now - this.pausedAt;
     this.matter.world.resume();
     this.nextRobotShotAt += pausedFor;
-    if (this.robotPoison) this.robotPoison.nextAt += pausedFor;
+    if (this.robotDamageOverTime) this.robotDamageOverTime.nextAt += pausedFor;
+    if (this.playerDamageOverTime) this.playerDamageOverTime.nextAt += pausedFor;
+    if (this.regenUntil) this.regenUntil += pausedFor;
+    if (this.nextRegenAt) this.nextRegenAt += pausedFor;
+    if (this.guardUntil) this.guardUntil += pausedFor;
+    if (this.thornsUntil) this.thornsUntil += pausedFor;
+    if (this.barrierUntil) this.barrierUntil += pausedFor;
+    if (this.playerFrozenUntil) this.playerFrozenUntil += pausedFor;
     if (this.pendingSpawnAt !== null) this.pendingSpawnAt += pausedFor;
     if (this.pendingBurst) this.pendingBurst.nextShotAt += pausedFor;
     for (const arrow of this.arrows) arrow.bornAt += pausedFor;
     this.noticeUntil = 0;
     ui.notice.textContent = '';
+    this.syncHud();
   }
 
   finishGame() {
@@ -1085,21 +1271,75 @@ class ArcherScene extends Phaser.Scene {
     ui.primary.textContent = 'TRY AGAIN';
   }
 
-  updateRobotPoison(time) {
-    if (!this.started || !this.robot || !this.robotPoison || time < this.robotPoison.nextAt) return;
-    const poison = this.robotPoison;
-    this.robot.health = Math.max(0, this.robot.health - poison.damage);
-    this.robotHealth = this.robot.health;
-    this.robotFlashUntil = time + 120;
-    this.awardPoints(poison.damage * 10);
-    poison.remaining--;
-    poison.nextAt = time + 450;
-    if (this.robot.health <= 0) {
-      this.robotPoison = null;
-      this.defeatRobot();
-    } else if (poison.remaining <= 0) {
-      this.robotPoison = null;
+  applyDamageOverTime(side, weapon) {
+    if (side === 'player' && this.playerArmorType().immuneEffect === weapon.effect) return;
+    const isBurn = weapon.effect === 'burn';
+    const effect = {
+      type: weapon.effect,
+      remaining: isBurn ? 4 : 3,
+      damage: isBurn ? 6 : 5,
+      interval: isBurn ? 400 : 450,
+      nextAt: this.time.now + (isBurn ? 400 : 350)
+    };
+    if (side === 'robot') this.robotDamageOverTime = effect;
+    else this.playerDamageOverTime = effect;
+  }
+
+  updateDamageOverTime(time) {
+    if (!this.started) return;
+    for (const side of ['robot', 'player']) {
+      const property = side === 'robot' ? 'robotDamageOverTime' : 'playerDamageOverTime';
+      const effect = this[property];
+      const actor = side === 'robot' ? this.robot : this.player;
+      if (!this.started) break;
+      if (!actor || !effect || time < effect.nextAt) continue;
+      if (side === 'player' && this.isPlayerInvincible()) {
+        effect.nextAt = time + effect.interval;
+        continue;
+      }
+      const health = side === 'robot' ? actor.health : this.playerHealth;
+      const damage = side === 'player' && this.guardUntil > time
+        ? Math.ceil(effect.damage * GUARD_DAMAGE_FACTOR)
+        : effect.damage;
+      const updatedHealth = Math.max(0, health - damage);
+      if (side === 'robot') {
+        actor.health = updatedHealth;
+        this.robotHealth = updatedHealth;
+        this.robotFlashUntil = time + 120;
+        this.awardPoints(damage * 10);
+      } else {
+        this.playerHealth = updatedHealth;
+        this.playerFlashUntil = time + 120;
+      }
+      effect.remaining--;
+      effect.nextAt = time + effect.interval;
+      if (updatedHealth <= 0) {
+        this[property] = null;
+        if (side === 'robot') this.defeatRobot();
+        else {
+          this.knockDownActor(this.player, Math.sign(this.player.x - (this.robot?.x ?? WIDTH)) || -1);
+          this.dropPlatform('player', this.player);
+          this.finishGame();
+        }
+      } else if (effect.remaining <= 0) {
+        this[property] = null;
+      }
+      this.syncHud();
     }
+  }
+
+  updatePlayerRegeneration(time) {
+    if (!this.started || time < this.nextRegenAt) return;
+    if (time >= this.regenUntil || this.playerHealth >= this.maxHealth) {
+      const wasActive = this.regenUntil > 0;
+      this.regenUntil = 0;
+      this.nextRegenAt = 0;
+      if (wasActive) this.syncHud();
+      return;
+    }
+    this.playerHealth = Math.min(this.maxHealth, this.playerHealth + REGEN_HEAL);
+    this.nextRegenAt = time + REGEN_INTERVAL;
+    if (this.playerHealth >= this.maxHealth) this.regenUntil = 0;
     this.syncHud();
   }
 
@@ -1140,8 +1380,8 @@ class ArcherScene extends Phaser.Scene {
     for (const arrow of this.arrows) {
       const { x, y } = arrow.body.position;
       const angle = arrow.body.angle;
-      const accent = arrow.side === 'player' ? arrow.weapon.color : PALETTE.arrow;
-      const weapon = arrow.side === 'player' ? arrow.weapon : WEAPONS[0];
+      const accent = arrow.weapon.color;
+      const weapon = arrow.weapon;
       const size = arrow.size ?? 1;
       this.arrowGraphics.save();
       this.arrowGraphics.translateCanvas(x, y);
@@ -1283,6 +1523,43 @@ class ArcherScene extends Phaser.Scene {
           graphics.lineStyle(2, accent, 1).lineBetween(tailX + dx * 8 + px * offset, tailY + dy * 8 + py * offset, x + dx * 2 + px * offset, y + dy * 2 + py * offset);
         }
         break;
+      case 'scatter':
+        for (const offset of [-7, -3, 3, 7]) {
+          graphics.lineStyle(1.7, accent, 1).lineBetween(tailX + dx * 8 + px * offset, tailY + dy * 8 + py * offset, x + dx * 2 + px * offset, y + dy * 2 + py * offset);
+        }
+        break;
+      case 'piercer':
+        band(-12, PALETTE.metalLight, 4);
+        graphics.lineStyle(2, 0xffffff, 1).lineBetween(x + dx * 11 + px * 4, y + dy * 11 + py * 4, x + dx * 11 - px * 4, y + dy * 11 - py * 4);
+        break;
+      case 'ember':
+        for (const offset of [-3, 3]) {
+          graphics.fillStyle(0xffc247, 0.9).fillTriangle(
+            x - dx * 12 + px * offset, y - dy * 12 + py * offset,
+            x - dx * 23 + px * (offset + 2), y - dy * 23 + py * (offset + 2),
+            x - dx * 20 + px * (offset - 2), y - dy * 20 + py * (offset - 2)
+          );
+        }
+        break;
+      case 'shock':
+        graphics.lineStyle(2.5, 0xffffff, 1)
+          .beginPath()
+          .moveTo(x - dx * 22 + px * 4, y - dy * 22 + py * 4)
+          .lineTo(x - dx * 15 - px * 4, y - dy * 15 - py * 4)
+          .lineTo(x - dx * 8 + px * 4, y - dy * 8 + py * 4)
+          .lineTo(x - dx * 1 - px * 4, y - dy * 1 - py * 4)
+          .strokePath();
+        break;
+      case 'quake':
+        band(-12, PALETTE.metal, 6);
+        graphics.lineStyle(2, 0xffd5a5, 1)
+          .lineBetween(x - dx * 12 + px * 6, y - dy * 12 + py * 6, x - dx * 18 + px * 10, y - dy * 18 + py * 10)
+          .lineBetween(x - dx * 12 - px * 6, y - dy * 12 - py * 6, x - dx * 18 - px * 10, y - dy * 18 - py * 10);
+        break;
+      case 'seeker':
+        graphics.lineStyle(2, 0xffffff, 1).strokeCircle(x - dx * 8, y - dy * 8, 4);
+        graphics.fillStyle(0xffffff, 1).fillCircle(x - dx * 8, y - dy * 8, 1.5);
+        break;
     }
   }
 
@@ -1393,14 +1670,16 @@ class ArcherScene extends Phaser.Scene {
     const backColor = flash ? PALETTE.hitBack : PALETTE.bodyBack;
     const armorLevel = side === 'player' ? this.armorLevel : this.robotArmorLevel;
     const maxArmor = side === 'player' && armorLevel >= MAX_ARMOR_LEVEL;
-    const armorMetal = maxArmor ? 0x2878d0 : PALETTE.metal;
-    const armorMetalBack = maxArmor ? 0x1e5799 : PALETTE.metalBack;
-    const armorMetalLight = maxArmor ? 0x75baff : PALETTE.metalLight;
+    const eliteArmor = side === 'player' && armorLevel >= 25;
+    const specialtyColor = side === 'player' && this.selectedArmorType !== 'standard' ? this.playerArmorType().color : null;
+    const armorMetal = maxArmor ? 0x2878d0 : specialtyColor ?? (eliteArmor ? 0x854bd0 : PALETTE.metal);
+    const armorMetalBack = maxArmor ? 0x1e5799 : specialtyColor !== null ? shadeColor(specialtyColor, 0.65) : eliteArmor ? 0x58318f : PALETTE.metalBack;
+    const armorMetalLight = maxArmor ? 0x75baff : specialtyColor ?? (eliteArmor ? 0xd8a4ff : PALETTE.metalLight);
     const armorStud = maxArmor ? 0xf2c94c : PALETTE.stud;
-    const armorPlate = maxArmor ? 0x2878d0 : PALETTE.plate;
+    const armorPlate = maxArmor ? 0x2878d0 : specialtyColor ?? (eliteArmor ? 0x854bd0 : PALETTE.plate);
     const armorPlateSeam = maxArmor ? 0xf2c94c : PALETTE.plateSeam;
     const armorVisor = maxArmor ? 0xf2c94c : PALETTE.visor;
-    const armorTrim = maxArmor ? 0xf2c94c : armorLevel >= 100 ? 0x8feaff : armorLevel >= 50 ? 0xd8a4ff : 0xf5c15d;
+    const armorTrim = maxArmor ? 0xf2c94c : eliteArmor ? 0xd8a4ff : 0xf5c15d;
     const sway = Math.sin(time / 390 + (facing > 0 ? 0 : 1.4)) * 1.5;
     const recoil = flash ? -facing * 6 : 0;
     const hip = { x: x + recoil * 0.4 + facing * pose.lean * 0.35, y: footY - 46 + pose.crouch * 0.55 };
@@ -1480,9 +1759,31 @@ class ArcherScene extends Phaser.Scene {
     };
 
     enterActorSpace();
-    if (side === 'player' && this.shieldActive) {
-      graphics.fillStyle(0xffffff, 0.07).fillCircle(x, footY - 66, 56);
-      graphics.lineStyle(2, PALETTE.arrow, 0.55).strokeCircle(x, footY - 66, 56);
+    if (side === 'player' && this.isPlayerInvincible()) {
+      graphics.lineStyle(3, 0x52e6ff, 0.7).strokeCircle(x, footY - 66, 65);
+    }
+    if (side === 'player' && (this.shieldCharges > 0 || this.guardUntil > time || this.thornsUntil > time)) {
+      const shieldReady = this.shieldCharges > 0;
+      const defenseColor = this.thornsUntil > time ? 0xf5a623 : shieldReady ? PALETTE.arrow : 0xb39af0;
+      graphics.fillStyle(defenseColor, shieldReady ? 0.07 : 0.035).fillCircle(x, footY - 66, 56);
+      graphics.lineStyle(shieldReady ? 2 : 3, defenseColor, 0.55).strokeCircle(x, footY - 66, 56);
+      if (this.guardUntil > time) graphics.lineStyle(1.5, 0xb39af0, 0.8).strokeCircle(x, footY - 66, 61);
+      if (this.thornsUntil > time) {
+        graphics.fillStyle(0xf5a623, 0.9);
+        for (let index = 0; index < 12; index++) {
+          const angle = Math.PI * 2 * index / 12;
+          const centerX = x + Math.cos(angle) * 58;
+          const centerY = footY - 66 + Math.sin(angle) * 58;
+          graphics.fillTriangle(
+            centerX + Math.cos(angle + 2.5) * 5,
+            centerY + Math.sin(angle + 2.5) * 5,
+            centerX + Math.cos(angle - 2.5) * 5,
+            centerY + Math.sin(angle - 2.5) * 5,
+            centerX + Math.cos(angle) * 13,
+            centerY + Math.sin(angle) * 13
+          );
+        }
+      }
     }
     limb(hip, backKnee, 11, backColor);
     limb(backKnee, backFoot, 10, backColor);
@@ -1581,8 +1882,10 @@ class ArcherScene extends Phaser.Scene {
     this.drawBow(graphics, bowCenter, dirX, dirY, perpX, perpY, nock);
     graphics.fillStyle(frontColor, 1).fillCircle(grip.x, grip.y, 4.6);
     if (strength > 0) {
-      const weapon = side === 'player' ? WEAPONS.find(item => item.id === this.selectedWeapon) : WEAPONS[0];
-      const accent = side === 'player' ? weapon.color : PALETTE.arrow;
+      const weapon = side === 'player'
+        ? WEAPONS.find(item => item.id === this.selectedWeapon)
+        : actor.weapon ?? WEAPONS[0];
+      const accent = weapon.color;
       const actorScale = ACTOR_SCALE * (actor.size ?? 1);
       graphics.restore();
       this.drawArrowSprite(
@@ -1692,19 +1995,113 @@ class ArcherScene extends Phaser.Scene {
   }
 
   buyMedkit() {
-    if (!this.started || this.ended || this.playerHealth >= 100 || !this.canAfford(MEDKIT_COST)) return;
+    if (!this.started || this.ended || this.playerHealth >= this.maxHealth || !this.canAfford(MEDKIT_COST)) return;
     this.spendPoints(MEDKIT_COST);
-    const restored = Math.min(MEDKIT_HEAL, 100 - this.playerHealth);
+    const restored = Math.min(MEDKIT_HEAL, this.maxHealth - this.playerHealth);
     this.playerHealth += restored;
     this.setNotice(`MEDKIT +${restored} HEALTH`);
     this.syncHud();
   }
 
   buyShield() {
-    if (!this.started || this.ended || this.shieldActive || !this.canAfford(SHIELD_COST)) return;
+    if (!this.started || this.ended || this.shieldCharges >= MAX_SHIELD_CHARGES || !this.canAfford(SHIELD_COST)) return;
     this.spendPoints(SHIELD_COST);
-    this.shieldActive = true;
-    this.setNotice('SHIELD READY - NEXT HIT BLOCKED');
+    this.shieldCharges++;
+    this.setNotice(`SHIELD READY - ${this.shieldCharges} CHARGE${this.shieldCharges === 1 ? '' : 'S'}`);
+    this.syncHud();
+  }
+
+  buyRegen() {
+    if (!this.started || this.ended || this.playerHealth >= this.maxHealth || this.regenUntil > this.time.now || !this.canAfford(REGEN_COST)) return;
+    this.spendPoints(REGEN_COST);
+    this.regenUntil = this.time.now + REGEN_DURATION;
+    this.nextRegenAt = this.time.now + REGEN_INTERVAL;
+    this.setNotice('REGEN ACTIVE');
+    this.syncHud();
+  }
+
+  buyGuard() {
+    if (!this.started || this.ended || this.guardUntil > this.time.now || !this.canAfford(GUARD_COST)) return;
+    this.spendPoints(GUARD_COST);
+    this.guardUntil = this.time.now + GUARD_DURATION;
+    this.setNotice('GUARD ACTIVE - HALF DAMAGE');
+    this.syncHud();
+  }
+
+  buyThorns() {
+    if (!this.started || this.ended || this.thornsUntil > this.time.now || !this.canAfford(THORNS_COST)) return;
+    this.spendPoints(THORNS_COST);
+    this.thornsUntil = this.time.now + THORNS_DURATION;
+    this.setNotice('THORNS ACTIVE - REFLECTING HITS');
+    this.syncHud();
+  }
+
+  buyHealthUpgrade() {
+    if (!this.started || this.ended || this.maxHealth >= MAX_PLAYER_HEALTH) return;
+    const cost = HEALTH_UPGRADE_COST * ((this.maxHealth - 100) / MAX_HEALTH_STEP + 1);
+    if (!this.canAfford(cost)) return;
+    this.spendPoints(cost);
+    this.maxHealth = Math.min(MAX_PLAYER_HEALTH, this.maxHealth + MAX_HEALTH_STEP);
+    this.playerHealth = Math.min(this.maxHealth, this.playerHealth + MAX_HEALTH_STEP);
+    this.setNotice(`MAX HEALTH +${MAX_HEALTH_STEP}`);
+    this.syncHud();
+  }
+
+  playerArmorType() {
+    return ARMOR_TYPES.find(armor => armor.id === this.selectedArmorType);
+  }
+
+  isPlayerInvincible() {
+    return this.invincible || this.barrierUntil > this.time.now;
+  }
+
+  selectArmorType(id) {
+    if (!this.started || this.ended || this.paused) return;
+    const armor = ARMOR_TYPES.find(item => item.id === id);
+    if (!armor) {
+      this.setNotice('UNKNOWN ARMOR TYPE');
+      return;
+    }
+    if (!this.ownedArmorTypes.has(id)) {
+      if (!this.canAfford(armor.cost)) {
+        this.setNotice('NOT ENOUGH POINTS FOR ARMOR');
+        return;
+      }
+      this.spendPoints(armor.cost);
+      this.ownedArmorTypes.add(id);
+    }
+    this.selectedArmorType = id;
+    if (this.playerDamageOverTime?.type === armor.immuneEffect) this.playerDamageOverTime = null;
+    if (armor.preventsInterrupt) this.playerFrozenUntil = 0;
+    this.setNotice(`${armor.name} ARMOR EQUIPPED`);
+    this.syncHud();
+  }
+
+  buyDefenseItem(id) {
+    if (!this.started || this.ended || this.paused) return;
+    const item = DEFENSE_ITEMS.find(defense => defense.id === id);
+    if (!item) {
+      this.setNotice('UNKNOWN DEFENSE ITEM');
+      return;
+    }
+    if ((id === 'barrier' && this.isPlayerInvincible())
+      || (id === 'cleanse' && !this.playerDamageOverTime && this.playerFrozenUntil <= this.time.now)
+      || (id === 'repair' && this.playerHealth >= this.maxHealth)) {
+      this.setNotice('DEFENSE ITEM NOT NEEDED');
+      return;
+    }
+    if (!this.canAfford(item.cost)) {
+      this.setNotice('NOT ENOUGH POINTS FOR DEFENSE');
+      return;
+    }
+    this.spendPoints(item.cost);
+    if (id === 'barrier') this.barrierUntil = this.time.now + 5000;
+    if (id === 'cleanse' || id === 'barrier') {
+      this.playerDamageOverTime = null;
+      this.playerFrozenUntil = 0;
+    }
+    if (id === 'repair') this.playerHealth = this.maxHealth;
+    this.setNotice(`${item.name} ACTIVATED`);
     this.syncHud();
   }
 
@@ -1730,17 +2127,25 @@ class ArcherScene extends Phaser.Scene {
     if (!this.started || this.ended) return;
     this.armorLevel = BigInt(MAX_ARMOR_LEVEL);
     this.invincible = true;
-    this.playerHealth = 100;
-    this.setNotice('MAX ARMOR + INVINCIBLE');
+    this.playerHealth = this.maxHealth;
+    this.playerDamageOverTime = null;
+    this.playerFrozenUntil = 0;
+    this.setNotice(`MAX ARMOR ${MAX_ARMOR_LEVEL} + INVINCIBLE`);
     this.syncHud();
   }
 
   syncHud() {
     ui.round.textContent = String(this.round).padStart(2, '0');
     ui.robotPosition.textContent = this.robot ? `RIVAL: ${this.robot.label}` : 'RIVAL DEFEATED';
-    ui.playerHealth.style.width = `${this.playerHealth}%`;
-    ui.playerHealthText.textContent = this.playerHealth;
+    ui.playerHealth.style.width = `${this.playerHealth / this.maxHealth * 100}%`;
+    ui.playerHealthText.textContent = `${this.playerHealth}/${this.maxHealth}`;
     ui.playerArmor.textContent = this.armorLevel;
+    const armorStatus = document.getElementById('armor-status');
+    armorStatus.textContent = this.invincible
+      ? `INVINCIBLE - LEVEL ${this.armorLevel}`
+      : this.barrierUntil > this.time.now
+        ? 'BARRIER - INVINCIBLE'
+        : `${this.playerArmorType().name} ARMOR - LEVEL ${this.armorLevel}`;
     const robotHealth = this.robot ? this.robot.health : 0;
     ui.robotHealth.style.width = `${this.robot ? robotHealth / this.robot.maxHealth * 100 : 0}%`;
     ui.robotHealthText.textContent = robotHealth;
@@ -1750,9 +2155,16 @@ class ArcherScene extends Phaser.Scene {
     const armorCost = BigInt(ARMOR_COST) * (this.armorLevel + 1n);
     const shopState = JSON.stringify([
       this.started, this.ended, this.selectedWeapon, [...this.ownedWeapons],
-      String(this.armorLevel), this.playerHealth >= 100, this.shieldActive,
+      String(this.armorLevel), this.maxHealth, this.playerHealth >= this.maxHealth, this.shieldCharges,
+      this.regenUntil > this.time.now, this.guardUntil > this.time.now, this.thornsUntil > this.time.now,
       ...WEAPONS.map(weapon => this.canAfford(weapon.cost)),
-      this.canAfford(armorCost), this.canAfford(MEDKIT_COST), this.canAfford(SHIELD_COST)
+      this.canAfford(armorCost), this.canAfford(MEDKIT_COST), this.canAfford(SHIELD_COST),
+      this.canAfford(REGEN_COST), this.canAfford(GUARD_COST), this.canAfford(THORNS_COST),
+      this.canAfford(HEALTH_UPGRADE_COST * ((this.maxHealth - 100) / MAX_HEALTH_STEP + 1)),
+      this.selectedArmorType, [...this.ownedArmorTypes], this.isPlayerInvincible(), this.paused,
+      Boolean(this.playerDamageOverTime), this.playerFrozenUntil > this.time.now,
+      ...ARMOR_TYPES.map(armor => this.canAfford(armor.cost)),
+      ...DEFENSE_ITEMS.map(item => this.canAfford(item.cost))
     ]);
     if (shopState === this.lastShopState) return;
     this.lastShopState = shopState;
@@ -1781,7 +2193,7 @@ class ArcherScene extends Phaser.Scene {
       button.append(name, createArrowIcon(selected ? shadeColor(weapon.color, 0.62) : weapon.color, weapon));
       return button;
     }));
-    const upgradeButton = ({ id, label, color, cost, state, disabled, pressed = false, description }) => {
+    const upgradeButton = ({ id, label, color, cost, state, disabled, pressed = false, description, detail }) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = state ? 'upgrade-button is-complete' : 'upgrade-button';
@@ -1798,6 +2210,12 @@ class ArcherScene extends Phaser.Scene {
       const text = document.createElement('span');
       text.className = 'stat-label';
       text.textContent = label;
+      if (detail) {
+        const explanation = document.createElement('small');
+        explanation.className = 'defense-detail';
+        explanation.textContent = detail;
+        text.append(explanation);
+      }
       button.append(chip, text);
       return button;
     };
@@ -1818,19 +2236,89 @@ class ArcherScene extends Phaser.Scene {
         label: `HEALTH +${MEDKIT_HEAL}`,
         color: toCssColor(PALETTE.red),
         cost: MEDKIT_COST,
-        state: this.playerHealth >= 100 ? 'FULL' : null,
-        disabled: closed || this.playerHealth >= 100 || !this.canAfford(MEDKIT_COST),
+        state: this.playerHealth >= this.maxHealth ? 'FULL' : null,
+        disabled: closed || this.playerHealth >= this.maxHealth || !this.canAfford(MEDKIT_COST),
         description: `Medkit restores up to ${MEDKIT_HEAL} health`
       }),
       upgradeButton({
         id: 'shield',
-        label: `SHIELD +${this.shieldActive ? 1 : 0}`,
+        label: `SHIELD x${this.shieldCharges}`,
         color: '#4d8ff0',
         cost: SHIELD_COST,
-        state: this.shieldActive ? 'ACTIVE' : null,
-        disabled: closed || this.shieldActive || !this.canAfford(SHIELD_COST),
-        pressed: this.shieldActive,
-        description: 'Blocks the next hit'
+        state: this.shieldCharges >= MAX_SHIELD_CHARGES ? 'MAX' : this.shieldCharges ? `${this.shieldCharges} READY` : null,
+        disabled: closed || this.shieldCharges >= MAX_SHIELD_CHARGES || !this.canAfford(SHIELD_COST),
+        pressed: this.shieldCharges > 0,
+        description: `Each charge blocks one hit; buy up to ${MAX_SHIELD_CHARGES} charges`
+      }),
+      upgradeButton({
+        id: 'regen',
+        label: `REGEN +${REGEN_HEAL}`,
+        color: '#62db8c',
+        cost: REGEN_COST,
+        state: this.regenUntil > this.time.now ? 'ACTIVE' : null,
+        disabled: closed || this.playerHealth >= this.maxHealth || this.regenUntil > this.time.now || !this.canAfford(REGEN_COST),
+        pressed: this.regenUntil > this.time.now,
+        description: `Restores ${REGEN_HEAL} health every second for ${REGEN_DURATION / 1000} seconds`
+      }),
+      upgradeButton({
+        id: 'guard',
+        label: 'GUARD',
+        color: '#b39af0',
+        cost: GUARD_COST,
+        state: this.guardUntil > this.time.now ? 'ACTIVE' : null,
+        disabled: closed || this.guardUntil > this.time.now || !this.canAfford(GUARD_COST),
+        pressed: this.guardUntil > this.time.now,
+        description: `Reduces incoming damage by ${(1 - GUARD_DAMAGE_FACTOR) * 100}% for ${GUARD_DURATION / 1000} seconds`
+      }),
+      upgradeButton({
+        id: 'health',
+        label: `MAX HEALTH ${this.maxHealth}`,
+        color: '#f27fb2',
+        cost: HEALTH_UPGRADE_COST * ((this.maxHealth - 100) / MAX_HEALTH_STEP + 1),
+        state: this.maxHealth >= MAX_PLAYER_HEALTH ? 'MAX' : null,
+        disabled: closed || this.maxHealth >= MAX_PLAYER_HEALTH || !this.canAfford(HEALTH_UPGRADE_COST * ((this.maxHealth - 100) / MAX_HEALTH_STEP + 1)),
+        pressed: this.maxHealth > 100,
+        description: `Adds ${MAX_HEALTH_STEP} maximum health and heals that amount, up to ${MAX_PLAYER_HEALTH}`
+      }),
+      upgradeButton({
+        id: 'thorns',
+        label: 'THORNS',
+        color: '#f5a623',
+        cost: THORNS_COST,
+        state: this.thornsUntil > this.time.now ? 'ACTIVE' : null,
+        disabled: closed || this.thornsUntil > this.time.now || !this.canAfford(THORNS_COST),
+        pressed: this.thornsUntil > this.time.now,
+        description: `Reflects ${THORNS_DAMAGE_FACTOR * 100}% of hit damage for ${THORNS_DURATION / 1000} seconds`
+      }),
+      ...DEFENSE_ITEMS.map(item => {
+        const unavailable = item.id === 'barrier' ? this.isPlayerInvincible()
+          : item.id === 'cleanse' ? !this.playerDamageOverTime && this.playerFrozenUntil <= this.time.now
+            : this.playerHealth >= this.maxHealth;
+        return upgradeButton({
+          id: item.id,
+          label: item.name,
+          color: toCssColor(item.color),
+          cost: item.cost,
+          state: unavailable ? item.id === 'barrier' ? 'ACTIVE' : item.id === 'repair' ? 'FULL' : 'CLEAR' : null,
+          disabled: closed || this.paused || unavailable || !this.canAfford(item.cost),
+          description: item.detail,
+          detail: item.detail
+        });
+      }),
+      ...ARMOR_TYPES.map(armor => {
+        const owned = this.ownedArmorTypes.has(armor.id);
+        const selected = this.selectedArmorType === armor.id;
+        return upgradeButton({
+          id: `armor-type-${armor.id}`,
+          label: `${armor.name} ARMOR`,
+          color: toCssColor(armor.color),
+          cost: armor.cost,
+          state: selected ? 'EQUIPPED' : owned ? 'OWNED' : null,
+          disabled: closed || this.paused || selected || (!owned && !this.canAfford(armor.cost)),
+          pressed: selected,
+          description: `${armor.detail}. Equip one armor type at a time; owned types can be switched for free`,
+          detail: armor.detail
+        });
       })
     );
   }
