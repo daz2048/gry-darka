@@ -36,7 +36,7 @@ h1 em { font-style: normal; color: #f5cb3d; }
 .primary:hover { background: #ffdd79; }
 .primary:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
 footer { height: 40px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; }
-#immortal { position: absolute; right: 8px; bottom: 8px; padding: 3px 6px; border: 2px solid var(--ink); background: #fff2ac; color: var(--ink); font-size: 15px; pointer-events: none; }
+#immortal { position: absolute; right: 8px; bottom: 8px; max-width: calc(100% - 16px); padding: 3px 6px; border: 2px solid var(--ink); background: #fff2ac; color: var(--ink); font-size: 15px; text-align: center; overflow-wrap: anywhere; pointer-events: none; }
 #notice, #fatal { position: absolute; inset: auto 8px 8px; padding: 10px; font-size: 11px; background: #fff0dd; color: #732b20; border: 1px solid #b9503a; overflow-wrap: anywhere; }
 #fatal { inset: 35% 12px auto; }
 [hidden] { display: none !important; }

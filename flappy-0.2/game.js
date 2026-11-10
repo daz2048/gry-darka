@@ -316,7 +316,7 @@ function boot() {
       if (this.state === 'ready') this.bird.y = 345 + Math.sin(time / 300) * 7;
       if (this.state === 'playing' || this.state === 'ready') this.bird.setFrame(Math.floor(time / 110) % 3);
       if (this.state !== 'playing') return;
-      const movement = SPEED * delta / 1000;
+      const movement = SPEED * (this.immortal ? 4 : 1) * delta / 1000;
       this.background.tilePositionX += movement * .18;
       this.ground.tilePositionX += movement;
       this.bird.angle = Phaser.Math.Clamp(this.bird.body.velocity.y / 9, -25, 70);
