@@ -17,11 +17,12 @@ python3 scripts/game-server.py start
 Press **Lecimy** to start. Tap/click the playfield, Space, or Up to flap. Pass a whole gate to score one point. Ground, ceiling, and gate collisions end the run. Use the explicit restart button for another flight.
 
 - **P** / pause button: pause or resume. Switching tabs or apps pauses automatically; resume explicitly.
-- **M**: become an animated gray pigeon wearing a black top hat with a red ribbon and a matching red tie in immortal turbo mode. Scroll at 4x speed (384 units/second), ignore pipes, and survive the ceiling and ground; the bird stays on-screen at either edge. A visible indicator marks the mode. Press M again to restore the yellow bird, normal speed, and collisions, or reload the page to reset it. Both skins use the same hitbox.
+- **M**: become an animated gray pigeon wearing a black top hat with a red ribbon and a matching red tie in immortal turbo mode. Scroll at 4x speed (960 units/second), ignore pipes, and survive the ceiling and ground; the bird stays on-screen at either edge. A visible indicator marks the mode. Press M again to restore the equipped shop skin, normal speed, and collisions, or reload the page to reset it. All skins use the same hitbox.
+- **B** / star button: open the skin shop. A running game pauses; close the shop with its close button, Escape, or the backdrop, then resume explicitly.
 - **S** / sound button: toggle sound effects and background music together. The original eight-bar tune "Little Wings" loops quietly during play: a bright square-wave melody, soft triangle arpeggios, and a rounded sine-wave bass at 108 BPM. Music stops on pause, mute, game-over, or switching tabs, continues its sequence on resume, and starts over on a new run. Playback begins only after interaction; unavailable audio does not block the game.
 - **H**, **Esc**, or home button: return to the portfolio.
 
-The fixed 360 x 640 world scales to the viewport without changing difficulty. The relaxed pace uses a speed of 96 units/second, pipe spacing of 225 units (about 2.34 seconds apart), and gap height of 220 units. Consecutive gap centers differ by at most 40 units. Gravity is 720 units/second squared and each flap sets upward velocity to 260 units/second for gentler flight. A smaller bird hitbox makes collisions forgiving.
+The fixed 360 x 640 world scales to the viewport without changing difficulty. Extreme difficulty uses a speed of 240 units/second, pipe spacing of 190 units (about 0.79 seconds apart), and gap height of just 90 units. Consecutive gap centers differ by at most 85 units and remain between 130 and 440. Gravity is 1500 units/second squared and each flap sets upward velocity to 400 units/second. All skins retain the same 29 x 23 collision box; only the difficulty settings changed.
 
 ## Technology
 
@@ -29,7 +30,15 @@ Phaser Arcade Physics for gravity and flight; scene delta time for scrolling. Us
 
 Music and effects are synthesized locally with the Web Audio API. The soundtrack is an original composition in `game.js`; no MP3, external music request, or third-party recording is used. Audio-clock scheduling keeps notes steady, and stopping music releases both scheduled and active voices.
 
-Personal best and sound preference use `localStorage/flappy-podlasie-v2`, independently of version 0.1. Storage errors appear in the game and do not prevent play. Scores stay on this browser; no online leaderboard.
+Personal best, sound preference, coin balance, owned skins, and equipped skin use `localStorage/flappy-podlasie-v2`, independently of version 0.1. Existing saves retain their best score and sound setting and receive the four starter skins. Invalid inventory IDs and balances are ignored. Storage errors appear in the game and do not prevent play or shopping within the current session. Progress stays on this browser; no online leaderboard.
+
+## Skin Shop
+
+There are 32 animated skins. Gold, Mint, Blue, and Rose are free. Every passed pipe immediately awards 5 coins, including in turbo mode; a pipe only pays once. Other skins cost 10 to 120 coins. Purchases equip the skin immediately; owned skins can be switched freely without paying again.
+
+The collection includes color variants and distinct costumes: ninja, pirate, aviator, wizard, king, astronaut, robot, bee, ladybug, sailor, Santa, pumpkin, unicorn, flower, chef, cowboy, detective, neon visor, phoenix, and the top-hat pigeon. The gentleman pigeon skin is cosmetic; only M enables turbo and immortality. Selecting a skin during M mode takes effect when M is switched off.
+
+The shop has live artwork previews and All / Owned filters. Skins are generated locally with canvas drawing, without extra downloads or reading local-image pixels, preserving direct-file support. Skins change appearance only, never physics or collision size.
 
 ## Verification
 
