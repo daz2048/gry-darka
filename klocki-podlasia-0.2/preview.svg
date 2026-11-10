@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <rect width="640" height="360" fill="#b7dfe3"/>
+  <path d="M0 220 170 150 360 205 640 140V360H0Z" fill="#87b56a"/>
+  <path d="m0 290 240-100 400 105v65H0Z" fill="#6f9c50"/>
+  <path d="m260 210 95-42 105 53-95 45Z" fill="#b55c46"/>
+  <path d="m260 210 105 56v72l-105-56Z" fill="#ce9d62"/>
+  <path d="m365 266 95-45v71l-95 46Z" fill="#a37650"/>
+  <path d="m282 225 20 11v31l-20-11Zm44 23 22 12v60l-22-12Z" fill="#183f36"/>
+  <path d="m118 144 25-12 25 12v126l-25 12-25-12Z" fill="#88613e"/>
+  <path d="m65 109 78-39 78 39v73l-78 39-78-39Z" fill="#478751"/>
+  <path d="m65 109 78 37 78-37-78-39Z" fill="#79ae53"/>
+  <path d="m0 325 360-130" stroke="#e6ce8b" stroke-width="24"/>
+  <rect x="24" y="24" width="294" height="55" rx="8" fill="#eff5ed"/>
+  <text x="40" y="59" font-family="sans-serif" font-size="27" font-weight="bold" fill="#183f36">KLOCKI PODLASIA</text>
+</svg>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183f36">
+  <title>Klocki Podlasia 0.2 — prototyp Ekipy spod Lipy</title>
+  <link rel="icon" href="preview.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {"imports":{"three":"./vendor/three.module.js"}}
+  </script>
+</head>
+<body>
+  <div id="viewport" aria-label="Trójwymiarowy świat klocków"></div>
+  <header class="topbar">
+    <a class="brand" href="../index.html">EKIPA SPOD LIPY <strong>Klocki Podlasia <small>WERSJA 0.2 · PROTOTYP</small></strong></a>
+    <div class="tools">
+      <button id="pause" disabled>Pauza · P</button>
+      <a href="../index.html">Menu gier · H</a>
+    </div>
+  </header>
+  <div id="crosshair" hidden aria-hidden="true">+</div>
+  <aside class="world-label"><span>PODLASIE / TRYB KREATYWNY</span><strong>Mały świat. Wielkie pomysły.</strong></aside>
+  <section id="hud" aria-label="Materiały i stan gry">
+    <p id="target">Wybierz materiał i zbuduj coś swojego.</p>
+    <div id="palette" aria-label="Wybór materiału"></div>
+    <p class="hint" id="controls-hint">WASD · ruch &nbsp; Spacja · skok &nbsp; 1–8 · klocki &nbsp; Q / E · usuń / dodaj</p>
+    <p class="session-note">Prototyp bez zapisu — budowle znikają po odświeżeniu.</p>
+  </section>
+  <p id="notice" role="status" hidden></p>
+  <section id="overlay" class="overlay" aria-labelledby="heading">
+    <div class="panel">
+      <span class="eyebrow">EKIPA SPOD LIPY · PIERWSZY MODEL 3D</span>
+      <h1 id="heading">Klocki <em>Podlasia</em></h1>
+      <p id="intro">Domek pod lipą to dopiero początek. Spaceruj po łące, rozbieraj klocki i buduj po swojemu.</p>
+      <div class="instructions">
+        <p><b>WASD / strzałki</b> ruch · <b>Spacja</b> skok · mysz obraca widok</p>
+        <p><b>LPM / Q</b> usuń · <b>PPM / E</b> dodaj · <b>1–8 / rolka</b> materiał</p>
+        <p><b>Esc / P</b> pauza i uwolnienie myszy · <b>H</b> menu gier</p>
+      </div>
+      <p id="load-status" role="status">Przygotowujemy łąkę…</p>
+      <div class="actions">
+        <button id="start" class="primary" disabled>Graj — przechwyć mysz</button>
+        <button id="drag-start" disabled>Graj bez przechwytywania</button>
+      </div>
+      <p class="small">Tryb bez przechwytywania: przeciągaj po świecie, aby się rozglądać; Q / E zmieniają klocki. Tylko komputer z klawiaturą.</p>
+      <div class="settings">
+        <label>Czułość myszy <input id="sensitivity" type="range" min="0.4" max="2" step="0.1" value="1"></label>
+        <label><input id="low-quality" type="checkbox"> Niższa rozdzielczość</label>
+      </div>
+      <div class="actions secondary">
+        <button id="recover" disabled>Wróć na start</button>
+        <button id="new-world" disabled>Nowa łąka</button>
+        <button id="fullscreen">Pełny ekran</button>
+        <a href="../index.html">Menu gier</a>
+      </div>
+      <div id="reset-confirm" class="reset-confirm" role="group" aria-label="Potwierdzenie nowej łąki" hidden>
+        <p>Obecna budowla zniknie. Na pewno utworzyć nową łąkę?</p>
+        <button id="confirm-reset">Tak, nowa łąka</button>
+        <button id="cancel-reset">Nie, zachowaj budowlę</button>
+      </div>
+      <p class="small warning">To testowy model: bez zapisu świata, dźwięku, przetrwania i sterowania dotykowego.</p>
+      <details><summary>Diagnostyka modelu</summary><output id="metrics">Oczekiwanie na renderer.</output></details>
+    </div>
+  </section>
+  <noscript><p class="fatal">Ta gra wymaga JavaScript. <a href="../index.html">Menu gier</a></p></noscript>
+  <script type="module">
+    const status = document.getElementById('load-status');
+    if (location.protocol === 'file:') {
+      status.textContent = 'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.2/ — moduły wymagają HTTP.';
+    } else {
+      import('./game.js').catch(error => {
+        console.error('Klocki Podlasia: nie można uruchomić gry.', error);
+        status.textContent = 'Nie można wczytać gry. Sprawdź WebGL2 i lokalne pliki; szczegóły w konsoli przeglądarki. Menu gier pozostaje dostępne.';
+        document.getElementById('overlay').hidden = false;
+        for (const id of ['start', 'drag-start', 'pause']) document.getElementById(id).disabled = true;
+      });
+    }
+  </script>
+</body>
+</html>
