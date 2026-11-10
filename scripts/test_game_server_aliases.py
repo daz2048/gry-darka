@@ -1,6 +1,8 @@
 import importlib.util
 import os
 from pathlib import Path
+import pty
+import re
 import shlex
 import subprocess
 import tempfile
@@ -41,6 +43,51 @@ class AliasTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         return result
+
+    def test_help_colors_and_plain_output(self):
+        env = {**self.env, "TERM": "xterm-256color"}
+        env.pop("NO_COLOR", None)
+        command = ["/bin/bash", str(WRAPPER), "--help"]
+        plain = subprocess.run(
+            command, env=env, capture_output=True, text=True, check=True, timeout=15,
+        ).stdout
+        self.assertNotIn("\033", plain)
+        for overrides, colored in (({}, True), ({"NO_COLOR": "1"}, False), ({"TERM": "dumb"}, False)):
+            with self.subTest(overrides=overrides):
+                master, slave = pty.openpty()
+                try:
+                    process = subprocess.Popen(
+                        command, env={**env, **overrides}, stdout=slave, stderr=subprocess.PIPE,
+                    )
+                    os.close(slave)
+                    slave = None
+                    output = bytearray()
+                    while True:
+                        try:
+                            chunk = os.read(master, 4096)
+                        except OSError as error:
+                            if error.errno != 5:
+                                raise
+                            break
+                        if not chunk:
+                            break
+                        output.extend(chunk)
+                    _, errors = process.communicate(timeout=15)
+                    self.assertEqual(process.returncode, 0, errors)
+                finally:
+                    os.close(master)
+                    if slave is not None:
+                        os.close(slave)
+                text = output.decode().replace("\r\n", "\n")
+                self.assertEqual("\033[" in text, colored)
+                self.assertEqual(re.sub(r"\033\[[0-9;]*m", "", text), plain)
+                if colored:
+                    for fragment in (
+                        "\033[36mOptions:", "\033[36mExamples:", "\033[36mServer:",
+                        "\033[36mMonitor:", "\033[32m--install-aliases",
+                        "\033[32mr\033[0m restart", "\033[31m5xx red",
+                    ):
+                        self.assertIn(fragment, text)
 
     def test_install_forward_arguments_repeat_and_uninstall(self):
         original = "# existing settings\nalias ga='git add'\n"
