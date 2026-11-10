@@ -29,7 +29,7 @@ W monitorze naciskaj pojedyncze klawisze (bez Enter):
 - `d` — włącz lub wyłącz diagnostykę wrappera
 - `h` lub `?` — pokaż skróty
 
-Diagnostykę można też włączyć od razu flagą `-d` lub `--debug`, np. `./scripts/game-server.sh --debug`. Pokazuje dodatkowe informacje o działaniach wrappera na standardowym wyjściu błędów; `d` przełącza ją podczas pracy monitora.
+Diagnostykę można też włączyć od razu flagą `-d` lub `--debug`, np. `./scripts/game-server.sh --debug`. Pokazuje dodatkowe informacje o działaniach wrappera na standardowym wyjściu błędów; `d` przełącza ją podczas pracy monitora. Pomoc `--help` i skróty monitora mają kolorowe nagłówki i polecenia; `NO_COLOR=1`, `TERM=dumb` lub przekierowanie wyjścia wyłączają kolory.
 
 Skróty `r`, `s`, `q`, `x` i `h` działają też jako argumenty skryptu, np. `./scripts/game-server.sh s` sprawdza stan bez otwierania monitora. Flagę debugowania można łączyć z akcją, np. `./scripts/game-server.sh --debug --restart`. Sterowanie klawiszami jest aktywne tylko przy wejściu z terminala; wejście z potoku zachowuje tryb samego podglądu logów.
 
@@ -46,6 +46,20 @@ Serwer nasłuchuje tylko na tym komputerze. Pliki statyczne są odczytywane na b
 Dziennik żądań HTTP i błędów serwera jest przechowywany w `~/Library/Application Support/gry-darka/`; dokładną ścieżkę pokazuje monitor i `--help`. Po osiągnięciu 1 MiB plik jest rotowany: zachowywany jest bieżący plik oraz trzy starsze (`.1`–`.3`), bez limitu wieku. Katalog i pliki dziennika są dostępne tylko dla właściciela. Dziennik nie zawiera konsoli przeglądarki ani diagnostyki wrappera, która trafia do terminala. Aby włączyć rotację dla już działającego serwera, uruchom go ponownie (`r` w monitorze lub `./scripts/game-server.sh --restart`).
 
 Opcja restart zatrzymuje również ręcznie uruchomiony serwer tego repozytorium na porcie 8765. Nie zatrzymuje niezwiązanych procesów zajmujących ten port.
+
+### Opcjonalne skróty terminala
+
+```bash
+./scripts/game-server.sh --install-aliases              # tylko game-server
+./scripts/game-server.sh --install-aliases --with-game  # game-server i game
+./scripts/game-server.sh --uninstall-aliases            # usuń zarządzany blok
+```
+
+Instalacja jest wyłącznie na żądanie, dla zsh lub bash. Przed dodaniem każdego skrótu sprawdza aliasy, funkcje, polecenia wbudowane i programy w `PATH` w nowej interaktywnej sesji powłoki logowania. Zajęte nazwy są pomijane; `ga` nie jest instalowany. Lokalne aliasy zdefiniowane tylko w już otwartym terminalu nie są widoczne dla instalatora, ale blok sprawdza konflikty ponownie podczas ładowania i nie nadpisuje istniejących nazw.
+
+Blok trafia do `.zshrc` (z uwzględnieniem `ZDOTDIR`) albo pierwszego używanego pliku startowego bash (`.bash_profile`, `.bash_login`, `.profile`). Przed zmianą istniejącego pliku powstaje kopia zapasowa; ponowna instalacja nie dodaje duplikatów. Aby zmienić wybór skrótów, najpierw je odinstaluj. Odinstalowanie usuwa tylko oznaczony blok, nie inne ustawienia.
+
+Po instalacji otwórz nowy terminal: `game-server`, `game-server s`, `game-server --restart` i opcjonalnie `game` działają z dowolnego katalogu. Skróty wskazują bezwzględną ścieżkę repozytorium; po jego przeniesieniu odinstaluj je i zainstaluj ponownie. Zmiany nie modyfikują aliasów w już otwartych terminalach; po odinstalowaniu zamknij je albo usuń odpowiednie aliasy ręcznie.
 
 ---
 
