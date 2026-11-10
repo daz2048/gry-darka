@@ -78,7 +78,7 @@ function boot() {
     constructor() { super('flight'); }
 
     preload() {
-      this.load.svg('bird', 'assets/bird.svg', { width: 48, height: 36 });
+      this.load.svg('bird-sheet', 'assets/bird.svg', { width: 144, height: 36 });
       this.load.svg('landscape', 'assets/landscape.svg', { width: 720, height: 640 });
       this.load.on('loaderror', () => { ui.fatal.hidden = false; });
     }
@@ -89,26 +89,32 @@ function boot() {
       this.points = 0;
       this.lastGap = 290;
       this.background = this.add.tileSprite(180, 320, WIDTH, HEIGHT, 'landscape');
+      this.textures.addSpriteSheet('bird', this.textures.get('bird-sheet').getSourceImage(), { frameWidth: 48, frameHeight: 36 });
       const graphics = this.make.graphics({ x: 0, y: 0 });
-      graphics.fillStyle(0x87523b).fillRect(0, 0, 58, 640);
-      graphics.fillStyle(0xb77b50).fillRect(5, 0, 20, 640).fillRect(30, 0, 21, 640);
-      graphics.lineStyle(2, 0xd7a673, .7);
-      for (let height = 12; height < 640; height += 54) {
-        graphics.lineBetween(11, height, 17, height + 27);
-        graphics.lineBetween(38, height + 9, 43, height + 32);
-      }
-      graphics.generateTexture('wood', 58, 640);
+      graphics.fillStyle(0x324d35).fillRect(0, 0, 58, 640);
+      graphics.fillStyle(0x527f38).fillRect(3, 0, 52, 640);
+      graphics.fillStyle(0x82bd45).fillRect(6, 0, 37, 640);
+      graphics.fillStyle(0xbde66b).fillRect(9, 0, 8, 640);
+      graphics.fillStyle(0x9bd654).fillRect(20, 0, 6, 640);
+      graphics.fillStyle(0x669f3b).fillRect(43, 0, 6, 640);
+      graphics.generateTexture('pipe', 58, 640);
       graphics.clear();
-      graphics.fillStyle(0x7b4935).fillRect(0, 0, 70, 18);
-      graphics.fillStyle(0xe4b37a).fillRect(3, 3, 64, 5);
-      graphics.fillStyle(0x4b7552).fillRect(0, 0, 70, 3);
+      graphics.fillStyle(0x324d35).fillRect(0, 0, 70, 18);
+      graphics.fillStyle(0x82bd45).fillRect(3, 3, 64, 12);
+      graphics.fillStyle(0xbde66b).fillRect(6, 3, 8, 12).fillRect(6, 3, 55, 3);
+      graphics.fillStyle(0x527f38).fillRect(58, 6, 9, 9);
       graphics.generateTexture('cap', 70, 18);
       graphics.clear();
-      graphics.fillStyle(0x6a9850).fillRect(0, 0, 360, 64);
-      graphics.fillStyle(0xb4cd72).fillRect(0, 0, 360, 8);
-      graphics.fillStyle(0x496d43).fillRect(0, 12, 360, 3);
-      graphics.fillStyle(0xeac96b);
-      for (let position = 12; position < 360; position += 38) graphics.fillCircle(position, 35, 2);
+      graphics.fillStyle(0xe8d8a1).fillRect(0, 0, 360, 64);
+      graphics.fillStyle(0x324d35).fillRect(0, 0, 360, 3);
+      graphics.fillStyle(0xc4e77b).fillRect(0, 3, 360, 6);
+      graphics.fillStyle(0x82bd45).fillRect(0, 9, 360, 12);
+      graphics.fillStyle(0x5c963c);
+      for (let position = -12; position < 360; position += 24) {
+        graphics.fillRect(position, 9, 9, 3).fillRect(position + 3, 12, 9, 3).fillRect(position + 6, 15, 9, 3).fillRect(position + 9, 18, 9, 3);
+      }
+      graphics.fillStyle(0x8e8857).fillRect(0, 21, 360, 3);
+      graphics.fillStyle(0xf6edbf).fillRect(0, 24, 360, 3);
       graphics.generateTexture('ground', 360, 64);
       graphics.destroy();
       this.ground = this.add.tileSprite(180, 608, WIDTH, 64, 'ground').setDepth(4);
@@ -116,7 +122,6 @@ function boot() {
       this.bird = this.physics.add.sprite(104, 285, 'bird').setDepth(3);
       this.bird.body.setSize(29, 23).setOffset(7, 7);
       this.bird.body.setAllowGravity(false);
-      this.wing = this.add.ellipse(99, 290, 18, 11, 0xf3a535).setDepth(3);
       this.input.on('pointerdown', () => this.flap());
       this.input.keyboard.addCapture(['SPACE', 'UP']);
       this.input.keyboard.on('keydown', event => {
@@ -162,8 +167,8 @@ function boot() {
       this.lastGap = center;
       const upperEdge = center - GAP / 2;
       const lowerEdge = center + GAP / 2;
-      const top = this.add.image(position, upperEdge, 'wood').setOrigin(.5, 1);
-      const bottom = this.add.image(position, lowerEdge, 'wood').setOrigin(.5, 0);
+      const top = this.add.image(position, upperEdge, 'pipe').setOrigin(.5, 1);
+      const bottom = this.add.image(position, lowerEdge, 'pipe').setOrigin(.5, 0);
       const upperCap = this.add.image(position, upperEdge - 9, 'cap');
       const lowerCap = this.add.image(position, lowerEdge + 9, 'cap');
       this.obstacles.push({ x: position, upperEdge, lowerEdge, scored: false, parts: [top, bottom, upperCap, lowerCap] });
@@ -211,9 +216,8 @@ function boot() {
 
     update(time, delta) {
       if (!this.bird) return;
-      if (this.state === 'ready') this.bird.y = 285 + Math.sin(time / 300) * 7;
-      this.wing.setPosition(this.bird.x - 5, this.bird.y + 4).setAngle(this.bird.angle);
-      this.wing.scaleY = this.state === 'playing' || this.state === 'ready' ? .6 + Math.sin(time / 70) * .3 : .6;
+      if (this.state === 'ready') this.bird.y = 345 + Math.sin(time / 300) * 7;
+      if (this.state === 'playing' || this.state === 'ready') this.bird.setFrame(Math.floor(time / 110) % 3);
       if (this.state !== 'playing') return;
       const movement = SPEED * delta / 1000;
       this.background.tilePositionX += movement * .18;
@@ -246,7 +250,7 @@ function boot() {
   ui.primary.disabled = true;
   window.flappyGame = new Phaser.Game({
     type: Phaser.CANVAS, parent: 'game', width: WIDTH, height: HEIGHT,
-    backgroundColor: '#b7e5df', render: { antialias: true },
+    backgroundColor: '#78c6ce', render: { antialias: false, pixelArt: true, roundPixels: true },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     physics: { default: 'arcade', arcade: { gravity: { y: 1000 }, fixedStep: false } },
     scene: FlightScene, audio: { noAudio: true }

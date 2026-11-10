@@ -1,6 +1,6 @@
 # Flappy Podlasie 0.2
 
-Original Flappy Bird-style browser game from Ekipa spod Lipy. Fly through wooden gates above a Podlasie meadow. Original SVG bird and scenery; synthesized sound effects. No copied Flappy Bird assets.
+Original Flappy Bird-style browser game from Ekipa spod Lipy. Fly between shaded green pipes over a pixel skyline. Three-frame pixel bird animation, crisp nearest-neighbor rendering, striped scrolling ground, arcade typography, and synthesized sound effects. All artwork is original; no copied Flappy Bird assets. Version 0.1 retains its original meadow graphics.
 
 Working version on branch `archer-0.4-works-starts-n0w`, cloned from `../flappy-0.1/`. Make future Flappy Podlasie changes here by default; keep 0.1 as the preserved release unless explicitly requested otherwise.
 
