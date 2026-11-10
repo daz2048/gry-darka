@@ -7,7 +7,7 @@ const SPEED = 96;
 const GAP = 220;
 const SPACING = 225;
 const STORAGE_KEY = 'flappy-podlasie-v2';
-const ui = Object.fromEntries(['score', 'best', 'overlay', 'eyebrow', 'title', 'result', 'primary', 'sound', 'pause', 'notice', 'fatal'].map(id => [id, document.getElementById(id)]));
+const ui = Object.fromEntries(['score', 'best', 'overlay', 'eyebrow', 'title', 'result', 'primary', 'sound', 'pause', 'immortal', 'notice', 'fatal'].map(id => [id, document.getElementById(id)]));
 let preferences = { best: 0, muted: false };
 let scene;
 let audio;
@@ -172,6 +172,7 @@ function boot() {
       scene = this;
       this.state = 'ready';
       this.points = 0;
+      this.immortal = false;
       this.lastGap = 290;
       this.background = this.add.tileSprite(180, 320, WIDTH, HEIGHT, 'landscape');
       this.textures.addSpriteSheet('bird', this.textures.get('bird-sheet').getSourceImage(), { frameWidth: 48, frameHeight: 36 });
@@ -213,7 +214,8 @@ function boot() {
         if (event.repeat || event.target.closest('button, a, input')) return;
         if (event.code === 'Space' || event.code === 'ArrowUp') this.flap();
         if (event.code === 'KeyP') this.togglePause();
-        if (event.code === 'KeyM') ui.sound.click();
+        if (event.code === 'KeyM') this.toggleImmortality();
+        if (event.code === 'KeyS') ui.sound.click();
         if (event.code === 'KeyH' || event.code === 'Escape') window.location.href = '../index.html';
       });
       this.game.events.on(Phaser.Core.Events.BLUR, () => this.pauseFlight());
@@ -268,6 +270,11 @@ function boot() {
       tone(560, .075, 780);
     }
 
+    toggleImmortality() {
+      this.immortal = !this.immortal;
+      ui.immortal.hidden = !this.immortal;
+    }
+
     pauseFlight() {
       if (this.state !== 'playing') return;
       this.state = 'paused';
@@ -314,11 +321,17 @@ function boot() {
       this.ground.tilePositionX += movement;
       this.bird.angle = Phaser.Math.Clamp(this.bird.body.velocity.y / 9, -25, 70);
       const body = this.bird.body;
-      if (body.top <= 0 || body.bottom >= GROUND) { this.endFlight(); return; }
+      if (body.top <= 0 || body.bottom >= GROUND) {
+        if (!this.immortal) { this.endFlight(); return; }
+        body.reset(this.bird.x, this.bird.y);
+        const correction = body.top < 0 ? -body.top : Math.min(0, GROUND - body.bottom);
+        body.reset(this.bird.x, this.bird.y + correction);
+        body.setVelocityY(0);
+      }
       for (const pair of this.obstacles) {
         pair.x -= movement;
         pair.parts.forEach(part => { part.x = pair.x; });
-        if (body.right > pair.x - 35 && body.left < pair.x + 35 && (body.top < pair.upperEdge || body.bottom > pair.lowerEdge)) {
+        if (!this.immortal && body.right > pair.x - 35 && body.left < pair.x + 35 && (body.top < pair.upperEdge || body.bottom > pair.lowerEdge)) {
           this.endFlight();
           return;
         }

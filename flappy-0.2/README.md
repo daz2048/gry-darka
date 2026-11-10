@@ -17,7 +17,8 @@ python3 scripts/game-server.py start
 Press **Lecimy** to start. Tap/click the playfield, Space, or Up to flap. Pass a whole gate to score one point. Ground, ceiling, and gate collisions end the run. Use the explicit restart button for another flight.
 
 - **P** / pause button: pause or resume. Switching tabs or apps pauses automatically; resume explicitly.
-- **M** / sound button: toggle sound effects and background music together. The original eight-bar tune "Little Wings" loops quietly during play: a bright square-wave melody, soft triangle arpeggios, and a rounded sine-wave bass at 108 BPM. Music stops on pause, mute, game-over, or switching tabs, continues its sequence on resume, and starts over on a new run. Playback begins only after interaction; unavailable audio does not block the game.
+- **M**: toggle immortality. Ignore pipes and survive the ceiling and ground; the bird stays on-screen at either edge. A visible indicator marks the mode. It remains enabled until M is pressed again or the page is reloaded.
+- **S** / sound button: toggle sound effects and background music together. The original eight-bar tune "Little Wings" loops quietly during play: a bright square-wave melody, soft triangle arpeggios, and a rounded sine-wave bass at 108 BPM. Music stops on pause, mute, game-over, or switching tabs, continues its sequence on resume, and starts over on a new run. Playback begins only after interaction; unavailable audio does not block the game.
 - **H**, **Esc**, or home button: return to the portfolio.
 
 The fixed 360 x 640 world scales to the viewport without changing difficulty. The relaxed pace uses a speed of 96 units/second, pipe spacing of 225 units (about 2.34 seconds apart), and gap height of 220 units. Consecutive gap centers differ by at most 40 units. Gravity is 720 units/second squared and each flap sets upward velocity to 260 units/second for gentler flight. A smaller bird hitbox makes collisions forgiving.
