@@ -71,6 +71,13 @@ Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
 
 ## 📋 Dostępne gry
 
+### Flappy Podlasie
+Oryginalna gra w stylu Flappy Bird: przelatuj przez drewniane bramy nad podlaska laka i pobij swoj rekord. Pierwsza gra w menu portfolio.
+- **Sterowanie:** dotyk / klikniecie / spacja / strzalka w gore; P: pauza; M: dzwiek; H / Esc: menu gier.
+- Rekord i ustawienie dzwieku zapisywane lokalnie. Brak zapisu nie blokuje gry.
+- [Zagraj »](flappy-0.1/)
+- [Szczegoly](flappy-0.1/README.md)
+
 ### Ragdoll Archers
 Self-hosted Unity WebGL build of the ragdoll archery game.
 - [Zagraj »](ragdoll-archers/)

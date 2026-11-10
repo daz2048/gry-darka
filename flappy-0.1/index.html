@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#183f36">
+  <meta name="description" content="Flappy Podlasie: maly ptak, wielka przygoda. Darmowa gra przegladarkowa Ekipy spod Lipy.">
+  <title>Flappy Podlasie | Ekipa spod Lipy</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="../mario-0.3/vendor/phaser.min.js"></script>
+  <script defer src="game.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="icon" href="../index.html" title="Menu gier (H / Esc)" aria-label="Menu gier">&#8962;</a>
+      <div class="brand">FLAPPY <strong>PODLASIE</strong></div>
+      <div class="tools">
+        <button id="sound" class="icon" title="Dzwiek (M)" aria-label="Dzwiek" aria-pressed="true">&#9835;</button>
+        <button id="pause" class="icon" title="Pauza (P)" aria-label="Pauza" aria-pressed="false" disabled>&#9208;</button>
+      </div>
+    </header>
+    <section class="playfield" aria-label="Flappy Podlasie">
+      <div id="game" role="img" aria-label="Ptak przelatujacy przez drewniane bramy"></div>
+      <div class="hud"><span>WYNIK <b id="score">0</b></span><span>REKORD <b id="best">0</b></span></div>
+      <div id="overlay" class="overlay">
+        <div class="overlay-content">
+          <span id="eyebrow" class="eyebrow">EKIPA SPOD LIPY</span>
+          <h1 id="title">Flappy<br><em>Podlasie</em></h1>
+          <p id="result">Maly ptak. Wielki swiat.</p>
+          <button id="primary" class="primary">Lecimy <span aria-hidden="true">&#8594;</span></button>
+        </div>
+      </div>
+      <div id="notice" role="status" hidden></div>
+      <div id="fatal" role="alert" hidden>Nie udalo sie uruchomic gry. Odswiez strone lub <a href="../index.html">wroc do menu</a>.</div>
+    </section>
+    <footer><span>HAJNOWKA / PODLASIE</span><span>01</span></footer>
+  </main>
+</body>
+</html>
