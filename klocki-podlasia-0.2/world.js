@@ -26,7 +26,12 @@ export const BLOCKS = [
   { name: 'Stal', color: '#95b3c2' },
   { name: 'Złoto', color: '#f4cc52' },
   { name: 'Koral', color: '#e992a1' },
-  { name: 'Turkus', color: '#55c4b8' }
+  { name: 'Turkus', color: '#55c4b8' },
+  { name: 'Ruda węgla', color: '#555b59' },
+  { name: 'Ruda żelaza', color: '#c59078' },
+  { name: 'Ruda miedzi', color: '#c47d56' },
+  { name: 'Ruda złota', color: '#e2bd45' },
+  { name: 'Ruda diamentu', color: '#49bad1' }
 ];
 
 export function randomGenerator(seed) {
@@ -37,13 +42,44 @@ export function randomGenerator(seed) {
   };
 }
 
-function buildHouse(world, minX, maxX, minZ, maxZ, floor, wall, roof) {
+function inSettlement(x, z) {
+  const villageClearing = z >= 24 && z <= 44 &&
+    ((x >= 5 && x <= 21) || (x >= 23 && x <= 42) || (x >= 43 && x <= 58));
+  const villageRoad = x >= 5 && x <= 58 && z >= 32 && z <= 34;
+  return villageClearing || villageRoad;
+}
+
+function generateOres(world, random) {
+  const deposits = [
+    { id: 25, veins: 96, depth: 8, length: 7 },
+    { id: 26, veins: 72, depth: 7, length: 6 },
+    { id: 27, veins: 54, depth: 6, length: 6 },
+    { id: 28, veins: 30, depth: 6, length: 4 },
+    { id: 29, veins: 18, depth: 5, length: 3 }
+  ];
+  for (const deposit of deposits) for (let vein = 0; vein < deposit.veins; vein++) {
+    const centerX = 2 + Math.floor(random() * 60);
+    const centerZ = 2 + Math.floor(random() * 60);
+    let surface = SIZE[1] - 1;
+    while (surface > 0 && !world.get(centerX, surface, centerZ)) surface--;
+    const centerY = surface - 3 - Math.floor(random() * deposit.depth);
+    for (let step = 0; step < deposit.length; step++) {
+      const x = centerX + Math.floor(random() * 3) - 1;
+      const y = centerY + Math.floor(random() * 3) - 1;
+      const z = centerZ + Math.floor(random() * 3) - 1;
+      if (y > 0 && world.get(x, y, z) === 3) world.write(x, y, z, deposit.id);
+    }
+  }
+}
+
+function buildHouse(world, minX, maxX, minZ, maxZ, floor, wall, roof, front = 'maxZ') {
   const doorX = Math.floor((minX + maxX) / 2);
+  const frontZ = front === 'minZ' ? minZ : maxZ;
   for (let x = minX; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) {
     world.write(x, 8, z, floor);
     for (let y = 9; y <= 12; y++) {
       const boundary = x === minX || x === maxX || z === minZ || z === maxZ;
-      const doorway = z === maxZ && x === doorX && y <= 11;
+      const doorway = z === frontZ && x === doorX && y <= 11;
       const window = y >= 10 && y <= 11 &&
         ((z === maxZ && (x === minX + 1 || x === maxX - 1)) ||
           (x === minX && z === Math.floor((minZ + maxZ) / 2)) ||
@@ -53,6 +89,22 @@ function buildHouse(world, minX, maxX, minZ, maxZ, floor, wall, roof) {
     world.write(x, 13, z, roof);
     if (x > minX && x < maxX) world.write(x, 14, z, roof);
     if (x === doorX) world.write(x, 15, z, roof);
+  }
+}
+
+function buildWell(world, x, z) {
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+    const edge = Math.abs(dx) === 1 || Math.abs(dz) === 1;
+    world.write(x + dx, 8, z + dz, edge ? 11 : 6);
+    if (edge && Math.abs(dx) === Math.abs(dz)) {
+      world.write(x + dx, 9, z + dz, 4);
+      world.write(x + dx, 10, z + dz, 4);
+      world.write(x + dx, 11, z + dz, 7);
+    }
+  }
+  world.write(x, 10, z, 22);
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+    world.write(x + dx, 12, z + dz, 7);
   }
 }
 
@@ -86,7 +138,7 @@ export class World {
     const phase = random() * Math.PI * 2;
     for (let x = 0; x < SIZE[0]; x++) {
       for (let z = 0; z < SIZE[2]; z++) {
-        const clearing = x >= 23 && x <= 42 && z >= 24 && z <= 44;
+        const clearing = inSettlement(x, z);
         const height = clearing ? 7 :
           Math.max(4, Math.floor(7 + Math.sin(x / 8 + phase) * 2 + Math.cos(z / 9) * 2));
         for (let y = 0; y <= height; y++) {
@@ -95,10 +147,11 @@ export class World {
         if (clearing && (x === 32 || x === 33) && z >= 29) this.write(x, height, z, 6);
       }
     }
+    generateOres(this, random);
     for (let i = 0; i < 80; i++) {
       const x = 3 + Math.floor(random() * 58);
       const z = 3 + Math.floor(random() * 58);
-      if (x > 20 && x < 45 && z > 21 && z < 48) continue;
+      if (inSettlement(x, z)) continue;
       let ground = 20;
       while (ground > 0 && !this.get(x, ground, z)) ground--;
       for (let y = 1; y <= 4; y++) this.write(x, ground + y, z, 4);
@@ -110,6 +163,7 @@ export class World {
         }
       }
     }
+    for (let x = 5; x <= 58; x++) for (let z = 32; z <= 34; z++) this.write(x, 7, z, 6);
     // A small original cottage gives the first view scale and a building idea.
     for (let x = 28; x <= 37; x++) for (let z = 25; z <= 32; z++) {
       this.write(x, 8, z, 7);
@@ -123,6 +177,12 @@ export class World {
     for (const x of [30, 35]) for (const y of [10, 11]) this.write(x, y, 32, 0);
     buildHouse(this, 24, 30, 35, 41, 17, 10, 8);
     buildHouse(this, 35, 41, 35, 41, 16, 9, 20);
+    buildHouse(this, 7, 13, 25, 31, 17, 10, 8);
+    buildHouse(this, 14, 20, 36, 42, 7, 9, 20, 'minZ');
+    buildHouse(this, 44, 50, 25, 31, 16, 12, 8);
+    buildHouse(this, 51, 57, 36, 42, 7, 10, 20, 'minZ');
+    buildWell(this, 10, 38);
+    buildWell(this, 47, 38);
     for (let x = 0; x < 4; x++) for (let y = 0; y < 2; y++) {
       for (let z = 0; z < 4; z++) this.dirty.add(`${x},${y},${z}`);
     }

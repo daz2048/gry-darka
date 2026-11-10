@@ -21,6 +21,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 #hud { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 24px)); text-align: center; }
 #target { display: inline-block; background: #183f36df; color: #fff8df; border-radius: 6px; padding: 7px 16px; margin: 0 0 8px; font-size: 13px; }
 #palette-pages { display: flex; justify-content: center; margin-bottom: 6px; }
+#palette-pages .palette-short { display: none; }
 #palette-pages button { flex: 1; min-width: 0; border-radius: 0; font-size: 12px; padding: 6px; }
 #palette-pages button + button { border-left: 0; }
 #palette-pages button[aria-pressed="true"] { background: #ffe193; border-color: #183f36; }
@@ -53,5 +54,5 @@ output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: mo
 .fatal { position: fixed; top: 10px; background: white; padding: 20px; z-index: 5; }
 @media (max-width: 700px) { .topbar { padding: 12px; } .brand strong { font-size: 17px; } .brand small { display: block; margin: 3px 0 0; font-size: 8px; letter-spacing: 0; } .world-label, .tools a { display: none; } .panel { padding: 22px; } .slot { font-size: 9px; } }
 @media (max-height: 650px) { .overlay { place-items: start center; } .panel { padding: 20px; } h1 { font-size: 32px; } .world-label { display: none; } }
-@media (max-width: 600px) { #palette { grid-template-columns: repeat(4, minmax(0, 1fr)); } #palette-pages button { font-size: 11px; } }
+@media (max-width: 600px) { #palette { grid-template-columns: repeat(4, minmax(0, 1fr)); } #palette-pages button { font-size: 11px; } #palette-pages .palette-full { display: none; } #palette-pages .palette-short { display: inline; } }
 @media (max-height: 480px) { .hint, .session-note { display: none; } .slot { min-height: 49px; padding: 4px 2px; font-size: 10px; } .swatch { width: 18px; height: 18px; margin-bottom: 2px; } #palette { padding: 4px; } #target { font-size: 11px; padding: 4px 10px; margin-bottom: 4px; } #palette-pages button { padding: 4px; } }

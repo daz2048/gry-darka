@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#183f36">
   <title>Klocki Podlasia 0.2 — prototyp Ekipy spod Lipy</title>
   <link rel="icon" href="preview.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
   <script type="importmap">
     {"imports":{"three":"./vendor/three.module.js"}}
   </script>
@@ -25,9 +25,10 @@
   <section id="hud" aria-label="Materiały i stan gry">
     <p id="target">Wybierz materiał i zbuduj coś swojego.</p>
     <div id="palette-pages" role="group" aria-label="Zestawy materiałów">
-      <button data-page="0" aria-pressed="true">Podstawowe</button>
-      <button data-page="1" aria-pressed="false">Budowlane</button>
-      <button data-page="2" aria-pressed="false">Ozdobne</button>
+      <button data-page="0" aria-label="Podstawowe" aria-pressed="true"><span class="palette-full">Podstawowe</span><span class="palette-short" aria-hidden="true">Podst.</span></button>
+      <button data-page="1" aria-label="Budowlane" aria-pressed="false"><span class="palette-full">Budowlane</span><span class="palette-short" aria-hidden="true">Bud.</span></button>
+      <button data-page="2" aria-label="Ozdobne" aria-pressed="false"><span class="palette-full">Ozdobne</span><span class="palette-short" aria-hidden="true">Ozd.</span></button>
+      <button data-page="3" aria-label="Rudy" aria-pressed="false"><span class="palette-full">Rudy</span><span class="palette-short" aria-hidden="true">Rudy</span></button>
     </div>
     <div id="palette" aria-label="Wybór materiału"></div>
     <p class="hint" id="controls-hint">WASD · ruch &nbsp; Spacja · skok &nbsp; 1–8 · klocki &nbsp; Q / E · usuń / dodaj</p>

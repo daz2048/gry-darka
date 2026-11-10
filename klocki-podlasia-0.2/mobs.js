@@ -3,12 +3,18 @@ import { SIZE } from './world.js';
 const PASTURES = [
   { kind: 'cow', x: 25.4, z: 28.2, radius: 0.58, height: 1.62, speed: 0.55,
     bounds: { minX: 24, maxX: 27.2, minZ: 25.5, maxZ: 30.6 } },
-  { kind: 'sheep', x: 25.5, z: 33.2, radius: 0.5, height: 1.42, speed: 0.42,
-    bounds: { minX: 24, maxX: 27.2, minZ: 32.4, maxZ: 34.2 } },
+  { kind: 'sheep', x: 9.5, z: 42, radius: 0.5, height: 1.42, speed: 0.42,
+    bounds: { minX: 7.5, maxX: 13, minZ: 40, maxZ: 44 } },
   { kind: 'pig', x: 40, z: 28.2, radius: 0.52, height: 1.38, speed: 0.62,
     bounds: { minX: 38.6, maxX: 41.4, minZ: 25.5, maxZ: 30.6 } },
-  { kind: 'chicken', x: 40, z: 33.2, radius: 0.32, height: 1.38, speed: 0.7,
-    bounds: { minX: 38.6, maxX: 41.4, minZ: 32.4, maxZ: 34.2 } }
+  { kind: 'chicken', x: 54, z: 28.2, radius: 0.32, height: 1.38, speed: 0.7,
+    bounds: { minX: 51.5, maxX: 56.5, minZ: 25.5, maxZ: 30.6 } },
+  { kind: 'ironGolem', x: 23.5, z: 33.5, radius: 0.78, height: 2.85, speed: 0.32,
+    bounds: { minX: 22, maxX: 27, minZ: 32.78, maxZ: 33.22 } },
+  { kind: 'ironGolem', x: 13.5, z: 33.5, radius: 0.78, height: 2.85, speed: 0.32,
+    bounds: { minX: 8, maxX: 19, minZ: 32.78, maxZ: 33.22 } },
+  { kind: 'ironGolem', x: 50.5, z: 33.5, radius: 0.78, height: 2.85, speed: 0.32,
+    bounds: { minX: 45, maxX: 57, minZ: 32.78, maxZ: 33.22 } }
 ];
 
 function random(mob) {
@@ -172,7 +178,7 @@ export function createMobModel(THREE, mob) {
     eyes('#302b2a', 1.1, 0.77, 0.17);
     addLegs(THREE, group, materials, mob, '#5e5147',
       [[-0.31, -0.25], [0.31, -0.25], [-0.31, 0.25], [0.31, 0.25]], 0.4);
-  } else {
+  } else if (mob.kind === 'chicken') {
     cube('#f5f1e7', [0.58, 0.67, 0.62], [0, 0.72, 0]);
     cube('#fffaf0', [0.37, 0.39, 0.38], [0, 1.12, 0.29]);
     cube('#e4aa38', [0.2, 0.14, 0.2], [0, 1.04, 0.58]);
@@ -181,6 +187,18 @@ export function createMobModel(THREE, mob) {
     cube('#e8ded0', [0.18, 0.35, 0.42], [0.34, 0.75, 0]);
     eyes('#272826', 1.19, 0.46, 0.14);
     addLegs(THREE, group, materials, mob, '#d08b3f', [[-0.13, -0.12], [0.13, -0.12]], 0.27);
+  } else {
+    cube('#aebbb2', [0.9, 1.2, 0.64], [0, 1.43, 0]);
+    cube('#c1ccc4', [0.72, 0.68, 0.66], [0, 2.34, 0.03]);
+    cube('#87958c', [0.32, 1.42, 0.4], [-0.62, 1.6, 0]);
+    cube('#87958c', [0.32, 1.42, 0.4], [0.62, 1.6, 0]);
+    cube('#7b887e', [0.28, 0.38, 0.1], [0, 2.14, 0.39]);
+    cube('#53675a', [0.12, 0.48, 0.055], [-0.22, 1.5, 0.34]);
+    cube('#53675a', [0.1, 0.32, 0.055], [0.18, 1.08, 0.34]);
+    cube('#46564c', [0.1, 0.09, 0.045], [-0.2, 2.39, 0.38]);
+    cube('#46564c', [0.1, 0.09, 0.045], [0.2, 2.39, 0.38]);
+    addLegs(THREE, group, materials, mob, '#738078',
+      [[-0.25, -0.12], [0.25, -0.12], [-0.25, 0.12], [0.25, 0.12]], 0.78);
   }
   return { group, legs: mob.legs, materials };
 }
