@@ -3,8 +3,8 @@
 const WIDTH = 360;
 const HEIGHT = 640;
 const GROUND = 576;
-const SPEED = 138;
-const GAP = 180;
+const SPEED = 96;
+const GAP = 220;
 const SPACING = 225;
 const STORAGE_KEY = 'flappy-podlasie-v2';
 const ui = Object.fromEntries(['score', 'best', 'overlay', 'eyebrow', 'title', 'result', 'primary', 'sound', 'pause', 'notice', 'fatal'].map(id => [id, document.getElementById(id)]));
@@ -155,7 +155,7 @@ function boot() {
       this.bird.setPosition(104, 285).setAngle(-15);
       this.bird.body.reset(104, 285);
       this.bird.body.setAllowGravity(true);
-      this.bird.body.setVelocity(0, -315);
+      this.bird.body.setVelocity(0, -260);
       this.addPair(460);
       this.addPair(460 + SPACING);
       this.addPair(460 + SPACING * 2);
@@ -163,7 +163,7 @@ function boot() {
     }
 
     addPair(position) {
-      const center = Phaser.Math.Clamp(this.lastGap + Phaser.Math.Between(-65, 65), 190, 390);
+      const center = Phaser.Math.Clamp(this.lastGap + Phaser.Math.Between(-40, 40), 190, 390);
       this.lastGap = center;
       const upperEdge = center - GAP / 2;
       const lowerEdge = center + GAP / 2;
@@ -177,7 +177,7 @@ function boot() {
     flap() {
       if (this.state !== 'playing') return;
       unlockAudio();
-      this.bird.body.setVelocityY(-315);
+      this.bird.body.setVelocityY(-260);
       tone(560, .075, 780);
     }
 
@@ -253,7 +253,7 @@ function boot() {
     backgroundColor: '#78c6ce', render: { antialias: false, pixelArt: true, roundPixels: true },
     loader: { imageLoadType: 'HTMLImageElement', crossOrigin: null },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    physics: { default: 'arcade', arcade: { gravity: { y: 1000 }, fixedStep: false } },
+    physics: { default: 'arcade', arcade: { gravity: { y: 720 }, fixedStep: false } },
     scene: FlightScene, audio: { noAudio: true }
   });
 }

@@ -20,7 +20,7 @@ Press **Lecimy** to start. Tap/click the playfield, Space, or Up to flap. Pass a
 - **M** / sound button: toggle audio.
 - **H**, **Esc**, or home button: return to the portfolio.
 
-The fixed 360 x 640 world scales to the viewport without changing difficulty. Speed is 138 units/second; gate spacing is 225 units; gap height is 180 units. Consecutive gap centers differ by at most 65 units. A smaller bird hitbox makes collisions forgiving.
+The fixed 360 x 640 world scales to the viewport without changing difficulty. The relaxed pace uses a speed of 96 units/second, pipe spacing of 225 units (about 2.34 seconds apart), and gap height of 220 units. Consecutive gap centers differ by at most 40 units. Gravity is 720 units/second squared and each flap sets upward velocity to 260 units/second for gentler flight. A smaller bird hitbox makes collisions forgiving.
 
 ## Technology
 
