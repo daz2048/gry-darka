@@ -66,10 +66,23 @@ Po instalacji otwórz nowy terminal: `game-server`, `game-server s`, `game-serve
 ## ⌨️ Szybka nawigacja: **ESC** lub **H**
 
 Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
+Wyjątek: **Klocki Podlasia** używają **ESC** do pauzy i uwolnienia myszy.
+Do menu gier wrócisz tam przez **H** lub przycisk **Menu gier**.
 
 ---
 
 ## 📋 Dostępne gry
+
+### Klocki Podlasia 0.1 — prototyp
+Oryginalny świat klocków 3D: podlaska łąka, drzewa i domek. Spaceruj, usuwaj
+klocki i buduj z ośmiu materiałów bez limitu.
+- **Sterowanie:** WASD / strzałki, spacja: skok, mysz: widok, Q / E: usuń / dodaj,
+  1–8: materiał. ESC / P: pauza, H: menu gier.
+- Na komputer z klawiaturą i WebGL2; dostępny też widok obracany przeciąganiem.
+- Model pierwszego etapu, **bez zapisu świata**, dźwięku i sterowania dotykowego.
+- [Zagraj »](klocki-podlasia-0.1/)
+- [Instrukcja, ograniczenia i testy](klocki-podlasia-0.1/README.md)
+- [Ocena i plan dalszego rozwoju](backlog/voxel-sandbox-backlog.md)
 
 ### Flappy Podlasie 0.2
 Wersja rozwojowa, skopiowana z 0.1. W menu portfolio wersja 0.1 jest pierwsza, a 0.2 druga. Dalsze zmiany na galezi `archer-0.4-works-starts-n0w` dotycza domyslnie katalogu `flappy-0.2/`.

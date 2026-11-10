@@ -95,6 +95,8 @@
   .card.zombie-max-two { --card-accent: #0096c7; --card-ink: #fff; }
   .card.zombie-aleksa { --card-accent: #ff006e; --card-ink: #fff; }
   .card.flappy-game { --card-accent: #ffcd53; --card-ink: #183f36; }
+  .card.voxel-game { border-color: #87b56a; }
+  .card.voxel-game .btn { background: #ffcd53; border-color: #ffcd53; color: #183f36; }
   .card.castle-game, .card.zombie-vanilla, .card.zombie-max-one, .card.zombie-max-two, .card.zombie-aleksa, .card.flappy-game { border-color: var(--card-accent); }
   .card.castle-game .btn, .card.zombie-vanilla .btn, .card.zombie-max-one .btn, .card.zombie-max-two .btn, .card.zombie-aleksa .btn, .card.flappy-game .btn { background: var(--card-accent); color: var(--card-ink); border-color: var(--card-accent); }
   .card.castle-game .btn:hover, .card.zombie-vanilla .btn:hover, .card.zombie-max-one .btn:hover, .card.zombie-max-two .btn:hover, .card.zombie-aleksa .btn:hover, .card.flappy-game .btn:hover { box-shadow: 0 0 15px var(--card-accent), inset 0 0 10px var(--card-accent); }
@@ -125,6 +127,13 @@
     </header>
 
     <main class="grid">
+      <a class="card voxel-game" href="klocki-podlasia-0.1/">
+        <div class="thumb preview"><img src="klocki-podlasia-0.1/preview.svg" alt="Klocki Podlasia: drewniany domek i lipa z kolorowych klocków na zielonej łące" fetchpriority="high"></div>
+        <h2>Klocki Podlasia 0.1 · prototyp</h2>
+        <p>Mały świat, wielkie pomysły. Spaceruj po łące i buduj z klocków w 3D. Na komputer, na razie bez zapisu.</p>
+        <span class="btn">Graj</span>
+      </a>
+
       <a class="card flappy-game" href="flappy-0.1/">
         <div class="thumb preview"><img src="flappy-0.1/preview.png" alt="Flappy Podlasie 0.1: zolty ptak leci pomiedzy drewnianymi bramami nad podlaska laka" fetchpriority="high"></div>
         <h2>Flappy Podlasie 0.1</h2>
