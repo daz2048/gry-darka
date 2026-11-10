@@ -11,6 +11,90 @@ const ui = Object.fromEntries(['score', 'best', 'overlay', 'eyebrow', 'title', '
 let preferences = { best: 0, muted: false };
 let scene;
 let audio;
+const music = { timer: null, step: 0, nextTime: 0, output: null, voices: new Set() };
+const MUSIC_STEP = 60 / 108 / 2;
+const MUSIC_MELODY = [
+  [76, 79, 81, 79, 76, null, 74, 72],
+  [76, 81, 84, 83, 81, null, 79, 76],
+  [77, 81, 79, 77, 76, null, 74, 77],
+  [79, 83, 81, 79, 74, null, 71, 74],
+  [76, 79, 84, 83, 81, 79, 76, null],
+  [81, 84, 88, 84, 83, 81, 79, 76],
+  [77, 81, 84, 81, 79, 77, 76, 74],
+  [79, 83, 81, 79, 76, 74, 72, null]
+];
+const MUSIC_CHORDS = [
+  [48, 60, 64, 67], [45, 57, 60, 64], [41, 57, 60, 65], [43, 55, 59, 62],
+  [48, 60, 64, 67], [45, 57, 60, 64], [41, 57, 60, 65], [43, 55, 59, 62]
+];
+
+function musicNote(note, time, duration, waveform, level) {
+  const oscillator = audio.createOscillator();
+  const envelope = audio.createGain();
+  const voice = { oscillator, envelope };
+  oscillator.type = waveform;
+  oscillator.frequency.value = 440 * 2 ** ((note - 69) / 12);
+  envelope.gain.value = .0001;
+  envelope.gain.setValueAtTime(.0001, time);
+  envelope.gain.exponentialRampToValueAtTime(level, time + .012);
+  envelope.gain.exponentialRampToValueAtTime(.0001, time + duration);
+  oscillator.connect(envelope);
+  envelope.connect(music.output);
+  music.voices.add(voice);
+  oscillator.onended = () => {
+    oscillator.disconnect();
+    envelope.disconnect();
+    music.voices.delete(voice);
+  };
+  oscillator.start(time);
+  oscillator.stop(time + duration + .01);
+}
+
+function stopMusic() {
+  if (music.timer !== null) clearInterval(music.timer);
+  music.timer = null;
+  for (const voice of music.voices) {
+    voice.envelope.gain.cancelScheduledValues(audio.currentTime);
+    voice.envelope.gain.setTargetAtTime(.0001, audio.currentTime, .008);
+    voice.oscillator.stop(audio.currentTime + .03);
+  }
+  music.voices.clear();
+}
+
+function scheduleMusic() {
+  if (preferences.muted || scene?.state !== 'playing' || document.hidden || audio?.state !== 'running') {
+    stopMusic();
+    return;
+  }
+  music.nextTime = Math.max(music.nextTime, audio.currentTime + .02);
+  while (music.nextTime < audio.currentTime + .18) {
+    const bar = Math.floor(music.step / 8);
+    const beat = music.step % 8;
+    const melody = MUSIC_MELODY[bar][beat];
+    const chord = MUSIC_CHORDS[bar];
+    if (melody !== null) musicNote(melody, music.nextTime, MUSIC_STEP * .82, 'square', .024);
+    musicNote(chord[1 + beat % 3], music.nextTime, MUSIC_STEP * .65, 'triangle', .025);
+    if (beat % 2 === 0) musicNote(chord[0] + (beat === 4 ? 7 : 0), music.nextTime, MUSIC_STEP * 1.6, 'sine', .07);
+    music.nextTime += MUSIC_STEP;
+    music.step = (music.step + 1) % (MUSIC_MELODY.length * 8);
+  }
+}
+
+function syncMusic() {
+  if (preferences.muted || scene?.state !== 'playing' || document.hidden || audio?.state !== 'running') {
+    stopMusic();
+    return;
+  }
+  if (music.timer !== null) return;
+  if (!music.output) {
+    music.output = audio.createGain();
+    music.output.gain.value = .5;
+    music.output.connect(audio.destination);
+  }
+  music.nextTime = audio.currentTime + .04;
+  scheduleMusic();
+  music.timer = setInterval(scheduleMusic, 60);
+}
 
 function storageFailure(error) {
   ui.notice.textContent = `Nie mozna zapisac rekordu lub dzwieku: localStorage/${STORAGE_KEY}. ${error.name || 'Blad pamieci'}. Gra dziala bez zapisu.`;
@@ -33,12 +117,13 @@ function save() {
 }
 
 function unlockAudio() {
-  if (preferences.muted) return;
+  if (preferences.muted) { stopMusic(); return; }
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return;
   try {
     audio ||= new AudioContext();
-    if (audio.state === 'suspended') audio.resume().catch(() => {});
+    if (audio.state === 'suspended') audio.resume().then(syncMusic).catch(() => {});
+    else syncMusic();
   } catch { audio = null; }
 }
 
@@ -151,6 +236,8 @@ function boot() {
       ui.pause.disabled = false;
       ui.pause.setAttribute('aria-pressed', 'false');
       this.state = 'playing';
+      music.step = 0;
+      syncMusic();
       this.physics.world.resume();
       this.bird.setPosition(104, 285).setAngle(-15);
       this.bird.body.reset(104, 285);
@@ -184,6 +271,7 @@ function boot() {
     pauseFlight() {
       if (this.state !== 'playing') return;
       this.state = 'paused';
+      syncMusic();
       this.physics.world.pause();
       ui.pause.setAttribute('aria-pressed', 'true');
       showOverlay('Chwila oddechu', `Wynik: ${this.points}`, 'Wracamy', 'PAUZA');
@@ -193,6 +281,7 @@ function boot() {
       if (this.state === 'playing') this.pauseFlight();
       else if (this.state === 'paused') {
         this.state = 'playing';
+        unlockAudio();
         this.physics.world.resume();
         ui.overlay.hidden = true;
         ui.pause.setAttribute('aria-pressed', 'false');
@@ -202,6 +291,7 @@ function boot() {
     endFlight() {
       if (this.state !== 'playing') return;
       this.state = 'over';
+      syncMusic();
       this.physics.world.pause();
       ui.pause.disabled = true;
       const newBest = this.points > preferences.best;

@@ -17,7 +17,7 @@ python3 scripts/game-server.py start
 Press **Lecimy** to start. Tap/click the playfield, Space, or Up to flap. Pass a whole gate to score one point. Ground, ceiling, and gate collisions end the run. Use the explicit restart button for another flight.
 
 - **P** / pause button: pause or resume. Switching tabs or apps pauses automatically; resume explicitly.
-- **M** / sound button: toggle audio.
+- **M** / sound button: toggle sound effects and background music together. The original eight-bar tune "Little Wings" loops quietly during play: a bright square-wave melody, soft triangle arpeggios, and a rounded sine-wave bass at 108 BPM. Music stops on pause, mute, game-over, or switching tabs, continues its sequence on resume, and starts over on a new run. Playback begins only after interaction; unavailable audio does not block the game.
 - **H**, **Esc**, or home button: return to the portfolio.
 
 The fixed 360 x 640 world scales to the viewport without changing difficulty. The relaxed pace uses a speed of 96 units/second, pipe spacing of 225 units (about 2.34 seconds apart), and gap height of 220 units. Consecutive gap centers differ by at most 40 units. Gravity is 720 units/second squared and each flap sets upward velocity to 260 units/second for gentler flight. A smaller bird hitbox makes collisions forgiving.
@@ -25,6 +25,8 @@ The fixed 360 x 640 world scales to the viewport without changing difficulty. Th
 ## Technology
 
 Phaser Arcade Physics for gravity and flight; scene delta time for scrolling. Uses the existing locally vendored engine at `../mario-0.3/vendor/phaser.min.js`, covered by its adjacent `PHASER-LICENSE.txt`. Keep that shared path available when deploying. No package install, build step, backend, or external runtime scripts required. Optional Google Fonts have local font fallbacks.
+
+Music and effects are synthesized locally with the Web Audio API. The soundtrack is an original composition in `game.js`; no MP3, external music request, or third-party recording is used. Audio-clock scheduling keeps notes steady, and stopping music releases both scheduled and active voices.
 
 Personal best and sound preference use `localStorage/flappy-podlasie-v2`, independently of version 0.1. Storage errors appear in the game and do not prevent play. Scores stay on this browser; no online leaderboard.
 
