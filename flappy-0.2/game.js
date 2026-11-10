@@ -3,9 +3,9 @@
 const WIDTH = 360;
 const HEIGHT = 640;
 const GROUND = 576;
-const SPEED = 240;
-const GAP = 90;
-const SPACING = 190;
+const SPEED = 140;
+const GAP = 180;
+const SPACING = 230;
 const STORAGE_KEY = 'flappy-podlasie-v2';
 const SKINS = [
   { id: 'classic', name: 'Zloty ptak', price: 0, colors: [0xffd34f, 0xfff2ac, 0xe9a43c, 0xfff0b5] },
@@ -427,7 +427,7 @@ function boot() {
       this.bird.setPosition(104, 285).setAngle(-15);
       this.bird.body.reset(104, 285);
       this.bird.body.setAllowGravity(true);
-      this.bird.body.setVelocity(0, -400);
+      this.bird.body.setVelocity(0, -310);
       this.addPair(460);
       this.addPair(460 + SPACING);
       this.addPair(460 + SPACING * 2);
@@ -435,7 +435,7 @@ function boot() {
     }
 
     addPair(position) {
-      const center = Phaser.Math.Clamp(this.lastGap + Phaser.Math.Between(-85, 85), 130, 440);
+      const center = Phaser.Math.Clamp(this.lastGap + Phaser.Math.Between(-45, 45), 190, 390);
       this.lastGap = center;
       const upperEdge = center - GAP / 2;
       const lowerEdge = center + GAP / 2;
@@ -449,7 +449,7 @@ function boot() {
     flap() {
       if (this.state !== 'playing') return;
       unlockAudio();
-      this.bird.body.setVelocityY(-400);
+      this.bird.body.setVelocityY(-310);
       tone(560, .075, 780);
     }
 
@@ -547,7 +547,7 @@ function boot() {
     backgroundColor: '#78c6ce', render: { antialias: false, pixelArt: true, roundPixels: true },
     loader: { imageLoadType: 'HTMLImageElement', crossOrigin: null },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    physics: { default: 'arcade', arcade: { gravity: { y: 1500 }, fixedStep: false } },
+    physics: { default: 'arcade', arcade: { gravity: { y: 950 }, fixedStep: false } },
     scene: FlightScene, audio: { noAudio: true }
   });
 }

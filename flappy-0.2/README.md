@@ -17,12 +17,12 @@ python3 scripts/game-server.py start
 Press **Lecimy** to start. Tap/click the playfield, Space, or Up to flap. Pass a whole gate to score one point. Ground, ceiling, and gate collisions end the run. Use the explicit restart button for another flight.
 
 - **P** / pause button: pause or resume. Switching tabs or apps pauses automatically; resume explicitly.
-- **M**: become an animated gray pigeon wearing a black top hat with a red ribbon and a matching red tie in immortal turbo mode. Scroll at 4x speed (960 units/second), ignore pipes, and survive the ceiling and ground; the bird stays on-screen at either edge. A visible indicator marks the mode. Press M again to restore the equipped shop skin, normal speed, and collisions, or reload the page to reset it. All skins use the same hitbox.
+- **M**: become an animated gray pigeon wearing a black top hat with a red ribbon and a matching red tie in immortal turbo mode. Scroll at 4x speed (560 units/second), ignore pipes, and survive the ceiling and ground; the bird stays on-screen at either edge. A visible indicator marks the mode. Press M again to restore the equipped shop skin, normal speed, and collisions, or reload the page to reset it. All skins use the same hitbox.
 - **B** / star button: open the skin shop. A running game pauses; close the shop with its close button, Escape, or the backdrop, then resume explicitly.
 - **S** / sound button: toggle sound effects and background music together. The original eight-bar tune "Little Wings" loops quietly during play: a bright square-wave melody, soft triangle arpeggios, and a rounded sine-wave bass at 108 BPM. Music stops on pause, mute, game-over, or switching tabs, continues its sequence on resume, and starts over on a new run. Playback begins only after interaction; unavailable audio does not block the game.
 - **H**, **Esc**, or home button: return to the portfolio.
 
-The fixed 360 x 640 world scales to the viewport without changing difficulty. Extreme difficulty uses a speed of 240 units/second, pipe spacing of 190 units (about 0.79 seconds apart), and gap height of just 90 units. Consecutive gap centers differ by at most 85 units and remain between 130 and 440. Gravity is 1500 units/second squared and each flap sets upward velocity to 400 units/second. All skins retain the same 29 x 23 collision box; only the difficulty settings changed.
+The fixed 360 x 640 world scales to the viewport without changing difficulty. The forgiving pace uses a speed of 140 units/second, pipe spacing of 230 units (about 1.64 seconds apart), and gap height of 180 units. Consecutive gap centers differ by at most 45 units and remain between 190 and 390. Gravity is 950 units/second squared and each flap sets upward velocity to 310 units/second. All skins retain the same 29 x 23 collision box; only the difficulty settings changed.
 
 ## Technology
 
