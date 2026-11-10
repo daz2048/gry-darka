@@ -37,6 +37,25 @@ export function randomGenerator(seed) {
   };
 }
 
+function buildHouse(world, minX, maxX, minZ, maxZ, floor, wall, roof) {
+  const doorX = Math.floor((minX + maxX) / 2);
+  for (let x = minX; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) {
+    world.write(x, 8, z, floor);
+    for (let y = 9; y <= 12; y++) {
+      const boundary = x === minX || x === maxX || z === minZ || z === maxZ;
+      const doorway = z === maxZ && x === doorX && y <= 11;
+      const window = y >= 10 && y <= 11 &&
+        ((z === maxZ && (x === minX + 1 || x === maxX - 1)) ||
+          (x === minX && z === Math.floor((minZ + maxZ) / 2)) ||
+          (x === maxX && z === Math.floor((minZ + maxZ) / 2)));
+      if (boundary && !doorway && !window) world.write(x, y, z, wall);
+    }
+    world.write(x, 13, z, roof);
+    if (x > minX && x < maxX) world.write(x, 14, z, roof);
+    if (x === doorX) world.write(x, 15, z, roof);
+  }
+}
+
 export class World {
   constructor(seed = 2026) {
     this.seed = seed >>> 0;
@@ -102,6 +121,8 @@ export class World {
     }
     for (let y = 9; y <= 11; y++) for (let x = 32; x <= 33; x++) this.write(x, y, 32, 0);
     for (const x of [30, 35]) for (const y of [10, 11]) this.write(x, y, 32, 0);
+    buildHouse(this, 24, 30, 35, 41, 17, 10, 8);
+    buildHouse(this, 35, 41, 35, 41, 16, 9, 20);
     for (let x = 0; x < 4; x++) for (let y = 0; y < 2; y++) {
       for (let z = 0; z < 4; z++) this.dirty.add(`${x},${y},${z}`);
     }

@@ -15,7 +15,7 @@ test('generation is deterministic, bounded and has a safe supported spawn for 20
     const world = new World(seed);
     assert.deepEqual(world.blocks, new World(seed).blocks);
     assert.equal(world.blocks.length, 131072);
-    assert.ok(world.blocks.every(id => id <= 8));
+    assert.ok(world.blocks.every(id => id < BLOCKS.length));
     const player = createPlayer(world);
     assert.equal(collides(world, player), false);
     for (let i = 0; i < 120; i++) stepPlayer(world, player, {}, 0, 1 / 60);
@@ -23,6 +23,21 @@ test('generation is deterministic, bounded and has a safe supported spawn for 20
     assert.ok(player.y >= 8 && player.y < 8.05);
   }
   assert.notDeepEqual(new World(1).blocks, new World(2).blocks);
+});
+
+test('generation includes two distinct houses with open doors and a clear spawn', () => {
+  const world = new World();
+  for (const house of [
+    { minX: 24, maxX: 30, minZ: 35, maxZ: 41, floor: 17, wall: 10, roof: 8 },
+    { minX: 35, maxX: 41, minZ: 35, maxZ: 41, floor: 16, wall: 9, roof: 20 }
+  ]) {
+    const doorX = Math.floor((house.minX + house.maxX) / 2);
+    assert.equal(world.get(house.minX, 10, house.minZ), house.wall);
+    assert.equal(world.get(doorX, 8, house.minZ + 1), house.floor);
+    assert.equal(world.get(doorX, 15, house.minZ + 1), house.roof);
+    for (let y = 9; y <= 11; y++) assert.equal(world.get(doorX, y, house.maxZ), 0);
+  }
+  assert.equal(collides(world, createPlayer(world)), false);
 });
 
 test('coordinates never alias another row, column or layer', () => {
