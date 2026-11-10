@@ -231,6 +231,8 @@ kbd { padding: 4px 7px; font: inherit; font-size: 11px; }
 .lock-badge span { position: absolute; inset: auto 0 4px; color: #fff; font-size: 8px; text-align: center; }
 
 .upgrade-list { display: grid; gap: 10px; }
+.defense-help { color: #e6e6e6; font-size: 11px; line-height: 1.5; }
+#armor-status { color: var(--orange); }
 
 .upgrade-button {
   display: grid;
@@ -248,7 +250,9 @@ kbd { padding: 4px 7px; font: inherit; font-size: 11px; }
 
 .price-chip { display: flex; align-items: center; justify-content: center; gap: 4px; height: 32px; color: var(--chip-ink); background: var(--chip); border-radius: 3px; font-size: 15px; }
 .price-chip .skull-icon { width: 16px; height: 16px; }
-.stat-label { overflow: hidden; font-size: 15px; white-space: nowrap; text-overflow: ellipsis; }
+.stat-label { font-size: 13px; overflow-wrap: anywhere; }
+.defense-detail { display: block; margin-top: 4px; color: #e6e6e6; font-size: 10px; line-height: 1.4; }
+.upgrade-button .price-chip { font-size: 11px; }
 .upgrade-button:hover:not(:disabled) .price-chip { background: var(--chip-hover); }
 .upgrade-button:disabled { cursor: not-allowed; }
 .upgrade-button:disabled:not(.is-complete) .price-chip { opacity: .6; }

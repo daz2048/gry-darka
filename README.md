@@ -63,7 +63,11 @@ Self-hosted Unity WebGL build of the ragdoll archery game.
 - Original game by Ericetto; package distributed under the upstream repository's MIT License.
 
 ### Archers 0.4
-Separate clone of Archers 0.3, ready for further development. Gameplay is unchanged; the launcher displays version 0.4. Archers 0.3 remains intact.
+Separate clone of Archers 0.3, ready for further development. Adds scatter, armor-piercing, burning, shock, quake, and homing arrows, plus armor, medkits, stackable shields, regeneration, temporary damage guard, thorns, and health upgrades. Rivals carry different arrow types and occasionally fall over and recover when hit. Archers 0.3 remains intact.
+- Tougher, faster rivals: regular mobs start at 180 health, gain 10 per round up to 300, move over twice as fast, and shoot sooner and more often. Bosses have 3000 health.
+- Armor has 30 levels, with purple armor from level 25 and blue-and-gold armor at the maximum. Press **N** during a duel for level 30 armor, full health, and invincibility; this also clears burning, poison, and freezing. Restarting resets the bonus.
+- Buy and freely switch between Standard, Steel (25% less impact damage), Fireproof (no burning), Insulated (resists charge interruptions), Antidote (no poison), and Mirror (25% reflected damage) armor. One type is equipped at a time; armor levels and N invincibility remain independent of the selected type.
+- Defense items include Barrier (5 seconds of full invincibility), Cleanse (removes harmful statuses), and Full Repair (restores all health). Shield charges block hits; Guard reduces damage; Thorns stacks with Mirror reflection. Shop descriptions explain each effect.
 - [Play »](archers-0.4/)
 - [Original editable Unity game: assessment and implementation backlog](backlog/README.md)
 
