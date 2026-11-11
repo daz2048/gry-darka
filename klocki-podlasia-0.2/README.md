@@ -45,7 +45,7 @@ Switching apps/tabs pauses and clears held movement; resuming is always explicit
 
 ## Building Materials
 
-The original eight materials remain unchanged. Version 0.2 adds building and decorative blocks plus coal, iron, copper, gold, and diamond ores. Ore veins are generated deterministically below the surface and can be mined or placed like other blocks. The central cottage is joined by two small villages, each with homes and a well; three iron golems patrol their roads, while pigs, cows, sheep, and chickens wander nearby pastures.
+The original eight materials remain unchanged. Version 0.2 adds building and decorative blocks plus coal, iron, copper, gold, and diamond ores. Ore veins are generated deterministically below the surface and can be mined or placed like other blocks. The central cottage is joined by two small villages, each with homes and a well; seven residents wander inside their homes, three iron golems patrol the roads, and pigs, cows, sheep, and chickens visit nearby pastures.
 
 ## Development and verification
 

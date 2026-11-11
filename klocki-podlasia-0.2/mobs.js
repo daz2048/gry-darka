@@ -17,6 +17,32 @@ const PASTURES = [
     bounds: { minX: 45, maxX: 57, minZ: 32.78, maxZ: 33.22 } }
 ];
 
+const RESIDENTS = [
+  { x: 32.5, z: 29.5, bounds: { minX: 29.4, maxX: 36.6, minZ: 26.4, maxZ: 31.6 },
+    shirt: '#416d68', apron: '#d2ad78', pants: '#475461', skin: '#bd8564', hair: '#493b32' },
+  { x: 27.5, z: 38.5, bounds: { minX: 25.4, maxX: 29.6, minZ: 36.4, maxZ: 40.6 },
+    shirt: '#a94f3e', apron: '#e1c794', pants: '#4d5365', skin: '#e0b48d', hair: '#694332' },
+  { x: 38.5, z: 38.5, bounds: { minX: 36.4, maxX: 40.6, minZ: 36.4, maxZ: 40.6 },
+    shirt: '#70864f', apron: '#c4a06b', pants: '#55483e', skin: '#a96f51', hair: '#382f2a' },
+  { x: 10.5, z: 28.5, bounds: { minX: 8.4, maxX: 12.6, minZ: 26.4, maxZ: 30.6 },
+    shirt: '#d0a646', apron: '#eee1c6', pants: '#496269', skin: '#efc49a', hair: '#8b5937' },
+  { x: 17.5, z: 39.5, bounds: { minX: 15.4, maxX: 19.6, minZ: 36.4, maxZ: 40.6 },
+    shirt: '#775b80', apron: '#c9ae83', pants: '#454946', skin: '#bd815f', hair: '#392f2a' },
+  { x: 47.5, z: 28.5, bounds: { minX: 45.4, maxX: 49.6, minZ: 26.4, maxZ: 30.6 },
+    shirt: '#47818a', apron: '#d7c08d', pants: '#62513f', skin: '#dda987', hair: '#50352b' },
+  { x: 54.5, z: 39.5, bounds: { minX: 52.4, maxX: 56.6, minZ: 36.4, maxZ: 40.6 },
+    shirt: '#a05f3e', apron: '#efe0bd', pants: '#4d5960', skin: '#f0c99f', hair: '#765139' }
+].map(resident => ({
+  ...resident,
+  kind: 'villager',
+  radius: 0.28,
+  height: 1.88,
+  speed: 0.3,
+  groundY: 9
+}));
+
+const CHARACTERS = [...PASTURES, ...RESIDENTS];
+
 function random(mob) {
   mob.randomState = (Math.imul(mob.randomState, 1664525) + 1013904223) >>> 0;
   return mob.randomState / 4294967296;
@@ -55,11 +81,11 @@ function chooseTarget(world, mob) {
 }
 
 export function createMobs(world) {
-  return PASTURES.flatMap((pasture, index) => {
+  return CHARACTERS.flatMap((pasture, index) => {
     const mob = {
       ...pasture,
       bounds: { ...pasture.bounds },
-      groundY: 0,
+      groundY: pasture.groundY ?? 0,
       yaw: 0,
       wait: 0,
       animation: 0,
@@ -69,10 +95,12 @@ export function createMobs(world) {
     };
     const cellX = Math.floor(mob.x);
     const cellZ = Math.floor(mob.z);
-    for (let y = SIZE[1] - 1; y >= 0; y--) {
-      if (world.get(cellX, y, cellZ)) {
-        mob.groundY = y + 1;
-        break;
+    if (!mob.groundY) {
+      for (let y = SIZE[1] - 1; y >= 0; y--) {
+        if (world.get(cellX, y, cellZ)) {
+          mob.groundY = y + 1;
+          break;
+        }
       }
     }
     mob.phase = random(mob) * Math.PI * 2;
@@ -187,6 +215,22 @@ export function createMobModel(THREE, mob) {
     cube('#e8ded0', [0.18, 0.35, 0.42], [0.34, 0.75, 0]);
     eyes('#272826', 1.19, 0.46, 0.14);
     addLegs(THREE, group, materials, mob, '#d08b3f', [[-0.13, -0.12], [0.13, -0.12]], 0.27);
+  } else if (mob.kind === 'villager') {
+    cube(mob.pants, [0.48, 0.46, 0.32], [0, 0.52, 0]);
+    cube(mob.shirt, [0.56, 0.67, 0.34], [0, 1.08, 0]);
+    cube(mob.apron, [0.34, 0.48, 0.035], [0, 0.98, 0.19]);
+    cube(mob.shirt, [0.17, 0.58, 0.2], [-0.36, 1.08, 0]);
+    cube(mob.shirt, [0.17, 0.58, 0.2], [0.36, 1.08, 0]);
+    cube(mob.skin, [0.15, 0.13, 0.17], [-0.36, 0.75, 0]);
+    cube(mob.skin, [0.15, 0.13, 0.17], [0.36, 0.75, 0]);
+    cube(mob.skin, [0.4, 0.42, 0.39], [0, 1.65, 0.02]);
+    cube(mob.hair, [0.44, 0.16, 0.43], [0, 1.85, -0.01]);
+    cube(mob.hair, [0.12, 0.3, 0.41], [-0.2, 1.69, -0.02]);
+    cube(mob.hair, [0.12, 0.3, 0.41], [0.2, 1.69, -0.02]);
+    eyes('#302b2a', 1.67, 0.22, 0.105);
+    cube('#825941', [0.07, 0.12, 0.08], [0, 1.55, 0.24]);
+    addLegs(THREE, group, materials, mob, mob.pants,
+      [[-0.14, 0], [0.14, 0]], 0.47);
   } else {
     cube('#aebbb2', [0.9, 1.2, 0.64], [0, 1.43, 0]);
     cube('#c1ccc4', [0.72, 0.68, 0.66], [0, 2.34, 0.03]);

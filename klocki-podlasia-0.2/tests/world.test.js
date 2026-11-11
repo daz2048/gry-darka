@@ -54,18 +54,21 @@ test('villages connect by roads and contain seeded mineable ore veins', () => {
   for (let id = 25; id <= 29; id++) assert.ok(world.blocks.includes(id));
 });
 
-test('farm animals and village golems spawn safely and wander deterministically', () => {
+test('farm animals, village golems and residents wander safely and deterministically', () => {
   const world = new World();
   const comparisonWorld = new World();
   const mobs = createMobs(world);
   const comparison = createMobs(comparisonWorld);
   assert.deepEqual(mobs.map(mob => mob.kind), [
-    'cow', 'sheep', 'pig', 'chicken', 'ironGolem', 'ironGolem', 'ironGolem'
+    'cow', 'sheep', 'pig', 'chicken', 'ironGolem', 'ironGolem', 'ironGolem',
+    'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager'
   ]);
   assert.equal(mobs.filter(mob => mob.kind === 'ironGolem').length, 3);
+  assert.equal(mobs.filter(mob => mob.kind === 'villager').length, 7);
   for (const mob of mobs) {
-    assert.ok(Math.hypot(mob.x - world.spawn.x, mob.z - world.spawn.z) > 7);
+    if (mob.kind === 'ironGolem') assert.ok(Math.hypot(mob.x - world.spawn.x, mob.z - world.spawn.z) > 7);
     assert.ok(world.get(Math.floor(mob.x), mob.groundY - 1, Math.floor(mob.z)));
+    if (mob.kind === 'villager') assert.equal(mob.groundY, 9);
     assert.ok(mob.x >= mob.bounds.minX && mob.x <= mob.bounds.maxX);
     assert.ok(mob.z >= mob.bounds.minZ && mob.z <= mob.bounds.maxZ);
   }
