@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#183f36">
   <title>Minecraft 0.3 — prototyp Ekipy spod Lipy</title>
   <link rel="icon" href="preview.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=7">
   <script type="importmap">
     {"imports":{"three":"./vendor/three.module.js"}}
   </script>
@@ -21,14 +21,16 @@
     </div>
   </header>
   <div id="crosshair" hidden aria-hidden="true">+</div>
-  <aside class="world-label"><span>PODLASIE / TRYB KREATYWNY</span><strong>Mały świat. Wielkie pomysły.</strong></aside>
+  <aside class="world-label"><span>PODLASIE / TRYB KREATYWNY</span><strong>Wielki świat. Wielkie pomysły.</strong></aside>
   <section id="hud" aria-label="Materiały i stan gry">
     <p id="target">Wybierz materiał i zbuduj coś swojego.</p>
+    <span id="coordinates">Łąka · X 32 · Z 39</span>
     <div id="palette-pages" role="group" aria-label="Zestawy materiałów">
       <button data-page="0" aria-label="Podstawowe" aria-pressed="true"><span class="palette-full">Podstawowe</span><span class="palette-short" aria-hidden="true">Podst.</span></button>
       <button data-page="1" aria-label="Budowlane" aria-pressed="false"><span class="palette-full">Budowlane</span><span class="palette-short" aria-hidden="true">Bud.</span></button>
       <button data-page="2" aria-label="Ozdobne" aria-pressed="false"><span class="palette-full">Ozdobne</span><span class="palette-short" aria-hidden="true">Ozd.</span></button>
-      <button data-page="3" aria-label="Rudy" aria-pressed="false"><span class="palette-full">Rudy</span><span class="palette-short" aria-hidden="true">Rudy</span></button>
+      <button data-page="3" aria-label="Rudy i przyroda" aria-pressed="false"><span class="palette-full">Rudy i przyroda</span><span class="palette-short" aria-hidden="true">Rudy+</span></button>
+      <button data-page="4" aria-label="Meble" aria-pressed="false"><span class="palette-full">Meble</span><span class="palette-short" aria-hidden="true">Meble</span></button>
     </div>
     <div id="palette" aria-label="Wybór materiału"></div>
     <p class="hint" id="controls-hint">WASD · ruch &nbsp; Spacja · skok &nbsp; 1–8 · klocki &nbsp; Q / E · usuń / dodaj</p>
@@ -51,9 +53,12 @@
         <button id="drag-start" disabled>Graj bez przechwytywania</button>
       </div>
       <p class="small">Tryb bez przechwytywania: przeciągaj po świecie, aby się rozglądać; Q / E zmieniają klocki. Tylko komputer z klawiaturą.</p>
+      <details><summary>Biomy, wioski i drogi</summary><p class="small">Podążaj drogami. Biom i współrzędne gracza widać nad paskiem materiałów.</p><p class="small" id="destinations"></p><p class="small" id="biome-destinations"></p><p class="small" id="structure-destinations"></p></details>
       <div class="settings">
         <label>Czułość myszy <input id="sensitivity" type="range" min="0.4" max="2" step="0.1" value="1"></label>
         <label><input id="low-quality" type="checkbox"> Niższa rozdzielczość</label>
+        <label><input id="music-on" type="checkbox" checked> Muzyka</label>
+        <label>Głośność muzyki <input id="music-volume" type="range" min="0" max="100" step="5" value="35"></label>
       </div>
       <div class="actions secondary">
         <button id="recover" disabled>Wróć na start</button>
@@ -66,7 +71,7 @@
         <button id="confirm-reset">Tak, nowa łąka</button>
         <button id="cancel-reset">Nie, zachowaj budowlę</button>
       </div>
-      <p class="small warning">To testowy model: bez zapisu świata, dźwięku, przetrwania i sterowania dotykowego.</p>
+      <p class="small warning">To testowy model: bez zapisu świata, efektów dźwiękowych, przetrwania i sterowania dotykowego.</p>
       <details><summary>Diagnostyka modelu</summary><output id="metrics">Oczekiwanie na renderer.</output></details>
     </div>
   </section>
@@ -76,7 +81,7 @@
     if (location.protocol === 'file:') {
       status.textContent = 'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.3/ — moduły wymagają HTTP.';
     } else {
-      import('./game.js').catch(error => {
+      import('./game.js?v=16').catch(error => {
         console.error('Minecraft: nie można uruchomić gry.', error);
         status.textContent = 'Nie można wczytać gry. Sprawdź WebGL2 i lokalne pliki; szczegóły w konsoli przeglądarki. Menu gier pozostaje dostępne.';
         document.getElementById('overlay').hidden = false;

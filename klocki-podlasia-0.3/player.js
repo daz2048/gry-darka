@@ -7,7 +7,8 @@ export function collides(world, player) {
   for (let x = Math.floor(player.x - 0.3 + epsilon); x <= Math.floor(player.x + 0.3 - epsilon); x++) {
     for (let y = Math.floor(player.y + epsilon); y <= Math.floor(player.y + 1.75 - epsilon); y++) {
       for (let z = Math.floor(player.z - 0.3 + epsilon); z <= Math.floor(player.z + 0.3 - epsilon); z++) {
-        if (world.solid(x, y, z)) return true;
+        const height = world.blockHeight(x, y, z);
+        if (height && player.y < y + height - epsilon && player.y + 1.75 > y + epsilon) return true;
       }
     }
   }
