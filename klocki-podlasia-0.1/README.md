@@ -1,5 +1,7 @@
 # Klocki Podlasia 0.1 — phase-one prototype
 
+Preserved version 0.1. Further development takes place in `../klocki-podlasia-0.2/` on branch `feature/klocki-podlasia-0.2`.
+
 Original desktop-first creative voxel sandbox for Ekipa spod Lipy. Explore a
 64 × 32 × 64 Podlasie meadow and build with eight unlimited materials. Includes
 a small original cottage, trees, bounded terrain, exposed-face chunk rendering,

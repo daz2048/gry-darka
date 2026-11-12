@@ -84,6 +84,13 @@ klocki i buduj z ośmiu materiałów bez limitu.
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.1/README.md)
 - [Ocena i plan dalszego rozwoju](backlog/voxel-sandbox-backlog.md)
 
+### Klocki Podlasia 0.2 — wersja rozwojowa
+Osobna kopia wersji 0.1 do dalszego rozwoju na galezi `feature/klocki-podlasia-0.2`.
+Domyslnym katalogiem pracy na tej galezi jest `klocki-podlasia-0.2/`; wersja 0.1 pozostaje zachowana.
+Na poczatku obie wersje maja ten sam swiat, sterowanie i ograniczenia prototypu.
+- [Zagraj »](klocki-podlasia-0.2/)
+- [Instrukcja, ograniczenia i testy](klocki-podlasia-0.2/README.md)
+
 ### Flappy Bird 0.2
 Wersja rozwojowa, skopiowana z 0.1. W menu portfolio wersja 0.1 jest pierwsza, a 0.2 druga. Dalsze zmiany na galezi `archer-0.4-works-starts-n0w` dotycza domyslnie katalogu `flappy-0.2/`.
 - [Zagraj »](flappy-0.2/)

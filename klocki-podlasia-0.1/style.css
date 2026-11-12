@@ -47,5 +47,5 @@ details { border-top: 1px solid #cbd6bd; padding-top: 10px; font-size: 11px; }
 output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: monospace; }
 #notice { position: fixed; top: 80px; right: 24px; max-width: min(390px, 90vw); padding: 12px; background: #fff2ce; color: #67311e; border: 1px solid #ac653c; border-radius: 8px; font-size: 13px; pointer-events: none; z-index: 3; }
 .fatal { position: fixed; top: 10px; background: white; padding: 20px; z-index: 5; }
-@media (max-width: 700px) { .topbar { padding: 12px; } .brand strong { font-size: 17px; } .brand small, .world-label, .tools a { display: none; } .panel { padding: 22px; } .slot { font-size: 9px; } }
+@media (max-width: 700px) { .topbar { padding: 12px; } .brand strong { font-size: 17px; } .brand small { display: block; margin: 3px 0 0; font-size: 8px; letter-spacing: 0; } .world-label, .tools a { display: none; } .panel { padding: 22px; } .slot { font-size: 9px; } }
 @media (max-height: 650px) { .overlay { place-items: start center; } .panel { padding: 20px; } h1 { font-size: 32px; } .world-label { display: none; } }
