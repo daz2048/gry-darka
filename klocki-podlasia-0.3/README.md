@@ -3,12 +3,12 @@
 Active working version on branch `Klocki-Podlasia-0.3`, cloned from `../klocki-podlasia-0.2/`. Future Minecraft development on this branch targets this directory by default. Keep versions 0.1 and 0.2 preserved unless explicitly asked otherwise. This copy initially retains the same gameplay and prototype limitations as 0.2.
 
 Original desktop-first creative voxel sandbox for Ekipa spod Lipy. Explore a
-64 × 32 × 64 Podlasie meadow, visit three linked villages, and build with 29
+256 × 32 × 256 Podlasie meadow with two lakes, visit seven linked villages, and build with 29
 unlimited solid materials. Includes cottages, village wells, trees, roaming farm
-animals, iron golems, mineable ore veins, bounded terrain, exposed-face chunk
+animals, foxes, rabbits, iron golems, mineable ore veins, bounded terrain, nearby exposed-face chunk
 rendering, walking/jumping, block picking, placement checks and safe recovery.
 
-**Prototype limits:** no world/settings save, audio, mobile controls, survival,
+**Prototype limits:** no world/settings save, sound effects, mobile controls, survival,
 crafting, multiplayer or offline/PWA guarantee. Refreshing or creating a new
 world loses your creation. This is not the complete release described in the
 [backlog](../backlog/voxel-sandbox-backlog.md).
@@ -35,9 +35,14 @@ Requires a desktop keyboard/mouse and a browser with WebGL2.
 - Left click / Q: remove; right click / E: place (click editing in captured mode).
 - Choose a palette set: **Podstawowe**, **Budowlane**, **Ozdobne**, or **Rudy**. Keys 1–8 select a material within the current set; the mouse wheel cycles through all 29 materials and switches sets automatically. Palette swatches also select materials. Reach is five blocks.
 - P / Escape: pause; H / **Menu gier**: return to the portfolio.
+- Follow the roads to the four new villages. The HUD shows your X/Z coordinates;
+  the pause panel lists the villages' coordinates.
 - **Wróć na start**: find a safe supported position without resetting the world.
 - **Nowa łąka**: confirmed replacement with a different seed, not a saved slot.
 - Fullscreen and lower resolution are optional; denied fullscreen leaves windowed play.
+- **Muzyka / Głośność muzyki**: enable or mute the original ambient music and
+  adjust its volume in the start/pause panel. It begins after choosing a play mode
+  and stops when the game is paused or loses focus. Settings are not saved.
 
 **Navigation exception:** unlike the 2D games, Escape pauses instead of returning
 to the portfolio because browsers use it to release pointer lock. H still goes home.
@@ -45,7 +50,16 @@ Switching apps/tabs pauses and clears held movement; resuming is always explicit
 
 ## Building Materials
 
-The original eight materials remain unchanged. Inherited from version 0.2 are building and decorative blocks plus coal, iron, copper, gold, and diamond ores. Ore veins are generated deterministically below the surface and can be mined or placed like other blocks. The central cottage is joined by two small villages, each with homes and a well; seven residents wander inside their homes, three iron golems patrol the roads, and pigs, cows, sheep, and chickens visit nearby pastures.
+All 29 materials have original procedural pixel textures, including bark and end grain on logs, grass-topped soil, masonry, planks, stone, metal and mineral-bearing ores. Palette swatches show the same textures. Ore veins are generated deterministically below the surface and can be mined or placed like other blocks. The original three villages are connected by roads to four new settlements: Brzozowa (112, 56), Ceglane Wzgórze (196, 80), Kamienny Gród (100, 168) and Turkusowa Łąka (196, 192). Each has its own building palette, houses, a well and a distinctive landmark. Residents wander inside their homes, three iron golems patrol the original roads, and pigs, cows, sheep, chickens, foxes and rabbits roam nearby.
+
+Animals, residents and golems also use original pixel-textured models, with distinctive coats, clothing and iron details. Their legs and, where applicable, arms animate while walking.
+
+Only nearby chunks are rendered. Leaving an area unloads its meshes, not its
+blocks, so edits remain when you return during the same session.
+
+Two shallow lakes have sandy bottoms and animated water. You can wade and jump
+through them and place blocks in the water; removing a block restores the water
+in that lake cell. The water is decorative and does not flow or spread.
 
 ## Development and verification
 
@@ -61,6 +75,8 @@ pause/background/resume, denied pointer lock, resize, lower resolution and home.
 The pause panel's diagnostics show the seed, frames, draw calls, live geometries,
 first-render time and frame-time median/p95. Local readings are not network
 load benchmarks or evidence of hosted Safari/Windows/mobile compatibility.
+The ambient soundtrack is generated locally with Web Audio; it is original and
+does not contain Minecraft music or require downloads.
 
 ## Dependency
 
