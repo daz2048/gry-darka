@@ -4,7 +4,29 @@ Zbiór małych gier przeglądarowe — **graj od razu, bez instalacji**.
 
 ## 🚀 Graj teraz!
 
-**[👉 OTWÓRZ GRY](https://dariusz22p.github.io/gry-darka/)**
+**[👉 OTWÓRZ GRY](https://daz2048.github.io/gry-darka/)**
+
+---
+
+## Google Search Console
+
+Mapa witryny znajduje się w [sitemap.xml](sitemap.xml). Dodawaj do niej nowe
+publiczne strony gier. Po opublikowaniu zmian na GitHub Pages:
+
+1. W [Google Search Console](https://search.google.com/search-console/) dodaj
+   usługę z prefiksem URL `https://daz2048.github.io/gry-darka/`.
+2. Wybierz weryfikację za pomocą tagu HTML, dodaj tag otrzymany od Google do
+   sekcji `<head>` strony głównej i opublikuj zmianę. Następnie wybierz **Verify**.
+3. W sekcji **Sitemaps** prześlij adres
+   `https://daz2048.github.io/gry-darka/sitemap.xml`.
+4. W **URL Inspection** sprawdź adres strony głównej i wybierz **Request indexing**.
+
+Plik [robots.txt](robots.txt) w tym repozytorium jest publikowany w podkatalogu
+`/gry-darka/`. Google odczytuje jednak tylko plik znajdujący się w katalogu
+głównym domeny, czyli `https://daz2048.github.io/robots.txt`. Aby użyć tych
+dyrektyw, trzeba opublikować je pod tym adresem; mapa może być przesłana
+bezpośrednio w Search Console także bez tego pliku. Zgłoszenie nie gwarantuje
+indeksowania ani pozycji w wynikach.
 
 ---
 
@@ -66,7 +88,7 @@ Po instalacji otwórz nowy terminal: `game-server`, `game-server s`, `game-serve
 ## ⌨️ Szybka nawigacja: **ESC** lub **H**
 
 Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
-Wyjątek: **Klocki Podlasia** używają **ESC** do pauzy i uwolnienia myszy.
+Wyjątek: **Klocki Podlasia 0.1** i **Minecraft 0.2+** używają **ESC** do pauzy i uwolnienia myszy.
 Do menu gier wrócisz tam przez **H** lub przycisk **Menu gier**.
 
 ---
@@ -84,12 +106,18 @@ klocki i buduj z ośmiu materiałów bez limitu.
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.1/README.md)
 - [Ocena i plan dalszego rozwoju](backlog/voxel-sandbox-backlog.md)
 
-### Klocki Podlasia 0.2 — wersja rozwojowa
+### Minecraft 0.2 — wersja rozwojowa
 Osobna kopia wersji 0.1 do dalszego rozwoju na galezi `feature/klocki-podlasia-0.2`.
 Domyslnym katalogiem pracy na tej galezi jest `klocki-podlasia-0.2/`; wersja 0.1 pozostaje zachowana.
 Na poczatku obie wersje maja ten sam swiat, sterowanie i ograniczenia prototypu.
 - [Zagraj »](klocki-podlasia-0.2/)
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.2/README.md)
+
+### Minecraft 0.3 — wersja rozwojowa
+Kopia wersji 0.2 do dalszego rozwoju na galezi `Klocki-Podlasia-0.3`.
+Domyslnym katalogiem pracy jest `klocki-podlasia-0.3/`; wersje 0.1 i 0.2 pozostaja zachowane.
+- [Zagraj »](klocki-podlasia-0.3/)
+- [Instrukcja, ograniczenia i testy](klocki-podlasia-0.3/README.md)
 
 ### Flappy Bird 0.2
 Wersja rozwojowa, skopiowana z 0.1. W menu portfolio wersja 0.1 jest pierwsza, a 0.2 druga. Dalsze zmiany na galezi `archer-0.4-works-starts-n0w` dotycza domyslnie katalogu `flappy-0.2/`.

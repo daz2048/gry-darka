@@ -1,0 +1,6 @@
+# Google reads robots.txt from the domain root, not this project subdirectory.
+# To make these directives effective, publish them at https://daz2048.github.io/robots.txt.
+User-agent: *
+Allow: /
+
+Sitemap: https://daz2048.github.io/gry-darka/sitemap.xml
