@@ -1,15 +1,97 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
   <rect width="640" height="360" fill="#b7dfe3"/>
-  <path d="M0 220 170 150 360 205 640 140V360H0Z" fill="#87b56a"/>
-  <path d="m0 290 240-100 400 105v65H0Z" fill="#6f9c50"/>
-  <path d="m260 210 95-42 105 53-95 45Z" fill="#b55c46"/>
-  <path d="m260 210 105 56v72l-105-56Z" fill="#ce9d62"/>
-  <path d="m365 266 95-45v71l-95 46Z" fill="#a37650"/>
-  <path d="m282 225 20 11v31l-20-11Zm44 23 22 12v60l-22-12Z" fill="#183f36"/>
-  <path d="m118 144 25-12 25 12v126l-25 12-25-12Z" fill="#88613e"/>
-  <path d="m65 109 78-39 78 39v73l-78 39-78-39Z" fill="#478751"/>
-  <path d="m65 109 78 37 78-37-78-39Z" fill="#79ae53"/>
-  <path d="m0 325 360-130" stroke="#e6ce8b" stroke-width="24"/>
-  <rect x="24" y="24" width="294" height="55" rx="8" fill="#eff5ed"/>
-  <text x="40" y="59" font-family="sans-serif" font-size="27" font-weight="bold" fill="#183f36">KLOCKI PODLASIA</text>
+  <path d="M0 148 105 93l97 45 100-61 112 57 112-66 114 66v166H0Z" fill="#a3c98c"/>
+  <path d="M0 190 135 137l107 42 129-67 105 53 164-61v256H0Z" fill="#78a967"/>
+  <path d="M0 232 155 177l113 40 127-54 120 40 125-38v195H0Z" fill="#5b9158"/>
+  <path d="M0 270c113-41 179-39 255-15s143 29 202 0 117-43 183-34v139H0Z" fill="#72a85a"/>
+
+  <g fill="#f3f6e9" opacity=".8">
+    <path d="M54 68h42v5H54zm12-10h28v5H66z"/>
+    <path d="M490 79h52v5h-52zm15-10h31v5h-31z"/>
+  </g>
+
+  <path d="M-20 312c118-48 205-38 297-18s178 20 383-54" fill="none" stroke="#9b794e" stroke-width="31"/>
+  <path d="M-20 308c118-48 205-38 297-18s178 20 383-54" fill="none" stroke="#dfc18a" stroke-width="23"/>
+  <path d="M-20 304c118-48 205-38 297-18s178 20 383-54" fill="none" stroke="#ead6a8" stroke-width="2" stroke-dasharray="9 11" opacity=".8"/>
+
+  <g transform="translate(81 119)">
+    <path d="m0 43 50-26 51 26v62l-51 26L0 105Z" fill="#d5a56e"/>
+    <path d="m50 69 51-26v62l-51 26Z" fill="#a87950"/>
+    <path d="m-8 43 58-31 60 31-58 31Z" fill="#b4513e"/>
+    <path d="m50 74 60-31v12L50 87Z" fill="#873d34"/>
+    <path d="m8 48 42-22 42 22-42 22Z" fill="#d36d50"/>
+    <path d="m31 62 19-10v36l-19 10Z" fill="#604538"/>
+    <path d="m6 81 15 8v17L6 98zm68-9 13-7v18l-13 7Z" fill="#a8d7ce"/>
+  </g>
+  <g transform="translate(263 94)">
+    <path d="m0 52 62-32 62 32v77l-62 32L0 129Z" fill="#ead4ac"/>
+    <path d="m62 84 62-32v77l-62 32Z" fill="#c79c70"/>
+    <path d="m-10 52 72-37 72 37-72 38Z" fill="#ad4934"/>
+    <path d="m62 90 72-38v14L62 105Z" fill="#793d34"/>
+    <path d="m6 57 56-29 56 29-56 30Z" fill="#c96048"/>
+    <path d="m48 73 14-8v48l-14 8Z" fill="#604538"/>
+    <path d="m15 89 18 9v20l-18-9zm75 7 19-10v20l-19 10Z" fill="#96c9c1"/>
+    <path d="m-10 52 10-5v84l-10-5Z" fill="#faf0d7"/>
+  </g>
+  <g transform="translate(461 120)">
+    <path d="m0 43 50-26 51 26v62l-51 26L0 105Z" fill="#e2c89b"/>
+    <path d="m50 69 51-26v62l-51 26Z" fill="#bd966b"/>
+    <path d="m-8 43 58-31 60 31-58 31Z" fill="#8b4739"/>
+    <path d="m50 74 60-31v12L50 87Z" fill="#663b34"/>
+    <path d="m8 48 42-22 42 22-42 22Z" fill="#ad5b42"/>
+    <path d="m31 62 19-10v36l-19 10Z" fill="#604538"/>
+    <path d="m6 81 15 8v17L6 98zm68-9 13-7v18l-13 7Z" fill="#9ccdc0"/>
+  </g>
+
+  <g transform="translate(51 98)">
+    <path d="M23 77h13v78H23z" fill="#765239"/>
+    <path d="m-2 78 31-47 34 47-20 12H18Z" fill="#397d4a"/>
+    <path d="m5 62 24-43 27 43-25 12Z" fill="#4c9252"/>
+    <path d="m12 48 17-34 20 34-20 10Z" fill="#68a756"/>
+  </g>
+  <g transform="translate(561 101)">
+    <path d="M23 77h13v78H23z" fill="#765239"/>
+    <path d="m-2 78 31-47 34 47-20 12H18Z" fill="#397d4a"/>
+    <path d="m5 62 24-43 27 43-25 12Z" fill="#4c9252"/>
+    <path d="m12 48 17-34 20 34-20 10Z" fill="#68a756"/>
+  </g>
+
+  <g transform="translate(166 228)">
+    <path d="M0 12h30v18H0z" fill="#727e7a"/>
+    <path d="M4 16h22v10H4z" fill="#a7c8be"/>
+    <path d="M5 10 15 2l10 8v3H5z" fill="#ce9d62"/>
+    <path d="M13 11h4v11h-4z" fill="#88613e"/>
+  </g>
+  <g transform="translate(409 218)">
+    <path d="M0 12h30v18H0z" fill="#727e7a"/>
+    <path d="M4 16h22v10H4z" fill="#a7c8be"/>
+    <path d="M5 10 15 2l10 8v3H5z" fill="#ce9d62"/>
+    <path d="M13 11h4v11h-4z" fill="#88613e"/>
+  </g>
+
+  <g transform="translate(228 259)">
+    <path d="M3 8h25v18H3z" fill="#ad4934"/>
+    <path d="M7 3h7v7H7zm11 0h7v7h-7z" fill="#d4b28a"/>
+    <path d="M10 26h12v15H10z" fill="#475461"/>
+    <circle cx="15" cy="-1" r="7" fill="#bd8564"/>
+    <path d="M5 37h8v9H5zm14 0h8v9h-8z" fill="#604538"/>
+  </g>
+  <g transform="translate(350 264)">
+    <path d="M5 9h30v17H5z" fill="#47818a"/>
+    <path d="M8 3h8v8H8zm14 0h8v8h-8z" fill="#dda987"/>
+    <path d="M12 25h13v16H12z" fill="#55483e"/>
+    <circle cx="20" cy="-1" r="7" fill="#f0c99f"/>
+    <path d="M8 38h9v9H8zm16 0h9v9h-9z" fill="#604538"/>
+  </g>
+  <g transform="translate(463 274)" fill="#f3eee1">
+    <path d="M0 12h30v18H0z"/><path d="M5 7h8v9H5zm16 0h8v9h-8z"/>
+    <path d="M7 30h7v12H7zm15 0h7v12h-7z" fill="#75614e"/>
+    <path d="M25 14h10v7H25z" fill="#c88777"/>
+  </g>
+
+  <g>
+    <rect x="22" y="22" width="282" height="57" rx="8" fill="#f3f6e9" opacity=".96"/>
+    <text x="39" y="49" font-family="Trebuchet MS, sans-serif" font-size="21" font-weight="800" letter-spacing="1" fill="#183f36">KLOCKI PODLASIA</text>
+    <text x="40" y="68" font-family="Trebuchet MS, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2" fill="#ad4934">TRZY WIOSKI · WERSJA 0.2</text>
+  </g>
 </svg>
