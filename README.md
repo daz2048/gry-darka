@@ -4,7 +4,29 @@ Zbiór małych gier przeglądarowe — **graj od razu, bez instalacji**.
 
 ## 🚀 Graj teraz!
 
-**[👉 OTWÓRZ GRY](https://dariusz22p.github.io/gry-darka/)**
+**[👉 OTWÓRZ GRY](https://daz2048.github.io/gry-darka/)**
+
+---
+
+## Google Search Console
+
+Mapa witryny znajduje się w [sitemap.xml](sitemap.xml). Dodawaj do niej nowe
+publiczne strony gier. Po opublikowaniu zmian na GitHub Pages:
+
+1. W [Google Search Console](https://search.google.com/search-console/) dodaj
+   usługę z prefiksem URL `https://daz2048.github.io/gry-darka/`.
+2. Wybierz weryfikację za pomocą tagu HTML, dodaj tag otrzymany od Google do
+   sekcji `<head>` strony głównej i opublikuj zmianę. Następnie wybierz **Verify**.
+3. W sekcji **Sitemaps** prześlij adres
+   `https://daz2048.github.io/gry-darka/sitemap.xml`.
+4. W **URL Inspection** sprawdź adres strony głównej i wybierz **Request indexing**.
+
+Plik [robots.txt](robots.txt) w tym repozytorium jest publikowany w podkatalogu
+`/gry-darka/`. Google odczytuje jednak tylko plik znajdujący się w katalogu
+głównym domeny, czyli `https://daz2048.github.io/robots.txt`. Aby użyć tych
+dyrektyw, trzeba opublikować je pod tym adresem; mapa może być przesłana
+bezpośrednio w Search Console także bez tego pliku. Zgłoszenie nie gwarantuje
+indeksowania ani pozycji w wynikach.
 
 ---
 
