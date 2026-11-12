@@ -1,10 +1,15 @@
 export const TEXTURE_SIZE = 32;
 export const ATLAS_COLUMNS = 8;
-export const ATLAS_ROWS = 4;
+export const ATLAS_ROWS = 6;
 
 export function blockTexture(id, normal) {
-  if (id === 1) return normal[1] > 0 ? 1 : normal[1] < 0 ? 2 : 30;
-  if (id === 4 && normal[1] !== 0) return 31;
+  if (id === 1) return normal[1] > 0 ? 1 : normal[1] < 0 ? 2 : 40;
+  if (id === 4 && normal[1] !== 0) return 41;
+  if (id === 30 && normal[1] !== 0) return 42;
+  if (id === 32 || id === 33) return normal[1] > 0 ? id : normal[1] < 0 ? 7 : id + 11;
+  if (id === 35 && normal[1] !== 0) return 7;
+  if (id === 36 && normal[1] > 0) return 45;
+  if (id === 37 && normal[1] > 0) return 46;
   return id;
 }
 
@@ -26,15 +31,17 @@ function mix(a, b, amount) {
 function pixel(id, x, y, blocks) {
   const noise = hash(x, y, id);
   const coarse = hash(Math.floor(x / 4), Math.floor(y / 4), id);
-  let base = rgb(blocks[id <= 29 ? id : id === 30 ? 2 : 4].color);
+  const baseId = id < blocks.length ? id : id === 40 ? 2 : id === 42 ? 30 :
+    id === 43 ? 32 : id === 44 ? 33 : id === 45 ? 36 : id === 46 ? 37 : 4;
+  let base = rgb(blocks[baseId].color);
   let light = (noise - 0.5) * 14 + (coarse - 0.5) * 12;
 
-  if (id === 1 || id === 5 || id === 18) {
+  if (id === 1 || id === 5 || id === 18 || id === 31) {
     const leaf = hash(Math.floor(x / 3), Math.floor(y / 3), id);
-    light += (leaf - 0.5) * (id === 5 ? 46 : 26);
-    if (id === 5 && (x + y * 3) % 13 < 2) light -= 15;
+    light += (leaf - 0.5) * (id === 5 || id === 31 ? 46 : 26);
+    if ((id === 5 || id === 31) && (x + y * 3) % 13 < 2) light -= 15;
     if (id === 18 && noise > 0.92) light += 15;
-  } else if (id === 30) {
+  } else if (id === 40) {
     const edge = 7 + Math.floor(hash(Math.floor(x / 3), 0, id) * 4);
     if (y < edge) {
       base = rgb(blocks[1].color);
@@ -46,18 +53,43 @@ function pixel(id, x, y, blocks) {
     const stripe = hash(Math.floor(x / 3), 0, id);
     light += (stripe - 0.5) * 48 + (x % 8 === 0 ? -25 : 0);
     if (hash(Math.floor(x / 3), Math.floor(y / 8), id) > 0.86) light -= 14;
-  } else if (id === 31) {
-    base = rgb('#c49a68');
+  } else if (id === 30) {
+    if (hash(Math.floor(x / 5), Math.floor(y / 3), id) > 0.78 && (y % 5 < 2)) light -= 95;
+    light += (hash(Math.floor(x / 4), 0, id) - 0.5) * 14;
+  } else if (id === 41 || id === 42) {
+    base = rgb(id === 41 ? '#c49a68' : '#e1d3b8');
     const distance = Math.max(Math.abs(x - 15.5), Math.abs(y - 15.5));
     light += distance > 13 ? -48 : Math.floor(distance / 3) % 2 ? -14 : 9;
     if (Math.abs(x - 16) < 2 && Math.abs(y - 16) < 2) light -= 18;
-  } else if ([7, 16, 17].includes(id)) {
+  } else if ([7, 16, 17, 34].includes(id)) {
     const row = Math.floor(y / 8);
     const seam = y % 8 === 0;
     const joint = (x + (row % 2) * 16) % 32 === 0;
     light += (hash(row, 0, id) - 0.5) * 18 + (hash(x, row, id) - 0.5) * 18;
     if (seam || joint) light -= 37;
     else if (y % 8 === 1) light += 12;
+  } else if (id === 32 || id === 33) {
+    base = rgb(id === 33 && x >= 5 && x <= 26 && y >= 4 && y <= 23 ? '#f5eee0' : '#b94f4a');
+    if (x < 2 || x > 29 || y < 2 || y > 29) light -= 20;
+    if (id === 32 && (y === 7 || y === 24)) light += 15;
+  } else if (id === 43 || id === 44) {
+    base = rgb(y > 23 ? '#80532e' : id === 44 && y < 14 ? '#e9dccb' : '#b94f4a');
+    if (y === 23 || y === 24) light -= 25;
+  } else if (id === 35) {
+    const shelf = y < 4 || (y >= 15 && y <= 17) || y >= 29 || x < 2 || x > 29;
+    if (!shelf) {
+      const books = ['#b65e4d', '#d2ad64', '#527b78', '#746585', '#87a464'];
+      base = rgb(books[(Math.floor(x / 4) + (y > 17 ? 2 : 0)) % books.length]);
+      if (x % 4 === 0) light -= 25;
+    }
+  } else if (id === 36 || id === 45) {
+    if (x < 3 || x > 28 || y < 3 || y > 28 || y === 15) light -= 38;
+    if (id === 36 && x >= 14 && x <= 17 && y >= 12 && y <= 19) base = rgb('#e9cc84');
+  } else if (id === 37 || id === 46) {
+    if (x < 3 || x > 28 || y < 3 || y > 28) light -= 25;
+    if (id === 37 && x >= 7 && x <= 24 && y >= 12 && y <= 24) base = rgb('#30383a');
+    if (id === 37 && x >= 11 && x <= 20 && y >= 19 && y <= 22) base = rgb('#d77a43');
+    if (id === 46 && x >= 7 && x <= 24 && y >= 7 && y <= 24) base = rgb('#41494b');
   } else if ([8, 9, 10, 11].includes(id)) {
     const height = id === 8 ? 8 : id === 11 ? 10 : 8;
     const row = Math.floor(y / height);

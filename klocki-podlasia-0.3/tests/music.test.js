@@ -12,7 +12,7 @@ class AudioParam {
 
 class AudioNode {
   connect() {}
-  disconnect() {}
+  disconnect() { this.disconnected = true; }
 }
 
 class AudioContext {
@@ -38,7 +38,7 @@ class AudioContext {
   }
 }
 
-test('music starts only after preparation, schedules notes and stops on pause', async () => {
+test('music plays a varied melody with layered accompaniment', async () => {
   const music = new AmbientMusic(AudioContext);
   music.tick();
   assert.equal(music.context, null);
@@ -46,24 +46,68 @@ test('music starts only after preparation, schedules notes and stops on pause', 
   music.tick();
   assert.equal(music.context.oscillators.length, 0);
   music.start();
+
+  for (let time = 0; time < 80; time += 0.1) {
+    music.context.currentTime = time;
+    music.tick();
+  }
+  const voices = music.context.oscillators;
+  const melody = voices.filter(voice => voice.type === 'triangle');
+  assert.ok(melody.length > 30);
+  assert.ok(new Set(melody.map(voice => voice.frequency.value)).size >= 10);
+  assert.ok(voices.some(voice => voice.type === 'sine' && voice.stopped - voice.started > 2));
+  assert.ok(voices.every(voice => voice.started >= 0 && voice.stopped > voice.started));
+  const firstPhrase = melody.filter(voice => voice.started < 10).map(voice => voice.frequency.value);
+  const laterPhrase = melody.filter(voice => voice.started >= 20 && voice.started < 30).map(voice => voice.frequency.value);
+  assert.notDeepEqual(firstPhrase, laterPhrase);
+  assert.ok(melody.some(voice => voice.started > 76));
+});
+
+test('music stops on pause, resumes at the selected volume, and cleans up voices', async () => {
+  const music = new AmbientMusic(AudioContext);
+  await music.prepare();
+  music.start();
   music.tick();
-  assert.equal(music.context.oscillators.length, 3);
-  assert.ok(music.context.oscillators.every(voice => voice.started > 0));
+  const voices = music.context.oscillators;
+  assert.ok(voices.length > 0);
+  const ended = voices[0];
+  ended.onended();
+  assert.equal(music.voices.has(ended), false);
+  assert.equal(ended.disconnected, true);
+
+  music.context.currentTime = 0.4;
   music.tick();
-  assert.equal(music.context.oscillators.length, 3);
-  music.context.currentTime = 2;
-  music.tick();
-  assert.equal(music.context.oscillators.length, 4);
+  music.context.currentTime = 1;
   music.stop();
-  assert.ok(music.context.oscillators.every(voice => voice.stopped === 2.08));
+  assert.ok(voices.slice(1).every(voice => voice.stopped === 1.08));
   assert.equal(music.output.gain.targets.at(-1), 0);
+  assert.equal(music.voices.size, 0);
+  const count = voices.length;
   music.tick();
-  assert.equal(music.context.oscillators.length, 4);
+  assert.equal(voices.length, count);
   music.setVolume(0.6);
   music.start();
   music.tick();
   assert.equal(music.output.gain.targets.at(-1), 0.6);
-  assert.ok(music.context.oscillators.length > 4);
+  assert.ok(voices.length > count);
+  music.setVolume(0);
+  assert.equal(music.output.gain.targets.at(-1), 0);
+});
+
+test('a delayed frame does not schedule a backlog of past notes', async () => {
+  const music = new AmbientMusic(AudioContext);
+  await music.prepare();
+  music.start();
+  music.tick();
+  music.context.currentTime = 0.4;
+  music.tick();
+  const count = music.context.oscillators.length;
+  music.context.currentTime = 100;
+  music.tick();
+  const newVoices = music.context.oscillators.slice(count);
+  assert.ok(newVoices.length > 0);
+  assert.ok(newVoices.length <= 6);
+  assert.ok(newVoices.every(voice => voice.started >= 100));
 });
 
 test('audio failures propagate without pretending that music started', async () => {
@@ -76,4 +120,7 @@ test('audio failures propagate without pretending that music started', async () 
   music.tick();
   assert.equal(music.context.oscillators.length, 0);
   assert.throws(() => music.setVolume(NaN), RangeError);
+  assert.throws(() => music.setVolume(1.1), RangeError);
+  const unavailable = new AmbientMusic(null);
+  await assert.rejects(unavailable.prepare(), /Web Audio/);
 });

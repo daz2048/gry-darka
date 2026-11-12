@@ -1,15 +1,17 @@
 import * as THREE from 'three';
 import { PointerLockControls } from './vendor/PointerLockControls.js';
-import { World, SIZE, CHUNK, BLOCKS, VILLAGES, nearbyChunks, chunkGeometry, waterGeometry, pick } from './world.js';
-import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js';
-import { createPlayer, collides, stepPlayer } from './player.js';
-import { createMobs, createMobModel, stepMobs } from './mobs.js';
-import { AmbientMusic } from './music.js';
+import { World, SIZE, CHUNK, BLOCKS, BIOMES, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTURES,
+  nearbyChunks, chunkGeometry, waterGeometry, pick } from './world.js?v=3';
+import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=2';
+import { createPlayer, collides, stepPlayer } from './player.js?v=2';
+import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
+import { AmbientMusic } from './music.js?v=2';
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
   'pause', 'recover', 'new-world', 'fullscreen', 'palette', 'palette-pages', 'target', 'notice', 'crosshair',
   'load-status', 'metrics', 'sensitivity', 'low-quality', 'music-on', 'music-volume', 'controls-hint',
-  'reset-confirm', 'confirm-reset', 'cancel-reset', 'coordinates', 'destinations'].map(id => [id, document.getElementById(id)]));
+  'reset-confirm', 'confirm-reset', 'cancel-reset', 'coordinates', 'destinations', 'biome-destinations', 'structure-destinations']
+  .map(id => [id, document.getElementById(id)]));
 const bootTime = performance.now();
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setClearColor(0xc9e7e5);
@@ -151,7 +153,7 @@ let mobs = [];
 let mobModels = [];
 let selected = 7;
 let palettePage = 0;
-const PALETTE_SIZE = 8;
+const PALETTE_STARTS = [1, 9, 17, 25, 32, BLOCKS.length];
 let playing = false;
 let dragMode = false;
 let dragging = false;
@@ -169,6 +171,9 @@ let target = null;
 const frames = [];
 const music = new AmbientMusic();
 ui.destinations.textContent = VILLAGES.map(village => `${village.name}: X ${village.x}, Z ${village.z}`).join(' · ');
+ui['biome-destinations'].textContent = BIOME_VILLAGES.map(village =>
+  `${BIOMES[village.biome].name} — ${village.name}: X ${village.x}, Z ${village.z}`).join(' · ');
+ui['structure-destinations'].textContent = STRUCTURES.map(site => `${site.name}: X ${site.x}, Z ${site.z}`).join(' · ');
 
 function notice(message) {
   ui.notice.textContent = message;
@@ -283,7 +288,7 @@ function syncCamera() {
 function select(id) {
   if (!Number.isInteger(id) || id < 1 || id >= BLOCKS.length) return;
   selected = id;
-  palettePage = Math.floor((id - 1) / PALETTE_SIZE);
+  palettePage = PALETTE_STARTS.findIndex((first, page) => id >= first && id < PALETTE_STARTS[page + 1]);
   renderPalette();
   for (const button of ui['palette-pages'].children) {
     button.setAttribute('aria-pressed', String(Number(button.dataset.page) === palettePage));
@@ -292,8 +297,8 @@ function select(id) {
 
 function renderPalette() {
   ui.palette.replaceChildren();
-  const first = palettePage * PALETTE_SIZE + 1;
-  for (let id = first; id < Math.min(first + PALETTE_SIZE, BLOCKS.length); id++) {
+  const first = PALETTE_STARTS[palettePage];
+  for (let id = first; id < PALETTE_STARTS[palettePage + 1]; id++) {
     const slot = id - first + 1;
     const button = document.createElement('button');
     button.className = 'slot';
@@ -309,14 +314,17 @@ function renderPalette() {
     swatch.style.backgroundPosition = `${id % ATLAS_COLUMNS / (ATLAS_COLUMNS - 1) * 100}% ${Math.floor(id / ATLAS_COLUMNS) / (ATLAS_ROWS - 1) * 100}%`;
     const key = document.createElement('kbd');
     key.textContent = slot;
-    button.append(key, swatch, BLOCKS[id].name);
+    const name = document.createElement('span');
+    name.className = 'slot-name';
+    name.textContent = BLOCKS[id].name;
+    button.append(key, swatch, name);
     button.addEventListener('click', () => { select(id); button.blur(); });
     ui.palette.append(button);
   }
 }
 for (const button of ui['palette-pages'].children) {
   button.addEventListener('click', () => {
-    select(Number(button.dataset.page) * PALETTE_SIZE + 1);
+    select(PALETTE_STARTS[Number(button.dataset.page)]);
     button.blur();
   });
 }
@@ -377,8 +385,11 @@ function updateTarget() {
   target = pick(world, camera.position, direction);
   outline.visible = playing && Boolean(target);
   if (target) {
-    outline.position.set(...target.cell.map(n => n + 0.5));
-    ui.target.textContent = `${BLOCKS[world.get(...target.cell)].name} · Q usuń / E dodaj ${BLOCKS[selected].name.toLowerCase()}`;
+    const block = BLOCKS[world.get(...target.cell)];
+    const height = block.height ?? 1;
+    outline.scale.y = height;
+    outline.position.set(target.cell[0] + 0.5, target.cell[1] + height / 2, target.cell[2] + 0.5);
+    ui.target.textContent = `${block.name} · Q usuń / E dodaj ${BLOCKS[selected].name.toLowerCase()}`;
   } else ui.target.textContent = 'Podejdź bliżej — zasięg budowania: 5 klocków.';
 }
 
@@ -484,7 +495,10 @@ window.addEventListener('keydown', event => {
   if (!playing) return;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
   keys.add(event.code);
-  if (/^Digit[1-8]$/.test(event.code)) select(palettePage * PALETTE_SIZE + Number(event.code.slice(-1)));
+  if (/^Digit[1-8]$/.test(event.code)) {
+    const id = PALETTE_STARTS[palettePage] + Number(event.code.slice(-1)) - 1;
+    if (id < PALETTE_STARTS[palettePage + 1]) select(id);
+  }
   if (!event.repeat && event.code === 'KeyQ') edit(false);
   if (!event.repeat && event.code === 'KeyE') edit(true);
 });
@@ -568,7 +582,7 @@ function frame(now) {
     frameStart = now;
     const sorted = [...frames].sort((a, b) => a - b);
     ui.metrics.textContent = `Three.js r${THREE.REVISION} · WebGL2\nŚwiat: ${SIZE.join(' × ')} · seed: ${world.seed}\nFPS: ${fps} · draw calls: ${renderer.info.render.calls} · geometrie: ${renderer.info.memory.geometries}\nPierwsza klatka (lokalnie): ${Math.round(firstFrameMs)} ms\nPróbki gry: ${sorted.length} · mediana: ${(sorted[Math.floor(sorted.length / 2)] || 0).toFixed(1)} ms · p95: ${(sorted[Math.floor(sorted.length * 0.95)] || 0).toFixed(1)} ms\nEdycje: ${edits} · pozycja: ${player.x.toFixed(1)}, ${player.y.toFixed(1)}, ${player.z.toFixed(1)}`;
-    ui.coordinates.textContent = `X ${Math.floor(player.x)} · Z ${Math.floor(player.z)}`;
+    ui.coordinates.textContent = `${BIOMES[biomeAt(player.x, player.z)].name} · X ${Math.floor(player.x)} · Z ${Math.floor(player.z)}`;
   }
   if (!ui.notice.hidden && now > noticeUntil) ui.notice.hidden = true;
   waterTexture.offset.set(now * 0.000006 % 1, now * 0.000002 % 1);

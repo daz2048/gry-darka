@@ -1,4 +1,4 @@
-import { SIZE, VILLAGES } from './world.js';
+import { SIZE, VILLAGES, BIOME_VILLAGES } from './world.js?v=3';
 
 const PASTURES = [
   { kind: 'cow', x: 25.4, z: 28.2, radius: 0.58, height: 1.62, speed: 0.55,
@@ -60,7 +60,16 @@ const WILDLIFE = VILLAGES.flatMap(village => [
     bounds: { minX: village.x + 3, maxX: village.x + 12, minZ: village.z + 3, maxZ: village.z + 12 } }
 ]);
 
-const CHARACTERS = [...PASTURES, ...RESIDENTS, ...NEW_VILLAGERS, ...WILDLIFE];
+const BIOME_RESIDENTS = BIOME_VILLAGES.map((village, index) => ({
+  kind: 'villager', x: village.x - 6.5, z: village.z - 6.5,
+  bounds: { minX: village.x - 8.6, maxX: village.x - 4.4,
+    minZ: village.z - 8.6, maxZ: village.z - 4.4 },
+  shirt: ['#416d68', '#a94f3e', '#70864f', '#47818a'][index % 4],
+  apron: '#d2ad78', pants: '#475461', skin: '#bd8564', hair: '#493b32',
+  radius: 0.28, height: 1.88, speed: 0.3, groundY: 9
+}));
+
+const CHARACTERS = [...PASTURES, ...RESIDENTS, ...NEW_VILLAGERS, ...WILDLIFE, ...BIOME_RESIDENTS];
 
 function random(mob) {
   mob.randomState = (Math.imul(mob.randomState, 1664525) + 1013904223) >>> 0;

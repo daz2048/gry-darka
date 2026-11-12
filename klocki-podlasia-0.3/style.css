@@ -55,6 +55,18 @@ output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: mo
 .fatal { position: fixed; top: 10px; background: white; padding: 20px; z-index: 5; }
 @media (max-width: 700px) { .topbar { padding: 12px; } .brand strong { font-size: 17px; } .brand small { display: block; margin: 3px 0 0; font-size: 8px; letter-spacing: 0; } .world-label, .tools a { display: none; } .panel { padding: 22px; } .slot { font-size: 9px; } }
 @media (max-height: 650px) { .overlay { place-items: start center; } .panel { padding: 20px; } h1 { font-size: 32px; } .world-label { display: none; } }
-@media (max-width: 600px) { #palette { grid-template-columns: repeat(4, minmax(0, 1fr)); } #palette-pages button { font-size: 11px; } #palette-pages .palette-full { display: none; } #palette-pages .palette-short { display: inline; } }
+@media (max-width: 600px) {
+  #hud { bottom: 8px; padding: 6px; border-radius: 12px; }
+  #target { padding: 4px 8px; margin-bottom: 4px; font-size: 11px; }
+  #coordinates { font-size: 11px; }
+  #palette { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; padding: 4px; }
+  #palette-pages { margin-bottom: 3px; }
+  #palette-pages button { padding: 4px 2px; font-size: 10px; }
+  #palette-pages .palette-full, .slot-name, .hint, .session-note { display: none; }
+  #palette-pages .palette-short { display: inline; }
+  .slot { min-height: 38px; padding: 8px 1px 2px; }
+  .swatch { width: 20px; height: 20px; margin: 0 auto; }
+  .slot kbd { top: 0; left: 2px; font-size: 9px; }
+}
 @media (max-height: 480px) { .hint, .session-note { display: none; } .slot { min-height: 49px; padding: 4px 2px; font-size: 10px; } .swatch { width: 18px; height: 18px; margin-bottom: 2px; } #palette { padding: 4px; } #target { font-size: 11px; padding: 4px 10px; margin-bottom: 4px; } #palette-pages button { padding: 4px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }

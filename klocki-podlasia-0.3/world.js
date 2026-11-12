@@ -1,4 +1,4 @@
-import { ATLAS_COLUMNS, ATLAS_ROWS, TEXTURE_SIZE, blockTexture } from './textures.js';
+import { ATLAS_COLUMNS, ATLAS_ROWS, TEXTURE_SIZE, blockTexture } from './textures.js?v=2';
 
 export const SIZE = [256, 32, 256];
 export const CHUNK = 16;
@@ -8,6 +8,51 @@ export const VILLAGES = [
   { name: 'Ceglane Wzgórze', x: 196, z: 80, floor: 7, wall: 9, roof: 20, path: 11, landmark: 'tower' },
   { name: 'Kamienny Gród', x: 100, z: 168, floor: 16, wall: 12, roof: 14, path: 11, landmark: 'arch' },
   { name: 'Turkusowa Łąka', x: 196, z: 192, floor: 17, wall: 7, roof: 24, path: 6, landmark: 'beacon' }
+];
+export const BIOMES = {
+  meadow: { name: 'Łąka' },
+  desert: { name: 'Pustynia' },
+  savanna: { name: 'Sawanna' },
+  tundra: { name: 'Tundra' },
+  taiga: { name: 'Tajga' },
+  jungle: { name: 'Dżungla' },
+  badlands: { name: 'Pustkowia' },
+  birch: { name: 'Las brzozowy' },
+  swamp: { name: 'Bagna' },
+  mountains: { name: 'Góry' },
+  cherry: { name: 'Wiśniowy gaj' }
+};
+
+const BIOME_GRID = [
+  ['meadow', 'meadow', 'jungle', 'badlands'],
+  ['desert', 'meadow', 'meadow', 'meadow'],
+  ['savanna', 'meadow', 'birch', 'swamp'],
+  ['tundra', 'taiga', 'mountains', 'cherry']
+];
+
+export function biomeAt(x, z) {
+  if (x < 0 || z < 0 || x >= SIZE[0] || z >= SIZE[2]) return null;
+  return BIOME_GRID[Math.floor(z / 64)][Math.floor(x / 64)];
+}
+
+export const BIOME_VILLAGES = [
+  { biome: 'desert', name: 'Piaskowa Oaza', x: 28, z: 90, floor: 7, wall: 10, roof: 6, path: 6, landmark: 'tower' },
+  { biome: 'savanna', name: 'Złota Sawanna', x: 28, z: 156, floor: 7, wall: 9, roof: 16, path: 6, landmark: 'tree' },
+  { biome: 'tundra', name: 'Śnieżna Osada', x: 28, z: 220, floor: 17, wall: 19, roof: 21, path: 19, landmark: 'beacon' },
+  { biome: 'taiga', name: 'Sosnowa Wioska', x: 88, z: 220, floor: 16, wall: 7, roof: 19, path: 11, landmark: 'tree' },
+  { biome: 'jungle', name: 'Zielona Dżungla', x: 152, z: 28, floor: 7, wall: 18, roof: 16, path: 6, landmark: 'tree' },
+  { biome: 'badlands', name: 'Miedziane Skały', x: 224, z: 28, floor: 16, wall: 9, roof: 20, path: 6, landmark: 'tower' },
+  { biome: 'birch', name: 'Biały Las', x: 152, z: 128, floor: 17, wall: 10, roof: 17, path: 6, landmark: 'tree' },
+  { biome: 'swamp', name: 'Bagienna Przystań', x: 224, z: 130, floor: 16, wall: 18, roof: 14, path: 11, landmark: 'arch' },
+  { biome: 'mountains', name: 'Górska Grań', x: 152, z: 220, floor: 11, wall: 3, roof: 19, path: 11, landmark: 'arch' },
+  { biome: 'cherry', name: 'Wiśniowa Polana', x: 224, z: 220, floor: 17, wall: 23, roof: 8, path: 6, landmark: 'tree' }
+];
+const ALL_VILLAGES = [...VILLAGES, ...BIOME_VILLAGES];
+export const STRUCTURES = [
+  { name: 'Wieża obserwacyjna', x: 82, z: 44, rx: 5, rz: 5 },
+  { name: 'Obozowisko', x: 151, z: 67, rx: 6, rz: 5 },
+  { name: 'Kamienne ruiny', x: 100, z: 112, rx: 6, rz: 6 },
+  { name: 'Gospodarstwo', x: 154, z: 180, rx: 8, rz: 7 }
 ];
 export const BLOCKS = [
   { name: 'Powietrze', color: '#ffffff' },
@@ -39,7 +84,15 @@ export const BLOCKS = [
   { name: 'Ruda żelaza', color: '#c59078' },
   { name: 'Ruda miedzi', color: '#c47d56' },
   { name: 'Ruda złota', color: '#e2bd45' },
-  { name: 'Ruda diamentu', color: '#49bad1' }
+  { name: 'Ruda diamentu', color: '#49bad1' },
+  { name: 'Pień brzozy', color: '#e9e3d5' },
+  { name: 'Liście wiśni', color: '#e8a7bc' },
+  { name: 'Łóżko — kołdra', color: '#b94f4a', height: 0.5 },
+  { name: 'Łóżko — poduszka', color: '#e9dccb', height: 0.5 },
+  { name: 'Stół', color: '#ad794b', height: 0.75, shape: 'table' },
+  { name: 'Regał z książkami', color: '#80532e' },
+  { name: 'Skrzynia', color: '#b67c39', height: 0.75 },
+  { name: 'Piec', color: '#6f7677' }
 ];
 
 export function randomGenerator(seed) {
@@ -54,7 +107,12 @@ const ROADS = [
   [5, 33, 112, 33], [112, 33, 112, 56],
   [112, 56, 196, 56], [196, 56, 196, 80],
   [112, 56, 112, 168], [100, 168, 112, 168],
-  [100, 168, 196, 168], [196, 168, 196, 192]
+  [100, 168, 196, 168], [196, 168, 196, 192],
+  [82, 33, 82, 41], [151, 56, 151, 62], [106, 112, 112, 112],
+  [154, 168, 154, 173], [150, 173, 154, 173], [150, 173, 150, 175],
+  [5, 33, 5, 90], [5, 90, 28, 90], [28, 90, 28, 220],
+  [28, 220, 224, 220], [224, 28, 224, 220], [152, 28, 224, 28],
+  [112, 128, 152, 128]
 ];
 
 function onRoad(x, z, margin = 0) {
@@ -63,22 +121,33 @@ function onRoad(x, z, margin = 0) {
     Math.abs(z - z1) <= 1 + margin && x >= Math.min(x1, x2) - margin && x <= Math.max(x1, x2) + margin);
 }
 
-function inSettlement(x, z, margin = 0) {
+function inVillage(x, z, margin = 0) {
   const villageClearing = z >= 24 && z <= 44 &&
     ((x >= 5 && x <= 21) || (x >= 23 && x <= 42) || (x >= 43 && x <= 58));
-  return villageClearing || onRoad(x, z, margin) ||
-    VILLAGES.some(village => Math.abs(x - village.x) <= 14 + margin &&
+  return villageClearing ||
+    ALL_VILLAGES.some(village => Math.abs(x - village.x) <= 14 + margin &&
       Math.abs(z - village.z) <= 14 + margin);
+}
+
+function inSettlement(x, z, margin = 0) {
+  return inVillage(x, z, margin) || onRoad(x, z, margin);
+}
+
+function inStructureSite(x, z, margin = 0) {
+  return STRUCTURES.some(site => Math.abs(x - site.x) <= site.rx + margin &&
+    Math.abs(z - site.z) <= site.rz + margin);
 }
 
 const terrainAreas = new Uint8Array(SIZE[0] * SIZE[2]);
 for (let x = 0; x < SIZE[0]; x++) for (let z = 0; z < SIZE[2]; z++) {
-  terrainAreas[x + SIZE[0] * z] = (inSettlement(x, z) ? 1 : 0) | (onRoad(x, z) ? 2 : 0);
+  terrainAreas[x + SIZE[0] * z] = (inSettlement(x, z) || inStructureSite(x, z) ? 1 : 0) |
+    (onRoad(x, z) ? 2 : 0);
 }
 
 const LAKES = [
   { x: 17, z: 14, rx: 6, rz: 5 },
-  { x: 32, z: 51, rx: 7, rz: 4 }
+  { x: 32, z: 51, rx: 7, rz: 4 },
+  { x: 245, z: 148, rx: 4, rz: 3 }
 ];
 
 function lakeDistance(lake, x, z, seed) {
@@ -109,6 +178,32 @@ function generateLakes(world) {
   }
 }
 
+function streamDistance(x, z, seed) {
+  const phase = (seed % 97) / 97 * Math.PI * 2;
+  const bend = Math.max(0, Math.min(1, (x - 45) / 45));
+  const eastWest = Math.round(112 - 13 * bend + 2 * Math.sin(x / 16 + phase));
+  const northSouth = Math.round(68 + 1.5 * Math.sin(z / 17 + phase));
+  return Math.min(Math.abs(z - eastWest), Math.abs(x - northSouth));
+}
+
+function generateStreams(world) {
+  for (let x = 0; x < SIZE[0]; x++) for (let z = 0; z < SIZE[2]; z++) {
+    const distance = streamDistance(x, z, world.seed);
+    if (distance > 7 || inVillage(x, z) || inStructureSite(x, z) ||
+        LAKES.some(lake => lakeDistance(lake, x, z, world.seed) < 1.6)) continue;
+    const road = onRoad(x, z);
+    if (road && distance > 2) continue;
+
+    let ground = SIZE[1] - 1;
+    while (ground > 0 && !world.get(x, ground, z)) ground--;
+    const target = distance <= 2 ? 5 : Math.max(6, Math.min(ground, distance + 3));
+    for (let y = ground + 1; y <= target; y++) world.write(x, y, z, 2);
+    for (let y = target + 1; y < (road ? 7 : SIZE[1]); y++) world.write(x, y, z, 0);
+    world.write(x, target, z, distance <= 3 ? 6 : terrainSurface(biomeAt(x, z), x, z, target));
+    if (distance <= 2) world.water[world.index(x, 6, z)] = 1;
+  }
+}
+
 function generateOres(world, random, expanded = false) {
   const deposits = [
     { id: 25, veins: 96, depth: 8, length: 7 },
@@ -132,6 +227,55 @@ function generateOres(world, random, expanded = false) {
   }
 }
 
+function terrainSurface(biome, x, z, height) {
+  const patch = Math.sin(x * 0.21) + Math.cos(z * 0.24);
+  if (biome === 'desert') return 6;
+  if (biome === 'savanna') return patch > 0.3 ? 1 : 6;
+  if (biome === 'tundra') return 19;
+  if (biome === 'taiga') return patch > 0.4 ? 19 : 1;
+  if (biome === 'badlands') return patch > 0.5 ? 6 : 13;
+  if (biome === 'swamp') return 18;
+  if (biome === 'mountains') return height >= 11 ? 19 : 3;
+  return 1;
+}
+
+function growBiomeVegetation(world, x, z) {
+  const biome = biomeAt(x, z);
+  let ground = SIZE[1] - 1;
+  while (ground > 0 && !world.get(x, ground, z)) ground--;
+  const surface = world.get(x, ground, z);
+  if (![1, 6, 13, 18, 19].includes(surface)) return;
+  if (biome === 'desert' || biome === 'badlands') {
+    if (surface === 18) return;
+    if ((x + z) % 3 === 0) for (let y = 1; y <= 3; y++) world.write(x, ground + y, z, 18);
+    return;
+  }
+  if (biome === 'mountains' || (biome === 'tundra' && (x + z) % 4 !== 0)) return;
+  const height = biome === 'jungle' ? 7 : biome === 'taiga' || biome === 'tundra' ? 6 : 4;
+  const trunk = biome === 'birch' ? 30 : 4;
+  const leaves = biome === 'cherry' ? 31 : 5;
+  for (let y = 1; y <= height; y++) world.write(x, ground + y, z, trunk);
+  if (biome === 'taiga' || biome === 'tundra') {
+    for (let dy = 3; dy <= 7; dy++) {
+      const radius = dy < 5 ? 2 : 1;
+      for (let dx = -radius; dx <= radius; dx++) for (let dz = -radius; dz <= radius; dz++) {
+        if (Math.abs(dx) + Math.abs(dz) <= radius + 1 && !world.get(x + dx, ground + dy, z + dz)) {
+          world.write(x + dx, ground + dy, z + dz, leaves);
+        }
+      }
+    }
+  } else {
+    const radius = biome === 'jungle' || biome === 'savanna' ? 3 : 2;
+    for (let dx = -radius; dx <= radius; dx++) for (let dz = -radius; dz <= radius; dz++) {
+      for (let dy = height - 1; dy <= height + 1; dy++) {
+        if (Math.abs(dx) + Math.abs(dz) < radius + 2 && !world.get(x + dx, ground + dy, z + dz)) {
+          world.write(x + dx, ground + dy, z + dz, leaves);
+        }
+      }
+    }
+  }
+}
+
 function buildHouse(world, minX, maxX, minZ, maxZ, floor, wall, roof, front = 'maxZ') {
   const doorX = Math.floor((minX + maxX) / 2);
   const frontZ = front === 'minZ' ? minZ : maxZ;
@@ -150,6 +294,19 @@ function buildHouse(world, minX, maxX, minZ, maxZ, floor, wall, roof, front = 'm
     if (x > minX && x < maxX) world.write(x, 14, z, roof);
     if (x === doorX) world.write(x, 15, z, roof);
   }
+  furnishHouse(world, minX, maxX, minZ, maxZ, front);
+}
+
+function furnishHouse(world, minX, maxX, minZ, maxZ, front) {
+  const direction = front === 'maxZ' ? 1 : -1;
+  const backZ = front === 'maxZ' ? minZ + 1 : maxZ - 1;
+  const frontInsideZ = front === 'maxZ' ? maxZ - 1 : minZ + 1;
+  world.write(minX + 1, 9, backZ, 33);
+  world.write(minX + 1, 9, backZ + direction, 32);
+  world.write(maxX - 1, 9, backZ, 36);
+  world.write(maxX - 1, 9, Math.floor((minZ + maxZ) / 2), 34);
+  world.write(maxX - 1, 9, frontInsideZ, 35);
+  world.write(minX + 1, 9, frontInsideZ, 37);
 }
 
 function buildWell(world, x, z) {
@@ -171,11 +328,13 @@ function buildWell(world, x, z) {
 function buildLandmark(world, village) {
   const x = village.x + 12, z = village.z + 12;
   if (village.landmark === 'tree') {
-    for (let y = 8; y <= 13; y++) world.write(x, y, z, 17);
+    const trunk = village.biome === 'birch' ? 30 : village.biome ? 4 : 17;
+    const leaves = village.biome === 'cherry' ? 31 : 5;
+    for (let y = 8; y <= 13; y++) world.write(x, y, z, trunk);
     for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
       for (let y = 13; y <= 15; y++) {
         if (Math.abs(dx) + Math.abs(dz) <= 3 && !world.get(x + dx, y, z + dz)) {
-          world.write(x + dx, y, z + dz, 5);
+          world.write(x + dx, y, z + dz, leaves);
         }
       }
     }
@@ -191,6 +350,62 @@ function buildLandmark(world, village) {
   } else if (village.landmark === 'beacon') {
     for (let y = 8; y <= 16; y++) world.write(x, y, z, y % 2 ? 24 : 12);
     world.write(x, 17, z, 22);
+  }
+}
+
+function buildStructures(world) {
+  const [tower, camp, ruins, farm] = STRUCTURES;
+
+  for (const dx of [-3, 3]) for (const dz of [-3, 3]) {
+    for (let y = 8; y <= 20; y++) world.write(tower.x + dx, y, tower.z + dz, 16);
+  }
+  for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) {
+    world.write(tower.x + dx, 13, tower.z + dz, 7);
+    world.write(tower.x + dx, 21, tower.z + dz, 8);
+    if ((Math.abs(dx) === 3 || Math.abs(dz) === 3) && !(dx === 2 && dz === 3)) {
+      world.write(tower.x + dx, 14, tower.z + dz, 16);
+    }
+  }
+  for (let step = 0; step < 6; step++) {
+    for (let y = 8; y <= 8 + step; y++) {
+      world.write(tower.x - 3 + step, y, tower.z + 4, 7);
+    }
+  }
+
+  for (const side of [-1, 1]) {
+    const tentX = camp.x + side * 4;
+    for (let dz = -2; dz <= 2; dz++) {
+      for (let dx = -1; dx <= 1; dx++) world.write(tentX + dx, 7, camp.z + dz, 16);
+      for (let y = 8; y <= 9; y++) {
+        world.write(tentX - 1, y, camp.z + dz, 23);
+        world.write(tentX + 1, y, camp.z + dz, 23);
+      }
+      world.write(tentX, 10, camp.z + dz, 23);
+    }
+  }
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+    world.write(camp.x + dx, 7, camp.z + dz, 11);
+  }
+  world.write(camp.x, 8, camp.z, 4);
+  world.write(camp.x, 9, camp.z, 20);
+
+  for (let dx = -4; dx <= 4; dx++) for (let dz = -4; dz <= 4; dz++) {
+    world.write(ruins.x + dx, 7, ruins.z + dz, (dx + dz) % 4 === 0 ? 18 : 11);
+  }
+  for (const [dx, dz, height] of [[-4, -4, 6], [4, -4, 6], [-4, 4, 3], [4, 4, 5]]) {
+    for (let y = 8; y < 8 + height; y++) world.write(ruins.x + dx, y, ruins.z + dz, y % 3 ? 11 : 18);
+  }
+  for (let dx = -4; dx <= 4; dx++) world.write(ruins.x + dx, 14, ruins.z - 4, 12);
+  world.write(ruins.x - 2, 8, ruins.z, 12);
+  world.write(ruins.x - 2, 9, ruins.z, 22);
+
+  buildHouse(world, farm.x - 7, farm.x - 1, farm.z - 5, farm.z + 1, 7, 10, 8, 'minZ');
+  for (let dx = 2; dx <= 7; dx++) for (let dz = -3; dz <= 5; dz++) {
+    world.write(farm.x + dx, 7, farm.z + dz, 2);
+    if (dx % 2 === 0 && dz % 2 === 0) world.write(farm.x + dx, 8, farm.z + dz, 18);
+  }
+  for (let dz = -3; dz <= 5; dz++) {
+    world.write(farm.x + 7, 8, farm.z + dz, 4);
   }
 }
 
@@ -230,6 +445,12 @@ export class World {
       y >= SIZE[1] || this.get(x, y, z) !== 0;
   }
 
+  blockHeight(x, y, z) {
+    if (!this.inside(x, y, z)) return 1;
+    const id = this.get(x, y, z);
+    return id ? (BLOCKS[id].height ?? 1) : 0;
+  }
+
   write(x, y, z, id) {
     if (this.inside(x, y, z)) this.blocks[this.index(x, y, z)] = id;
   }
@@ -241,10 +462,15 @@ export class World {
       for (let z = 0; z < SIZE[2]; z++) {
         const area = terrainAreas[x + SIZE[0] * z];
         const clearing = (area & 1) !== 0;
+        const biome = biomeAt(x, z);
+        const mountain = biome === 'mountains' ?
+          4 * Math.max(0, Math.min(1, (x - 128) / 12, (192 - x) / 12, (z - 192) / 12, (256 - z) / 12)) : 0;
         const height = clearing ? 7 :
-          Math.max(4, Math.floor(7 + Math.sin(x / 8 + phase) * 2 + Math.cos(z / 9) * 2));
+          Math.max(4, Math.floor(7 + Math.sin(x / 8 + phase) * 2 + Math.cos(z / 9) * 2 + mountain));
+        const surface = terrainSurface(biome, x, z, height);
         for (let y = 0; y <= height; y++) {
-          this.blocks[x + SIZE[0] * (z + SIZE[2] * y)] = y === height ? 1 : y > height - 3 ? 2 : 3;
+          this.blocks[x + SIZE[0] * (z + SIZE[2] * y)] = y === height ? surface :
+            y > height - 3 ? biome === 'desert' ? 6 : biome === 'badlands' ? 13 : 2 : 3;
         }
         if ((clearing && (x === 32 || x === 33) && z >= 29 && z <= 44) || (area & 2)) {
           this.write(x, height, z, 6);
@@ -252,11 +478,14 @@ export class World {
       }
     }
     generateLakes(this);
+    generateStreams(this);
     generateOres(this, random);
     for (let i = 0; i < 80; i++) {
       const x = 3 + Math.floor(random() * 58);
       const z = 3 + Math.floor(random() * 58);
-      if (inSettlement(x, z, 3) || LAKES.some(lake => lakeDistance(lake, x, z, this.seed) < 1.6)) continue;
+      if (inSettlement(x, z, 3) || inStructureSite(x, z, 3) ||
+          LAKES.some(lake => lakeDistance(lake, x, z, this.seed) < 1.6) ||
+          streamDistance(x, z, this.seed) <= 5) continue;
       let ground = 20;
       while (ground > 0 && !this.get(x, ground, z)) ground--;
       if (this.get(x, ground, z) !== 1) continue;
@@ -274,19 +503,10 @@ export class World {
     for (let i = 0; i < 1280; i++) {
       const x = 3 + Math.floor(extraRandom() * (SIZE[0] - 6));
       const z = 3 + Math.floor(extraRandom() * (SIZE[2] - 6));
-      if ((x < 67 && z < 67) || inSettlement(x, z, 3) ||
-          LAKES.some(lake => lakeDistance(lake, x, z, this.seed) < 1.6)) continue;
-      let ground = 20;
-      while (ground > 0 && !this.get(x, ground, z)) ground--;
-      if (this.get(x, ground, z) !== 1) continue;
-      for (let y = 1; y <= 4; y++) this.write(x, ground + y, z, 4);
-      for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
-        for (let dy = 3; dy <= 5; dy++) {
-          if (Math.abs(dx) + Math.abs(dz) < 4 && !this.get(x + dx, ground + dy, z + dz)) {
-            this.write(x + dx, ground + dy, z + dz, 5);
-          }
-        }
-      }
+      if ((x < 67 && z < 67) || inSettlement(x, z, 3) || inStructureSite(x, z, 3) ||
+          LAKES.some(lake => lakeDistance(lake, x, z, this.seed) < 1.6) ||
+          streamDistance(x, z, this.seed) <= 5) continue;
+      growBiomeVegetation(this, x, z);
     }
     for (let x = 5; x <= 58; x++) for (let z = 32; z <= 34; z++) this.write(x, 7, z, 6);
     // A small original cottage gives the first view scale and a building idea.
@@ -300,6 +520,7 @@ export class World {
     }
     for (let y = 9; y <= 11; y++) for (let x = 32; x <= 33; x++) this.write(x, y, 32, 0);
     for (const x of [30, 35]) for (const y of [10, 11]) this.write(x, y, 32, 0);
+    furnishHouse(this, 28, 37, 25, 32, 'maxZ');
     buildHouse(this, 24, 30, 35, 41, 17, 10, 8);
     buildHouse(this, 35, 41, 35, 41, 16, 9, 20);
     buildHouse(this, 7, 13, 25, 31, 17, 10, 8);
@@ -308,7 +529,7 @@ export class World {
     buildHouse(this, 51, 57, 36, 42, 7, 10, 20, 'minZ');
     buildWell(this, 10, 38);
     buildWell(this, 47, 38);
-    for (const village of VILLAGES) {
+    for (const village of ALL_VILLAGES) {
       const { x, z, floor, wall, roof, path } = village;
       for (let n = -12; n <= 12; n++) for (let width = -1; width <= 1; width++) {
         this.write(x + n, 7, z + width, path);
@@ -320,6 +541,7 @@ export class World {
       buildWell(this, x + 7, z + 7);
       buildLandmark(this, village);
     }
+    buildStructures(this);
     for (let x = 0; x < SIZE[0] / CHUNK; x++) for (let y = 0; y < SIZE[1] / CHUNK; y++) {
       for (let z = 0; z < SIZE[2] / CHUNK; z++) this.dirty.add(`${x},${y},${z}`);
     }
@@ -330,7 +552,7 @@ export class World {
     if (!Number.isInteger(id) || id < 0 || id >= BLOCKS.length) return 'Nieznany materiał.';
     if (id && this.get(x, y, z)) return 'To miejsce jest już zajęte.';
     if (!id && !this.get(x, y, z)) return 'Nie ma tu klocka.';
-    if (id && player && overlaps(player, x, y, z)) return 'Odsuń się: tutaj stoi gracz.';
+    if (id && player && overlaps(player, x, y, z, BLOCKS[id].height ?? 1)) return 'Odsuń się: tutaj stoi gracz.';
     this.write(x, y, z, id);
     for (const [dx, dy, dz] of [[0, 0, 0], [-1, 0, 0], [1, 0, 0],
       [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]]) {
@@ -342,9 +564,9 @@ export class World {
   }
 }
 
-export function overlaps(player, x, y, z) {
+export function overlaps(player, x, y, z, height = 1) {
   return player.x + 0.3 > x && player.x - 0.3 < x + 1 &&
-    player.y + 1.75 > y && player.y < y + 1 &&
+    player.y + 1.75 > y && player.y < y + height &&
     player.z + 0.3 > z && player.z - 0.3 < z + 1;
 }
 
@@ -357,32 +579,55 @@ const FACES = [
   { n: [0, 0, -1], v: [[1, 0, 0], [0, 0, 0], [1, 1, 0], [0, 1, 0]], shade: 0.77 }
 ];
 
+const TABLE_PARTS = [
+  [0, 0.62, 0, 1, 0.75, 1],
+  [0.08, 0, 0.08, 0.22, 0.62, 0.22],
+  [0.78, 0, 0.08, 0.92, 0.62, 0.22],
+  [0.08, 0, 0.78, 0.22, 0.62, 0.92],
+  [0.78, 0, 0.78, 0.92, 0.62, 0.92]
+];
+
 export function chunkGeometry(world, cx, cy, cz) {
   const positions = [], normals = [], colors = [], uvs = [], indices = [];
+  function addFace(x, y, z, id, face, box) {
+    const offset = positions.length / 3;
+    const tile = blockTexture(id, face.n);
+    const column = tile % ATLAS_COLUMNS;
+    const row = Math.floor(tile / ATLAS_COLUMNS);
+    const inset = 0.5 / TEXTURE_SIZE;
+    const u0 = (column + inset) / ATLAS_COLUMNS;
+    const u1 = (column + 1 - inset) / ATLAS_COLUMNS;
+    const v0 = 1 - (row + 1 - inset) / ATLAS_ROWS;
+    const v1 = 1 - (row + inset) / ATLAS_ROWS;
+    for (let i = 0; i < face.v.length; i++) {
+      const vertex = face.v[i];
+      positions.push(x + box[0] + vertex[0] * (box[3] - box[0]),
+        y + box[1] + vertex[1] * (box[4] - box[1]),
+        z + box[2] + vertex[2] * (box[5] - box[2]));
+      normals.push(...face.n);
+      colors.push(face.shade, face.shade, face.shade);
+      uvs.push(i % 2 ? u1 : u0, i < 2 ? v0 : v1);
+    }
+    indices.push(offset, offset + 1, offset + 2, offset + 2, offset + 1, offset + 3);
+  }
   for (let x = cx * CHUNK; x < (cx + 1) * CHUNK; x++) {
     for (let y = cy * CHUNK; y < (cy + 1) * CHUNK; y++) {
       for (let z = cz * CHUNK; z < (cz + 1) * CHUNK; z++) {
         const id = world.get(x, y, z);
         if (!id) continue;
+        if (BLOCKS[id].shape === 'table') {
+          for (const box of TABLE_PARTS) for (const face of FACES) addFace(x, y, z, id, face, box);
+          continue;
+        }
+        const height = BLOCKS[id].height ?? 1;
         for (const face of FACES) {
-          if (world.get(x + face.n[0], y + face.n[1], z + face.n[2])) continue;
-          const offset = positions.length / 3;
-          const tile = blockTexture(id, face.n);
-          const column = tile % ATLAS_COLUMNS;
-          const row = Math.floor(tile / ATLAS_COLUMNS);
-          const inset = 0.5 / TEXTURE_SIZE;
-          const u0 = (column + inset) / ATLAS_COLUMNS;
-          const u1 = (column + 1 - inset) / ATLAS_COLUMNS;
-          const v0 = 1 - (row + 1 - inset) / ATLAS_ROWS;
-          const v1 = 1 - (row + inset) / ATLAS_ROWS;
-          for (let i = 0; i < face.v.length; i++) {
-            const vertex = face.v[i];
-            positions.push(x + vertex[0], y + vertex[1], z + vertex[2]);
-            normals.push(...face.n);
-            colors.push(face.shade, face.shade, face.shade);
-            uvs.push(i % 2 ? u1 : u0, i < 2 ? v0 : v1);
+          const neighbor = world.get(x + face.n[0], y + face.n[1], z + face.n[2]);
+          if (neighbor && BLOCKS[neighbor].shape !== 'table') {
+            const neighborHeight = BLOCKS[neighbor].height ?? 1;
+            if (face.n[1] > 0 ? height === 1 :
+              face.n[1] < 0 ? neighborHeight === 1 : neighborHeight >= height) continue;
           }
-          indices.push(offset, offset + 1, offset + 2, offset + 2, offset + 1, offset + 3);
+          addFace(x, y, z, id, face, [0, 0, 0, 1, height, 1]);
         }
       }
     }
@@ -398,7 +643,9 @@ export function waterGeometry(world, cx, cy, cz) {
         if (!world.getWater(x, y, z)) continue;
         for (const face of FACES) {
           const nx = x + face.n[0], ny = y + face.n[1], nz = z + face.n[2];
-          if (world.get(nx, ny, nz) || world.getWater(nx, ny, nz)) continue;
+          const neighbor = world.get(nx, ny, nz);
+          if ((neighbor && (BLOCKS[neighbor].height ?? 1) === 1 &&
+              BLOCKS[neighbor].shape !== 'table') || world.getWater(nx, ny, nz)) continue;
           const offset = positions.length / 3;
           for (const vertex of face.v) {
             const px = x + vertex[0], py = y + vertex[1] * 0.92, pz = z + vertex[2];
@@ -427,7 +674,19 @@ export function pick(world, origin, direction, reach = REACH) {
   let distance = 0;
   let normal = [0, 0, 0];
   while (distance <= reach) {
-    if (world.get(...cell)) return { cell: [...cell], normal, distance };
+    const id = world.get(...cell);
+    if (id) {
+      const height = BLOCKS[id].height ?? 1;
+      if (height === 1 || origin.y + ray[1] * distance < cell[1] + height) {
+        return { cell: [...cell], normal, distance };
+      }
+      if (ray[1] < 0) {
+        const topDistance = (cell[1] + height - origin.y) / ray[1];
+        if (topDistance >= distance && topDistance <= Math.min(...next, reach)) {
+          return { cell: [...cell], normal: [0, 1, 0], distance: topDistance };
+        }
+      }
+    }
     const axis = next[0] <= next[1] && next[0] <= next[2] ? 0 : next[1] <= next[2] ? 1 : 2;
     distance = next[axis];
     cell[axis] += step[axis];

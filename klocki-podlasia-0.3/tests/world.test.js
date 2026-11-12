@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { World, SIZE, BLOCKS, VILLAGES, nearbyChunks, chunkGeometry, waterGeometry, pick } from '../world.js';
+import { World, SIZE, BLOCKS, BIOMES, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTURES,
+  nearbyChunks, chunkGeometry, waterGeometry, pick } from '../world.js';
 import { ATLAS_COLUMNS, ATLAS_ROWS } from '../textures.js';
 import { createPlayer, collides, stepPlayer } from '../player.js';
 import { createMobs, createMobModel, stepMobs } from '../mobs.js';
@@ -18,7 +19,7 @@ test('seeded lakes are shallow, deterministic and clear of villages and spawn', 
   for (let seed = 0; seed < 20; seed++) {
     const world = new World(seed);
     assert.deepEqual(world.water, new World(seed).water);
-    for (const [x, z] of [[17, 14], [32, 51]]) {
+    for (const [x, z] of [[17, 14], [32, 51], [245, 148]]) {
       const levels = Array.from({ length: SIZE[1] }, (_, y) => y).filter(y => world.getWater(x, y, z));
       assert.equal(levels.length, 1);
       const y = levels[0];
@@ -41,6 +42,65 @@ test('seeded lakes are shallow, deterministic and clear of villages and spawn', 
       for (let y = 0; y < SIZE[1]; y++) assert.equal(world.getWater(x, y, z), false);
     }
     assert.equal(collides(world, createPlayer(world)), false);
+  }
+});
+
+test('shallow connected streams reach all four edges and pass beneath roads', () => {
+  for (const seed of [0, 1, 25, 50, 75, 96, 2026, 0xffffffff]) {
+    const world = new World(seed);
+    const visited = new Uint8Array(SIZE[0] * SIZE[2]);
+    const west = Array.from({ length: SIZE[2] }, (_, z) => z)
+      .find(z => world.getWater(0, 6, z));
+    assert.notEqual(west, undefined, `stream reaches the west edge for seed ${seed}`);
+    const queue = [SIZE[0] * west];
+    visited[queue[0]] = 1;
+    for (let i = 0; i < queue.length; i++) {
+      const x = queue[i] % SIZE[0], z = Math.floor(queue[i] / SIZE[0]);
+      assert.equal(world.get(x, 5, z), 6, `sandy stream bed at ${x},${z}`);
+      for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, nz = z + dz;
+        if (nx < 0 || nz < 0 || nx >= SIZE[0] || nz >= SIZE[2]) continue;
+        const index = nx + SIZE[0] * nz;
+        if (!visited[index] && world.getWater(nx, 6, nz)) {
+          visited[index] = 1;
+          queue.push(index);
+        }
+      }
+    }
+    for (let n = 0; n < SIZE[0]; n++) {
+      assert.ok(queue.some(index => index % SIZE[0] === n), `stream crosses x=${n}`);
+      assert.ok(queue.some(index => Math.floor(index / SIZE[0]) === n), `stream crosses z=${n}`);
+    }
+    for (const [axis, coordinate, low, high] of [
+      ['z', 33, 60, 76], ['z', 220, 60, 76], ['x', 28, 104, 120],
+      ['x', 112, 90, 110], ['x', 224, 90, 110]
+    ]) {
+      const bridge = Array.from({ length: high - low + 1 }, (_, n) => low + n)
+        .some(n => {
+          const x = axis === 'z' ? n : coordinate, z = axis === 'z' ? coordinate : n;
+          return world.getWater(x, 6, z) && world.get(x, 7, z) === 6 &&
+            !collides(world, { x: x + 0.5, y: 8, z: z + 0.5 });
+        });
+      assert.ok(bridge, `road crosses stream at ${axis}=${coordinate} for seed ${seed}`);
+    }
+  }
+});
+
+test('players can wade out of streams and edit their water cells', () => {
+  for (const seed of [0, 1, 2026]) {
+    const world = new World(seed);
+    const x = Array.from({ length: 11 }, (_, n) => 63 + n)
+      .find(n => world.getWater(n, 6, 75));
+    assert.notEqual(x, undefined);
+    const player = { x: x + 0.5, y: 6, z: 75.5, vy: 0, grounded: false };
+    for (let frame = 0; frame < 240; frame++) {
+      stepPlayer(world, player, { right: true, jump: true }, 0, 1 / 60);
+    }
+    assert.ok(player.x > x + 5, `player can climb out of stream for seed ${seed}`);
+    assert.equal(world.edit(x, 6, 75, 3), null);
+    assert.equal(world.getWater(x, 6, 75), false);
+    assert.equal(world.edit(x, 6, 75, 0), null);
+    assert.equal(world.getWater(x, 6, 75), true);
   }
 });
 
@@ -92,6 +152,38 @@ test('generation includes two distinct houses with open doors and a clear spawn'
   assert.equal(collides(world, createPlayer(world)), false);
 });
 
+test('every house has furniture without blocking its entrance or resident', () => {
+  const world = new World();
+  const houses = [
+    [28, 37, 25, 32, 'maxZ'],
+    [24, 30, 35, 41, 'maxZ'], [35, 41, 35, 41, 'maxZ'],
+    [7, 13, 25, 31, 'maxZ'], [14, 20, 36, 42, 'minZ'],
+    [44, 50, 25, 31, 'maxZ'], [51, 57, 36, 42, 'minZ'],
+    ...[...VILLAGES, ...BIOME_VILLAGES].flatMap(({ x, z }) => [
+      [x - 10, x - 4, z - 10, z - 4, 'maxZ'],
+      [x + 4, x + 10, z - 10, z - 4, 'maxZ'],
+      [x - 10, x - 4, z + 4, z + 10, 'minZ']
+    ]),
+    [STRUCTURES[3].x - 7, STRUCTURES[3].x - 1, STRUCTURES[3].z - 5, STRUCTURES[3].z + 1, 'minZ']
+  ];
+  for (const [minX, maxX, minZ, maxZ, front] of houses) {
+    const direction = front === 'maxZ' ? 1 : -1;
+    const back = front === 'maxZ' ? minZ + 1 : maxZ - 1;
+    const frontInside = front === 'maxZ' ? maxZ - 1 : minZ + 1;
+    assert.equal(world.get(minX + 1, 9, back), 33);
+    assert.equal(world.get(minX + 1, 9, back + direction), 32);
+    assert.equal(world.get(maxX - 1, 9, back), 36);
+    assert.equal(world.get(maxX - 1, 9, Math.floor((minZ + maxZ) / 2)), 34);
+    assert.equal(world.get(maxX - 1, 9, frontInside), 35);
+    assert.equal(world.get(minX + 1, 9, frontInside), 37);
+    const doorX = Math.floor((minX + maxX) / 2);
+    for (let z = minZ + 1; z < maxZ; z++) {
+      assert.equal(collides(world, { x: doorX + 0.5, y: 9, z: z + 0.5 }), false);
+    }
+  }
+  assert.equal(createMobs(world).filter(mob => mob.kind === 'villager').length, 29);
+});
+
 test('villages connect by roads and contain seeded mineable ore veins', () => {
   const world = new World();
   assert.deepEqual(world.blocks, new World().blocks);
@@ -133,6 +225,155 @@ test('distant villages have distinct homes and continuous walkable roads', () =>
   }
 });
 
+test('ten new biomes each contain a populated village and distinctive terrain', () => {
+  const world = new World();
+  const mobs = createMobs(world);
+  assert.equal(BIOME_VILLAGES.length, 10);
+  assert.equal(new Set(BIOME_VILLAGES.map(village => village.biome)).size, 10);
+  assert.equal(biomeAt(32, 32), 'meadow');
+  assert.equal(biomeAt(-1, 0), null);
+  const expectedSurfaces = {
+    desert: [6], savanna: [1, 6], tundra: [19], taiga: [1, 19], jungle: [1, 5],
+    badlands: [6, 13], birch: [1], swamp: [18], mountains: [3, 19], cherry: [1, 31]
+  };
+  for (const village of BIOME_VILLAGES) {
+    const { x, z, biome } = village;
+    assert.ok(BIOMES[biome]);
+    assert.equal(biomeAt(x, z), biome);
+    assert.equal(world.get(x - 10, 10, z - 10), village.wall);
+    assert.equal(world.get(x - 7, 15, z - 9), village.roof);
+    const residents = mobs.filter(mob => mob.kind === 'villager' &&
+      Math.abs(mob.x - x) < 14 && Math.abs(mob.z - z) < 14);
+    assert.equal(residents.length, 1, `${biome} has a resident`);
+    const counts = new Map();
+    const startX = Math.floor(x / 64) * 64, startZ = Math.floor(z / 64) * 64;
+    for (let cx = startX; cx < startX + 64; cx++) for (let cz = startZ; cz < startZ + 64; cz++) {
+      let y = SIZE[1] - 1;
+      while (y > 0 && !world.get(cx, y, cz)) y--;
+      const block = world.get(cx, y, cz);
+      counts.set(block, (counts.get(block) || 0) + 1);
+    }
+    for (const block of expectedSurfaces[biome]) {
+      assert.ok((counts.get(block) || 0) > 50, `${biome} visibly contains ${BLOCKS[block].name}`);
+    }
+    if (biome === 'birch') {
+      let birchTops = 0;
+      for (let cx = startX; cx < startX + 64; cx++) for (let cz = startZ; cz < startZ + 64; cz++) {
+        for (let y = 1; y < SIZE[1] - 1; y++) {
+          if (world.get(cx, y, cz) === 30 && world.get(cx, y + 1, cz) === 5) birchTops++;
+        }
+      }
+      assert.ok(birchTops > 5, 'birch forest has white-trunked trees');
+    }
+  }
+  assert.ok(Array.from({ length: SIZE[1] }, (_, y) => world.getWater(245, y, 148)).some(Boolean));
+});
+
+test('new biome villages are connected by clear, supported roads', () => {
+  const routes = [
+    [5, 33, 5, 90], [5, 90, 28, 90], [28, 90, 28, 220],
+    [28, 220, 224, 220], [224, 28, 224, 220],
+    [152, 28, 224, 28], [112, 128, 152, 128]
+  ];
+  for (const seed of [0, 1, 2026]) {
+    const world = new World(seed);
+    for (const [x1, z1, x2, z2] of routes) {
+      const length = Math.max(Math.abs(x2 - x1), Math.abs(z2 - z1));
+      for (let n = 0; n <= length; n++) {
+        const x = x1 + Math.sign(x2 - x1) * n, z = z1 + Math.sign(z2 - z1) * n;
+        assert.ok(world.get(x, 7, z), `road supported at ${x},${z}`);
+        assert.equal(collides(world, { x: x + 0.5, y: 8, z: z + 0.5 }), false,
+          `road clear at ${x},${z} for seed ${seed}`);
+      }
+    }
+  }
+});
+
+test('every biome village has a resident and an enterable home across seeds', () => {
+  for (let seed = 0; seed < 20; seed++) {
+    const world = new World(seed);
+    const mobs = createMobs(world);
+    for (const village of BIOME_VILLAGES) {
+      assert.equal(mobs.filter(mob => mob.kind === 'villager' &&
+        Math.abs(mob.x - village.x) < 14 && Math.abs(mob.z - village.z) < 14).length, 1);
+      const player = { x: village.x - 6.5, y: 8, z: village.z - 2.5, vy: 0, grounded: true };
+      for (let frame = 0; frame < 180 && player.z > village.z - 5.5; frame++) {
+        stepPlayer(world, player, { forward: true, jump: true }, 0, 1 / 60);
+      }
+      assert.ok(player.z <= village.z - 5.5, `home in ${village.name} can be entered`);
+      assert.equal(collides(world, player), false);
+    }
+  }
+});
+
+test('roadside structures remain accessible and clear of trees across seeds', () => {
+  for (let seed = 0; seed < 20; seed++) {
+    const world = new World(seed);
+    const [tower, camp, ruins, farm] = STRUCTURES;
+    assert.equal(world.get(tower.x, 21, tower.z), 8);
+    assert.equal(world.get(camp.x - 4, 10, camp.z), 23);
+    assert.equal(world.get(ruins.x, 14, ruins.z - 4), 12);
+    assert.equal(world.get(farm.x - 7, 10, farm.z - 5), 10);
+    for (const [x, y, z] of [
+      [tower.x, 8, tower.z], [tower.x, 14, tower.z],
+      [camp.x - 4, 8, camp.z], [ruins.x, 8, ruins.z],
+      [farm.x - 4, 9, farm.z - 4]
+    ]) {
+      assert.equal(collides(world, { x: x + 0.5, y, z: z + 0.5 }), false,
+        `structure interior clear at ${x},${y},${z} for seed ${seed}`);
+      assert.ok(world.get(x, y - 1, z));
+    }
+    for (const [x1, z1, x2, z2] of [
+      [82, 33, 82, 41], [151, 56, 151, 65], [104, 112, 112, 112],
+      [154, 168, 154, 173], [150, 173, 154, 173], [150, 173, 150, 174]
+    ]) {
+      const length = Math.max(Math.abs(x2 - x1), Math.abs(z2 - z1));
+      for (let n = 0; n <= length; n++) {
+        const x = x1 + Math.sign(x2 - x1) * n, z = z1 + Math.sign(z2 - z1) * n;
+        assert.ok(world.get(x, 7, z), `path supported at ${x},${z}`);
+        assert.equal(collides(world, { x: x + 0.5, y: 8, z: z + 0.5 }), false,
+          `path clear at ${x},${z} for seed ${seed}`);
+      }
+    }
+  }
+});
+
+test('watchtower stairs can be climbed onto the viewing platform', () => {
+  const world = new World();
+  const tower = STRUCTURES[0];
+  const player = { x: tower.x - 3.5, y: 8, z: tower.z + 4.5, vy: 0, grounded: true };
+  for (let frame = 0; frame < 600 && player.x < tower.x + 2.4; frame++) {
+    stepPlayer(world, player, { right: true, jump: true }, 0, 1 / 60);
+  }
+  assert.ok(player.x >= tower.x + 2.4 && player.y >= 14);
+  for (let frame = 0; frame < 60 && player.z > tower.z + 3.5; frame++) {
+    stepPlayer(world, player, { forward: true }, 0, 1 / 60);
+  }
+  assert.ok(player.z <= tower.z + 3.5);
+  assert.equal(collides(world, player), false);
+});
+
+test('farmhouse can be entered and structure blocks can be edited', () => {
+  const world = new World();
+  const farm = STRUCTURES[3];
+  const player = { x: farm.x - 3.5, y: 8, z: farm.z - 5.5, vy: 0, grounded: true };
+  for (let frame = 0; frame < 180 && player.z < farm.z - 3.5; frame++) {
+    stepPlayer(world, player, { back: true, jump: true }, 0, 1 / 60);
+  }
+  assert.ok(player.z >= farm.z - 3.5);
+  assert.equal(collides(world, player), false);
+
+  const ruins = STRUCTURES[2];
+  const x = ruins.x - 4, z = ruins.z - 4;
+  const original = world.get(x, 8, z);
+  assert.ok(original);
+  world.dirty.clear();
+  assert.equal(world.edit(x, 8, z, 0), null);
+  assert.equal(world.get(x, 8, z), 0);
+  assert.ok(world.dirty.has(`${Math.floor(x / 16)},0,${Math.floor(z / 16)}`));
+  assert.equal(world.edit(x, 8, z, original), null);
+});
+
 test('forests and ore extend across the expanded world without trees growing on trees', () => {
   const world = new World();
   for (const [minX, minZ] of [[64, 0], [0, 64], [64, 64], [192, 192]]) {
@@ -145,11 +386,11 @@ test('forests and ore extend across the expanded world without trees growing on 
             logs++;
             assert.ok(y <= 14, `tree trunk too high at ${x},${y},${z}`);
           }
-          if (block >= 25) ores++;
+          if (block >= 25 && block <= 29) ores++;
         }
       }
     }
-    assert.ok(logs > 20, `trees near ${minX},${minZ}`);
+    if (minX !== 0 || minZ !== 64) assert.ok(logs > 20, `trees near ${minX},${minZ}`);
     assert.ok(ores > 20, `ores near ${minX},${minZ}`);
   }
 });
@@ -185,7 +426,7 @@ test('farm animals, village golems and residents wander safely and deterministic
   assert.deepEqual(mobs.slice(0, 7).map(mob => mob.kind),
     ['cow', 'sheep', 'pig', 'chicken', 'ironGolem', 'ironGolem', 'ironGolem']);
   assert.equal(mobs.filter(mob => mob.kind === 'ironGolem').length, 3);
-  assert.equal(mobs.filter(mob => mob.kind === 'villager').length, 19);
+  assert.equal(mobs.filter(mob => mob.kind === 'villager').length, 29);
   assert.equal(mobs.filter(mob => mob.kind === 'fox').length, 4);
   assert.equal(mobs.filter(mob => mob.kind === 'rabbit').length, 4);
   for (const mob of mobs) {
@@ -265,23 +506,52 @@ test('edit rejects floor, invalid IDs, occupied cells and player overlap', () =>
   assert.equal(world.edit(4, 5, 4, 0, player), null);
 });
 
-test('all 29 building materials can be placed, rendered, picked and removed', () => {
+test('all building materials and furniture can be placed, rendered, picked and removed', () => {
   const world = empty();
-  assert.equal(BLOCKS.length - 1, 29);
-  assert.equal(new Set(BLOCKS.slice(1).map(block => block.name)).size, 29);
-  assert.equal(new Set(BLOCKS.slice(1).map(block => block.color)).size, 29);
+  assert.equal(BLOCKS.length - 1, 37);
+  assert.equal(new Set(BLOCKS.slice(1).map(block => block.name)).size, 37);
+  assert.equal(new Set(BLOCKS.slice(1).map(block => block.color)).size, 37);
   for (let id = 1; id < BLOCKS.length; id++) {
     assert.match(BLOCKS[id].color, /^#[0-9a-f]{6}$/i);
     assert.equal(world.edit(4, 4, 4, id), null);
     assert.equal(world.get(4, 4, 4), id);
     assert.equal(world.solid(4, 4, 4), true);
     const data = chunkGeometry(world, 0, 0, 0);
-    assert.equal(data.indices.length, 36);
+    assert.ok(data.indices.length >= 36);
     assert.ok(data.colors.every(color => Number.isFinite(color) && color >= 0 && color <= 1));
-    assert.deepEqual(pick(world, { x: 4.5, y: 4.5, z: 8 }, { x: 0, y: 0, z: -1 }).cell, [4, 4, 4]);
+    assert.deepEqual(pick(world, { x: 4.5, y: 4.25, z: 8 }, { x: 0, y: 0, z: -1 }).cell, [4, 4, 4]);
     assert.equal(world.edit(4, 4, 4, 0), null);
     assert.equal(world.get(4, 4, 4), 0);
   }
+});
+
+test('low furniture has matching geometry, collision and ray picking', () => {
+  const world = empty();
+  world.write(4, 4, 4, 32);
+  const data = chunkGeometry(world, 0, 0, 0);
+  assert.equal(Math.max(...data.positions.filter((_, index) => index % 3 === 1)), 4.5);
+  assert.equal(collides(world, { x: 4.5, y: 4.49, z: 4.5 }), true);
+  assert.equal(collides(world, { x: 4.5, y: 4.5, z: 4.5 }), false);
+  const hit = pick(world, { x: 4.5, y: 7, z: 4.5 }, { x: 0, y: -1, z: 0 });
+  assert.deepEqual(hit.cell, [4, 4, 4]);
+  assert.deepEqual(hit.normal, [0, 1, 0]);
+  assert.equal(hit.distance, 2.5);
+  world.write(4, 4, 3, 3);
+  assert.deepEqual(pick(world, { x: 4.5, y: 4.75, z: 6 }, { x: 0, y: 0, z: -1 }).cell, [4, 4, 3]);
+  const player = { x: 4.5, y: 6, z: 4.5, vy: 0, grounded: false };
+  for (let frame = 0; frame < 120; frame++) stepPlayer(world, player, {}, 0, 1 / 60);
+  assert.ok(player.grounded && Math.abs(player.y - 4.5) < 0.05);
+
+  world.blocks.fill(0);
+  world.write(4, 4, 4, 32);
+  world.write(5, 4, 4, 3);
+  assert.equal(chunkGeometry(world, 0, 0, 0).indices.length / 6, 11);
+  world.write(5, 4, 4, 0);
+  world.write(4, 5, 4, 3);
+  assert.equal(chunkGeometry(world, 0, 0, 0).indices.length / 6, 12);
+  world.blocks.fill(0);
+  assert.equal(typeof world.edit(4, 4, 4, 32, { x: 4.5, y: 4.4, z: 4.5 }), 'string');
+  assert.equal(world.edit(4, 4, 4, 32, { x: 4.5, y: 4.5, z: 4.5 }), null);
 });
 
 test('block faces select their material texture, including grass and log end grain', () => {
@@ -298,8 +568,11 @@ test('block faces select their material texture, including grass and log end gra
       const u = (uvs[0] + uvs[2]) / 2;
       const v = (uvs[1] + uvs[5]) / 2;
       const tile = Math.floor(u * ATLAS_COLUMNS) + Math.floor((1 - v) * ATLAS_ROWS) * ATLAS_COLUMNS;
-      const expected = id === 1 ? normalY > 0 ? 1 : normalY < 0 ? 2 : 30 :
-        id === 4 && normalY !== 0 ? 31 : id;
+      const expected = id === 1 ? normalY > 0 ? 1 : normalY < 0 ? 2 : 40 :
+        id === 4 && normalY !== 0 ? 41 : id === 30 && normalY !== 0 ? 42 :
+        id === 32 || id === 33 ? normalY > 0 ? id : normalY < 0 ? 7 : id + 11 :
+        id === 35 && normalY !== 0 ? 7 : id === 36 && normalY > 0 ? 45 :
+        id === 37 && normalY > 0 ? 46 : id;
       assert.equal(tile, expected, `${BLOCKS[id].name}, face ${face}`);
     }
   }
