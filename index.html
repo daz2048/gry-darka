@@ -37,6 +37,25 @@
     font-family: "Segoe UI", sans-serif;
     letter-spacing: 1px;
   }
+  .brand-word {
+    display: inline-block;
+    background-size: 220% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: brand-shimmer 5s ease-in-out infinite, brand-glow 3s ease-in-out infinite;
+  }
+  .brand-word:nth-child(1) { background-image: linear-gradient(100deg, #ffdc72, #ff70b8, #fff2a1, #ffdc72); }
+  .brand-word:nth-child(2) { background-image: linear-gradient(100deg, #68edff, #a895ff, #d6ffff, #68edff); animation-delay: .6s; }
+  .brand-word:nth-child(3) { background-image: linear-gradient(100deg, #ff806b, #ffd36b, #fff0a2, #ff806b); animation-delay: 1.2s; }
+  @keyframes brand-shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @keyframes brand-glow {
+    0%, 100% { opacity: .88; filter: drop-shadow(0 0 2px currentColor); }
+    50% { opacity: 1; filter: drop-shadow(0 0 6px rgba(255,255,255,.55)); }
+  }
   .grid {
     display: grid; gap: 22px;
     grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
@@ -118,13 +137,16 @@
   @media (max-width: 600px) {
     h1 { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
   }
+  @media (prefers-reduced-motion: reduce) {
+    .brand-word { animation: none; }
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <h1>Gry Ekipy spod Lipy (Hajnówka)</h1>
-      <p class="sub">Pixel Otter Rocket — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</p>
+      <p class="sub"><span class="brand-word">Pixel</span> <span class="brand-word">Otter</span> <span class="brand-word">Rocket</span> — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</p>
     </header>
 
     <main class="grid">
