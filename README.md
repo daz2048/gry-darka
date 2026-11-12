@@ -66,7 +66,7 @@ Po instalacji otwórz nowy terminal: `game-server`, `game-server s`, `game-serve
 ## ⌨️ Szybka nawigacja: **ESC** lub **H**
 
 Z dowolnej gry wciśnij **ESC** albo **H**, aby wrócić do menu głównego.
-Wyjątek: **Klocki Podlasia** używają **ESC** do pauzy i uwolnienia myszy.
+Wyjątek: **Klocki Podlasia 0.1** i **Minecraft 0.2+** używają **ESC** do pauzy i uwolnienia myszy.
 Do menu gier wrócisz tam przez **H** lub przycisk **Menu gier**.
 
 ---
@@ -84,12 +84,18 @@ klocki i buduj z ośmiu materiałów bez limitu.
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.1/README.md)
 - [Ocena i plan dalszego rozwoju](backlog/voxel-sandbox-backlog.md)
 
-### Klocki Podlasia 0.2 — wersja rozwojowa
+### Minecraft 0.2 — wersja rozwojowa
 Osobna kopia wersji 0.1 do dalszego rozwoju na galezi `feature/klocki-podlasia-0.2`.
 Domyslnym katalogiem pracy na tej galezi jest `klocki-podlasia-0.2/`; wersja 0.1 pozostaje zachowana.
 Na poczatku obie wersje maja ten sam swiat, sterowanie i ograniczenia prototypu.
 - [Zagraj »](klocki-podlasia-0.2/)
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.2/README.md)
+
+### Minecraft 0.3 — wersja rozwojowa
+Kopia wersji 0.2 do dalszego rozwoju na galezi `Klocki-Podlasia-0.3`.
+Domyslnym katalogiem pracy jest `klocki-podlasia-0.3/`; wersje 0.1 i 0.2 pozostaja zachowane.
+- [Zagraj »](klocki-podlasia-0.3/)
+- [Instrukcja, ograniczenia i testy](klocki-podlasia-0.3/README.md)
 
 ### Flappy Bird 0.2
 Wersja rozwojowa, skopiowana z 0.1. W menu portfolio wersja 0.1 jest pierwsza, a 0.2 druga. Dalsze zmiany na galezi `archer-0.4-works-starts-n0w` dotycza domyslnie katalogu `flappy-0.2/`.

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#183f36">
-  <title>Klocki Podlasia 0.2 — prototyp Ekipy spod Lipy</title>
+  <title>Minecraft 0.2 — prototyp Ekipy spod Lipy</title>
   <link rel="icon" href="preview.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css?v=3">
   <script type="importmap">
@@ -14,7 +14,7 @@
 <body>
   <div id="viewport" aria-label="Trójwymiarowy świat klocków"></div>
   <header class="topbar">
-    <a class="brand" href="../index.html">EKIPA SPOD LIPY <strong>Klocki Podlasia <small>WERSJA 0.2 · PROTOTYP</small></strong></a>
+    <a class="brand" href="../index.html">EKIPA SPOD LIPY <strong>Minecraft <small>WERSJA 0.2 · PROTOTYP</small></strong></a>
     <div class="tools">
       <button id="pause" disabled>Pauza · P</button>
       <a href="../index.html">Menu gier · H</a>
@@ -77,7 +77,7 @@
       status.textContent = 'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.2/ — moduły wymagają HTTP.';
     } else {
       import('./game.js').catch(error => {
-        console.error('Klocki Podlasia: nie można uruchomić gry.', error);
+        console.error('Minecraft: nie można uruchomić gry.', error);
         status.textContent = 'Nie można wczytać gry. Sprawdź WebGL2 i lokalne pliki; szczegóły w konsoli przeglądarki. Menu gier pozostaje dostępne.';
         document.getElementById('overlay').hidden = false;
         for (const id of ['start', 'drag-start', 'pause']) document.getElementById(id).disabled = true;

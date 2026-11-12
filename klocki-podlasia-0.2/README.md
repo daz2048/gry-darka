@@ -1,4 +1,4 @@
-# Klocki Podlasia 0.2 — development copy
+# Minecraft 0.2 — development copy
 
 Active working version on branch `feature/klocki-podlasia-0.2`, independently cloned from `../klocki-podlasia-0.1/`. Future game-development requests on this branch target this directory by default. Keep 0.1 preserved unless explicitly asked otherwise. This copy initially retains the same gameplay and prototype limitations.
 
@@ -73,4 +73,4 @@ Three.js **0.180.0 / r180**, MIT, vendored from the published npm package via
 - `LICENSE`, preserved as [THREE-LICENSE.txt](vendor/THREE-LICENSE.txt)
 
 The local import map maps `three` to the vendored module. Do not mix versions
-of these files. All game art is original; no Minecraft assets or branding.
+of these files. All game art is original; no Minecraft game assets are used.

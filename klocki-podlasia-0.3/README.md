@@ -1,6 +1,6 @@
-# Klocki Podlasia 0.3 — development copy
+# Minecraft 0.3 — development copy
 
-Active working version on branch `Klocki-Podlasia-0.3`, cloned from `../klocki-podlasia-0.2/`. Future Klocki Podlasia development on this branch targets this directory by default. Keep versions 0.1 and 0.2 preserved unless explicitly asked otherwise. This copy initially retains the same gameplay and prototype limitations as 0.2.
+Active working version on branch `Klocki-Podlasia-0.3`, cloned from `../klocki-podlasia-0.2/`. Future Minecraft development on this branch targets this directory by default. Keep versions 0.1 and 0.2 preserved unless explicitly asked otherwise. This copy initially retains the same gameplay and prototype limitations as 0.2.
 
 Original desktop-first creative voxel sandbox for Ekipa spod Lipy. Explore a
 64 × 32 × 64 Podlasie meadow, visit three linked villages, and build with 29
@@ -73,4 +73,4 @@ Three.js **0.180.0 / r180**, MIT, vendored from the published npm package via
 - `LICENSE`, preserved as [THREE-LICENSE.txt](vendor/THREE-LICENSE.txt)
 
 The local import map maps `three` to the vendored module. Do not mix versions
-of these files. All game art is original; no Minecraft assets or branding.
+of these files. All game art is original; no Minecraft game assets are used.
