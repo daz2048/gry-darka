@@ -35,6 +35,8 @@
       const li = document.createElement('li');
       const link = document.createElement('a');
       link.href = item.url;
+      link.target = '_blank';
+      link.rel = 'noopener';
       link.textContent = item.title;
       const time = document.createElement('time');
       time.dateTime = item.published;

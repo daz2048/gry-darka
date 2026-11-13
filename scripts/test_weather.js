@@ -19,6 +19,11 @@ function element() {
     fire(name) { return this.events[name]({ preventDefault() {} }); },
     focus(options) { this.focused = true; this.focusOptions = options; },
     setAttribute(name, value) { this[name] = value; },
+    style: {
+      values: {},
+      setProperty(name, value) { this.values[name] = value; },
+      removeProperty(name) { delete this.values[name]; },
+    },
     classList: { toggle() {} },
   };
 }
@@ -35,7 +40,7 @@ async function createPage(options = {}) {
   const writes = [];
   const timers = new Map();
   const intervals = [];
-  let now = Date.now();
+  let now = options.now ?? Date.now();
   let nextTimer = 0;
   const document = {
     body: element(), hidden: false, events: {},
@@ -81,7 +86,12 @@ async function createPage(options = {}) {
       data = {
         current: { weather_code: state.code, is_day: state.isDay, temperature_2m: state.temperature, time: now / 1000 },
         hourly: { time: [hour - 3600, hour, hour + 3600], precipitation_probability: [90, 35, 75] },
+        daily: state.daily ?? {
+          sunrise: [now / 1000 + (state.isDay ? -21600 : 21600)],
+          sunset: [now / 1000 + (state.isDay ? 21600 : 64800)],
+        },
       };
+      if (Object.hasOwn(state, 'daily')) data.daily = state.daily;
       if (Object.hasOwn(state, 'hourly')) data.hourly = state.hourly;
       if (state.weatherData) data = state.weatherData;
     } else {
@@ -186,6 +196,15 @@ test('rain chances of zero and 100 are valid, while missing, invalid or wrong-ho
   }
 });
 
+test('rain chance matches the selected location hour in a fractional-offset timezone', async () => {
+  const now = Date.UTC(2026, 5, 1, 6, 30) / 1000;
+  const page = await createPage({
+    now: now * 1000,
+    hourly: { time: [now - 900, now + 2700], precipitation_probability: [42, 75] },
+  });
+  assert.match(page.get('#weather-shortcut-conditions').textContent, /Rain this hour: 42%/);
+});
+
 test('network errors, rejected estimates, empty cities and invalid coordinates fall back to London', async () => {
   for (const options of [
     { ipError: true }, { ip: { success: false } },
@@ -226,6 +245,50 @@ test('all supported weather codes map to effects, including clear nights', async
       assert.equal(page.document.body.dataset.weather, effect, `code ${code}`);
       assert.equal(page.document.body.dataset.day, 'false');
     }
+  }
+});
+
+test('solar times drive the five sky stages and update without another weather request', async () => {
+  const sunrise = Date.UTC(2026, 5, 1, 6) / 1000;
+  const sunset = sunrise + 12 * 3600;
+  const daily = {
+    sunrise: [sunrise - 86400, sunrise, sunrise + 86400],
+    sunset: [sunset - 86400, sunset, sunset + 86400],
+  };
+  for (const [seconds, stage, isDay] of [
+    [sunrise - 3600, 'night', 0], [sunrise - 900, 'dawn', 0],
+    [sunrise + 3600, 'day', 1], [sunset - 900, 'sunset', 1],
+    [sunset + 900, 'dusk', 0], [sunset + 3600, 'night', 0],
+  ]) {
+    const page = await createPage({ code: 0, now: seconds * 1000, daily, isDay });
+    assert.equal(page.document.body.dataset.skyStage, stage);
+    const light = Number(page.document.body.style.values['--weather-light']);
+    if (stage === 'day') assert.equal(light, 1);
+    else if (stage === 'night') assert.equal(light, 0);
+    else assert.ok(light > 0 && light < 1);
+    assert.equal(new URL(page.requests[1].url).searchParams.get('daily'), 'sunrise,sunset');
+  }
+  const page = await createPage({ code: 0, now: (sunset - 600) * 1000, daily });
+  const before = Number(page.document.body.style.values['--weather-light']);
+  page.advance(60 * 1000);
+  page.intervals[0]();
+  assert.ok(Number(page.document.body.style.values['--weather-light']) < before);
+  assert.equal(page.requests.length, 2);
+  assert.match(page.document.body.style.values['--weather-sun-y'], /^calc\(/);
+});
+
+test('missing solar times use weather day/night and clear stale sky values on failure', async () => {
+  for (const isDay of [0, 1]) {
+    const page = await createPage({ code: 0, isDay, daily: { sunrise: [null], sunset: [null] } });
+    assert.equal(page.document.body.dataset.skyStage, isDay ? 'day' : 'night');
+    assert.equal(page.document.body.style.values['--weather-light'], isDay ? '1.000' : '0.000');
+    assert.match(page.warnings[0][1], /Sunrise and sunset unavailable/);
+    page.state.weatherError = true;
+    page.advance(30 * 60 * 1000);
+    page.intervals[0]();
+    await settle();
+    assert.equal(page.document.body.dataset.skyStage, undefined);
+    assert.equal(page.document.body.style.values['--weather-light'], undefined);
   }
 });
 

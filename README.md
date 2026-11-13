@@ -10,28 +10,43 @@ Baner na stronie głównej zmienia efekt przy każdym obrocie. W czerwcu–sierp
 może pojawić się lato, we wrześniu jesień, w październiku dynie i gwiazdy,
 w listopadzie–lutym śnieg, w grudniu motywy świąteczne, w marcu i maju wiosna,
 a w kwietniu motywy wielkanocne i wiosenne. Po obróceniu banera mogą pojawić
-się bardziej dynamiczne efekty; pierwsze wyświetlenie zawsze jest spokojniejsze.
+się bardziej dynamiczne efekty; pierwsze wyświetlenie jest spokojniejsze,
+chyba że zapisano tylko jeden motyw.
 Wybór motywów zależy od lokalnego miesiąca odwiedzającego.
 Ruch obrotu również jest losowy (w lewo, w prawo lub z pomniejszeniem);
 przy ustawieniu ograniczonego ruchu baner zmienia stronę bez animacji.
 Łącze „Banner styles” obok pogody otwiera galerię wszystkich stylów, w tym
 różowe i pomarańczowe motywy, fajerwerki oraz spokojne, wolno zmieniające się
 światła sceniczne (bez szybkiego migania). Zmiany wyboru zapisują się automatycznie
-lokalnie w przeglądarce i obowiązują przy następnym obrocie. „Clear” pozwala zacząć
+lokalnie w przeglądarce. Wybór jednego motywu działa od razu i po odświeżeniu;
+kilka motywów zmienia się przy następnym obrocie. „Clear” pozwala zacząć
 wybór od nowa, zachowując poprzedni wybór do zaznaczenia nowego motywu;
 „Restore defaults” przywraca domyślny wybór sezonowy.
+Na początku galerii sekcja „Games” zawiera ciche automatyczne symulacje: Snake,
+Zombie Defense, Platformer, Flappy, Archers, Castle Duel, Minecraft Building,
+Space Invaders, Pong, Racing i Breakout. Przy ograniczonym ruchu pokazują
+nieruchomą scenę, a poza widocznym obszarem i w ukrytej karcie nie zużywają
+czasu animacji.
 
 ## Weather background
 
 The homepage background follows model-based current weather: sunshine, clouds, fog,
 rain, snow, and a dark storm sky (no flashing lightning). Clear and partly cloudy
-nights show stars and a decorative moon; its position and phase are not astronomical.
-Banner effects remain independent. Animations respect reduced motion and pause in hidden tabs.
+nights show gently twinkling stars, an occasional decorative shooting star, and a
+moon; these are illustrative, not astronomical or actual meteor predictions.
+The selected location's sunrise and sunset drive dawn, day, sunset, dusk and night,
+with a roughly 45-minute transition on either side of each event. The sun's path is
+illustrative, not astronomical. If sunrise or sunset is unavailable (such as during
+polar day or night), the background uses the current day/night weather instead.
+Sky colors and celestial elements update each minute while visible; cloud and
+precipitation effects remain dependent on the weather. Banner effects remain independent.
+Animations respect reduced motion and pause in hidden tabs; stars remain static and
+shooting stars are hidden when reduced motion is requested.
 The weather/location panel is the last content below the footer. The small weather
 icon in the top navigation shows the selected location, current temperature and
 this hour's rain chance; clicking it jumps to the panel and expands all location
 options. Rain chance uses Open-Meteo's hourly precipitation probability (including
-snow), matched by UTC timestamp rather than the visitor's timezone. Missing rain
+snow), matched by timestamp to the selected location's current hour. Missing rain
 probability is labelled unavailable without hiding otherwise valid weather.
 
 - On a new visit, [ipwho.is](https://ipwhois.io/documentation) estimates a city from
@@ -58,7 +73,7 @@ service is non-commercial with **10,000 calls/day**, plus hourly/minute limits.
 Revisit provider plans before adding advertising or increasing traffic.
 Weather attribution and the CC BY 4.0 link appear beside the controls.
 
-Tests: `node --test scripts/test_weather.js scripts/test_banner.js`.
+Tests: `node --test scripts/test_weather.js scripts/test_banner.js scripts/test_banner_snake.js`.
 
 ## Minecraft news and videos
 
@@ -256,13 +271,20 @@ Na poczatku obie wersje maja ten sam swiat, sterowanie i ograniczenia prototypu.
 - [Zagraj »](klocki-podlasia-0.2/)
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.2/README.md)
 
-### Minecraft 0.3 — kreatywne budowanie
+### Minecraft 0.4 — wersja rozwojowa
+Punkt wyjścia to kreatywny świat Minecraft 0.3. Wersja 0.4 będzie rozwijana
+o nowe funkcje, dopracowany wygląd i nowe moby; prace prowadzone są niezależnie
+od zachowanego wydania 0.3.
+- [Zagraj »](klocki-podlasia-0.4/)
+- [Instrukcja, zapisy i testy](klocki-podlasia-0.4/README.md)
+
+### Minecraft 0.3 — archiwum
 Odkrywaj duży świat Podlasia, buduj z 37 nieograniczonych materiałów i wracaj
 do swojej pracy dzięki zapisowi lokalnemu w Chrome. Wydanie koncentruje się na
 komputerach Mac z klawiaturą i myszą; inne przeglądarki nie są jeszcze
 potwierdzonym celem wsparcia. Bez trybu przetrwania, craftingu, multiplayera
 i sterowania dotykowego.
-- [Zagraj »](klocki-podlasia-0.3/)
+- [Zagraj w zarchiwizowane wydanie »](klocki-podlasia-0.3/)
 - [Instrukcja, zapisy i testy](klocki-podlasia-0.3/README.md)
 - [Plan wydania i wyniki weryfikacji](backlog/voxel-sandbox-backlog.md)
 

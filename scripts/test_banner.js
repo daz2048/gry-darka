@@ -23,7 +23,9 @@ const seasonal = {
   10: ['snow', 'frost'],
   11: ['festive-lights', 'presents'],
 };
-const highImpact = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge', 'strobe-lights'];
+const gameEffects = ['snake', 'zombie-defense', 'platformer', 'flappy', 'archers', 'castle-duel',
+  'minecraft-building', 'space-invaders', 'pong', 'racing', 'breakout'];
+const highImpact = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge', 'strobe-lights', ...gameEffects];
 const highImpactSeasonal = {
   1: ['frost-hearts', 'winter-night'],
   2: ['spring-storm', 'meadow-burst'],
@@ -83,9 +85,9 @@ function createBanner(date, randomValues, savedSelection = null, storageBlocked 
 
 test('flip animations choose different directions and zoom while preserving both face orientations', () => {
   for (const [variant, direction] of [[0, 1], [1, -1], [2, 1]]) {
-    const banner = createBanner(new Date(2026, 1, 1), [.5, 0], JSON.stringify(['cloud']), false, false);
+    const banner = createBanner(new Date(2026, 1, 1), [], JSON.stringify(['cloud']), false, false);
     for (const currentFace of [0, 1]) {
-      banner.random.values.push(0, (variant + .5) / 3);
+      banner.random.values.push((variant + .5) / 3);
       banner.click();
       const { keyframes, options } = banner.animations[currentFace];
       assert.equal(keyframes[0].transform, `rotateY(${currentFace * 180}deg) scale(1)`);
@@ -101,12 +103,11 @@ test('flip animations choose different directions and zoom while preserving both
 });
 
 test('reduced motion skips animations and cancels an active flip when enabled', () => {
-  const banner = createBanner(new Date(2026, 1, 1), [.5, 0], JSON.stringify(['cloud']), false, false);
-  banner.random.values.push(0, 0);
+  const banner = createBanner(new Date(2026, 1, 1), [], JSON.stringify(['cloud']), false, false);
+  banner.random.values.push(0);
   banner.click();
   banner.motion.setReduced(true);
   assert.equal(banner.animations[0].cancelled, true);
-  banner.random.values.push(0);
   banner.click();
   assert.equal(banner.animations.length, 1);
   assert.equal(banner.faces[0].attributes['aria-hidden'], 'false');
@@ -192,15 +193,18 @@ test('the seasonal pool changes at the next flip when the local month changes', 
   assert.equal(banner.faces[1].dataset.effect, 'festive-lights');
 });
 
-test('saved selections only apply on flips, including out-of-season and single styles', () => {
-  const single = createBanner(new Date(2026, 10, 1), [.5, 0], JSON.stringify(['spring-storm']));
-  assert.ok(yearRound.includes(single.faces[0].dataset.effect));
-  single.random.values.push(0, 0);
-  single.click();
-  single.click();
-  assert.equal(single.faces[0].dataset.effect, 'spring-storm');
-  assert.equal(single.faces[1].dataset.effect, 'spring-storm');
+test('one saved style is displayed on load and every flip without random theme selection', () => {
+  for (const effect of ['spring-storm', ...gameEffects]) {
+    const single = createBanner(new Date(2026, 10, 1), [], JSON.stringify([effect]));
+    assert.equal(single.faces[0].dataset.effect, effect);
+    single.click();
+    single.click();
+    assert.equal(single.faces[0].dataset.effect, effect);
+    assert.equal(single.faces[1].dataset.effect, effect);
+  }
+});
 
+test('multiple saved styles apply on flips', () => {
   const multiple = createBanner(new Date(2026, 10, 1), [.5, 0], JSON.stringify(['cloud', 'fireworks']));
   multiple.random.values.push(0, 0);
   multiple.click();
@@ -229,10 +233,10 @@ test('blocked storage is reported without disabling the banner', () => {
 function createGallery(storage) {
   function element() {
     return {
-      children: [], events: {}, dataset: {}, hidden: true, textContent: '',
+      children: [], events: {}, dataset: {}, attributes: {}, hidden: true, textContent: '',
       append(...children) { this.children.push(...children); },
       addEventListener(name, callback) { this.events[name] = callback; },
-      setAttribute() {},
+      setAttribute(name, value) { this.attributes[name] = value; },
       fire(name) { this.events[name](); },
       querySelectorAll() {
         return this.children.flatMap(child => [
@@ -253,18 +257,27 @@ function createGallery(storage) {
     createElement: element,
     createTextNode: text => ({ textContent: text }),
   };
+  const faces = [element(), element()];
+  const flip = { classList: { contains: () => false } };
+  const scrollCalls = [];
   vm.runInNewContext(galleryScript, {
     document, location: { hash: '#banner-gallery' },
-    brandEffects: yearRound, highImpactBrandEffects: highImpact,
+    window: { scrollTo: options => scrollCalls.push(options) },
+    brandEffects: yearRound, highImpactBrandEffects: highImpact, gameBannerEffects: gameEffects,
+    brandFaces: faces, brandFlip: flip,
     bannerStorageKey: 'gry_banner_styles',
     localStorage: storage,
     readBannerSelection: () => storage.value ? JSON.parse(storage.value) : null,
     reportBannerStorageError(message) { get('banner-storage-status').hidden = !message; },
   });
   const checkboxes = get('banner-gallery-groups').querySelectorAll();
+  const groups = get('banner-gallery-groups').children;
   return {
     get,
+    faces,
+    scrollCalls,
     checkbox: value => checkboxes.find(checkbox => checkbox.value === value),
+    groups,
   };
 }
 
@@ -291,12 +304,37 @@ test('gallery changes save automatically and survive reopening', () => {
   gallery.checkbox('pink').checked = true;
   gallery.checkbox('pink').fire('change');
   assert.deepEqual(JSON.parse(storage.value), ['pink']);
+  assert.equal(gallery.faces[0].dataset.effect, 'pink');
   const reopened = createGallery(storage);
   assert.equal(reopened.checkbox('pink').checked, true);
   assert.equal(reopened.checkbox('orange').checked, false);
   reopened.checkbox('orange').checked = true;
   reopened.checkbox('orange').fire('change');
   assert.deepEqual(JSON.parse(storage.value), ['pink', 'orange']);
+});
+
+test('snake is selectable without changing an existing saved selection', () => {
+  const storage = galleryStorage(JSON.stringify(['pink']));
+  const gallery = createGallery(storage);
+  assert.equal(gallery.groups[0].children[0].textContent, 'Games');
+  assert.deepEqual(gallery.groups[1].querySelectorAll().map(checkbox => checkbox.value),
+    gameEffects);
+  assert.equal(gallery.groups[2].children[0].textContent, 'Year-round');
+  assert.equal(gallery.get('banner-gallery-groups').querySelectorAll()
+    .filter(checkbox => checkbox.value === 'snake').length, 1);
+  for (const effect of gameEffects) {
+    assert.equal(gallery.get('banner-gallery-groups').querySelectorAll()
+      .filter(checkbox => checkbox.value === effect).length, 1);
+    assert.ok(fs.existsSync(path.join(__dirname, '..', 'menu-previews', `banner-${effect}.svg`)));
+    assert.ok(html.includes(`url('menu-previews/banner-${effect}.svg')`));
+  }
+  assert.equal(gallery.checkbox('pink').checked, true);
+  assert.equal(gallery.checkbox('snake').checked, false);
+  gallery.checkbox('snake').checked = true;
+  gallery.checkbox('snake').fire('change');
+  assert.deepEqual(JSON.parse(storage.value), ['snake', 'pink']);
+  const reopened = createGallery(storage);
+  assert.equal(reopened.checkbox('snake').checked, true);
 });
 
 test('empty selections keep the previous save; select all saves and reset restores defaults', () => {
@@ -312,6 +350,35 @@ test('empty selections keep the previous save; select all saves and reset restor
   gallery.get('banner-reset').fire('click');
   assert.equal(storage.value, null);
   assert.match(gallery.get('banner-gallery-status').textContent, /defaults|default/i);
+});
+
+test('each banner category can select only its own styles', () => {
+  const storage = galleryStorage();
+  const gallery = createGallery(storage);
+  const titles = ['Games', 'Year-round', 'Winter · November–February', 'Christmas · December',
+    'Spring · March–May', 'Summer · June–August', 'Autumn · September', 'October'];
+  const checkboxes = gallery.get('banner-gallery-groups').querySelectorAll();
+
+  titles.forEach((title, index) => {
+    checkboxes.forEach(checkbox => { checkbox.checked = false; });
+    const groupHeading = gallery.groups[index * 2];
+    const grid = gallery.groups[index * 2 + 1];
+    const [heading, groupActions] = groupHeading.children;
+    const [selectAll, scrollToTop] = groupActions.children;
+    assert.equal(heading.textContent, title);
+    assert.equal(selectAll.textContent, 'Select all in this category');
+    assert.equal(selectAll.attributes['aria-label'], `Select all banner styles in the ${title} category`);
+    assert.equal(scrollToTop.attributes['aria-label'], 'Back to top');
+
+    selectAll.fire('click');
+    const groupEffects = grid.querySelectorAll().map(checkbox => checkbox.value).sort();
+    assert.deepEqual(checkboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.value).sort(),
+      groupEffects, title);
+    assert.deepEqual(JSON.parse(storage.value).sort(), groupEffects, title);
+    scrollToTop.fire('click');
+    assert.equal(gallery.scrollCalls.at(-1).top, 0);
+    assert.equal(gallery.scrollCalls.at(-1).behavior, 'smooth');
+  });
 });
 
 test('gallery reports failed automatic saves and retains the previous selection', () => {
