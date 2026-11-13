@@ -135,6 +135,25 @@ spread.
 
 ## Development and verification
 
+On macOS, install the optional browser-testing tools with:
+
+```sh
+./scripts/bootstrap-browser-tests.sh
+```
+
+The script installs missing Node.js 20+ and Python 3 with Homebrew, then uses
+npm to install Playwright and its Chromium browser into local caches. It does
+not change the game's dependencies. If npm reports a TLS error, configure the
+trusted certificate required by your network; the script does not disable TLS
+verification. Playwright Chromium setup does not replace release checks in
+standalone Google Chrome.
+
+To check the Node.js, npm and Python prerequisites without installing:
+
+```sh
+./scripts/bootstrap-browser-tests.sh --check
+```
+
 ```sh
 env ATOM_LOCK_SKIP_NATIVE_AUDIO=1 ATOM_LOCK_SKIP_NATIVE_UI=1 \
   node --test klocki-podlasia-0.3/tests/*.test.js

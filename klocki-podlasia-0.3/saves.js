@@ -5,6 +5,13 @@ export const WORLD_GENERATOR_VERSION = 1;
 export const SAVE_DATABASE = 'minecraft-0.3';
 export const LEGACY_SAVE_DATABASE = 'minecraft-0.4';
 export const SAVE_STORE = 'worlds';
+export const WORLD_STORE = 'world-records';
+export const CATALOG_STORE = 'world-catalog';
+const WORLD_KEY = id => `world:${id}`;
+const BACKUP_KEY = id => `previous:${id}`;
+const CATALOG_KEY = id => `world:${id}`;
+const ACTIVE_KEY = 'meta:active';
+const MIGRATED_KEY = 'meta:migrated';
 const CELL_COUNT = SIZE[0] * SIZE[1] * SIZE[2];
 const MAX_SEED = 0xffffffff;
 
@@ -127,8 +134,13 @@ function validateRecord(record) {
 function openDatabase(factory) {
   if (!factory) throw storageError('This browser does not provide IndexedDB.', 'storage-unavailable');
   return new Promise((resolve, reject) => {
-    const request = factory.open(SAVE_DATABASE, 1);
-    request.onupgradeneeded = () => request.result.createObjectStore(SAVE_STORE);
+    const request = factory.open(SAVE_DATABASE, 2);
+    request.onupgradeneeded = () => {
+      const { objectStoreNames } = request.result;
+      if (!objectStoreNames.contains(SAVE_STORE)) request.result.createObjectStore(SAVE_STORE);
+      if (!objectStoreNames.contains(WORLD_STORE)) request.result.createObjectStore(WORLD_STORE);
+      if (!objectStoreNames.contains(CATALOG_STORE)) request.result.createObjectStore(CATALOG_STORE);
+    };
     request.onsuccess = () => {
       request.result.onversionchange = () => request.result.close();
       resolve(request.result);
@@ -158,12 +170,138 @@ function readRequest(request) {
   });
 }
 
+function writeTransaction(db, stores, execute, fallbackMessage) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(stores, 'readwrite');
+    let result;
+    let failure = null;
+    try {
+      execute(transaction, value => { result = value; }, error => {
+        failure = error;
+        transaction.abort();
+      });
+    } catch (error) {
+      failure = error;
+      transaction.abort();
+    }
+    transaction.oncomplete = () => resolve(result);
+    transaction.onabort = () => reject(failure || transaction.error || storageError(fallbackMessage, 'save-failed'));
+    transaction.onerror = () => {
+      if (!failure) failure = transaction.error || storageError(fallbackMessage, 'save-failed');
+    };
+  });
+}
+
 function migrationMarker(record) {
   return {
     revision: Number.isSafeInteger(record?.revision) && record.revision > 0 ? record.revision : 0,
     savedAt: Number.isFinite(record?.savedAt) && record.savedAt > 0 ? record.savedAt : 1,
     schemaVersion: 0
   };
+}
+
+function migrationWorldId(record, slot) {
+  return typeof record?.worldId === 'string' && record.worldId.length > 0 &&
+    record.worldId.length <= 128 ? record.worldId : `__damaged_${slot}__`;
+}
+
+function catalogEntry(record, worldId, corrupt = false) {
+  return {
+    worldId,
+    worldName: typeof record?.worldName === 'string' ? record.worldName : '',
+    revision: Number.isSafeInteger(record?.revision) ? record.revision : 0,
+    savedAt: Number.isFinite(record?.savedAt) ? record.savedAt : 1,
+    lastPlayedAt: 0,
+    corrupt
+  };
+}
+
+function migrateSingleSlot(db) {
+  return writeTransaction(db, [SAVE_STORE, WORLD_STORE, CATALOG_STORE], (transaction, setResult, fail) => {
+    const legacy = transaction.objectStore(SAVE_STORE);
+    const records = transaction.objectStore(WORLD_STORE);
+    const catalog = transaction.objectStore(CATALOG_STORE);
+    const currentRequest = legacy.get('current');
+    const previousRequest = legacy.get('previous');
+    const migratedRequest = catalog.get(MIGRATED_KEY);
+    const keysRequest = catalog.getAllKeys();
+    let remaining = 4;
+    let current;
+    let previous;
+    let migrated;
+    let catalogHasWorlds = false;
+    const complete = () => {
+      remaining--;
+      if (remaining !== 0 || migrated) return;
+      if (catalogHasWorlds) {
+        catalog.put(true, MIGRATED_KEY);
+        setResult(false);
+        return;
+      }
+
+      const currentStatus = recordStatus(current);
+      const previousStatus = recordStatus(previous);
+      const currentId = current === undefined ? null : migrationWorldId(current, 'current');
+      const previousId = previous === undefined ? null : migrationWorldId(previous, 'previous');
+
+      if (current !== undefined) {
+        records.put(current, WORLD_KEY(currentId));
+        catalog.put(catalogEntry(current, currentId, !currentStatus.valid), CATALOG_KEY(currentId));
+      }
+      if (previous !== undefined) {
+        if (previousStatus.valid && currentId === previousId) {
+          records.put(previous, BACKUP_KEY(previousId));
+        } else if (previousId !== currentId) {
+          records.put(previous, WORLD_KEY(previousId));
+          catalog.put(catalogEntry(previous, previousId, !previousStatus.valid), CATALOG_KEY(previousId));
+        }
+      }
+
+      legacy.delete('current');
+      legacy.delete('previous');
+      catalog.put(true, MIGRATED_KEY);
+      setResult(current !== undefined || previous !== undefined);
+    };
+
+    currentRequest.onsuccess = () => { current = currentRequest.result; complete(); };
+    previousRequest.onsuccess = () => { previous = previousRequest.result; complete(); };
+    migratedRequest.onsuccess = () => { migrated = migratedRequest.result === true; complete(); };
+    keysRequest.onsuccess = () => {
+      catalogHasWorlds = keysRequest.result.some(key => typeof key === 'string' && key.startsWith('world:'));
+      complete();
+    };
+    for (const request of [currentRequest, previousRequest, migratedRequest, keysRequest]) {
+      request.onerror = () => fail(request.error || new Error('Cannot read the previous world save.'));
+    }
+  }, 'Moving the previous world save was interrupted.');
+}
+
+function catalogInitialized(db) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(CATALOG_STORE, 'readonly');
+    const store = transaction.objectStore(CATALOG_STORE);
+    const keysRequest = store.getAllKeys();
+    const migratedRequest = store.get(MIGRATED_KEY);
+    let remaining = 2;
+    let initialized = false;
+    const complete = () => {
+      remaining--;
+      if (remaining === 0) resolve(initialized);
+    };
+    keysRequest.onsuccess = () => {
+      initialized ||= keysRequest.result.some(key =>
+        typeof key === 'string' && key.startsWith('world:'));
+      complete();
+    };
+    migratedRequest.onsuccess = () => {
+      initialized ||= migratedRequest.result === true;
+      complete();
+    };
+    for (const request of [keysRequest, migratedRequest]) {
+      request.onerror = () => reject(request.error || storageError('Cannot read the world catalog.', 'save-failed'));
+    }
+    transaction.onerror = () => reject(transaction.error || storageError('Cannot read the world catalog.', 'save-failed'));
+  });
 }
 
 function importLegacyRecords(db, legacyCurrent, legacyPrevious) {
@@ -258,76 +396,245 @@ export class WorldSaveStore {
     return this.database;
   }
 
-  async load() {
+  async prepareCatalog(db) {
+    if (await catalogInitialized(db)) return false;
+    const migratedLegacy = await migrateLegacySave(this.factory, db);
+    const migratedSlots = await migrateSingleSlot(db);
+    return migratedLegacy || migratedSlots;
+  }
+
+  async listWorlds() {
     const db = await this.db();
-    if (!this.migration) this.migration = migrateLegacySave(this.factory, db);
+    if (!this.migration) this.migration = this.prepareCatalog(db);
     const migrated = await this.migration;
-    const transaction = db.transaction(SAVE_STORE, 'readonly');
-    const store = transaction.objectStore(SAVE_STORE);
-    const [current, previous] = await Promise.all([
-      readRequest(store.get('current')),
-      readRequest(store.get('previous'))
+    const transaction = db.transaction(CATALOG_STORE, 'readonly');
+    const request = transaction.objectStore(CATALOG_STORE).getAll();
+    const worlds = await readRequest(request);
+    return worlds.filter(entry => entry && typeof entry.worldId === 'string')
+      .sort((a, b) => b.lastPlayedAt - a.lastPlayedAt || b.savedAt - a.savedAt)
+      .map(entry => ({ ...entry, migrated }));
+  }
+
+  async load(worldId = null) {
+    const db = await this.db();
+    if (!this.migration) this.migration = this.prepareCatalog(db);
+    const migrated = await this.migration;
+    if (worldId === null) {
+      const active = await readRequest(db.transaction(CATALOG_STORE, 'readonly')
+        .objectStore(CATALOG_STORE).get(ACTIVE_KEY));
+      const worlds = await this.listWorlds();
+      const selectedId = worlds.some(entry => entry.worldId === active) ? active : worlds[0]?.worldId;
+      if (selectedId) return this.loadWorld(selectedId, migrated);
+      return {
+        status: 'empty',
+        record: null,
+        expected: { exists: false, revision: null, worldId: null },
+        previousAvailable: false,
+        migrated
+      };
+    }
+    return this.loadWorld(worldId, migrated);
+  }
+
+  async loadWorld(worldId, migrated = null) {
+    const db = await this.db();
+    if (!this.migration) this.migration = this.prepareCatalog(db);
+    if (migrated === null) migrated = await this.migration;
+    const transaction = db.transaction([WORLD_STORE, CATALOG_STORE], 'readonly');
+    const records = transaction.objectStore(WORLD_STORE);
+    const catalog = transaction.objectStore(CATALOG_STORE);
+    const [current, previous, metadata] = await Promise.all([
+      readRequest(records.get(WORLD_KEY(worldId))),
+      readRequest(records.get(BACKUP_KEY(worldId))),
+      readRequest(catalog.get(CATALOG_KEY(worldId)))
     ]);
     const [currentStatus, previousStatus] = [recordStatus(current), recordStatus(previous)];
     const expected = {
-      exists: current !== undefined,
-      revision: Number.isSafeInteger(current?.revision) ? current.revision : null
+      exists: metadata !== undefined || current !== undefined || previous !== undefined,
+      revision: Number.isSafeInteger(metadata?.revision) && metadata.revision > 0
+        ? metadata.revision
+        : Number.isSafeInteger(current?.revision) && current.revision > 0 ? current.revision : null,
+      worldId
     };
     if (currentStatus.valid) {
-      return { status: 'current', record: currentStatus.value, expected, previousAvailable: previousStatus.valid, migrated };
+      return {
+        status: 'current', record: currentStatus.value, expected,
+        previousAvailable: previousStatus.valid, migrated
+      };
     }
     if (previousStatus.valid) {
       return { status: 'recovery', record: previousStatus.value, expected, previousAvailable: true, migrated };
     }
-    if (current !== undefined || previous !== undefined) {
+    if (current !== undefined || previous !== undefined || metadata?.corrupt) {
       return { status: 'corrupt', record: null, expected, previousAvailable: false, migrated };
     }
-    return { status: 'empty', record: null, expected, previousAvailable: false, migrated };
+    return {
+      status: 'empty',
+      record: null,
+      expected: { exists: false, revision: null, worldId },
+      previousAvailable: false,
+      migrated
+    };
   }
 
   async save(snapshot, expected, { replaceCorrupt = false } = {}) {
     validateSnapshot(snapshot);
     const db = await this.db();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(SAVE_STORE, 'readwrite');
-      const store = transaction.objectStore(SAVE_STORE);
-      let failure = null;
-      let savedRecord = null;
-      const request = store.get('current');
-      request.onsuccess = () => {
-        const current = request.result;
-        const exists = current !== undefined;
-        const revision = Number.isSafeInteger(current?.revision) ? current.revision : null;
-        if (exists !== expected.exists || (exists && revision !== expected.revision)) {
-          failure = new SaveConflictError();
-          transaction.abort();
+    if (!this.migration) this.migration = this.prepareCatalog(db);
+    await this.migration;
+    const worldId = snapshot.worldId;
+    return writeTransaction(db, [WORLD_STORE, CATALOG_STORE], (transaction, setResult, fail) => {
+      const records = transaction.objectStore(WORLD_STORE);
+      const catalog = transaction.objectStore(CATALOG_STORE);
+      const currentRequest = records.get(WORLD_KEY(worldId));
+      const metadataRequest = catalog.get(CATALOG_KEY(worldId));
+      let current;
+      let metadata;
+      let remaining = 2;
+      const complete = () => {
+        remaining--;
+        if (remaining !== 0) return;
+        const exists = metadata !== undefined || current !== undefined;
+        const revision = Number.isSafeInteger(metadata?.revision)
+          ? metadata.revision : Number.isSafeInteger(current?.revision) ? current.revision : null;
+        const expectedWorldId = expected.worldId ?? worldId;
+        if (expectedWorldId !== worldId || exists !== expected.exists ||
+            (exists && revision !== expected.revision)) {
+          fail(new SaveConflictError());
           return;
         }
         const currentStatus = recordStatus(current);
         if (exists && !currentStatus.valid && !replaceCorrupt) {
-          failure = currentStatus.error || new CorruptSaveError();
-          transaction.abort();
+          fail(currentStatus.error || new CorruptSaveError());
           return;
         }
         const nextRevision = exists ? (revision ?? 0) + 1 : 1;
         if (!Number.isSafeInteger(nextRevision)) {
-          failure = storageError('The save revision counter reached its limit.', 'save-failed');
-          transaction.abort();
+          fail(storageError('The save revision counter reached its limit.', 'save-failed'));
           return;
         }
-        if (currentStatus.valid) store.put(current, 'previous');
-        savedRecord = { ...snapshot, revision: nextRevision, savedAt: Date.now() };
-        store.put(savedRecord, 'current');
+        if (currentStatus.valid) records.put(current, BACKUP_KEY(worldId));
+        const savedRecord = { ...snapshot, revision: nextRevision, savedAt: Date.now() };
+        const entry = {
+          worldId,
+          worldName: savedRecord.worldName ?? '',
+          revision: savedRecord.revision,
+          savedAt: savedRecord.savedAt,
+          lastPlayedAt: Date.now(),
+          corrupt: false
+        };
+        records.put(savedRecord, WORLD_KEY(worldId));
+        catalog.put(entry, CATALOG_KEY(worldId));
+        catalog.put(worldId, ACTIVE_KEY);
+        setResult(savedRecord);
       };
-      transaction.oncomplete = () => resolve(savedRecord);
-      transaction.onabort = () => reject(failure || transaction.error || storageError('Saving was interrupted.', 'save-failed'));
-      transaction.onerror = () => {
-        if (!failure) failure = transaction.error || storageError('Cannot save the world.', 'save-failed');
+      currentRequest.onsuccess = () => { current = currentRequest.result; complete(); };
+      metadataRequest.onsuccess = () => { metadata = metadataRequest.result; complete(); };
+      for (const request of [currentRequest, metadataRequest]) {
+        request.onerror = () => fail(request.error || storageError('Cannot check the current world revision.', 'save-failed'));
+      }
+    }, 'Saving the world was interrupted.');
+  }
+
+  async activateWorld(worldId) {
+    const db = await this.db();
+    if (!this.migration) this.migration = this.prepareCatalog(db);
+    await this.migration;
+    return writeTransaction(db, CATALOG_STORE, (transaction, setResult, fail) => {
+      const store = transaction.objectStore(CATALOG_STORE);
+      const request = store.get(CATALOG_KEY(worldId));
+      request.onsuccess = () => {
+        const entry = request.result;
+        if (!entry) {
+          fail(storageError('The selected world no longer exists.', 'world-not-found'));
+          return;
+        }
+        entry.lastPlayedAt = Date.now();
+        store.put(entry, CATALOG_KEY(worldId));
+        store.put(worldId, ACTIVE_KEY);
+        setResult(entry);
       };
-      request.onerror = () => {
-        failure = request.error || storageError('Cannot check the current save revision.', 'save-failed');
+      request.onerror = () => fail(request.error || storageError('Cannot select the world.', 'save-failed'));
+    }, 'Selecting the world was interrupted.');
+  }
+
+  async renameWorld(worldId, worldName, expected = null) {
+    if (typeof worldName !== 'string' || !worldName.trim() || worldName.length > 32) {
+      throw new CorruptSaveError('Invalid world name.');
+    }
+    const db = await this.db();
+    if (!this.migration) this.migration = this.prepareCatalog(db);
+    await this.migration;
+    return writeTransaction(db, [WORLD_STORE, CATALOG_STORE], (transaction, setResult, fail) => {
+      const records = transaction.objectStore(WORLD_STORE);
+      const catalog = transaction.objectStore(CATALOG_STORE);
+      const currentRequest = records.get(WORLD_KEY(worldId));
+      const metadataRequest = catalog.get(CATALOG_KEY(worldId));
+      let current;
+      let metadata;
+      let remaining = 2;
+      const complete = () => {
+        remaining--;
+        if (remaining !== 0) return;
+        if (!metadata || !recordStatus(current).valid) {
+          fail(new CorruptSaveError('The selected world cannot be renamed.'));
+          return;
+        }
+        if (expected && (expected.worldId !== worldId || expected.revision !== metadata.revision)) {
+          fail(new SaveConflictError());
+          return;
+        }
+        const renamed = {
+          ...current,
+          worldName: worldName.trim(),
+          revision: metadata.revision + 1,
+          savedAt: Date.now()
+        };
+        records.put(current, BACKUP_KEY(worldId));
+        records.put(renamed, WORLD_KEY(worldId));
+        catalog.put({ ...metadata, worldName: renamed.worldName, revision: renamed.revision, savedAt: renamed.savedAt },
+          CATALOG_KEY(worldId));
+        setResult(renamed);
       };
-    });
+      currentRequest.onsuccess = () => { current = currentRequest.result; complete(); };
+      metadataRequest.onsuccess = () => { metadata = metadataRequest.result; complete(); };
+      for (const request of [currentRequest, metadataRequest]) {
+        request.onerror = () => fail(request.error || storageError('Cannot rename the world.', 'save-failed'));
+      }
+    }, 'Renaming the world was interrupted.');
+  }
+
+  async deleteWorld(worldId) {
+    const db = await this.db();
+    if (!this.migration) this.migration = this.prepareCatalog(db);
+    await this.migration;
+    return writeTransaction(db, [WORLD_STORE, CATALOG_STORE], (transaction, setResult, fail) => {
+      const records = transaction.objectStore(WORLD_STORE);
+      const catalog = transaction.objectStore(CATALOG_STORE);
+      const activeRequest = catalog.get(ACTIVE_KEY);
+      const metadataRequest = catalog.get(CATALOG_KEY(worldId));
+      let active;
+      let metadata;
+      let remaining = 2;
+      const complete = () => {
+        remaining--;
+        if (remaining !== 0) return;
+        if (!metadata) {
+          setResult(false);
+          return;
+        }
+        records.delete(WORLD_KEY(worldId));
+        records.delete(BACKUP_KEY(worldId));
+        catalog.delete(CATALOG_KEY(worldId));
+        if (active === worldId) catalog.delete(ACTIVE_KEY);
+        setResult(true);
+      };
+      activeRequest.onsuccess = () => { active = activeRequest.result; complete(); };
+      metadataRequest.onsuccess = () => { metadata = metadataRequest.result; complete(); };
+      for (const request of [activeRequest, metadataRequest]) {
+        request.onerror = () => fail(request.error || storageError('Cannot delete the world.', 'save-failed'));
+      }
+    }, 'Deleting the world was interrupted.');
   }
 }
 
