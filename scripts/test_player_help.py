@@ -43,6 +43,16 @@ class PlayerHelpTest(unittest.TestCase):
                 with self.subTest(page=name, href=link["href"]):
                     self.assert_local_destination(source, link["href"])
 
+    def test_minecraft_archive_h_shortcut_returns_to_games_home(self):
+        source = ROOT / "minecraft/index.html"
+        games_link = next(link for link in PageLinks(source).links
+                          if link["href"] == "../index.html"
+                          and link.get("aria-keyshortcuts") == "H")
+        self.assert_local_destination(source, games_link["href"])
+        html = source.read_text(encoding="utf-8")
+        self.assertIn("document.addEventListener('keydown'", html)
+        self.assertIn("window.location.href = '../index.html';", html)
+
     def test_portfolio_games_link_to_help_without_replacing_the_game_tab(self):
         cards = [link for link in PageLinks(ROOT / "index.html").links
                  if "card" in link.get("class", "").split()]
