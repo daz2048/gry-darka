@@ -70,6 +70,13 @@
           <button id="world-create" data-i18n="worldPicker.create">Create a new world</button>
         </div>
       </section>
+      <div id="world-action-confirm" class="reset-confirm" role="group" aria-label="Manage world" data-i18n-attr="aria-label:worldPicker.manage" hidden>
+        <p id="world-action-message"></p>
+        <label id="world-action-name-label" for="world-action-name" data-i18n="worldPicker.nameLabel">New world name</label>
+        <input id="world-action-name" type="text" maxlength="32" autocomplete="off">
+        <button id="confirm-world-action" data-i18n="worldPicker.rename">Rename</button>
+        <button id="cancel-world-action" data-i18n="worldPicker.cancel">Cancel</button>
+      </div>
       <div id="play-actions" class="actions" hidden>
         <button id="start" class="primary" disabled data-i18n="button.start">Play — capture mouse</button>
         <button id="drag-start" disabled data-i18n="button.dragStart">Play without capturing</button>
@@ -124,7 +131,7 @@
     } else {
       import('./i18n.js?v=1').then(i18n => {
         i18n.initLanguage();
-        return import('./game.js?v=25');
+        return import('./game.js?v=26');
       }).catch(error => {
         console.error('Minecraft: cannot start the game.', error);
         status.textContent = pick(

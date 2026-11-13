@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SCRIPT_VERSION='1.1.0'
+SCRIPT_VERSION='1.2.0'
 RESET='' BOLD='' CYAN='' GREEN='' YELLOW='' RED=''
 if [ -t 1 ] && [ -n "${TERM:-}" ] && [ "$TERM" != dumb ] && [ -z "${NO_COLOR:-}" ]; then
     RESET=$'\033[0m' BOLD=$'\033[1m' CYAN=$'\033[36m'
@@ -43,6 +43,7 @@ usage() {
         '  Launch headless Chromium and take a temporary screenshot to verify it works.'
     heading 'TLS and colours'
     printf '%s\n' \
+        '  On macOS, use /etc/ssl/cert.pem as additional Node CAs if available and not explicitly configured.' \
         '  TLS verification stays enabled. For a trusted network CA, use:' \
         '    NODE_EXTRA_CA_CERTS=/absolute/path/to/trusted-ca.pem ./scripts/bootstrap-browser-tests.sh' \
         '  Existing npm proxy/cafile settings are respected; no configuration is rewritten.' \
@@ -62,6 +63,11 @@ while [ "$#" -gt 0 ]; do
     esac
     shift
 done
+
+if [ -z "${NODE_EXTRA_CA_CERTS+x}" ] && [ "$(uname -s)" = Darwin ] && [ -f /etc/ssl/cert.pem ] && [ -r /etc/ssl/cert.pem ]; then
+    export NODE_EXTRA_CA_CERTS=/etc/ssl/cert.pem
+    printf 'Using macOS certificate bundle: %s\n' "$NODE_EXTRA_CA_CERTS"
+fi
 
 heading 'Bootstrap information'
 printf 'Script version: %s\n' "$SCRIPT_VERSION"

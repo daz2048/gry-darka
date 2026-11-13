@@ -25,9 +25,10 @@ class BootstrapTests(unittest.TestCase):
             "TERM": "xterm-256color",
         }
         self.env.pop("NO_COLOR", None)
+        self.env.pop("NODE_EXTRA_CA_CERTS", None)
         for name in ("mktemp", "rm", "rmdir", "dirname", "grep", "cat"):
             (self.bin / name).symlink_to(shutil.which(name))
-        self.command("uname", "echo Darwin")
+        self.command("uname", 'echo "${FIXTURE_PLATFORM:-Darwin}"')
         self.command("git", """
 case "$3" in
     rev-parse)
@@ -51,6 +52,7 @@ test -f "$FIXTURE/node-ok"
         self.command("python3", 'test -f "$FIXTURE/python-ok" && echo 3.14.4')
         self.command("npm", """
 echo "npm $*" >> "$FIXTURE/commands"
+printf '%s\\n' "${NODE_EXTRA_CA_CERTS-unset}" >> "$FIXTURE/ca-values"
 if [ "$1" = --version ]; then
     test -f "$FIXTURE/npm-ok" && echo 11.0.0
     exit $?
@@ -131,12 +133,32 @@ esac
     def test_healthy_tools_are_reused_without_installing(self):
         result = self.run_script()
         self.assertIn("browser launch/screenshot check", result.stdout)
-        self.assertIn("Script version: 1.1.0", result.stdout)
+        self.assertIn("Script version: 1.2.0", result.stdout)
         self.assertIn("Branch: test-branch", result.stdout)
         self.assertIn("Commit: abc123", result.stdout)
         self.assertIn("Worktree: clean", result.stdout)
         self.assertNotIn("brew ", self.commands())
         self.assertNotIn("install chromium", self.commands())
+
+    def test_macos_certificate_default_and_explicit_overrides(self):
+        if not (Path("/etc/ssl/cert.pem").is_file() and os.access("/etc/ssl/cert.pem", os.R_OK)):
+            self.skipTest("macOS certificate bundle is not available")
+        result = self.run_script("--check")
+        self.assertIn("Using macOS certificate bundle: /etc/ssl/cert.pem", result.stdout)
+        self.assertEqual(set((self.root / "ca-values").read_text().splitlines()), {"/etc/ssl/cert.pem"})
+        for value in ("/custom/trusted.pem", ""):
+            with self.subTest(value=value):
+                (self.root / "ca-values").unlink()
+                self.env["NODE_EXTRA_CA_CERTS"] = value
+                result = self.run_script("--check")
+                self.assertNotIn("Using macOS certificate bundle", result.stdout)
+                self.assertEqual(set((self.root / "ca-values").read_text().splitlines()), {value})
+
+    def test_other_platforms_do_not_set_macos_certificate_bundle(self):
+        self.env["FIXTURE_PLATFORM"] = "Linux"
+        result = self.run_script("--check")
+        self.assertNotIn("Using macOS certificate bundle", result.stdout)
+        self.assertEqual(set((self.root / "ca-values").read_text().splitlines()), {"unset"})
 
     def test_git_dirty_detached_and_status_failure(self):
         self.mark("dirty")

@@ -31,15 +31,17 @@ pasku zmienia język od razu, bez przeładowania i bez utraty niezapisanej pracy
 Świat, ziarno, pozycja i kierunek gracza, materiał oraz ustawienia zapisują się
 automatycznie co kilka sekund w IndexedDB. Przycisk **Zapisz** wymusza zapis
 od razu; pasek u góry pokazuje jego rzeczywisty stan. Po ponownym otwarciu
-świat wraca do ekranu pauzy — wybierz sposób sterowania, aby wznowić.
+wybierz świat z listy albo użyj **Kontynuuj**, aby wrócić do ostatnio używanego;
+następnie wybierz sposób sterowania.
 
 Po kliknięciu **Zapisz** komunikat pokazuje wynik operacji, nazwę świata,
-miejsce zapisu (adres strony → IndexedDB → `minecraft-0.3` → `worlds` →
-`current`) oraz szacowany rozmiar danych w MiB i bajtach. Szczegóły pozostają
-w panelu pauzy; są też aktualizowane po autozapisie i wczytaniu. Sukces jest
-pokazywany dopiero po zakończeniu transakcji. Błąd nie pokazuje nowego rozmiaru.
-To nie jest plik na dysku ani eksport: rozmiar obejmuje tablice bloków i wody
-oraz metadane w JSON UTF-8, bez narzutu IndexedDB i poprzedniej kopii.
+miejsce zapisu (adres strony → IndexedDB → `minecraft-0.3` → `world-records` →
+identyfikator świata) oraz szacowany rozmiar danych w MiB i bajtach. Szczegóły
+pozostają w panelu pauzy; są też aktualizowane po autozapisie i wczytaniu.
+Sukces jest pokazywany dopiero po zakończeniu transakcji. Błąd nie pokazuje
+nowego rozmiaru. To nie jest plik na dysku ani eksport: rozmiar obejmuje
+tablice bloków i wody oraz metadane w JSON UTF-8, bez narzutu IndexedDB i
+poprzedniej kopii.
 
 Zapis jest lokalny dla profilu Chrome i adresu strony. Nie synchronizuje się
 między urządzeniami ani między localhost a wersją hostowaną; wyczyszczenie lub
@@ -51,21 +53,25 @@ jest niedostępna, świat pozostaje grywalny jako sesja tymczasowa, a gra wyraź
 informuje, że zmiany nie są zapisane. Wykryty konflikt między kartami wymaga
 wczytania aktualnej wersji, zamiast cichego nadpisania.
 
-To jeden lokalny slot. Przy tworzeniu **nowej łąki** możesz wpisać jej nazwę
-(maksymalnie 32 znaki); nazwa jest zapisywana i wyświetlana w świecie.
-Utworzenie wymaga potwierdzenia; anulowanie niczego nie zmienia, a poprzedni
-zapis zostaje zachowany jako kopia odzyskiwania. Nie ma
+Na ekranie startowym możesz wybrać zapisany świat albo kontynuować ostatnio
+używany. Każdy świat ma osobny zapis i kopię odzyskiwania. **Utwórz nowy
+świat** pozwala wpisać nazwę (maksymalnie 32 znaki); nazwy nie muszą być
+unikalne. Utworzenie nie zastępuje istniejącego świata. Możesz zmieniać nazwy
+światów albo je usuwać; usunięcie wymaga potwierdzenia i obejmuje kopię
+odzyskiwania. Gdy usuniesz ostatni świat, możesz utworzyć kolejny. Nie ma
 przetrwania, craftingu, multiplayera, sterowania dotykowego, synchronizacji
 chmurowej ani gwarancji działania offline/PWA. Więcej szczegółów i aktualne
 bramki wydania zawiera [backlog](../backlog/voxel-sandbox-backlog.md).
 
 Przy pierwszym uruchomieniu wersja 0.3 może przenieść poprawne rekordy z dawnej
-bazy `minecraft-0.4`, ale tylko jeśli slot 0.3 jest pusty. Zachowuje też
+bazy `minecraft-0.4`, ale tylko jeśli katalog 0.3 jest pusty. Zachowuje też
 informację o uszkodzonym zapisie, aby pokazać odzyskiwanie lub wymagać
-potwierdzenia zastąpienia. Stara baza pozostaje nienaruszona jako kopia. Jeśli
-migracja się nie powiedzie, gra nie zapisuje tymczasowego świata automatycznie;
-pokaże ponowienie migracji albo wymaga osobnego potwierdzenia utworzenia nowego
-świata.
+potwierdzenia utworzenia nowego świata. Przy migracji starszych slotów 0.3
+różne identyfikatory bieżącego i poprzedniego zapisu stają się osobnymi
+światami; przy tym samym identyfikatorze poprzedni zapis zostaje kopią
+odzyskiwania. Stara baza pozostaje nienaruszona. Jeśli migracja się nie
+powiedzie, gra nie zapisuje tymczasowego świata automatycznie; pokaże ponowienie
+migracji albo wymaga osobnego potwierdzenia utworzenia nowego świata.
 
 ## Run
 
@@ -94,8 +100,8 @@ is needed to play. Requires a desktop keyboard/mouse and WebGL2.
 - Follow the roads to the villages and roadside structures. The HUD shows your
   biome and X/Z coordinates; the pause panel lists destinations. Jump up the watchtower steps.
 - **Wróć na start**: find a safe supported position without resetting the world.
-- **Nowa łąka**: choose a name (up to 32 characters) and confirm replacement
-  with a different seed; the previous world remains the recovery copy.
+- **Nowa łąka**: choose a name (up to 32 characters) and confirm creating a
+  world with a different seed; existing worlds remain unchanged.
 - Fullscreen and lower resolution are optional; denied fullscreen leaves windowed play.
 - **Muzyka / Głośność muzyki**: enable or mute the original ambient music and
   adjust its volume in the start/pause panel. It begins after choosing a play mode
@@ -168,8 +174,10 @@ mode this is an error and nothing is installed. Other browser errors are shown;
 `--debug` also prints the full offline-check error output. Debug output may
 contain local paths or details from npm, so review it before sharing.
 
-If npm reports a TLS error, configure the trusted certificate required by your
-network, for example:
+On macOS, the script uses `/etc/ssl/cert.pem` as additional Node.js certificate
+authorities when the file is available and `NODE_EXTRA_CA_CERTS` is not set.
+This only affects the script and its child processes. If npm still reports a TLS
+error, explicitly configure the trusted certificate required by your network:
 
 ```sh
 NODE_EXTRA_CA_CERTS=/absolute/path/to/trusted-ca.pem ./scripts/bootstrap-browser-tests.sh

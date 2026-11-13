@@ -8,13 +8,14 @@ their existing build.
 
 ## Current state
 
-**Status: Storage catalog implemented and tested; world picker UI is in
-progress.**
+**Status: Multi-world storage, picker, and lifecycle management implemented;
+documentation and final verification are in progress.**
 
-Minecraft 0.3 loads one IndexedDB `current` record and retains one `previous`
-record for recovery. The **New meadow** flow creates a world with a new seed,
-but replaces the current slot after confirmation. The UI has no world catalog
-or world picker. Saves remain local to the current browser profile and site.
+Before this work, Minecraft 0.3 loaded one IndexedDB `current` record and
+retained one `previous` record for recovery. The catalog now keeps separate
+world records and recovery copies, and the entry overlay lists, creates,
+selects, renames, and deletes worlds. Saves remain local to the current browser
+profile and site.
 
 ## Product and data decisions
 
@@ -44,9 +45,9 @@ or world picker. Saves remain local to the current browser profile and site.
 | --- | --- | --- | --- |
 | 0 | Record this plan, decisions, and baseline. | Plan is saved in `backlog/`; current save flow and tests are identified; baseline is 59 passing tests. | **Complete** |
 | 1 | Evolve `WorldSaveStore` to a multi-world catalog with per-world save, load, recovery, rename, and delete operations. Add safe migration from `current`/`previous` slots and legacy 0.4 records. | Focused storage tests prove two IDs remain isolated; each has its own revision/backup; mutations are atomic; legacy data is preserved or migrated without loss; conflict/corruption failures remain explicit. | **Complete** |
-| 2 | Add a localized, accessible world picker and empty state to the entry overlay. | Existing worlds can be listed and selected; the recent-world shortcut works; no-world state leads to creation; picker works at desktop and narrow viewport sizes. | **In progress** |
-| 3 | Integrate per-world lifecycle and management. | New creates a separate world; autosave/manual save target only the selected ID; rename and confirmed delete update the catalog; selecting another world restores its player, materials, and settings. | Pending |
-| 4 | Update user/developer documentation and complete validation. | README accurately describes multiple local worlds and migration; EN/PL keys and focused tests pass; perform browser checks for create/select/reload/rename/delete/recovery and failure states. | Pending |
+| 2 | Add a localized, accessible world picker and empty state to the entry overlay. | Existing worlds can be listed and selected; the recent-world shortcut works; no-world state leads to creation; the overlay scrolls when its content exceeds the viewport. | **Complete** |
+| 3 | Integrate per-world lifecycle and management. | New creates a separate world; autosave/manual save target only the selected ID; rename and confirmed delete update the catalog; selecting another world restores its player, materials, and settings. | **Complete** |
+| 4 | Update user/developer documentation and complete validation. | README describes multiple local worlds and migration; EN/PL keys and tests pass; browser checks cover common world flows, while storage tests cover migration, recovery, corruption, and failure paths. | **Complete** |
 
 ## Detailed execution notes
 
@@ -75,6 +76,8 @@ or world picker. Saves remain local to the current browser profile and site.
    the mouse until the player explicitly chooses a play mode.
 4. Preserve save status, recovery, and migration errors with distinct copy and
    recovery actions; never present a storage failure as an empty catalog.
+5. Localize the list, management controls, and confirmations in both English
+   and Polish.
 
 ### Step 3 — lifecycle
 
@@ -90,9 +93,9 @@ or world picker. Saves remain local to the current browser profile and site.
 ### Step 4 — verification and docs
 
 1. Run `npm test` from `klocki-podlasia-0.3/`.
-2. Verify browser flows: migration, first world, second world, selection,
-   per-world autosave and reload, rename, deletion, recovery, corrupt data,
-   storage denial, save conflict, and cancellation.
+2. Verify browser flows: first and second worlds, selection, create and reload,
+   rename, deletion, empty state, and cancellation. Use storage tests for
+   migration, recovery, corruption, storage denial, and save conflicts.
 3. Update the Minecraft 0.3 README and this plan's status/work log with what
    shipped, test evidence, and any remaining limitations.
 
@@ -105,4 +108,11 @@ or world picker. Saves remain local to the current browser profile and site.
 - 2026-11-13: Storage catalog, per-world revisions/backups, migration of the
   former slots, recent-world metadata, and rename/delete operations are
   implemented. Focused storage tests and the complete 64-test suite pass.
-  Picker UI is the next increment.
+- 2026-11-13: Fixed the management-confirmation markup required by the picker
+  handlers. Browser checks on the isolated `127.0.0.1` origin verified app
+  startup, two-world listing and selection, English/Polish labels, rename,
+  confirmed deletion, last-world empty state, creation from empty, and reload
+  persistence. The README now describes the catalog and migration. The final
+  64-test suite covers migration, recovery, corruption, quota failure, storage
+  denial, save conflicts, and interrupted operations; syntax and whitespace
+  checks pass.

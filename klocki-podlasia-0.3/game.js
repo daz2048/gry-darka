@@ -246,12 +246,15 @@ function renderWorldPicker() {
     const name = document.createElement('strong');
     name.textContent = displayWorldName(entry.worldName);
     const detail = document.createElement('small');
-    detail.textContent = entry.corrupt
+    const savedLabel = entry.corrupt
       ? t('worldPicker.damaged')
       : t('worldPicker.lastSaved', {
         time: new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' })
           .format(new Date(entry.savedAt))
       });
+    detail.textContent = entry.worldId === worldId
+      ? `${savedLabel} · ${t('worldPicker.current')}`
+      : savedLabel;
     button.append(name, detail);
     if (!entry.corrupt) button.addEventListener('click', () => selectSavedWorld(entry.worldId).catch(reportError));
     const actions = document.createElement('div');
@@ -599,6 +602,7 @@ async function selectSavedWorld(selectedId) {
       setSaveStatus('save.corrupt', 'error');
       setText(ui['load-status'], 'load.corrupt');
       const damaged = savedWorlds.find(entry => entry.worldId === selectedId);
+      if (damaged) damaged.corrupt = true;
       worldName = customWorldName(damaged?.worldName);
       ui['world-name'].textContent = displayWorldName(worldName);
       return;
