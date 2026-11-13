@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { World, SIZE, BLOCKS, BIOMES, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTURES,
-  nearbyChunks, chunkGeometry, waterGeometry, pick } from '../world.js';
+import { World, SIZE, BLOCKS, BIOMES, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTURES, CHUNK,
+  nearbyChunks, chunkGeometry, waterGeometry, pick, hauntedHouseAt, hauntedHouseIdAt,
+  isHauntedHouseBlock, updateHauntedCurse } from '../world.js';
 import { ATLAS_COLUMNS, ATLAS_ROWS } from '../textures.js';
 import { createPlayer, collides, stepPlayer } from '../player.js';
 import { createMobs, createMobModel, stepMobs } from '../mobs.js';
@@ -196,6 +197,47 @@ test('every village has an enterable haunted house and a creepy resident', () =>
       Math.abs(mob.x - village.x) < 14 && Math.abs(mob.z - village.z) < 14);
     assert.equal(hauntedResidents.length, 1, `${village.name} has one haunted resident`);
   }
+});
+
+test('haunted-house blocks are identified and tagged for the changing effect', () => {
+  const world = new World();
+  for (const village of [...VILLAGES, ...BIOME_VILLAGES]) {
+    assert.equal(hauntedHouseAt(village.x - 7, village.z + 7), true);
+    assert.equal(hauntedHouseIdAt(village.x - 7, village.z + 7),
+      `${village.x - 7},${village.z + 7}`);
+    assert.equal(isHauntedHouseBlock(village.x - 7, 9, village.z + 7), true);
+    assert.equal(isHauntedHouseBlock(village.x - 7, 16, village.z + 7), false);
+    assert.equal(hauntedHouseAt(village.x - 11, village.z + 7), false);
+    const geometry = chunkGeometry(world, Math.floor((village.x - 7) / CHUNK), 0,
+      Math.floor((village.z + 7) / CHUNK));
+    assert.equal(geometry.haunted.length, geometry.positions.length / 3);
+    assert.equal(geometry.hauntedFloor.length, geometry.positions.length / 3);
+    assert.ok(geometry.haunted.includes(1), `${village.name} blocks get the changing effect`);
+    assert.ok(geometry.hauntedFloor.includes(1), `${village.name} floor gets crimson stains`);
+  }
+  assert.notEqual(hauntedHouseIdAt(VILLAGES[0].x - 7, VILLAGES[0].z + 7),
+    hauntedHouseIdAt(VILLAGES[1].x - 7, VILLAGES[1].z + 7));
+  assert.equal(hauntedHouseIdAt(0, 0), null);
+});
+
+test('a different haunted home lifts the curse and a later one triggers a nightmare', () => {
+  const world = new World();
+  const firstHouse = hauntedHouseIdAt(VILLAGES[0].x - 7, VILLAGES[0].z + 7);
+  const secondHouse = hauntedHouseIdAt(VILLAGES[1].x - 7, VILLAGES[1].z + 7);
+  const thirdHouse = hauntedHouseIdAt(VILLAGES[2].x - 7, VILLAGES[2].z + 7);
+
+  assert.equal(updateHauntedCurse(world, firstHouse), true);
+  assert.equal(updateHauntedCurse(world, firstHouse), false);
+  assert.equal(world.cursed, true);
+  assert.equal(updateHauntedCurse(world, secondHouse), true);
+  assert.equal(world.cursed, false);
+  assert.equal(world.curseLifted, true);
+  assert.equal(world.curseHouse, secondHouse);
+  assert.equal(updateHauntedCurse(world, secondHouse), false);
+  assert.equal(updateHauntedCurse(world, thirdHouse), true);
+  assert.equal(world.cursed, false);
+  assert.equal(world.nightmare, true);
+  assert.equal(updateHauntedCurse(world, firstHouse), false);
 });
 
 test('villages connect by roads and contain seeded mineable ore veins', () => {

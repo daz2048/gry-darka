@@ -48,6 +48,50 @@ export const BIOME_VILLAGES = [
   { biome: 'cherry', name: 'Wiśniowa Polana', x: 224, z: 220, floor: 17, wall: 23, roof: 8, path: 6, landmark: 'tree' }
 ];
 const ALL_VILLAGES = [...VILLAGES, ...BIOME_VILLAGES];
+export function hauntedHouseIdAt(x, z) {
+  const village = ALL_VILLAGES.find(village =>
+    x >= village.x - 10 && x <= village.x - 4 &&
+    z >= village.z + 4 && z <= village.z + 10);
+  return village ? `${village.x - 7},${village.z + 7}` : null;
+}
+
+export function hauntedHouseAt(x, z) {
+  return hauntedHouseIdAt(x, z) !== null;
+}
+
+export function updateHauntedCurse(world, houseId) {
+  if (!houseId) return false;
+  if (world.curseLifted) {
+    if (!world.curseHouse) {
+      world.curseHouse = houseId;
+      return true;
+    }
+    if (!world.nightmare && world.curseHouse !== houseId) {
+      world.nightmare = true;
+      return true;
+    }
+    return false;
+  }
+  if (!world.cursed) {
+    world.cursed = true;
+    world.curseHouse = houseId;
+    return true;
+  }
+  if (!world.curseHouse) {
+    world.curseHouse = houseId;
+    return true;
+  }
+  if (world.curseHouse === houseId) return false;
+  world.cursed = false;
+  world.curseHouse = houseId;
+  world.curseLifted = true;
+  return true;
+}
+
+export function isHauntedHouseBlock(x, y, z) {
+  return y >= 8 && y <= 15 && hauntedHouseAt(x, z);
+}
+
 export const STRUCTURES = [
   { name: 'Wieża obserwacyjna', x: 82, z: 44, rx: 5, rz: 5 },
   { name: 'Obozowisko', x: 151, z: 67, rx: 6, rz: 5 },
@@ -432,6 +476,10 @@ export function nearbyChunks(x, z, radius = 4) {
 export class World {
   constructor(seed = 2026) {
     this.seed = seed >>> 0;
+    this.cursed = false;
+    this.curseHouse = null;
+    this.curseLifted = false;
+    this.nightmare = false;
     this.blocks = new Uint8Array(SIZE[0] * SIZE[1] * SIZE[2]);
     this.water = new Uint8Array(this.blocks.length);
     this.dirty = new Set();
@@ -598,9 +646,10 @@ const TABLE_PARTS = [
 ];
 
 export function chunkGeometry(world, cx, cy, cz) {
-  const positions = [], normals = [], colors = [], uvs = [], indices = [];
-  function addFace(x, y, z, id, face, box) {
+  const positions = [], normals = [], colors = [], uvs = [], haunted = [], hauntedFloor = [], indices = [];
+  function addFace(x, y, z, id, face, box, hauntedBlock, hauntedFloorBlock) {
     const offset = positions.length / 3;
+    const hauntedFloorFace = hauntedFloorBlock && face.n[1] > 0 ? 1 : 0;
     const tile = blockTexture(id, face.n);
     const column = tile % ATLAS_COLUMNS;
     const row = Math.floor(tile / ATLAS_COLUMNS);
@@ -617,6 +666,8 @@ export function chunkGeometry(world, cx, cy, cz) {
       normals.push(...face.n);
       colors.push(face.shade, face.shade, face.shade);
       uvs.push(i % 2 ? u1 : u0, i < 2 ? v0 : v1);
+      haunted.push(hauntedBlock);
+      hauntedFloor.push(hauntedFloorFace);
     }
     indices.push(offset, offset + 1, offset + 2, offset + 2, offset + 1, offset + 3);
   }
@@ -625,8 +676,12 @@ export function chunkGeometry(world, cx, cy, cz) {
       for (let z = cz * CHUNK; z < (cz + 1) * CHUNK; z++) {
         const id = world.get(x, y, z);
         if (!id) continue;
+        const hauntedBlock = isHauntedHouseBlock(x, y, z) ? 1 : 0;
+        const hauntedFloorBlock = hauntedBlock && y === 8;
         if (BLOCKS[id].shape === 'table') {
-          for (const box of TABLE_PARTS) for (const face of FACES) addFace(x, y, z, id, face, box);
+          for (const box of TABLE_PARTS) for (const face of FACES) {
+            addFace(x, y, z, id, face, box, hauntedBlock, hauntedFloorBlock);
+          }
           continue;
         }
         const height = BLOCKS[id].height ?? 1;
@@ -637,12 +692,12 @@ export function chunkGeometry(world, cx, cy, cz) {
             if (face.n[1] > 0 ? height === 1 :
               face.n[1] < 0 ? neighborHeight === 1 : neighborHeight >= height) continue;
           }
-          addFace(x, y, z, id, face, [0, 0, 0, 1, height, 1]);
+          addFace(x, y, z, id, face, [0, 0, 0, 1, height, 1], hauntedBlock, hauntedFloorBlock);
         }
       }
     }
   }
-  return { positions, normals, colors, uvs, indices };
+  return { positions, normals, colors, uvs, haunted, hauntedFloor, indices };
 }
 
 export function waterGeometry(world, cx, cy, cz) {

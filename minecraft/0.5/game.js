@@ -1,15 +1,16 @@
 import * as THREE from 'three';
 import { PointerLockControls } from '../shared/vendor/three/0.180.0/PointerLockControls.js';
 import { World, SIZE, CHUNK, BLOCKS, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTURES,
-  nearbyChunks, chunkGeometry, waterGeometry, pick } from './world.js?v=5';
+  nearbyChunks, chunkGeometry, waterGeometry, pick, hauntedHouseIdAt, updateHauntedCurse }
+  from './world.js?v=10';
 import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=3';
 import { createPlayer, collides, stepPlayer } from './player.js?v=2';
-import { createMobs, createMobModel, stepMobs } from './mobs.js?v=4';
+import { createMobs, createMobModel, stepMobs } from './mobs.js?v=6';
 import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=3';
 import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, WORLD_STORE,
   MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
-  suggestUniqueWorldName } from './saves.js?v=11';
-import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=2';
+  suggestUniqueWorldName } from './saves.js?v=14';
+import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=5';
 import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=15';
 import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=12';
 
@@ -39,7 +40,10 @@ renderer.shadowMap.autoUpdate = false;
 ui.viewport.append(renderer.domElement);
 renderer.domElement.tabIndex = -1;
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xc9e7e5, 36, 62);
+const outdoorFogColor = new THREE.Color(0xc9e7e5);
+const hauntedFogColor = new THREE.Color('#21191f');
+const nightmareFogColor = new THREE.Color('#15070f');
+scene.fog = new THREE.Fog(outdoorFogColor, 36, 62);
 const camera = new THREE.PerspectiveCamera(70, 1, 0.05, 140);
 camera.rotation.order = 'YXZ';
 const controls = new PointerLockControls(camera, renderer.domElement);
@@ -105,7 +109,8 @@ const sky = new THREE.Mesh(
 );
 sky.renderOrder = -1;
 scene.add(sky);
-scene.add(new THREE.HemisphereLight(0xe4f6ff, 0x746044, 1.25));
+const ambientLight = new THREE.HemisphereLight(0xe4f6ff, 0x746044, 1.25);
+scene.add(ambientLight);
 const sunlight = new THREE.DirectionalLight(0xfff0d7, 2.1);
 sunlight.position.set(-32, 54, 38);
 sunlight.castShadow = true;
@@ -121,6 +126,24 @@ sunlight.shadow.bias = -0.00015;
 sunlight.shadow.radius = 3;
 scene.add(sunlight);
 scene.add(sunlight.target);
+const hauntedLight = new THREE.PointLight('#a52d3a', 0, 12, 1.8);
+scene.add(hauntedLight);
+const hauntedMoteSeeds = Array.from({ length: 54 }, (_, index) => ({
+  x: Math.sin(index * 12.9898) * 2.8,
+  y: 0.25 + (index * 37 % 100) / 100 * 3.4,
+  z: Math.cos(index * 78.233) * 2.8,
+  phase: index * 1.71
+}));
+const hauntedMoteGeometry = new THREE.BufferGeometry();
+hauntedMoteGeometry.setAttribute('position',
+  new THREE.Float32BufferAttribute(new Float32Array(hauntedMoteSeeds.length * 3), 3));
+const hauntedMoteMaterial = new THREE.PointsMaterial({
+  color: '#b78d9b', size: 0.12, transparent: true, opacity: 0, depthWrite: false
+});
+const hauntedMotes = new THREE.Points(hauntedMoteGeometry, hauntedMoteMaterial);
+hauntedMotes.frustumCulled = false;
+hauntedMotes.visible = false;
+scene.add(hauntedMotes);
 const atlasCanvas = createBlockAtlas(BLOCKS);
 const atlas = new THREE.CanvasTexture(atlasCanvas);
 atlas.colorSpace = THREE.SRGBColorSpace;
@@ -129,6 +152,79 @@ atlas.minFilter = THREE.NearestFilter;
 atlas.generateMipmaps = false;
 const atlasUrl = atlasCanvas.toDataURL();
 const material = new THREE.MeshLambertMaterial({ vertexColors: true, map: atlas });
+const hauntedUniforms = {
+  time: { value: 0 },
+  intensity: { value: 0 },
+  nightmare: { value: 0 }
+};
+material.onBeforeCompile = shader => {
+  shader.uniforms.hauntTime = hauntedUniforms.time;
+  shader.uniforms.hauntIntensity = hauntedUniforms.intensity;
+  shader.uniforms.nightmareIntensity = hauntedUniforms.nightmare;
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', `#include <common>
+      attribute float haunted;
+      attribute float hauntedFloor;
+      varying float vHaunted;
+      varying float vHauntedFloor;
+      varying vec3 vHauntPosition;
+      uniform float hauntTime;
+      uniform float hauntIntensity;`)
+    .replace('uniform float hauntIntensity;', `uniform float hauntIntensity;
+      uniform float nightmareIntensity;`)
+    .replace('#include <begin_vertex>', `#include <begin_vertex>
+      vHaunted = haunted;
+      vHauntedFloor = hauntedFloor;
+      vHauntPosition = position;
+      float hauntWave = hauntTime * 2.7 + position.x * 0.9 +
+        position.y * 1.6 + position.z * 1.3;
+      float hauntStrength = max(haunted * (0.28 + hauntIntensity * 0.72),
+        hauntIntensity * 0.68);
+      transformed.x += hauntStrength * sin(hauntWave) * 0.11;
+      transformed.z += hauntStrength * cos(hauntWave * 0.77) * 0.11;
+      transformed.x += nightmareIntensity * sin(hauntWave * 1.31) * 0.09;
+      transformed.z += nightmareIntensity * cos(hauntWave * 1.17) * 0.09;
+      transformed.y += nightmareIntensity * sin(hauntWave * 0.83) * 0.055;`);
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', `#include <common>
+      varying float vHaunted;
+      varying float vHauntedFloor;
+      varying vec3 vHauntPosition;
+      uniform float hauntTime;
+      uniform float hauntIntensity;`)
+    .replace('uniform float hauntIntensity;', `uniform float hauntIntensity;
+      uniform float nightmareIntensity;`)
+    .replace('#include <output_fragment>', `#include <output_fragment>
+      float hauntPulse = 0.5 + 0.5 * sin(hauntTime * 3.2 +
+        dot(vHauntPosition, vec3(1.7, 2.3, 1.3)));
+      vec3 hauntedColor = gl_FragColor.rgb * vec3(0.35, 0.2, 0.38) +
+        vec3(0.12, 0.012, 0.045) * hauntPulse;
+      float veinA = abs(sin((vHauntPosition.x + vHauntPosition.y * 0.73) * 13.0 +
+        sin(vHauntPosition.z * 6.0) * 0.8));
+      float veinB = abs(sin((vHauntPosition.z - vHauntPosition.y * 0.61) * 15.0 +
+        sin(vHauntPosition.x * 5.0) * 0.9));
+      float cracks = 1.0 - smoothstep(0.015, 0.1, min(veinA, veinB));
+      vec3 scarredColor = mix(hauntedColor, vec3(0.48, 0.012, 0.055),
+        cracks * (0.62 + 0.28 * hauntPulse));
+      float worldHaunt = max(vHaunted * (0.42 + 0.58 * hauntIntensity),
+        hauntIntensity * 0.62);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, scarredColor,
+        worldHaunt * (0.62 + 0.28 * hauntPulse));
+      vec2 stainCell = floor(vHauntPosition.xz * 1.2);
+      vec2 stainLocal = fract(vHauntPosition.xz * 1.2) - 0.5;
+      float stainSeed = fract(sin(dot(stainCell, vec2(127.1, 311.7))) * 43758.5453);
+      vec2 stainCenter = vec2(stainSeed, fract(stainSeed * 31.7)) * 0.24 - 0.12;
+      float stainRadius = 0.33 + fract(stainSeed * 19.1) * 0.16;
+      float stainEdge = length(stainLocal - stainCenter) +
+        sin(stainLocal.x * 36.0 + stainSeed * 19.0) * 0.018 +
+        sin(stainLocal.y * 31.0 - stainSeed * 17.0) * 0.02;
+      float crimsonPool = 1.0 - smoothstep(stainRadius * 0.7, stainRadius, stainEdge);
+      vec3 stainedFloor = mix(gl_FragColor.rgb, vec3(0.24, 0.006, 0.025),
+        (0.34 + crimsonPool * 0.5) * (0.72 + hauntPulse * 0.28));
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, stainedFloor, vHauntedFloor);
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.12, 0.006, 0.025),
+        nightmareIntensity * (0.24 + 0.12 * hauntPulse));`);
+};
 const waterCanvas = document.createElement('canvas');
 waterCanvas.width = waterCanvas.height = 64;
 const waterContext = waterCanvas.getContext('2d');
@@ -152,6 +248,10 @@ const waterMaterial = new THREE.MeshPhongMaterial({
   map: waterTexture, color: 0xffffff, transparent: true, opacity: 0.78,
   side: THREE.DoubleSide, depthWrite: false, shininess: 90, specular: 0xb9e8e8
 });
+const normalWaterColor = new THREE.Color(0xffffff);
+const hauntedWaterColor = new THREE.Color('#4b182c');
+const nightmareWaterColor = new THREE.Color('#210913');
+const nightmareMobTint = new THREE.Color('#493141');
 const chunks = new Map();
 const waterChunks = new Map();
 const loadedChunks = new Set();
@@ -907,6 +1007,8 @@ function rebuild() {
       geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals, 3));
       geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors, 3));
       geometry.setAttribute('uv', new THREE.Float32BufferAttribute(data.uvs, 2));
+      geometry.setAttribute('haunted', new THREE.Float32BufferAttribute(data.haunted, 1));
+      geometry.setAttribute('hauntedFloor', new THREE.Float32BufferAttribute(data.hauntedFloor, 1));
       geometry.setIndex(data.indices);
       geometry.computeBoundingSphere();
       const mesh = new THREE.Mesh(geometry, material);
@@ -974,6 +1076,8 @@ function resetMobs() {
   mobModels = mobs.map(mob => createMobModel(THREE, mob));
   for (let index = 0; index < mobs.length; index++) {
     mobs[index].model = mobModels[index];
+    mobModels[index].normalColors = new Map(
+      [...mobModels[index].materials.values()].map(material => [material, material.color.clone()]));
     scene.add(mobModels[index].group);
   }
 }
@@ -1610,11 +1714,63 @@ onLanguageChange(() => {
 function frame(now) {
   const elapsed = Math.max(0, now - lastTime);
   lastTime = now;
+  const hauntedHouseId = player.y >= 8 && player.y < 15 ?
+    hauntedHouseIdAt(player.x, player.z) : null;
+  if (updateHauntedCurse(world, hauntedHouseId)) markDirty();
+  const hauntTarget = world.cursed || world.nightmare ? 1 : 0;
+  hauntedUniforms.time.value = now / 1000;
+  hauntedUniforms.intensity.value += (hauntTarget - hauntedUniforms.intensity.value) *
+    Math.min(elapsed / 450, 1);
+  const nightmareTarget = world.nightmare ? 1 : 0;
+  hauntedUniforms.nightmare.value += (nightmareTarget - hauntedUniforms.nightmare.value) *
+    Math.min(elapsed / 700, 1);
+  const haunted = hauntedUniforms.intensity.value;
+  const nightmare = hauntedUniforms.nightmare.value;
+  hauntedMotes.visible = haunted > 0.01;
+  hauntedMoteMaterial.opacity = haunted * (0.68 + nightmare * 0.3);
+  if (hauntedMotes.visible) {
+    hauntedMotes.position.set(player.x, player.y - 0.5, player.z);
+    const motePositions = hauntedMoteGeometry.attributes.position;
+    for (let index = 0; index < hauntedMoteSeeds.length; index++) {
+      const mote = hauntedMoteSeeds[index];
+      motePositions.setXYZ(index,
+        mote.x + Math.sin(now / 1700 + mote.phase) * 0.16,
+        mote.y + Math.sin(now / 1300 + mote.phase) * 0.24,
+        mote.z + Math.cos(now / 1900 + mote.phase) * 0.16);
+    }
+    motePositions.needsUpdate = true;
+  }
+  ambientLight.intensity = THREE.MathUtils.lerp(1.25,
+    THREE.MathUtils.lerp(0.35, 0.12, nightmare), haunted);
+  sunlight.intensity = THREE.MathUtils.lerp(2.1,
+    THREE.MathUtils.lerp(0.18, 0.04, nightmare), haunted);
+  hauntedLight.position.set(player.x, player.y + 1.1, player.z);
+  hauntedLight.intensity = haunted * (1.2 + nightmare * 0.8 +
+    0.35 * Math.sin(now / 1000 * 1.7));
+  scene.fog.color.copy(outdoorFogColor).lerp(hauntedFogColor, haunted);
+  scene.fog.color.lerp(nightmareFogColor, nightmare * 0.72);
+  scene.fog.near = THREE.MathUtils.lerp(36,
+    THREE.MathUtils.lerp(0.8, 0.3, nightmare), haunted);
+  scene.fog.far = THREE.MathUtils.lerp(62,
+    THREE.MathUtils.lerp(11, 6, nightmare), haunted);
+  waterMaterial.color.copy(normalWaterColor).lerp(hauntedWaterColor, haunted);
+  waterMaterial.color.lerp(nightmareWaterColor, nightmare);
   stepMobs(world, mobs, elapsed / 1000);
   for (const mob of mobs) {
     const bob = mob.walking ? Math.abs(Math.sin(mob.animation * 9 + mob.phase)) * 0.035 : 0;
+    const mobHaunt = haunted * (mob.haunted ? 1 : 0.72);
+    for (const [material, normalColor] of mob.model.normalColors) {
+      material.color.copy(normalColor).lerp(nightmareMobTint,
+        mobHaunt * (0.68 + nightmare * 0.25));
+    }
     mob.model.group.position.set(mob.x, mob.groundY + bob, mob.z);
-    mob.model.group.rotation.y = mob.yaw;
+    const nightmareSway = Math.sin(mob.animation * 1.7 + mob.phase) * mobHaunt *
+      (0.14 + nightmare * 0.18);
+    mob.model.group.rotation.y = mob.yaw + nightmareSway;
+    const nightmareScale = 1 + mobHaunt *
+      (0.025 + 0.015 * Math.sin(mob.animation * 2.1 + mob.phase)) +
+      nightmare * 0.045;
+    mob.model.group.scale.setScalar(nightmareScale);
     const gait = mob.walking ? Math.sin(mob.animation * 9 + mob.phase) * 0.48 : 0;
     mob.model.legs.forEach((leg, index) => {
       const direction = mob.model.legs.length === 4 && index >= 2 ? -1 : 1;

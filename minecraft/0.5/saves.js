@@ -1,4 +1,4 @@
-import { BLOCKS, CHUNK, SIZE } from './world.js';
+import { BLOCKS, CHUNK, SIZE, hauntedHouseIdAt } from './world.js';
 
 export const SAVE_SCHEMA_VERSION = 1;
 export const WORLD_GENERATOR_VERSION = 1;
@@ -70,12 +70,23 @@ function assert(condition, message) {
   if (!condition) throw new CorruptSaveError(message);
 }
 
+function validCurseHouse(value) {
+  if (typeof value !== 'string' || !/^\d{1,3},\d{1,3}$/.test(value)) return false;
+  const [x, z] = value.split(',').map(Number);
+  return hauntedHouseIdAt(x, z) === value;
+}
+
 export function createSnapshot(world, player, yaw, pitch, selectedBlock, settings, worldId, worldName = 'Łąka') {
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
     generatorVersion: WORLD_GENERATOR_VERSION,
     dimensions: [...SIZE],
     seed: world.seed,
+    ...(world.cursed === true ? { cursed: true } : {}),
+    ...(world.curseHouse === null || world.curseHouse === undefined ? {} :
+      { curseHouse: world.curseHouse }),
+    ...(world.curseLifted === true ? { curseLifted: true } : {}),
+    ...(world.nightmare === true ? { nightmare: true } : {}),
     blocks: world.blocks.slice(),
     water: world.water.slice(),
     player: { x: player.x, y: player.y, z: player.z, yaw, pitch },
@@ -108,6 +119,22 @@ export function validateSnapshot(snapshot) {
   'Saved world dimensions do not match.');
   assert(Number.isInteger(snapshot.seed) && snapshot.seed >= 0 && snapshot.seed <= MAX_SEED,
     'Invalid world seed.');
+  assert(snapshot.cursed === undefined || typeof snapshot.cursed === 'boolean',
+    'Invalid world curse state.');
+  assert(snapshot.curseLifted === undefined || typeof snapshot.curseLifted === 'boolean',
+    'Invalid cleared curse state.');
+  assert(snapshot.nightmare === undefined || typeof snapshot.nightmare === 'boolean',
+    'Invalid nightmare state.');
+  assert(snapshot.cursed !== true || snapshot.curseLifted !== true,
+    'A cleared curse cannot still be active.');
+  assert(snapshot.nightmare !== true ||
+    (snapshot.curseLifted === true && snapshot.cursed !== true),
+  'Nightmare state requires a lifted curse.');
+  assert(snapshot.curseHouse === undefined || validCurseHouse(snapshot.curseHouse),
+    'Invalid haunted-house curse origin.');
+  assert(snapshot.curseHouse === undefined ||
+    (snapshot.cursed === true || snapshot.curseLifted === true),
+  'An inactive curse cannot have a haunted-house origin.');
   assert(snapshot.blocks instanceof Uint8Array && snapshot.blocks.length === CELL_COUNT,
     'Invalid block data length.');
   assert(snapshot.water instanceof Uint8Array && snapshot.water.length === CELL_COUNT,
@@ -687,6 +714,10 @@ export class WorldSaveStore {
 export function applySnapshot(world, snapshot) {
   validateSnapshot(snapshot);
   world.seed = snapshot.seed;
+  world.cursed = snapshot.cursed === true;
+  world.curseHouse = snapshot.curseHouse ?? null;
+  world.curseLifted = snapshot.curseLifted === true;
+  world.nightmare = snapshot.nightmare === true;
   world.blocks.set(snapshot.blocks);
   world.water.set(snapshot.water);
   world.dirty.clear();

@@ -161,7 +161,7 @@
     } else {
       import('./i18n.js?v=15').then(i18n => {
         i18n.initLanguage();
-        return import('./game.js?v=42');
+        return import('./game.js?v=53');
       }).catch(error => {
         console.error('Minecraft: cannot start the game.', error);
         status.textContent = pick(

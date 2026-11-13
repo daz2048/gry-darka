@@ -1,4 +1,4 @@
-import { CorruptSaveError, SAVE_SCHEMA_VERSION, WORLD_GENERATOR_VERSION, validateSnapshot } from './saves.js?v=11';
+import { CorruptSaveError, SAVE_SCHEMA_VERSION, WORLD_GENERATOR_VERSION, validateSnapshot } from './saves.js?v=14';
 import { SIZE } from './world.js';
 
 export const MAX_BACKUP_BYTES = 8 * 1024 * 1024;
@@ -16,6 +16,10 @@ function snapshotFields(value) {
     generatorVersion: value?.generatorVersion,
     dimensions: value?.dimensions,
     seed: value?.seed,
+    ...(value?.cursed === undefined ? {} : { cursed: value.cursed }),
+    ...(value?.curseHouse === undefined ? {} : { curseHouse: value.curseHouse }),
+    ...(value?.curseLifted === undefined ? {} : { curseLifted: value.curseLifted }),
+    ...(value?.nightmare === undefined ? {} : { nightmare: value.nightmare }),
     blocks: value?.blocks,
     water: value?.water,
     player: {

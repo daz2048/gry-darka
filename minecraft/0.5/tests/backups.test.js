@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { World } from '../world.js';
 import { createPlayer } from '../player.js';
-import { createSnapshot, CorruptSaveError } from '../saves.js?v=11';
+import { createSnapshot, CorruptSaveError } from '../saves.js?v=14';
 import {
   backupFileName, decodeWorldBackup, encodeWorldBackup, MAX_BACKUP_BYTES, readWorldBackup
 } from '../backups.js';
@@ -52,6 +52,17 @@ test('backup round trips preserve soundtrack assignments and accept backups with
   }
   const restored = await decodeWorldBackup(encoded);
   assert.equal(restored.settings.musicSelection, undefined);
+  const cursed = await decodeWorldBackup(await encodeWorldBackup({
+    ...original, cursed: true, curseHouse: '105,63'
+  }));
+  assert.equal(cursed.cursed, true);
+  assert.equal(cursed.curseHouse, '105,63');
+  const cured = await decodeWorldBackup(await encodeWorldBackup({ ...original, curseLifted: true }));
+  assert.equal(cured.curseLifted, true);
+  const nightmare = await decodeWorldBackup(await encodeWorldBackup({
+    ...original, curseLifted: true, curseHouse: '105,63', nightmare: true
+  }));
+  assert.equal(nightmare.nightmare, true);
 });
 
 test('malformed, truncated, and unsupported backups are rejected', async () => {

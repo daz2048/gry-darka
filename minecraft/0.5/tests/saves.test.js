@@ -24,6 +24,7 @@ test('snapshot copies the full seeded world, water, player, material and setting
   assert.equal(snapshot.water.length, snapshot.blocks.length);
   assert.deepEqual(snapshot.player, { ...snapshot.player, x: 32.5, y: 9, z: 39.5, yaw: -0.5, pitch: 0.2 });
   assert.equal(snapshot.selectedBlock, 7);
+  assert.equal(snapshot.cursed ?? false, false);
   assert.equal(snapshot.worldName, 'Łąka');
   assert.deepEqual(snapshot.settings, {
     sensitivity: 1,
@@ -88,7 +89,54 @@ test('snapshot arrays are independent and restore exact block and water bytes', 
   assert.deepEqual(restored.blocks, expectedBlocks);
   assert.deepEqual(restored.water, expectedWater);
   assert.equal(restored.seed, 42);
+  assert.equal(restored.cursed, false);
   assert.equal(restored.dirty.size, (SIZE[0] / 16) * (SIZE[1] / 16) * (SIZE[2] / 16));
+});
+
+test('haunted-world curse persists in saves and missing legacy curse state defaults to clear', () => {
+  const original = new World(42);
+  original.cursed = true;
+  original.curseHouse = '105,63';
+  const snapshot = createSnapshot(original, createPlayer(original), 0, 0, 1, {
+    sensitivity: 1, lowQuality: true, musicEnabled: false, musicVolume: 0
+  }, 'cursed-world');
+  assert.equal(snapshot.cursed, true);
+  const restoredCurse = applySnapshot(new World(1), snapshot);
+  assert.equal(restoredCurse.cursed, true);
+  assert.equal(restoredCurse.curseHouse, '105,63');
+
+  const oldCurseSnapshot = { ...snapshot };
+  delete oldCurseSnapshot.curseHouse;
+  assert.equal(validateSnapshot(oldCurseSnapshot), oldCurseSnapshot);
+  assert.equal(applySnapshot(new World(1), oldCurseSnapshot).cursed, true);
+
+  const legacySnapshot = { ...snapshot };
+  delete legacySnapshot.cursed;
+  delete legacySnapshot.curseHouse;
+  delete legacySnapshot.curseLifted;
+  assert.equal(validateSnapshot(legacySnapshot), legacySnapshot);
+  assert.equal(applySnapshot(new World(1), legacySnapshot).cursed, false);
+  assert.equal(new World(42).cursed, false);
+
+  const clearedWorld = new World(42);
+  clearedWorld.curseLifted = true;
+  const clearedSnapshot = createSnapshot(clearedWorld, createPlayer(clearedWorld), 0, 0, 1, {
+    sensitivity: 1, lowQuality: true, musicEnabled: false, musicVolume: 0
+  }, 'cleared-world');
+  const restoredClear = applySnapshot(new World(1), clearedSnapshot);
+  assert.equal(restoredClear.cursed, false);
+  assert.equal(restoredClear.curseLifted, true);
+
+  const nightmareWorld = new World(42);
+  nightmareWorld.curseLifted = true;
+  nightmareWorld.curseHouse = '105,63';
+  nightmareWorld.nightmare = true;
+  const nightmareSnapshot = createSnapshot(nightmareWorld, createPlayer(nightmareWorld), 0, 0, 1, {
+    sensitivity: 1, lowQuality: true, musicEnabled: false, musicVolume: 0
+  }, 'nightmare-world');
+  const restoredNightmare = applySnapshot(new World(1), nightmareSnapshot);
+  assert.equal(restoredNightmare.cursed, false);
+  assert.equal(restoredNightmare.nightmare, true);
 });
 
 test('snapshot validation rejects incompatible schemas, dimensions, and payload lengths', () => {
@@ -97,6 +145,10 @@ test('snapshot validation rejects incompatible schemas, dimensions, and payload 
     { ...snapshot, schemaVersion: 2 },
     { ...snapshot, generatorVersion: 2 },
     { ...snapshot, dimensions: [64, 32, 64] },
+    { ...snapshot, cursed: 'forever' },
+    { ...snapshot, curseHouse: '1,1' },
+    { ...snapshot, curseLifted: 'forever' },
+    { ...snapshot, nightmare: true },
     { ...snapshot, blocks: snapshot.blocks.slice(1) },
     { ...snapshot, water: snapshot.water.slice(1) }
   ]) assert.throws(() => validateSnapshot(invalid), CorruptSaveError);
