@@ -196,7 +196,9 @@ function migrationMarker(record) {
   return {
     revision: Number.isSafeInteger(record?.revision) && record.revision > 0 ? record.revision : 0,
     savedAt: Number.isFinite(record?.savedAt) && record.savedAt > 0 ? record.savedAt : 1,
-    schemaVersion: 0
+    schemaVersion: 0,
+    ...(typeof record?.worldId === 'string' ? { worldId: record.worldId } : {}),
+    ...(typeof record?.worldName === 'string' ? { worldName: record.worldName } : {})
   };
 }
 
@@ -246,7 +248,8 @@ function migrateSingleSlot(db) {
 
       if (current !== undefined) {
         records.put(current, WORLD_KEY(currentId));
-        catalog.put(catalogEntry(current, currentId, !currentStatus.valid), CATALOG_KEY(currentId));
+        catalog.put(catalogEntry(current, currentId,
+          !currentStatus.valid && !(previousStatus.valid && currentId === previousId)), CATALOG_KEY(currentId));
       }
       if (previous !== undefined) {
         if (previousStatus.valid && currentId === previousId) {
@@ -399,20 +402,19 @@ export class WorldSaveStore {
   async prepareCatalog(db) {
     if (await catalogInitialized(db)) return false;
     const migratedLegacy = await migrateLegacySave(this.factory, db);
-    const migratedSlots = await migrateSingleSlot(db);
-    return migratedLegacy || migratedSlots;
+    await migrateSingleSlot(db);
+    return migratedLegacy;
   }
 
   async listWorlds() {
     const db = await this.db();
     if (!this.migration) this.migration = this.prepareCatalog(db);
-    const migrated = await this.migration;
+    await this.migration;
     const transaction = db.transaction(CATALOG_STORE, 'readonly');
     const request = transaction.objectStore(CATALOG_STORE).getAll();
     const worlds = await readRequest(request);
     return worlds.filter(entry => entry && typeof entry.worldId === 'string')
-      .sort((a, b) => b.lastPlayedAt - a.lastPlayedAt || b.savedAt - a.savedAt)
-      .map(entry => ({ ...entry, migrated }));
+      .sort((a, b) => b.lastPlayedAt - a.lastPlayedAt || b.savedAt - a.savedAt);
   }
 
   async load(worldId = null) {
@@ -495,8 +497,9 @@ export class WorldSaveStore {
         remaining--;
         if (remaining !== 0) return;
         const exists = metadata !== undefined || current !== undefined;
-        const revision = Number.isSafeInteger(metadata?.revision)
-          ? metadata.revision : Number.isSafeInteger(current?.revision) ? current.revision : null;
+        const revision = Number.isSafeInteger(metadata?.revision) && metadata.revision > 0
+          ? metadata.revision
+          : Number.isSafeInteger(current?.revision) && current.revision > 0 ? current.revision : null;
         const expectedWorldId = expected.worldId ?? worldId;
         if (expectedWorldId !== worldId || exists !== expected.exists ||
             (exists && revision !== expected.revision)) {
@@ -504,7 +507,7 @@ export class WorldSaveStore {
           return;
         }
         const currentStatus = recordStatus(current);
-        if (exists && !currentStatus.valid && !replaceCorrupt) {
+        if (current !== undefined && !currentStatus.valid && !replaceCorrupt) {
           fail(currentStatus.error || new CorruptSaveError());
           return;
         }

@@ -141,18 +141,45 @@ On macOS, install the optional browser-testing tools with:
 ./scripts/bootstrap-browser-tests.sh
 ```
 
-The script installs missing Node.js 20+ and Python 3 with Homebrew, then uses
-npm to install Playwright and its Chromium browser into local caches. It does
-not change the game's dependencies. If npm reports a TLS error, configure the
-trusted certificate required by your network; the script does not disable TLS
-verification. Playwright Chromium setup does not replace release checks in
-standalone Google Chrome.
+The script checks Node.js 20+, npm and Python 3.9+ (including its HTTP/TLS
+standard library), reuses working tools, and installs missing runtimes with
+Homebrew on macOS. Broken Homebrew-managed runtimes are upgraded or reinstalled
+once; other installations are not overwritten. If another installation shadows
+Homebrew, repair it or adjust `PATH` manually. Homebrew must already be installed.
+Playwright and Chromium use local caches, not the game's dependencies. A
+temporary headless screenshot verifies that Chromium launches; broken browser
+files get one forced reinstall attempt.
 
-To check the Node.js, npm and Python prerequisites without installing:
+Output and help are coloured in a terminal; `NO_COLOR=1`, `TERM=dumb` and
+redirected output disable colours. The script prints its version, Git branch,
+commit and worktree status (including untracked files). To check runtimes and
+cached Playwright/Chromium without installing or downloading, enable extra
+diagnostics, or show full help:
 
 ```sh
 ./scripts/bootstrap-browser-tests.sh --check
+./scripts/bootstrap-browser-tests.sh --check --debug
+./scripts/bootstrap-browser-tests.sh --help
 ```
+
+An `ENOTCACHED` result during the offline check means npm could not find
+Playwright in its cache; normal setup then attempts to install it. In `--check`
+mode this is an error and nothing is installed. Other browser errors are shown;
+`--debug` also prints the full offline-check error output. Debug output may
+contain local paths or details from npm, so review it before sharing.
+
+If npm reports a TLS error, configure the trusted certificate required by your
+network, for example:
+
+```sh
+NODE_EXTRA_CA_CERTS=/absolute/path/to/trusted-ca.pem ./scripts/bootstrap-browser-tests.sh
+```
+
+The script respects existing npm proxy/CA settings and never disables TLS
+verification or rewrites npm configuration. Playwright Chromium checks do not
+replace release checks in standalone Google Chrome.
+
+Run the game logic tests with:
 
 ```sh
 env ATOM_LOCK_SKIP_NATIVE_AUDIO=1 ATOM_LOCK_SKIP_NATIVE_UI=1 \

@@ -8,8 +8,8 @@ their existing build.
 
 ## Current state
 
-**Status: Storage refactor in progress; the first incremental baseline is
-complete.**
+**Status: Storage catalog implemented and tested; world picker UI is in
+progress.**
 
 Minecraft 0.3 loads one IndexedDB `current` record and retains one `previous`
 record for recovery. The **New meadow** flow creates a world with a new seed,
@@ -43,8 +43,8 @@ or world picker. Saves remain local to the current browser profile and site.
 | Step | Scope | Acceptance criteria | Status |
 | --- | --- | --- | --- |
 | 0 | Record this plan, decisions, and baseline. | Plan is saved in `backlog/`; current save flow and tests are identified; baseline is 59 passing tests. | **Complete** |
-| 1 | Evolve `WorldSaveStore` to a multi-world catalog with per-world save, load, recovery, rename, and delete operations. Add safe migration from `current`/`previous` slots and legacy 0.4 records. | Focused storage tests prove two IDs remain isolated; each has its own revision/backup; mutations are atomic; legacy data is preserved or migrated without loss; conflict/corruption failures remain explicit. | **In progress** |
-| 2 | Add a localized, accessible world picker and empty state to the entry overlay. | Existing worlds can be listed and selected; the recent-world shortcut works; no-world state leads to creation; picker works at desktop and narrow viewport sizes. | Pending |
+| 1 | Evolve `WorldSaveStore` to a multi-world catalog with per-world save, load, recovery, rename, and delete operations. Add safe migration from `current`/`previous` slots and legacy 0.4 records. | Focused storage tests prove two IDs remain isolated; each has its own revision/backup; mutations are atomic; legacy data is preserved or migrated without loss; conflict/corruption failures remain explicit. | **Complete** |
+| 2 | Add a localized, accessible world picker and empty state to the entry overlay. | Existing worlds can be listed and selected; the recent-world shortcut works; no-world state leads to creation; picker works at desktop and narrow viewport sizes. | **In progress** |
 | 3 | Integrate per-world lifecycle and management. | New creates a separate world; autosave/manual save target only the selected ID; rename and confirmed delete update the catalog; selecting another world restores its player, materials, and settings. | Pending |
 | 4 | Update user/developer documentation and complete validation. | README accurately describes multiple local worlds and migration; EN/PL keys and focused tests pass; perform browser checks for create/select/reload/rename/delete/recovery and failure states. | Pending |
 
@@ -102,3 +102,7 @@ or world picker. Saves remain local to the current browser profile and site.
   reviewed storage tests. Baseline `npm test` from `klocki-podlasia-0.3/`
   passed all 59 tests. The save layer and migration are the first implementation
   increment; picker and lifecycle wiring remain later steps.
+- 2026-11-13: Storage catalog, per-world revisions/backups, migration of the
+  former slots, recent-world metadata, and rename/delete operations are
+  implemented. Focused storage tests and the complete 64-test suite pass.
+  Picker UI is the next increment.

@@ -4,7 +4,7 @@ import { World } from '../world.js';
 import { createPlayer } from '../player.js';
 import {
   createSnapshot, WorldSaveStore, SaveConflictError, CorruptSaveError, SaveMigrationError,
-  SAVE_DATABASE, LEGACY_SAVE_DATABASE
+  SAVE_DATABASE, LEGACY_SAVE_DATABASE, WORLD_STORE
 } from '../saves.js';
 import { FakeIndexedDB } from './fake-indexeddb.js';
 
@@ -30,34 +30,36 @@ test('first save creates revision 1 and a second keeps the first as the previous
   assert.equal(saved.revision, 1);
   const second = await store.save(snapshot(4), { exists: true, revision: 1 });
   assert.equal(second.revision, 2);
-  const records = idb.records(SAVE_DATABASE);
-  assert.equal(records.get('current').selectedBlock, 4);
-  assert.equal(records.get('previous').selectedBlock, 3);
+  const records = idb.records(SAVE_DATABASE, WORLD_STORE);
+  assert.equal(records.get('world:test-world').selectedBlock, 4);
+  assert.equal(records.get('previous:test-world').selectedBlock, 3);
 });
 
 test('a quota failure aborts the transaction and leaves current and previous untouched', async () => {
   const idb = new FakeIndexedDB();
   idb.seed(SAVE_DATABASE, { current: record(4, 2), previous: record(3, 1) });
   const store = new WorldSaveStore(idb);
+  await store.load();
   idb.faults.commit = quota;
   await assert.rejects(store.save(snapshot(9), { exists: true, revision: 2 }), error => error.name === 'QuotaExceededError');
-  const records = idb.records(SAVE_DATABASE);
-  assert.equal(records.get('current').selectedBlock, 4);
-  assert.equal(records.get('current').revision, 2);
-  assert.equal(records.get('previous').selectedBlock, 3);
+  const records = idb.records(SAVE_DATABASE, WORLD_STORE);
+  assert.equal(records.get('world:test-world').selectedBlock, 4);
+  assert.equal(records.get('world:test-world').revision, 2);
+  assert.equal(records.get('previous:test-world').selectedBlock, 3);
 
   delete idb.faults.commit;
   const retry = await store.save(snapshot(9), { exists: true, revision: 2 });
   assert.equal(retry.revision, 3);
-  assert.equal(records.get('previous').selectedBlock, 4);
+  assert.equal(records.get('previous:test-world').selectedBlock, 4);
 });
 
 test('an aborted first save leaves the slot empty and retryable', async () => {
   const idb = new FakeIndexedDB();
   const store = new WorldSaveStore(idb);
+  await store.load();
   idb.faults.commit = new Error('Transaction aborted');
   await assert.rejects(store.save(snapshot(), { exists: false, revision: null }), /aborted/);
-  assert.equal(idb.records(SAVE_DATABASE).size, 0);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).size, 0);
   delete idb.faults.commit;
   assert.equal((await store.save(snapshot(), { exists: false, revision: null })).revision, 1);
 });
@@ -83,8 +85,8 @@ test('a save over a changed revision is rejected as a conflict and writes nothin
   const store = new WorldSaveStore(idb);
   await assert.rejects(store.save(snapshot(9), { exists: true, revision: 4 }), SaveConflictError);
   await assert.rejects(store.save(snapshot(9), { exists: false, revision: null }), SaveConflictError);
-  assert.equal(idb.records(SAVE_DATABASE).get('current').selectedBlock, 4);
-  assert.equal(idb.records(SAVE_DATABASE).has('previous'), false);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('world:test-world').selectedBlock, 4);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).has('previous:test-world'), false);
 });
 
 test('a damaged current save recovers from previous and is not overwritten without consent', async () => {
@@ -95,11 +97,11 @@ test('a damaged current save recovers from previous and is not overwritten witho
   assert.equal(loaded.status, 'recovery');
   assert.equal(loaded.record.selectedBlock, 3);
   await assert.rejects(store.save(snapshot(9), loaded.expected), CorruptSaveError);
-  assert.equal(idb.records(SAVE_DATABASE).get('previous').selectedBlock, 3);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('previous:test-world').selectedBlock, 3);
 
   const replaced = await store.save(snapshot(9), loaded.expected, { replaceCorrupt: true });
   assert.equal(replaced.revision, 3);
-  assert.equal(idb.records(SAVE_DATABASE).get('current').selectedBlock, 9);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('world:test-world').selectedBlock, 9);
 });
 
 test('damaged current and previous report corrupt and stay protected', async () => {
@@ -110,7 +112,7 @@ test('damaged current and previous report corrupt and stay protected', async () 
   const loaded = await store.load();
   assert.equal(loaded.status, 'corrupt');
   await assert.rejects(store.save(snapshot(9), loaded.expected), CorruptSaveError);
-  assert.equal(idb.records(SAVE_DATABASE).get('current').seed, -1);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('world:test-world').seed, -1);
 });
 
 test('a damaged previous copy is ignored while current stays valid', async () => {
@@ -129,7 +131,7 @@ test('legacy 0.4 save migrates into an empty slot and leaves the legacy database
   assert.equal(loaded.status, 'current');
   assert.equal(loaded.record.selectedBlock, 6);
   assert.equal(idb.records(LEGACY_SAVE_DATABASE).get('current').selectedBlock, 6);
-  assert.equal(idb.records(SAVE_DATABASE).get('previous').selectedBlock, 5);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('previous:test-world').selectedBlock, 5);
 });
 
 test('legacy migration never overwrites an already populated 0.3 slot', async () => {
@@ -139,7 +141,7 @@ test('legacy migration never overwrites an already populated 0.3 slot', async ()
   const loaded = await new WorldSaveStore(idb).load();
   assert.equal(loaded.migrated, false);
   assert.equal(loaded.record.selectedBlock, 2);
-  assert.equal(idb.records(SAVE_DATABASE).get('current').revision, 8);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('world:test-world').revision, 8);
 });
 
 test('a damaged legacy save becomes a protected marker, not a playable world', async () => {
@@ -172,5 +174,91 @@ test('serialized rapid saves each build on the previous revision', async () => {
     assert.equal(saved.revision, i);
     expected = { exists: true, revision: saved.revision };
   }
-  assert.equal(idb.records(SAVE_DATABASE).get('previous').revision, 4);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('previous:test-world').revision, 4);
+});
+
+test('worlds keep independent snapshots, revisions, backups, and recent selection', async () => {
+  const idb = new FakeIndexedDB();
+  const store = new WorldSaveStore(idb);
+  await store.load();
+  await store.save(snapshot(3, 'world-a'), { exists: false, revision: null, worldId: 'world-a' });
+  await store.save(snapshot(7, 'world-b'), { exists: false, revision: null, worldId: 'world-b' });
+  await store.save(snapshot(4, 'world-a'), { exists: true, revision: 1, worldId: 'world-a' });
+
+  const worlds = await store.listWorlds();
+  assert.deepEqual(new Set(worlds.map(world => world.worldId)), new Set(['world-a', 'world-b']));
+  assert.equal((await store.load('world-a')).record.selectedBlock, 4);
+  assert.equal((await store.load('world-a')).record.revision, 2);
+  assert.equal((await store.load('world-b')).record.selectedBlock, 7);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('previous:world-a').selectedBlock, 3);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).has('previous:world-b'), false);
+
+  await store.activateWorld('world-b');
+  assert.equal((await store.load()).record.worldId, 'world-b');
+});
+
+test('rename and delete update only the selected world and its recovery copy', async () => {
+  const idb = new FakeIndexedDB();
+  const store = new WorldSaveStore(idb);
+  await store.load();
+  await store.save(snapshot(3, 'world-a'), { exists: false, revision: null, worldId: 'world-a' });
+  await store.save(snapshot(7, 'world-b'), { exists: false, revision: null, worldId: 'world-b' });
+  await store.save(snapshot(4, 'world-a'), { exists: true, revision: 1, worldId: 'world-a' });
+
+  const renamed = await store.renameWorld('world-a', 'Home', { worldId: 'world-a', revision: 2 });
+  assert.equal(renamed.worldName, 'Home');
+  assert.equal(renamed.revision, 3);
+  assert.equal((await store.load('world-a')).record.worldName, 'Home');
+  assert.equal((await store.load('world-b')).record.worldName, 'Łąka');
+  await assert.rejects(store.renameWorld('world-a', 'Stale', { worldId: 'world-a', revision: 2 }), SaveConflictError);
+
+  await store.activateWorld('world-a');
+  assert.equal(await store.deleteWorld('world-a'), true);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).has('world:world-a'), false);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).has('previous:world-a'), false);
+  assert.equal((await store.load()).record.worldId, 'world-b');
+  assert.equal((await store.listWorlds()).length, 1);
+});
+
+test('single-slot migration preserves distinct current and previous worlds', async () => {
+  const idb = new FakeIndexedDB();
+  idb.seed(SAVE_DATABASE, {
+    current: record(6, 3),
+    previous: { ...record(2, 2), worldId: 'older-world' }
+  });
+  const store = new WorldSaveStore(idb);
+  const worlds = await store.listWorlds();
+  assert.deepEqual(new Set(worlds.map(world => world.worldId)), new Set(['test-world', 'older-world']));
+  assert.equal((await store.load('test-world')).record.selectedBlock, 6);
+  assert.equal((await store.load('older-world')).record.selectedBlock, 2);
+  assert.equal(idb.records(SAVE_DATABASE).has('current'), false);
+  assert.equal(idb.records(SAVE_DATABASE).has('previous'), false);
+});
+
+test('a failed world deletion leaves its current and previous generations intact', async () => {
+  const idb = new FakeIndexedDB();
+  const store = new WorldSaveStore(idb);
+  await store.load();
+  await store.save(snapshot(3, 'world-a'), { exists: false, revision: null, worldId: 'world-a' });
+  await store.save(snapshot(4, 'world-a'), { exists: true, revision: 1, worldId: 'world-a' });
+  idb.faults.commit = quota;
+  await assert.rejects(store.deleteWorld('world-a'), error => error.name === 'QuotaExceededError');
+  assert.equal((await store.load('world-a')).record.selectedBlock, 4);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('previous:world-a').selectedBlock, 3);
+});
+
+test('an interrupted single-slot migration preserves both legacy slots and can retry', async () => {
+  const idb = new FakeIndexedDB();
+  idb.seed(SAVE_DATABASE, { current: record(6, 3), previous: record(2, 2) });
+  idb.faults.commit = quota;
+  await assert.rejects(new WorldSaveStore(idb).load(), error => error.name === 'QuotaExceededError');
+  assert.equal(idb.records(SAVE_DATABASE).get('current').selectedBlock, 6);
+  assert.equal(idb.records(SAVE_DATABASE).get('previous').selectedBlock, 2);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).size, 0);
+
+  delete idb.faults.commit;
+  const loaded = await new WorldSaveStore(idb).load();
+  assert.equal(loaded.status, 'current');
+  assert.equal(loaded.record.selectedBlock, 6);
+  assert.equal(idb.records(SAVE_DATABASE).has('current'), false);
 });

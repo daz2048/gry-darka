@@ -7,15 +7,18 @@ export class FakeIndexedDB {
   }
 
   seed(name, records) {
-    this.databases_.set(name, { worlds: new Map(Object.entries(records).map(([k, v]) => [k, structuredClone(v)])) });
+    this.databases_.set(name, {
+      version: 1,
+      stores: { worlds: new Map(Object.entries(records).map(([k, v]) => [k, structuredClone(v)])) }
+    });
   }
 
-  records(name) {
-    return this.databases_.get(name)?.worlds;
+  records(name, storeName = 'worlds') {
+    return this.databases_.get(name)?.stores[storeName];
   }
 
   async databases() {
-    return [...this.databases_.keys()].map(name => ({ name, version: 1 }));
+    return [...this.databases_].map(([name, database]) => ({ name, version: database.version }));
   }
 
   open(name, version) {
@@ -26,32 +29,58 @@ export class FakeIndexedDB {
         request.onerror?.();
         return;
       }
-      let stores = this.databases_.get(name);
-      if (!stores) {
-        stores = {};
-        this.databases_.set(name, stores);
-        const upgrade = {
-          createObjectStore: storeName => { stores[storeName] = new Map(); }
-        };
-        request.result = upgrade;
-        request.onupgradeneeded?.();
+      let database = this.databases_.get(name);
+      if (!database) {
+        database = { version: 0, stores: {} };
+        this.databases_.set(name, database);
       }
-      request.result = {
-        transaction: (storeName, mode) => this.transaction(stores[storeName], mode),
-        close() {}
-      };
+      const requestedVersion = version ?? Math.max(database.version, 1);
+      if (requestedVersion > database.version) {
+        const upgradeDatabase = this.databaseHandle(database);
+        let aborted = false;
+        request.result = upgradeDatabase;
+        request.transaction = { abort: () => { aborted = true; } };
+        request.onupgradeneeded?.();
+        if (aborted) {
+          request.error = new Error('Database upgrade aborted.');
+          request.onerror?.();
+          return;
+        }
+        database.version = requestedVersion;
+      }
+      request.result = this.databaseHandle(database);
       request.onsuccess?.();
     }, 0);
     return request;
   }
 
-  transaction(map, mode) {
+  databaseHandle(database) {
+    return {
+      objectStoreNames: {
+        contains: name => Object.hasOwn(database.stores, name)
+      },
+      createObjectStore: name => {
+        database.stores[name] = new Map();
+        return {};
+      },
+      transaction: (storeNames, mode) => {
+        const names = Array.isArray(storeNames) ? storeNames : [storeNames];
+        return this.transaction(names.map(storeName => database.stores[storeName]), mode, names);
+      },
+      close() {}
+    };
+  }
+
+  transaction(maps, mode, storeNames) {
     const tx = { error: null, writes: [], pending: 0, finished: false };
     const finish = (outcome, error) => {
       if (tx.finished) return;
       tx.finished = true;
       if (outcome === 'complete') {
-        for (const [key, value] of tx.writes) map.set(key, value);
+        for (const [map, key, value, deleted] of tx.writes) {
+          if (deleted) map.delete(key);
+          else map.set(key, value);
+        }
         tx.oncomplete?.();
       } else {
         tx.error = error ?? tx.error;
@@ -64,7 +93,7 @@ export class FakeIndexedDB {
       if (fault) finish('abort', fault);
       else finish('complete');
     }, 0);
-    const run = (execute) => {
+    const run = execute => {
       const request = {};
       tx.pending++;
       setTimeout(() => {
@@ -76,23 +105,40 @@ export class FakeIndexedDB {
       return request;
     };
     tx.abort = () => finish('abort');
-    tx.objectStore = () => ({
-      get: key => run(request => {
+    tx.objectStore = storeName => {
+      const map = maps[storeNames.indexOf(storeName)];
+      const get = key => run(request => {
         if (this.faults.read) {
           request.error = this.faults.read;
           request.onerror?.();
           finish('abort', this.faults.read);
           return;
         }
-        const queued = [...tx.writes].reverse().find(([k]) => k === key);
-        request.result = structuredClone(queued ? queued[1] : map.get(key));
+        const queued = [...tx.writes].reverse().find(([target, itemKey]) => target === map && itemKey === key);
+        const write = queued && !queued[3] ? queued[2] : undefined;
+        request.result = structuredClone(queued ? write : map.get(key));
         request.onsuccess?.();
-      }),
-      put: (value, key) => run(request => {
-        tx.writes.push([key, structuredClone(value)]);
-        request.onsuccess?.();
-      })
-    });
+      });
+      return {
+        get,
+        getAll: () => run(request => {
+          request.result = [...map.values()].map(value => structuredClone(value));
+          request.onsuccess?.();
+        }),
+        getAllKeys: () => run(request => {
+          request.result = [...map.keys()];
+          request.onsuccess?.();
+        }),
+        put: (value, key) => run(request => {
+          tx.writes.push([map, key, structuredClone(value), false]);
+          request.onsuccess?.();
+        }),
+        delete: key => run(request => {
+          tx.writes.push([map, key, undefined, true]);
+          request.onsuccess?.();
+        })
+      };
+    };
     return tx;
   }
 }

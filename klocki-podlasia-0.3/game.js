@@ -6,12 +6,16 @@ import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=3';
 import { createPlayer, collides, stepPlayer } from './player.js?v=2';
 import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
 import { AmbientMusic } from './music.js?v=3';
-import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, SAVE_STORE,
-  SaveConflictError, SaveMigrationError, WorldSaveStore } from './saves.js?v=6';
+import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, WORLD_STORE,
+  SaveConflictError, SaveMigrationError, WorldSaveStore } from './saves.js?v=7';
 import { biomeName, blockName, getLanguage, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=1';
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
-  'pause', 'recover', 'new-world', 'fullscreen', 'palette', 'palette-pages', 'target', 'notice', 'crosshair',
+  'pause', 'recover', 'new-world', 'choose-world', 'fullscreen', 'world-picker', 'world-picker-status',
+  'world-list', 'world-continue', 'world-create', 'world-action-confirm', 'world-action-message',
+  'world-action-name-label', 'world-action-name', 'confirm-world-action', 'cancel-world-action',
+  'play-actions', 'secondary-actions',
+  'palette', 'palette-pages', 'target', 'notice', 'crosshair',
   'load-status', 'metrics', 'sensitivity', 'low-quality', 'music-on', 'music-volume', 'controls-hint',
   'reset-confirm', 'reset-message', 'world-name-input', 'world-name', 'confirm-reset', 'cancel-reset', 'coordinates', 'destinations', 'biome-destinations',
   'structure-destinations', 'save-status', 'save-details', 'save-now', 'reload-save', 'session-note', 'save-recovery',
@@ -163,6 +167,12 @@ const DEFAULT_WORLD_NAMES = new Set(LANGUAGES.map(language => MESSAGES[language]
 const customWorldName = name => (name && !DEFAULT_WORLD_NAMES.has(name) ? name : undefined);
 const displayWorldName = name => customWorldName(name) ?? t('world.defaultName');
 let worldName;
+let savedWorlds = [];
+let worldPickerUnavailable = false;
+let selectingWorld = false;
+let returnToWorldPickerOnCancel = false;
+let pendingWorldAction = null;
+let worldActionTrigger = null;
 let saveDetails = null;
 const saveStore = new WorldSaveStore();
 let worldId = crypto.randomUUID();
@@ -205,6 +215,68 @@ function renderDestinations() {
     `${structureName(index)}: X ${site.x}, Z ${site.z}`).join(' · ');
 }
 renderDestinations();
+
+function renderWorldPicker() {
+  const validWorlds = savedWorlds.filter(entry => !entry.corrupt);
+  const mostRecent = validWorlds[0];
+  ui['world-continue'].hidden = !mostRecent;
+  ui['world-continue'].disabled = selectingWorld;
+  if (mostRecent) {
+    ui['world-continue'].textContent = t('worldPicker.continue', {
+      world: displayWorldName(mostRecent.worldName)
+    });
+  }
+  ui['world-picker-status'].textContent = worldPickerUnavailable
+    ? t('worldPicker.unavailable')
+    : savedWorlds.length ? t('worldPicker.choosePrompt') : t('worldPicker.empty');
+  ui['world-list'].replaceChildren();
+  for (const entry of savedWorlds) {
+    const item = document.createElement('div');
+    item.setAttribute('role', 'listitem');
+    item.className = 'world-card';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'world-option';
+    button.disabled = selectingWorld || entry.corrupt;
+    button.dataset.damaged = String(Boolean(entry.corrupt));
+    button.setAttribute('aria-pressed', String(entry.worldId === worldId));
+    button.setAttribute('aria-label', entry.corrupt
+      ? `${displayWorldName(entry.worldName)}. ${t('worldPicker.damaged')}`
+      : t('worldPicker.play', { world: displayWorldName(entry.worldName) }));
+    const name = document.createElement('strong');
+    name.textContent = displayWorldName(entry.worldName);
+    const detail = document.createElement('small');
+    detail.textContent = entry.corrupt
+      ? t('worldPicker.damaged')
+      : t('worldPicker.lastSaved', {
+        time: new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' })
+          .format(new Date(entry.savedAt))
+      });
+    button.append(name, detail);
+    if (!entry.corrupt) button.addEventListener('click', () => selectSavedWorld(entry.worldId).catch(reportError));
+    const actions = document.createElement('div');
+    actions.className = 'world-actions';
+    const rename = document.createElement('button');
+    rename.type = 'button';
+    rename.textContent = t('worldPicker.rename');
+    rename.disabled = selectingWorld || entry.corrupt;
+    rename.setAttribute('aria-label', t('worldPicker.renameNamed', {
+      world: displayWorldName(entry.worldName)
+    }));
+    rename.addEventListener('click', () => openWorldAction('rename', entry, rename));
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = t('worldPicker.delete');
+    remove.disabled = selectingWorld;
+    remove.setAttribute('aria-label', t('worldPicker.deleteNamed', {
+      world: displayWorldName(entry.worldName)
+    }));
+    remove.addEventListener('click', () => openWorldAction('delete', entry, remove));
+    actions.append(rename, remove);
+    item.append(button, actions);
+    ui['world-list'].append(item);
+  }
+}
 
 function codedError(code) {
   return Object.assign(new Error(code), { code });
@@ -309,14 +381,14 @@ function setSavedStatus(timestamp) {
   setSaveStatus('save.saved', 'saved', { time: savedTime(timestamp) });
 }
 
-function saveLocation() {
-  return `${location.origin} → IndexedDB → ${SAVE_DATABASE} → ${SAVE_STORE} → current`;
+function saveLocation(recordWorldId = worldId) {
+  return `${location.origin} → IndexedDB → ${SAVE_DATABASE} → ${WORLD_STORE} → world:${recordWorldId}`;
 }
 
 function renderSaveDetails() {
   const element = ui['save-details'];
   if (!saveDetails) { element.hidden = true; return; }
-  const location = saveLocation();
+  const location = saveLocation(saveDetails.worldId ?? saveDetails.record?.worldId ?? worldId);
   if (saveDetails.state === 'saving') {
     element.textContent = t('details.saving', { location });
   } else if (saveDetails.state === 'error') {
@@ -342,7 +414,7 @@ function showSavedDetails(record, labelKey = 'details.labelSaved') {
   renderSaveDetails();
 }
 
-async function saveWorld({ snapshot = null, replaceCorrupt = false } = {}) {
+async function saveWorld({ snapshot = null, replaceCorrupt = false, expected: expectedOverride = null } = {}) {
   if (!saveInitialized) throw codedError('save-loading');
   if (['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate) && !replaceCorrupt) {
     throw codedError('save-blocked');
@@ -350,18 +422,18 @@ async function saveWorld({ snapshot = null, replaceCorrupt = false } = {}) {
   if (saveInProgress) {
     await saveInProgress;
     if (!snapshot && !saveDirty) return lastSavedAt ? { savedAt: lastSavedAt } : null;
-    return saveWorld({ snapshot, replaceCorrupt });
+    return saveWorld({ snapshot, replaceCorrupt, expected: expectedOverride });
   }
   const generation = saveGeneration;
   const payload = snapshot || currentSnapshot();
-  const expected = { ...saveExpected };
+  const expected = { ...(expectedOverride || saveExpected) };
   const attempt = (async () => {
     setSaveStatus('save.saving', 'saving');
-    saveDetails = { state: 'saving' };
+    saveDetails = { state: 'saving', worldId: payload.worldId };
     renderSaveDetails();
     try {
       const record = await saveStore.save(payload, expected, { replaceCorrupt });
-      saveExpected = { exists: true, revision: record.revision };
+      saveExpected = { exists: true, revision: record.revision, worldId: record.worldId };
       lastSavedAt = record.savedAt;
       if (snapshot || generation === saveGeneration) saveDirty = false;
       saveGate = null;
@@ -391,6 +463,189 @@ async function saveWorld({ snapshot = null, replaceCorrupt = false } = {}) {
   saveInProgress = attempt;
   updateSaveControls();
   return attempt;
+}
+
+function renderWorldAction() {
+  if (!pendingWorldAction) return;
+  const { type, worldName: name } = pendingWorldAction;
+  ui['world-action-message'].textContent = type === 'delete'
+    ? t('worldPicker.deleteQuestion', { world: displayWorldName(name) })
+    : t('worldPicker.renameQuestion', { world: displayWorldName(name) });
+  ui['world-action-name-label'].hidden = type !== 'rename';
+  ui['world-action-name'].hidden = type !== 'rename';
+  ui['world-action-name'].setCustomValidity('');
+  ui['confirm-world-action'].textContent = t(`worldPicker.${type}`);
+  ui['world-action-confirm'].hidden = false;
+}
+
+function openWorldAction(type, entry, trigger) {
+  pendingWorldAction = {
+    type,
+    worldId: entry.worldId,
+    worldName: entry.worldName,
+    revision: entry.revision
+  };
+  worldActionTrigger = trigger;
+  renderWorldAction();
+  if (type === 'rename') {
+    ui['world-action-name'].value = entry.worldName || t('world.newDefault');
+    ui['world-action-name'].focus();
+  } else {
+    ui['confirm-world-action'].focus();
+  }
+}
+
+function closeWorldAction() {
+  ui['world-action-confirm'].hidden = true;
+  pendingWorldAction = null;
+  const trigger = worldActionTrigger;
+  worldActionTrigger = null;
+  trigger?.focus();
+}
+
+async function confirmWorldAction() {
+  if (!pendingWorldAction) return;
+  const action = pendingWorldAction;
+  const deletingCurrent = action.type === 'delete' && action.worldId === worldId;
+  ui['confirm-world-action'].disabled = true;
+  ui['cancel-world-action'].disabled = true;
+  try {
+    if (action.type === 'rename') {
+      const name = ui['world-action-name'].value.trim();
+      if (!name) {
+        ui['world-action-name'].setCustomValidity(t('world.nameRequired'));
+        ui['world-action-name'].reportValidity();
+        return;
+      }
+      if (action.worldId === worldId && saveDirty && !saveGate) await saveWorld();
+      const expected = action.worldId === worldId
+        ? saveExpected
+        : { worldId: action.worldId, revision: action.revision };
+      const record = await saveStore.renameWorld(action.worldId, name, expected);
+      if (action.worldId === worldId) {
+        saveExpected = { exists: true, revision: record.revision, worldId };
+        worldName = customWorldName(record.worldName);
+        ui['world-name'].textContent = displayWorldName(worldName);
+        lastSavedAt = record.savedAt;
+        setSavedStatus(record.savedAt);
+        showSavedDetails(record);
+      }
+    } else {
+      if (deletingCurrent) {
+        clearTimeout(autosaveTimer);
+        autosaveTimer = null;
+        if (saveInProgress) await saveInProgress;
+      }
+      const deleted = await saveStore.deleteWorld(action.worldId);
+      if (!deleted) throw codedError('world-not-found');
+    }
+
+    savedWorlds = await saveStore.listWorlds();
+    closeWorldAction();
+    if (deletingCurrent) {
+      saveDirty = false;
+      saveGate = null;
+      saveExpected = { exists: false, revision: null, worldId: null };
+      lastSavedAt = 0;
+      recoveryRecord = null;
+      ui['save-recovery'].hidden = true;
+      saveDetails = null;
+      renderSaveDetails();
+      const nextWorld = savedWorlds.find(entry => !entry.corrupt);
+      if (nextWorld) {
+        await selectSavedWorld(nextWorld.worldId);
+        return;
+      }
+      worldId = crypto.randomUUID();
+      worldName = undefined;
+      ui['world-name'].textContent = displayWorldName(worldName);
+      const emptyWorld = new World();
+      installWorld(emptyWorld, createPlayer(emptyWorld), 0, -0.13);
+      ui['world-picker'].hidden = false;
+      ui['play-actions'].hidden = true;
+      ui['secondary-actions'].hidden = true;
+      setSaveStatus('save.noWorld');
+      setText(ui['load-status'], 'load.noWorld');
+    }
+    renderWorldPicker();
+  } catch (error) {
+    if (error?.code === 'world-not-found') savedWorlds = await saveStore.listWorlds();
+    reportError(error);
+  } finally {
+    ui['confirm-world-action'].disabled = false;
+    ui['cancel-world-action'].disabled = false;
+    if (!pendingWorldAction) renderWorldPicker();
+  }
+}
+
+async function selectSavedWorld(selectedId) {
+  if (selectingWorld) return;
+  selectingWorld = true;
+  renderWorldPicker();
+  try {
+    if (saveGate === 'conflict') throw codedError('save-blocked');
+    if (saveDirty && !saveGate) await saveWorld();
+    clearTimeout(autosaveTimer);
+    autosaveTimer = null;
+    const result = await saveStore.load(selectedId);
+    if (result.status === 'empty') throw codedError('world-not-found');
+    saveExpected = result.expected;
+    await saveStore.activateWorld(selectedId);
+    if (result.status === 'corrupt') {
+      worldId = selectedId;
+      saveGate = 'corrupt';
+      saveDirty = false;
+      ui['save-recovery'].hidden = true;
+      setSaveStatus('save.corrupt', 'error');
+      setText(ui['load-status'], 'load.corrupt');
+      const damaged = savedWorlds.find(entry => entry.worldId === selectedId);
+      worldName = customWorldName(damaged?.worldName);
+      ui['world-name'].textContent = displayWorldName(worldName);
+      return;
+    }
+
+    const recoveredPosition = installRecord(result.record);
+    saveDirty = false;
+    saveGate = result.status === 'recovery' ? 'recovery' : null;
+    lastSavedAt = result.record.savedAt;
+    if (result.status === 'recovery') {
+      recoveryRecord = currentSnapshot();
+      ui['save-recovery'].hidden = false;
+      setText(ui['save-recovery-message'], result.migrated ? 'recovery.migrated' : 'recovery.current');
+      setSaveStatus('save.recoveryPending', 'error');
+      setText(ui['load-status'], 'load.recoveryReady');
+    } else {
+      ui['save-recovery'].hidden = true;
+      setSavedStatus(lastSavedAt);
+      showSavedDetails(result.record, 'details.labelLoaded');
+      setText(ui['load-status'], recoveredPosition ? 'load.recoveredPosition' : 'load.ready');
+      if (recoveredPosition) markDirty();
+    }
+    savedWorlds = await saveStore.listWorlds();
+    worldPickerUnavailable = false;
+    ui['start'].disabled = saveGate === 'recovery';
+    ui['drag-start'].disabled = saveGate === 'recovery';
+    ui['world-picker'].hidden = true;
+    ui['play-actions'].hidden = false;
+    ui['secondary-actions'].hidden = false;
+  } catch (error) {
+    if (error?.code === 'world-not-found') savedWorlds = await saveStore.listWorlds();
+    reportError(error);
+  } finally {
+    selectingWorld = false;
+    renderWorldPicker();
+  }
+}
+
+async function openWorldPicker() {
+  if (saveGate === 'conflict') throw codedError('save-blocked');
+  if (saveDirty && !saveGate) await saveWorld();
+  savedWorlds = await saveStore.listWorlds();
+  worldPickerUnavailable = false;
+  ui['world-picker'].hidden = false;
+  ui['play-actions'].hidden = true;
+  ui['secondary-actions'].hidden = true;
+  renderWorldPicker();
 }
 
 function prepareMusic() {
@@ -667,11 +922,21 @@ function recover() {
   notice(t('notice.safe'));
 }
 
+ui['world-continue'].addEventListener('click', () => {
+  const recent = savedWorlds.find(entry => !entry.corrupt);
+  if (recent) selectSavedWorld(recent.worldId).catch(reportError);
+});
+ui['world-create'].addEventListener('click', () => ui['new-world'].click());
+ui['choose-world'].addEventListener('click', () => openWorldPicker().catch(reportError));
+ui['confirm-world-action'].addEventListener('click', () => confirmWorldAction());
+ui['cancel-world-action'].addEventListener('click', closeWorldAction);
 ui.start.addEventListener('click', requestPlay);
 ui['drag-start'].addEventListener('click', () => { prepareMusic(); play(true); });
 ui.pause.addEventListener('click', pause);
 ui.recover.addEventListener('click', recover);
 ui['new-world'].addEventListener('click', () => {
+  returnToWorldPickerOnCancel = !ui['world-picker'].hidden;
+  ui['world-picker'].hidden = true;
   setText(ui['reset-message'], ['recovery', 'corrupt', 'migration'].includes(saveGate) ?
     `reset.${saveGate}` : 'reset.normal');
   ui['reset-confirm'].hidden = false;
@@ -680,7 +945,13 @@ ui['new-world'].addEventListener('click', () => {
 });
 ui['cancel-reset'].addEventListener('click', () => {
   ui['reset-confirm'].hidden = true;
-  ui['new-world'].focus();
+  if (returnToWorldPickerOnCancel) {
+    ui['world-picker'].hidden = false;
+    ui['world-create'].focus();
+  } else {
+    ui['new-world'].focus();
+  }
+  returnToWorldPickerOnCancel = false;
 });
 ui['confirm-reset'].addEventListener('click', async () => {
   const nextWorldName = ui['world-name-input'].value.trim();
@@ -699,12 +970,18 @@ ui['confirm-reset'].addEventListener('click', async () => {
     const nextWorldId = crypto.randomUUID();
     const nextSnapshot = createSnapshot(nextWorld, nextPlayer, -0.13, 0,
       selected, currentSettings(), nextWorldId, customWorldName(nextWorldName));
-    const record = await saveWorld({ snapshot: nextSnapshot, replaceCorrupt: replaceDamaged });
+    const record = await saveWorld({
+      snapshot: nextSnapshot,
+      replaceCorrupt: replaceDamaged,
+      expected: { exists: false, revision: null, worldId: nextWorldId }
+    });
     ui['reset-confirm'].hidden = true;
+    returnToWorldPickerOnCancel = false;
     worldId = nextWorldId;
     worldName = customWorldName(nextWorldName);
     ui['world-name'].textContent = displayWorldName(worldName);
     installWorld(nextWorld, nextPlayer, 0, -0.13);
+    savedWorlds = await saveStore.listWorlds();
     saveDirty = false;
     saveGate = null;
     saveGeneration++;
@@ -713,6 +990,11 @@ ui['confirm-reset'].addEventListener('click', async () => {
     setSavedStatus(record.savedAt);
     ui['save-recovery'].hidden = true;
     setText(ui['load-status'], 'load.newSaved');
+    ui['world-picker'].hidden = true;
+    ui['play-actions'].hidden = false;
+    ui['secondary-actions'].hidden = false;
+    ui['start'].disabled = false;
+    ui['drag-start'].disabled = false;
     ui['drag-start'].focus();
   } catch (error) {
     console.error('New meadow:', error);
@@ -878,6 +1160,7 @@ async function initializeSave() {
     saveExpected = result.expected;
     if (result.status === 'current') {
       const recoveredPosition = installRecord(result.record);
+      await saveStore.activateWorld(result.record.worldId);
       lastSavedAt = result.record.savedAt;
       setSavedStatus(lastSavedAt);
       showSavedDetails(result.record, 'details.labelLoaded');
@@ -886,6 +1169,7 @@ async function initializeSave() {
       if (recoveredPosition) markDirty();
     } else if (result.status === 'recovery') {
       installRecord(result.record);
+      await saveStore.activateWorld(result.record.worldId);
       recoveryRecord = currentSnapshot();
       lastSavedAt = result.record.savedAt;
       saveGate = 'recovery';
@@ -897,16 +1181,17 @@ async function initializeSave() {
       ui['drag-start'].disabled = true;
     } else if (result.status === 'corrupt') {
       saveGate = 'corrupt';
-      saveDirty = true;
+      saveDirty = false;
       setText(ui['load-status'], 'load.corrupt');
       setSaveStatus('save.corrupt', 'error');
       setText(ui['session-note'], 'session.temporary');
     } else {
-      saveDirty = true;
+      saveDirty = false;
       saveGeneration++;
-      setSaveStatus('save.newWorld', 'dirty');
-      setText(ui['load-status'], 'load.newWorld');
+      setSaveStatus('save.noWorld');
+      setText(ui['load-status'], 'load.noWorld');
     }
+    savedWorlds = await saveStore.listWorlds();
   } catch (error) {
     console.error('Loading save:', error);
     if (error instanceof SaveMigrationError) saveGate = 'migration';
@@ -917,12 +1202,20 @@ async function initializeSave() {
       saveGate === 'corrupt' ? 'save.corrupt' : 'save.loadFailed', 'error');
     setText(ui['session-note'], saveGate === 'migration' ? 'session.migration' : 'session.unconfirmed');
     setText(ui['load-status'], saveGate === 'migration' ? 'load.migrationFailed' : 'load.saveUnavailable');
+    worldPickerUnavailable = true;
     notice(errorText(error));
   } finally {
     saveInitialized = true;
     ui['recover'].disabled = saveGate === 'recovery';
     ui['new-world'].disabled = false;
-    if (saveGate !== 'recovery') {
+    ui['world-picker'].hidden = false;
+    ui['play-actions'].hidden = true;
+    ui['secondary-actions'].hidden = true;
+    renderWorldPicker();
+    if (worldPickerUnavailable && !saveGate) {
+      ui['world-picker'].hidden = true;
+      ui['play-actions'].hidden = false;
+      ui['secondary-actions'].hidden = false;
       ui['start'].disabled = false;
       ui['drag-start'].disabled = false;
     }
@@ -968,6 +1261,8 @@ function updateCoordinates() {
 onLanguageChange(() => {
   renderPalette();
   renderDestinations();
+  renderWorldPicker();
+  renderWorldAction();
   renderSaveDetails();
   updateCoordinates();
   ui['world-name'].textContent = displayWorldName(worldName);
