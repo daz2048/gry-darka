@@ -1,7 +1,7 @@
 # Minecraft 0.3: release plan and voxel sandbox backlog
 
 Initial assessment: 2026-11-10. Updated: 2026-11-12.
-Status: **Saving, first-session polish and documentation implemented; the 0.4-to-0.3 migration was verified in Chrome Incognito with the original seed, position and material restored. Native pointer capture is verified; denial behavior, hosted-origin and full release-matrix checks remain pending.**
+Status: **Saving, first-session polish and documentation implemented; the 0.4-to-0.3 migration was verified in Chrome Incognito with the original seed, position and material restored. Native pointer capture, simulated denial recovery, palette inputs, storage-failure logic and a 60 fps headless session are verified; hosted-origin, throttled-load, windowed-GPU and the rest of the release matrix remain pending.**
 
 ## Minecraft 0.3: active release plan
 
@@ -54,7 +54,7 @@ do not infer support for every Mac from one machine. Test 1280x720 and compact
   Version 0.3 restored the same seed, player position and selected material and
   reported the migration complete; the migration code leaves the old database
   untouched. Existing-target and damaged-legacy migration cases remain pending.
-- The test suite passes **45/45**, including translation coverage in `tests/i18n.test.js`. Browser storage checks used temporary Chrome
+- The test suite passes **59/59**, including translation coverage in `tests/i18n.test.js` and the storage-failure cases in `tests/storage.test.js`. Browser storage checks used temporary Chrome
   profiles, not the user's normal profile.
 - Reference machine: macOS 27.2, Apple M3, 16 GiB RAM; standalone Chrome
   157.0.8103.78. Current app-level timings are from headless Chrome: 20 saves
@@ -128,7 +128,7 @@ transaction / <=2 s restore targets in this local headless run.
 - [x] Repeat 20 full application saves and validated restores in standalone Chrome.
 - [x] Choose and document the IndexedDB full-snapshot format before integration.
 - [x] Verify visible behavior when IndexedDB is unavailable.
-- [ ] Inject quota failure and transaction abort; verify current/previous records remain safe.
+- [x] Inject quota failure and transaction abort; verify current/previous records remain safe (`tests/storage.test.js`, fake IndexedDB with rollback).
 - [ ] Repeat native GUI input and the complete rendering/network performance gates in MC03-07.
 
 Proposed gates: save-related main-thread tasks <=50 ms; no save-induced >100 ms
@@ -190,7 +190,7 @@ Do not serialize meshes, textures, dirty-render sets, pointer lock or frame coun
   overwrites unreadable data. Replacement requires separate explicit confirmation.
 - [x] Verify the normal migration from `minecraft-0.4` in Chrome Incognito:
   the old world, seed, player position and selected material load in version 0.3.
-- [ ] Verify damaged legacy records, an already-populated target slot and
+- [x] Verify damaged legacy records, an already-populated target slot and
   migration failure behavior; keep the old database untouched in all cases.
 - [x] If a restored position is obstructed, recover to a valid supported location
   without altering blocks. If none exists, preserve the save and show a
@@ -254,10 +254,10 @@ fresh-player usability sign-off remain open.
 - [x] Explain capture mode versus drag-look mode with their actual edit controls.
 - [x] Verify successful native capture in standalone Chrome; embedded-browser
   fallback is not proof of capture support.
-- [ ] Verify visible recoverable denial when native capture is refused.
+- [x] Verify visible recoverable denial when native capture is refused (simulated denial in Chrome 157; a real OS/browser refusal is still untested).
 - [x] Preserve keyboard, wheel and clicked palette choices across all five sets,
   including readable/accessible names and obvious selected state.
-- [ ] Verify all palette inputs in five sets, the shorter furniture set, narrow
+- [x] Verify all palette inputs in five sets, the shorter furniture set, narrow
   windows and restored material.
 - [x] Keep target outline, five-block reach and explicit feedback for occupied,
   protected-floor, player-overlap and out-of-bounds edits.
@@ -281,7 +281,7 @@ confusion and fix it before sign-off; do not label source review a playtest.
 ### MC03-07: focused tests and release gates
 
 The existing Node test runner is available on the reference Mac. The current
-logic suite passes 38/38 tests, including the focused save tests. Add no new
+logic suite passes 59/59 tests, including the focused save tests. Add no new
 tooling or runtime requirement for players. Mock audio during automation; any
 audible checks require an agreed quiet-work-safe window.
 Real Chrome browser evidence is required for storage and pointer lock.
@@ -290,11 +290,11 @@ Real Chrome browser evidence is required for storage and pointer lock.
 |---|---|---|
 | Snapshot round-trip | Whole block/water arrays, seed, all material IDs, settings extremes, camera/player; multiple seeds and heavy-edit fixtures | Save/reload and material/settings restore smoke-tested; exhaustive fixture matrix pending |
 | Invalid saves | Malformed metadata, unsupported versions, wrong lengths/dimensions, invalid IDs/water/floor, nonfinite/out-of-bounds player/settings; bounded decoder failures | Representative invalid snapshots and damaged-current backup recovery checked; exhaustive mutation matrix pending |
-| Storage failure | Unavailable/open failure, quota, abort, read failure, corrupt current/previous, retry; no silent overwrite or false success | Unavailable IndexedDB tested in Chrome; quota/abort/read-failure and damaged-previous cases pending |
-| Race/lifecycle | Edits while saving, queued old-world save, immediate pause/home, rapid manual saves, second-tab conflict, interrupted transaction | Cross-tab revision conflict tested; remaining races/stress pending |
+| Storage failure | Unavailable/open failure, quota, abort, read failure, corrupt current/previous, retry; no silent overwrite or false success | Unavailable IndexedDB tested in Chrome; quota, abort, read failure, damaged previous/current and interrupted migration covered by `tests/storage.test.js`; real-browser quota exhaustion untested |
+| Race/lifecycle | Edits while saving, queued old-world save, immediate pause/home, rapid manual saves, second-tab conflict, interrupted transaction | Cross-tab revision conflict tested; stale-revision, rapid serialized saves and conflict-writes-nothing covered in `tests/storage.test.js`; edits-during-save and in-game queued old-world saves pending |
 | Restore safety | Obstructed saved player, no safe recovery location, restored water, distant edits after chunks unload/reload, explicit resume | Restore path implemented; obstructed/no-safe-position and distant-edit cases pending |
-| Editing/movement | 200 mixed edits, boundaries and overlap rejection; walking/jump/ceiling/no tunnelling; no stuck movement after blur/resume | Existing logic tests and a saved block-edit smoke test pass; native movement session pending |
-| Controls/UI | Capture success/denial, drag mode, all palette inputs, resize, quality, music settings, save statuses, keyboard focus | Native capture and Escape-to-pause pass; denial and full UI matrix pending |
+| Editing/movement | 200 mixed edits, boundaries and overlap rejection; walking/jump/ceiling/no tunnelling; no stuck movement after blur/resume | Existing logic tests and a saved block-edit smoke test pass; 60 s headless session with 14 edits and autosaves ran at a steady 60 fps; windowed 200-edit session pending |
+| Controls/UI | Capture success/denial, drag mode, all palette inputs, resize, quality, music settings, save statuses, keyboard focus | Native capture, Escape-to-pause, simulated denial recovery, all palette inputs and 800x600 layout pass; keyboard focus order and quality/music setting checks pending |
 | Destructive actions | New-world cancel byte-identical; confirmed replacement survives reload; replacement failure leaves original recoverable | Cancel, replacement and reload smoke-tested; injected replacement-failure case pending |
 | Lifecycle stress | 20 save/reload and 20 reset/cancel cycles plus a ten-minute walk/build session; no accumulating listeners, loops or monotonically retained geometries/textures | 20 saves and 20 restores benchmarked; page-reload/reset cycles and ten-minute session pending |
 
@@ -310,7 +310,27 @@ Performance gates on the named Mac in standalone Chrome:
 - Meet the storage targets agreed at MC03-02 and record draw calls, live
   geometries/textures and frame timings before/after save support.
 - Historical 0.1 draw-call, payload and device results are not 0.3 evidence.
-  Failing gates require a fix or an explicitly recorded scope/budget decision,
+
+**Evidence recorded 2026-11-13** (Chrome 157.0.8103.78 headless on the reference
+Mac, driven over the DevTools protocol against `http://localhost:8765`; headless,
+not a windowed GPU session):
+
+| Check | Result |
+|---|---|
+| 60 s, 1280x720, DPR 1.5, 14 edits, autosaves on | 3,805 frames; median 16.7 ms, p95 16.7 ms, p99 16.8 ms, max 16.8 ms; 0 frames >100 ms; 251 draw calls, 954 geometries; status ended "Saved" |
+| 60 s, 1280x720, DPR 1.0, low quality | Same figures (median/p95 16.7 ms, max 16.8 ms) |
+| Localhost interactive time | About 0.45 s warm local load; **not** the throttled empty-cache gate |
+| Simulated pointer-lock denial (rejected promise plus `pointerlockerror`) | Visible "The browser refused mouse capture…" message; Play, retry and no-capture mode stay enabled; no-capture mode starts |
+| Palette: five sets, keys 1-8, wheel, clicks | One selected slot per key press on every set (8/8/8/7/6 slots); wheel cycles all 37 items across all five pages; labels read "n: name" |
+| 800x600 window | No horizontal overflow; all palette slots on screen; HUD inside the viewport |
+| Player-overlap edit | "Step aside: the player is standing here." shown; world unchanged |
+
+Limits of this evidence: the walk route was short (the player stayed near the
+start), so it did not cover a village or water; frame times are pinned by the 60 Hz
+headless compositor and show no regression rather than headroom; 200-edit input
+latency, the throttled-network load gate, the ten-minute session, protected-floor,
+out-of-bounds and too-far feedback, and a windowed GPU session remain open.
+Failing gates require a fix or an explicitly recorded scope/budget decision,
   not an unsupported "works on Mac" claim.
 
 ### MC03-08/09: documentation, hosted check and sign-off
