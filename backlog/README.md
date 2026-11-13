@@ -5,9 +5,12 @@ Planning documents and explicitly recorded prototype progress, not release claim
 ## Homepage Minecraft news
 
 - [ ] Automate refresh and publication of the Minecraft news and video feeds.
-  The panel and [feed generator](../scripts/update_minecraft_news.py) exist, but
-  the data currently requires manual refresh and publication.
-  - **Blocked by org-pol.** Track this and related hosted automation in the
+  The panel, [feed generator](../scripts/update_minecraft_news.py), and
+  [Pages workflow](../.github/workflows/pages.yml) are implemented locally.
+  Manual refresh remains necessary until the workflow reaches `main` and an
+  administrator migrates Pages to GitHub Actions.
+  - **Hosted rollout pending; previously blocked by org-pol.** Track acceptance
+    checks and related hosted automation in the
     [hosted automation backlog](./hosted-automation.md).
 
 ## Minecraft 0.3: creative voxel sandbox

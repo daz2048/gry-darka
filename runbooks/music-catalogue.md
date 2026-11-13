@@ -15,7 +15,7 @@ catalogue refresh or custom Pages deployment workflow.**
 2. From the repository root, run:
 
    ```sh
-   python3 scripts/generate-music-catalogue.py
+   scripts/generate-music-catalogue.sh
    ```
 
    The catalogue is overwritten with a filename-sorted list of supported audio files
@@ -23,6 +23,10 @@ catalogue refresh or custom Pages deployment workflow.**
    without the extension. Filenames containing backslashes or with a blank
    name before the extension are rejected; rename them and rerun the command.
    An empty directory produces an empty catalogue.
+   The wrapper reports its version and Git branch, whether the catalogue was
+   created, updated or unchanged, track additions and removals, audio sizes,
+   formats and elapsed time. It also reminds you to review the resulting changes.
+   Pass a directory as an argument to generate a catalogue somewhere else.
 3. Review both the track changes and catalogue:
 
    ```sh

@@ -2,13 +2,26 @@
 """Generate the shared music catalogue from supported audio files."""
 
 import argparse
+from collections import Counter
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
+import time
 
 SUPPORTED_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a"}
+WRAPPER_VERSION = "1.0"
+REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 
 
-def generate(directory):
+def colorize(text, color):
+    if not sys.stdout.isatty() or "NO_COLOR" in os.environ or os.environ.get("TERM") == "dumb":
+        return text
+    return f"\033[{color}m{text}\033[0m"
+
+
+def generate_catalogue(directory):
     files = [
         path for path in directory.iterdir()
         if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
@@ -24,15 +37,100 @@ def generate(directory):
     (directory / "catalogue.json").write_text(
         json.dumps(tracks, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    return len(tracks)
+    return files
+
+
+def generate(directory):
+    return len(generate_catalogue(directory))
+
+
+def branch_name():
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=REPOSITORY_ROOT, text=True, capture_output=True, check=False,
+        )
+    except FileNotFoundError:
+        return "unavailable (git not installed)"
+    if result.returncode:
+        return "unavailable (not a git checkout or git failed)"
+    return "detached HEAD" if result.stdout.strip() == "HEAD" else result.stdout.strip()
+
+
+def report_generation(directory):
+    started = time.monotonic()
+    destination = directory / "catalogue.json"
+    try:
+        previous = destination.read_bytes()
+    except FileNotFoundError:
+        previous = None
+
+    files = generate_catalogue(directory)
+    current = destination.read_bytes()
+    if previous is None:
+        change = "created"
+    elif previous == current:
+        change = "unchanged"
+    else:
+        change = "updated"
+
+    print(
+        f"{colorize('♫', '1;35')} "
+        f"{colorize(f'Music catalogue wrapper v{WRAPPER_VERSION}', '1;36')} | "
+        f"branch: {colorize(branch_name(), '35')}"
+    )
+    change_color = "32" if change in {"created", "updated"} else "33"
+    print(
+        f"{colorize('Catalogue:', '36')} {destination} "
+        f"{colorize(f'({change})', change_color)}"
+    )
+    if previous is not None:
+        try:
+            old_tracks = json.loads(previous)
+            if not isinstance(old_tracks, list) or not all(
+                isinstance(track, dict) and isinstance(track.get("file"), str)
+                for track in old_tracks
+            ):
+                raise ValueError("unexpected catalogue format")
+        except (ValueError, UnicodeDecodeError):
+            print(f"{colorize('Track changes:', '36')} "
+                  f"{colorize('unavailable (previous catalogue was invalid)', '33')}")
+        else:
+            old_files = {track["file"] for track in old_tracks}
+            new_files = {path.name for path in files}
+            print(
+                f"{colorize('Track changes:', '36')} "
+                f"{colorize(f'+{len(new_files - old_files)}', '32')} / "
+                f"{colorize(f'-{len(old_files - new_files)}', '31')}"
+            )
+    else:
+        print(
+            f"{colorize('Track changes:', '36')} "
+            f"{colorize(f'+{len(files)}', '32')} / {colorize('-0', '31')} "
+            f"{colorize('(new catalogue)', '33')}"
+        )
+
+    formats = Counter(path.suffix.lower().lstrip(".") for path in files)
+    format_summary = ", ".join(f"{extension}: {count}" for extension, count in sorted(formats.items()))
+    total_bytes = sum(path.stat().st_size for path in files)
+    print(f"{colorize('Stats:', '36')} {len(files)} track(s) | {total_bytes:,} audio bytes | "
+          f"formats: {format_summary or 'none'} | {time.monotonic() - started:.3f}s")
+    print(colorize(
+        "Next: review the catalogue and audio changes; include both when publishing.",
+        "1;33",
+    ))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "directory", nargs="?", type=Path,
-        default=Path(__file__).resolve().parent.parent / "music",
+        default=REPOSITORY_ROOT / "music",
     )
+    parser.add_argument("--wrapper-report", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
-    count = generate(args.directory)
-    print(f"Generated {args.directory / 'catalogue.json'} with {count} track(s).")
+    if args.wrapper_report:
+        report_generation(args.directory)
+    else:
+        count = generate(args.directory)
+        print(f"Generated {args.directory / 'catalogue.json'} with {count} track(s).")

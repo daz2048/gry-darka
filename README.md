@@ -76,10 +76,52 @@ and the [official YouTube channel feed](https://www.youtube.com/feeds/videos.xml
 and reports failures on stderr. If either feed fails, that source keeps its last
 successful data and timestamp; an unavailable feed with no earlier data shows a
 source link instead. Data is labelled potentially outdated after 24 hours.
+The command exits nonzero if either source fails, even though it writes the
+retained data and any successful update. `--report PATH` also writes per-source
+statuses and the number of refreshed sources as JSON.
 
-The feed file must be refreshed and republished regularly to remain current;
-there is currently no automated scheduled deployment in this repository.
+### Scheduled publication
+
+The [site workflow](.github/workflows/pages.yml) validates pull requests without
+deploying them. After rollout, it publishes the complete static site on pushes
+to `main`, manual runs on `main`, and approximately every four hours at minute
+17 UTC. Schedules are best-effort; check Actions for failures or disabled runs.
 The browser does not contact the feed providers until a visitor follows a link.
+
+Deployment reads and validates the currently published JSON before refreshing.
+Generated feed data is included only in the Pages artifact, not committed by a
+bot. Normal site releases use the same process, so they do not replace live
+feed data with an older committed seed. One failed provider retains its data
+and timestamp while the other provider can refresh; the run reports failure
+even if the partial update is deployed. If both providers fail on a scheduled
+run, the live site is left unchanged. A normal release can still publish site
+changes with the retained data. An inaccessible or invalid live cache blocks
+deployment instead of silently falling back to the seed.
+
+**Administrator rollout (not performed automatically):**
+
+1. Merge the workflow to `main` and confirm repository workflows are permitted
+   by organization policy. Until migration, branch-based Pages remains the
+   publishing source and manual refresh is still needed.
+2. Make **Site checks** required for merging into `main` through branch
+   protection or a ruleset. The checks are advisory until this is configured.
+3. Change Settings → Pages → Build and deployment → Source to **GitHub Actions**,
+   then manually run **Site validation and deployment** on `main`.
+4. Verify the deployed homepage, existing games, and feed timestamps. Confirm
+   an actual scheduled run updates the live feed. The workflow also compares
+   the published JSON against its deployment artifact, with bounded retries.
+
+Manual dispatch has a `bootstrap` option, defaulting to false. Enable it only
+for initial setup without a valid live cache or deliberate recovery: it uses
+the validated committed seed and may replace newer live data. It does not
+bypass provider failures. Production runs are serialized and superseded
+source revisions are skipped. Publishing needs only content-read permission
+plus Pages-write and an ID token; no personal access token is required.
+
+For rollback, an administrator can restore Pages publishing from `main` at
+the repository root. Refresh and commit the feed manually first if the
+committed seed is older than the live data; artifact-only updates are not
+written back to the branch.
 
 Tests: `python3 -m unittest discover -s scripts -p 'test_minecraft_news.py'`
 and `node --test scripts/test_minecraft_news.js`.
@@ -99,8 +141,8 @@ and `node --test scripts/test_minecraft_news.js`.
 ## Wspólna muzyka
 
 Pliki MP3, WAV, OGG i M4A dla gier znajdują się w katalogu `music/`. Po dodaniu lub usunięciu
-utworów uruchom `python3 scripts/generate-music-catalogue.py` z katalogu
-repozytorium i odśwież grę. Do publikacji należy zapisać w Git zarówno zmiany
+utworów uruchom `scripts/generate-music-catalogue.sh` z katalogu repozytorium
+i odśwież grę. Do publikacji należy zapisać w Git zarówno zmiany
 plików audio, jak i wygenerowany `music/catalogue.json`. Obsługa formatów i
 kodeków zależy od przeglądarki. Publikuj tylko utwory, które
 masz prawo udostępniać: pliki na stronie są publiczne.
