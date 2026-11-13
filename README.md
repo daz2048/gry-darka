@@ -256,13 +256,20 @@ Na poczatku obie wersje maja ten sam swiat, sterowanie i ograniczenia prototypu.
 - [Zagraj »](klocki-podlasia-0.2/)
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.2/README.md)
 
-### Minecraft 0.3 — kreatywne budowanie
+### Minecraft 0.4 — wersja rozwojowa
+Punkt wyjścia to kreatywny świat Minecraft 0.3. Wersja 0.4 będzie rozwijana
+o nowe funkcje, dopracowany wygląd i nowe moby; prace prowadzone są niezależnie
+od zachowanego wydania 0.3.
+- [Zagraj »](klocki-podlasia-0.4/)
+- [Instrukcja, zapisy i testy](klocki-podlasia-0.4/README.md)
+
+### Minecraft 0.3 — archiwum
 Odkrywaj duży świat Podlasia, buduj z 37 nieograniczonych materiałów i wracaj
 do swojej pracy dzięki zapisowi lokalnemu w Chrome. Wydanie koncentruje się na
 komputerach Mac z klawiaturą i myszą; inne przeglądarki nie są jeszcze
 potwierdzonym celem wsparcia. Bez trybu przetrwania, craftingu, multiplayera
 i sterowania dotykowego.
-- [Zagraj »](klocki-podlasia-0.3/)
+- [Zagraj w zarchiwizowane wydanie »](klocki-podlasia-0.3/)
 - [Instrukcja, zapisy i testy](klocki-podlasia-0.3/README.md)
 - [Plan wydania i wyniki weryfikacji](backlog/voxel-sandbox-backlog.md)
 
