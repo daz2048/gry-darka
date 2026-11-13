@@ -1,0 +1,18 @@
+a.player-guide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  margin: 8px auto;
+  padding: 8px 10px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  color: inherit;
+  font: 600 12px/1.4 system-ui, sans-serif;
+  text-align: center;
+  text-underline-offset: 3px;
+}
+a.player-guide:focus-visible { outline: 3px solid #ffb347; outline-offset: 3px; }
+.control-strip a.player-guide { margin: 0; }

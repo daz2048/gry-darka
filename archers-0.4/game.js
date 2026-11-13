@@ -428,6 +428,11 @@ class ArcherScene extends Phaser.Scene {
     this.input.on('pointerupoutside', pointer => this.releaseShot(pointer));
     ui.primary.addEventListener('click', () => this.startGame());
     ui.pause.addEventListener('click', () => this.togglePause());
+    document.querySelectorAll('a.player-guide').forEach(link => {
+      link.addEventListener('click', () => {
+        if (!this.paused) this.togglePause();
+      });
+    });
     ui.soundToggle.addEventListener('click', () => {
       const enabled = gameAudio.toggle();
       ui.soundToggle.classList.toggle('is-muted', !enabled);
@@ -456,6 +461,7 @@ class ArcherScene extends Phaser.Scene {
 
   createKeyboardInput() {
     this.input.keyboard.on('keydown-ENTER', () => {
+      if (document.activeElement?.matches('a.player-guide')) return;
       if (!this.started || this.ended) this.startGame();
     });
     this.input.keyboard.on('keydown-M', () => this.enableInfinitePoints());

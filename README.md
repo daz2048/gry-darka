@@ -6,6 +6,16 @@ Zbiór małych gier przeglądarowe — **graj od razu, bez instalacji**.
 
 **[👉 OTWÓRZ GRY](https://daz2048.github.io/gry-darka/)**
 
+## Pomoc i aktualizacje dla graczy
+
+- [Jak grać / How to play](help.html): cele, sterowanie według wersji,
+  zapisy i rozwiązywanie problemów, po polsku i angielsku.
+- [Co nowego / Release notes](updates.html): datowana historia zmian dla graczy,
+  od najnowszych. Nie zastępuje planów rozwoju ani dokumentacji technicznej.
+- [Publikowanie pomocy i informacji o wydaniach](runbooks/player-updates.md):
+  aktualizuj obie wersje językowe razem ze zmianą gry; po publikacji sprawdź
+  stronę online. Sam push gałęzi roboczej nie oznacza wdrożenia GitHub Pages.
+
 ---
 
 ## Wspólna muzyka

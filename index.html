@@ -37,6 +37,9 @@
     font-family: "Segoe UI", sans-serif;
     letter-spacing: 1px;
   }
+  .site-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 20px; font: 600 15px/1.4 "Segoe UI", sans-serif; }
+  .site-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border: 1px solid #8debd0; border-radius: 6px; color: #8debd0; text-underline-offset: 4px; }
+  .site-nav a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 4px; }
   .brand-word {
     display: inline-block;
     background-size: 220% 100%;
@@ -134,6 +137,7 @@
   .card.ragdoll-archers-community .btn { background: #8eb6d1; color: #20272b; border-color: #8eb6d1; }
   .card.ragdoll-archers-community .thumb.preview img { object-fit: cover; background: #252525; }
   footer { text-align: center; margin-top: 48px; font-size: 11px; opacity: .5; font-family: "Segoe UI", sans-serif; }
+  footer a { color: inherit; }
   @media (max-width: 600px) {
     h1 { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
   }
@@ -147,6 +151,10 @@
     <header>
       <h1>Gry Ekipy spod Lipy (Hajnówka)</h1>
       <p class="sub"><span class="brand-word">Pixel</span> <span class="brand-word">Otter</span> <span class="brand-word">Rocket</span> — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</p>
+      <nav class="site-nav" aria-label="Pomoc i aktualizacje">
+        <a href="help.html">Pomoc / How to play</a>
+        <a href="updates.html">Co nowego / Updates</a>
+      </nav>
     </header>
 
     <main class="grid">
@@ -279,7 +287,7 @@
 
     </main>
 
-    <footer>github.com/dariusz22p/gry-darka</footer>
+    <footer><a href="help.html">Pomoc / Help</a> · <a href="updates.html">Co nowego / Updates</a><p>github.com/dariusz22p/gry-darka</p></footer>
   </div>
 </body>
 </html>

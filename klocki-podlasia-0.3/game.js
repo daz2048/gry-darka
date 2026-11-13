@@ -10,8 +10,8 @@ import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DAT
   MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
   suggestUniqueWorldName } from './saves.js?v=10';
 import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=1';
-import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=10';
-import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=8';
+import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=11';
+import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=9';
 
 initDiagnostics();
 

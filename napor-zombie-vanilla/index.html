@@ -310,6 +310,7 @@
     }
   }
 </style>
+<link rel="stylesheet" href="../player-links.css">
 </head>
 <body>
   <div id="wrap">
@@ -353,6 +354,7 @@
           </div>
         </div>
         <div id="help">
+          <a class="player-guide" href="../help.html#zombie" target="_blank" rel="noopener">Pomoc (nowa karta)</a>
           <a class="back" href="../">&larr; Gry</a>
           <span>PC: <kbd>rolka</kbd> lub <kbd>&uarr;</kbd><kbd>&darr;</kbd> &mdash; ruch g&oacute;ra/d&oacute;&#322;</span>
           <span>Telefon: przeci&#261;gnij palcem (g&oacute;ra/d&oacute;&#322;)</span>
@@ -1321,6 +1323,12 @@
       if (state === 'play') state = 'pause';
       else if (state === 'pause') state = 'play';
     }
+
+    document.querySelector('a.player-guide').addEventListener('click', function () {
+      if (state === 'play') togglePause();
+      steering = false;
+      keys.up = keys.down = false;
+    });
 
     // ---- Wejście (jedna oś, stała prędkość) ----
     function pointerY(e) {

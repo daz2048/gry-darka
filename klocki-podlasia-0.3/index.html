@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#183f36">
   <title>Minecraft 0.3 — creative building with Ekipa spod Lipy</title>
   <link rel="icon" href="preview.svg?v=4" type="image/svg+xml">
+  <link rel="stylesheet" href="../player-links.css">
   <link rel="stylesheet" href="style.css?v=17">
   <script type="importmap">
     {"imports":{"three":"./vendor/three.module.js"}}
@@ -60,6 +61,7 @@
         <p data-i18n-html="instructions.pause"><b>Esc / P</b> pause and release the mouse · <b>H</b> games menu</p>
       </div>
       <p id="load-status" role="status" data-i18n="load.preparing">Preparing the meadow…</p>
+      <a class="player-guide" href="../help.html#minecraft" target="_blank" rel="noopener" data-i18n="link.help">Help (new tab)</a>
       <p id="pause-save-warning" role="status" aria-live="polite" hidden></p>
       <p class="small" data-i18n="overlay.saveInfo">The world is saved locally in this Chrome profile. The top bar shows the save status; a storage failure does not stop the game, but leaves the session unsaved.</p>
       <p class="small" id="session-note" data-i18n="session.local">Saved locally in this Chrome profile. This is not a backup.</p>
@@ -157,9 +159,9 @@
         'Start the repository server and open http://localhost:8765/klocki-podlasia-0.3/ — modules need HTTP.',
         'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.3/ — moduły wymagają HTTP.');
     } else {
-      import('./i18n.js?v=10').then(i18n => {
+      import('./i18n.js?v=11').then(i18n => {
         i18n.initLanguage();
-        return import('./game.js?v=34');
+        return import('./game.js?v=35');
       }).catch(error => {
         console.error('Minecraft: cannot start the game.', error);
         status.textContent = pick(
