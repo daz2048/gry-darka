@@ -184,6 +184,20 @@ test('every house has furniture without blocking its entrance or resident', () =
   assert.equal(createMobs(world).filter(mob => mob.kind === 'villager').length, 29);
 });
 
+test('every village has an enterable haunted house and a creepy resident', () => {
+  const world = new World();
+  const mobs = createMobs(world);
+  for (const village of [...VILLAGES, ...BIOME_VILLAGES]) {
+    assert.equal(world.get(village.x - 10, 10, village.z + 5), 16);
+    assert.equal(world.get(village.x - 7, 15, village.z + 5), 14);
+    assert.equal(world.get(village.x - 7, 8, village.z + 6), 14);
+    for (let y = 9; y <= 11; y++) assert.equal(world.get(village.x - 7, y, village.z + 4), 0);
+    const hauntedResidents = mobs.filter(mob => mob.haunted &&
+      Math.abs(mob.x - village.x) < 14 && Math.abs(mob.z - village.z) < 14);
+    assert.equal(hauntedResidents.length, 1, `${village.name} has one haunted resident`);
+  }
+});
+
 test('villages connect by roads and contain seeded mineable ore veins', () => {
   const world = new World();
   assert.deepEqual(world.blocks, new World().blocks);

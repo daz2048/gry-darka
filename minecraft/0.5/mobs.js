@@ -1,4 +1,4 @@
-import { SIZE, VILLAGES, BIOME_VILLAGES } from './world.js?v=3';
+import { SIZE, VILLAGES, BIOME_VILLAGES } from './world.js?v=5';
 
 const PASTURES = [
   { kind: 'cow', x: 25.4, z: 28.2, radius: 0.58, height: 1.62, speed: 0.55,
@@ -44,6 +44,7 @@ const RESIDENTS = [
 const NEW_VILLAGERS = VILLAGES.flatMap((village, index) =>
   [[-7, -7], [7, -7], [-7, 7]].map(([dx, dz], house) => ({
     kind: 'villager', x: village.x + dx + 0.5, z: village.z + dz + 0.5,
+    haunted: house === 2,
     bounds: { minX: village.x + dx - 1.6, maxX: village.x + dx + 2.6,
       minZ: village.z + dz - 1.6, maxZ: village.z + dz + 2.6 },
     shirt: ['#416d68', '#a94f3e', '#70864f', '#47818a'][(index + house) % 4],
@@ -61,9 +62,9 @@ const WILDLIFE = VILLAGES.flatMap(village => [
 ]);
 
 const BIOME_RESIDENTS = BIOME_VILLAGES.map((village, index) => ({
-  kind: 'villager', x: village.x - 6.5, z: village.z - 6.5,
+  kind: 'villager', x: village.x - 6.5, z: village.z + 7.5, haunted: true,
   bounds: { minX: village.x - 8.6, maxX: village.x - 4.4,
-    minZ: village.z - 8.6, maxZ: village.z - 4.4 },
+    minZ: village.z + 5.4, maxZ: village.z + 9.6 },
   shirt: ['#416d68', '#a94f3e', '#70864f', '#47818a'][index % 4],
   apron: '#d2ad78', pants: '#475461', skin: '#bd8564', hair: '#493b32',
   radius: 0.28, height: 1.88, speed: 0.3, groundY: 9
@@ -331,6 +332,18 @@ export function createMobModel(THREE, mob) {
     eyes('#302b2a', 0.65, 0.52, 0.1);
     addLegs(THREE, group, materials, mob, '#a99a8b',
       [[-0.13, -0.18], [0.13, -0.18], [-0.13, 0.18], [0.13, 0.18]], 0.18, 'hide', '#9c8d80', 0.11);
+  } else if (mob.kind === 'villager' && mob.haunted) {
+    cube('#17191c', [0.62, 1.1, 0.42], [0, 1.02, 0], 'fabric');
+    cube('#25282c', [0.74, 0.34, 0.5], [0, 0.48, 0], 'fabric');
+    cube('#34383c', [0.42, 0.45, 0.4], [0, 1.66, 0.03], 'hide');
+    cube('#111315', [0.48, 0.17, 0.46], [0, 1.86, 0], 'hair');
+    cube('#111315', [0.13, 0.36, 0.4], [-0.2, 1.68, 0], 'hair');
+    cube('#111315', [0.13, 0.27, 0.4], [0.19, 1.72, 0], 'hair');
+    eyes('#d64343', 1.68, 0.25, 0.11);
+    cube('#08090a', [0.16, 0.14, 0.04], [0, 1.49, 0.23]);
+    arms = addArms(THREE, group, materials, '#17191c', '#34383c', 0.36, 1.36, 0.58, 0.18, 'fabric');
+    addLegs(THREE, group, materials, mob, '#17191c',
+      [[-0.14, 0], [0.14, 0]], 0.47, 'fabric', '#25282c', 0.22);
   } else if (mob.kind === 'villager') {
     cube(mob.pants, [0.48, 0.46, 0.32], [0, 0.52, 0], 'fabric');
     cube(mob.shirt, [0.56, 0.67, 0.34], [0, 1.08, 0], 'fabric');

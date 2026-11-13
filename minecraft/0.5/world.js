@@ -309,6 +309,15 @@ function furnishHouse(world, minX, maxX, minZ, maxZ, front) {
   world.write(minX + 1, 9, frontInsideZ, 37);
 }
 
+function buildHauntedHouse(world, village) {
+  const { x, z } = village;
+  buildHouse(world, x - 10, x - 4, z + 4, z + 10, 14, 16, 14, 'minZ');
+  world.write(x - 10, 9, z + 5, 18);
+  world.write(x - 4, 9, z + 9, 18);
+  world.write(x - 10, 10, z + 6, 25);
+  world.write(x - 4, 10, z + 8, 25);
+}
+
 function buildWell(world, x, z) {
   for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
     const edge = Math.abs(dx) === 1 || Math.abs(dz) === 1;
@@ -537,7 +546,7 @@ export class World {
       }
       buildHouse(this, x - 10, x - 4, z - 10, z - 4, floor, wall, roof);
       buildHouse(this, x + 4, x + 10, z - 10, z - 4, floor, wall, roof);
-      buildHouse(this, x - 10, x - 4, z + 4, z + 10, floor, wall, roof, 'minZ');
+      buildHauntedHouse(this, village);
       buildWell(this, x + 7, z + 7);
       buildLandmark(this, village);
     }

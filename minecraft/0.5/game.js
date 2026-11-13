@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { PointerLockControls } from '../shared/vendor/three/0.180.0/PointerLockControls.js';
 import { World, SIZE, CHUNK, BLOCKS, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTURES,
-  nearbyChunks, chunkGeometry, waterGeometry, pick } from './world.js?v=4';
+  nearbyChunks, chunkGeometry, waterGeometry, pick } from './world.js?v=5';
 import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=3';
 import { createPlayer, collides, stepPlayer } from './player.js?v=2';
-import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
+import { createMobs, createMobModel, stepMobs } from './mobs.js?v=4';
 import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=3';
 import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, WORLD_STORE,
   MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
