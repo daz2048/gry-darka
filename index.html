@@ -24,17 +24,47 @@
   }
   .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 16px 60px; }
   header { text-align: center; margin-bottom: 40px; }
-  h1 { 
-    font-size: 30px; letter-spacing: 2px; margin: 0 0 12px;
+  h1 { margin: 0; }
+  .brand-flip {
+    display: block; width: 100%; padding: 0; border: 0; background: none;
+    color: inherit; font: inherit; text-align: center; cursor: pointer;
+    perspective: 1200px;
+  }
+  .brand-flip:disabled { cursor: default; }
+  .brand-flip:focus-visible { outline: 3px solid #ffcd53; outline-offset: 5px; border-radius: 16px; }
+  .brand-flip-inner {
+    display: grid; transform-style: preserve-3d;
+    transition: transform .6s cubic-bezier(.2, .7, .2, 1);
+  }
+  .brand-flip.is-flipped .brand-flip-inner { transform: rotateY(180deg); }
+  .brand-face {
+    grid-area: 1 / 1; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; gap: 12px; min-height: 170px; padding: 24px;
+    border: 2px solid rgba(104, 237, 255, .45); border-radius: 16px;
+    background: linear-gradient(135deg, #191636, #12253b);
+    box-shadow: inset 0 0 30px rgba(131, 56, 236, .16), 0 0 24px rgba(58, 134, 255, .16);
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  }
+  .brand-face-back {
+    transform: rotateY(180deg); border-color: rgba(255, 112, 184, .5);
+    background: linear-gradient(135deg, #281735, #132c34);
+  }
+  .brand-title {
+    font-size: 30px; letter-spacing: 2px; line-height: 1.5;
     background: linear-gradient(90deg, #ff006e, #8338ec, #3a86ff, #06ffa5);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-shadow: 0 0 30px rgba(255, 0, 110, 0.3);
   }
+  .brand-hint {
+    color: #b7c8d8; font: 600 12px/1.4 "Segoe UI", sans-serif;
+    letter-spacing: .3px;
+  }
+  .brand-flip:disabled .brand-hint { display: none; }
   .sub { 
     opacity: .88; font-size: 14px; margin: 0; color: #06ffa5;
-    font-family: "Segoe UI", sans-serif;
+    font-family: "Segoe UI", sans-serif; font-weight: normal;
     letter-spacing: 1px;
   }
   .site-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 20px; font: 600 12px/1.4 "Segoe UI", sans-serif; opacity: .8; }
@@ -157,18 +187,34 @@
   footer { text-align: center; margin-top: 48px; font-size: 11px; opacity: .5; font-family: "Segoe UI", sans-serif; }
   footer a { color: inherit; }
   @media (max-width: 600px) {
-    h1 { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
+    .brand-title { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
+    .brand-face { padding: 20px 14px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .brand-word { animation: none; }
+    .brand-flip-inner { transition: none; }
   }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>Gry Ekipy spod Lipy (Hajnówka)</h1>
-      <p class="sub"><span class="brand-word">Pixel</span> <span class="brand-word">Otter</span> <span class="brand-word">Rocket</span> — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</p>
+      <h1>
+        <button class="brand-flip" type="button" disabled>
+          <span class="brand-flip-inner">
+            <span class="brand-face" lang="en">
+              <span class="brand-title">The Lime Tree Crew - Pixel Otter Rocket</span>
+              <span class="brand-hint">Click to see the Polish version ↻</span>
+            </span>
+            <span class="brand-face brand-face-back" lang="pl" aria-hidden="true">
+              <span class="brand-title">Gry Ekipy spod Lipy (Hajnówka)</span>
+              <span class="sub"><span class="brand-word">Pixel</span> <span class="brand-word">Otter</span> <span class="brand-word">Rocket</span> — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</span>
+              <span class="brand-hint">Kliknij, aby zobaczyć wersję angielską ↻</span>
+            </span>
+          </span>
+        </button>
+      </h1>
+      <noscript><p class="sub">Gry Ekipy spod Lipy (Hajnówka) — Pixel Otter Rocket — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</p></noscript>
       <nav class="site-nav" aria-label="Pomoc i aktualizacje">
         <a href="help.html">How to play</a>
         <a href="updates.html">Updates</a>
@@ -184,7 +230,7 @@
           <span class="btn">Graj</span>
         </a>
         <details class="version-history">
-          <summary>Starsze wersje</summary>
+          <summary>Older versions</summary>
           <ul class="version-history-list">
             <li><a href="klocki-podlasia-0.2/">Minecraft 0.2</a></li>
             <li><a href="klocki-podlasia-0.1/">Klocki Podlasia 0.1 · prototyp</a></li>
@@ -200,7 +246,7 @@
           <span class="btn">Graj</span>
         </a>
         <details class="version-history">
-          <summary>Starsze wersje</summary>
+          <summary>Older versions</summary>
           <ul class="version-history-list">
             <li><a href="flappy-0.1/">Flappy Podlasie 0.1</a></li>
           </ul>
@@ -236,7 +282,7 @@
           <span class="btn">Graj</span>
         </a>
         <details class="version-history">
-          <summary>Starsze wersje</summary>
+          <summary>Older versions</summary>
           <ul class="version-history-list">
             <li><a href="zombie-max-0.1/">Zombie Max 0.1</a></li>
           </ul>
@@ -259,7 +305,7 @@
           <span class="btn">Graj</span>
         </a>
         <details class="version-history">
-          <summary>Starsze wersje</summary>
+          <summary>Older versions</summary>
           <ul class="version-history-list">
             <li><a href="mario-0.2/index.html">Mario 0.2</a></li>
             <li><a href="mario-0.1/index.html">Mario 0.1</a></li>
@@ -270,12 +316,12 @@
       <article class="card ragdoll-archer ragdoll-archer-03">
         <a class="card-link" href="archers-0.4/index.html">
           <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.4.svg" alt="Archers 0.4: mietowy lucznik strzela do pomaranczowego robota na podestach" loading="lazy"></div>
-          <h2>Archers 0.4 (Praca w toku, wre jak w garncu. poczej Januszku)</h2>
+          <h2>Archers 0.4 (wre jak w garncu)</h2>
           <p>Celuj w rywala, przytrzymaj, by naładować strzał, i wypuść strzałę w odpowiednim momencie. Pokonuj kolejne rundy, zdobywaj punkty i ulepszaj strzały oraz pancerz.</p>
           <span class="btn">Graj</span>
         </a>
         <details class="version-history">
-          <summary>Starsze wersje</summary>
+          <summary>Older versions</summary>
           <ul class="version-history-list">
             <li><a href="archers-0.3/index.html">Archers 0.3</a></li>
             <li><a href="archers-0.2/index.html">Archers 0.2</a></li>
@@ -288,5 +334,15 @@
 
     <footer><a href="help.html">How to play</a> · <a href="updates.html">Updates</a><p>github.com/dariusz22p/gry-darka</p></footer>
   </div>
+  <script>
+    const brandFlip = document.querySelector('.brand-flip');
+    const brandFaces = brandFlip.querySelectorAll('.brand-face');
+    brandFlip.disabled = false;
+    brandFlip.addEventListener('click', () => {
+      const flipped = brandFlip.classList.toggle('is-flipped');
+      brandFaces[0].setAttribute('aria-hidden', String(flipped));
+      brandFaces[1].setAttribute('aria-hidden', String(!flipped));
+    });
+  </script>
 </body>
 </html>
