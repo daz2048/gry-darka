@@ -10,8 +10,8 @@ import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DAT
   MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
   suggestUniqueWorldName } from './saves.js?v=10';
 import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=1';
-import { biomeName, blockName, getLanguage, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=8';
-import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=6';
+import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=10';
+import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=8';
 
 initDiagnostics();
 
@@ -21,7 +21,8 @@ const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start
   'world-action-confirm', 'world-action-message',
   'world-action-name-label', 'world-action-name', 'confirm-world-action', 'cancel-world-action',
   'play-actions', 'secondary-actions',
-  'palette', 'palette-pages', 'target', 'notice', 'crosshair',
+  'palette', 'palette-pages', 'selected-material', 'target', 'notice', 'crosshair',
+  'show-coordinates', 'pause-coordinates', 'save-warning', 'save-warning-text', 'save-warning-pause', 'pause-save-warning',
   'load-status', 'metrics', 'sensitivity', 'low-quality', 'music-on', 'music-choice', 'music-status', 'music-volume', 'controls-hint',
   'reset-confirm', 'reset-message', 'world-name-input', 'world-name', 'confirm-reset', 'cancel-reset', 'coordinates', 'destinations', 'biome-destinations',
   'structure-destinations', 'save-status', 'save-details', 'save-now', 'reload-save', 'session-note', 'save-recovery',
@@ -207,6 +208,8 @@ let frameStart = lastTime;
 let fps = 0;
 let edits = 0;
 let noticeUntil = 0;
+let controlsHintUntil = 0;
+const introducedControlModes = new Set();
 let firstFrameMs = 0;
 const keys = new Set();
 const direction = new THREE.Vector3();
@@ -415,6 +418,14 @@ function updateSaveControls() {
 function setSaveStatus(key, state = 'normal', params) {
   setText(ui['save-status'], key, params);
   ui['save-status'].dataset.state = state;
+  if (state === 'error' || state === 'conflict') {
+    setText(ui['save-warning-text'], key, params);
+    setText(ui['pause-save-warning'], key, params);
+    ui['save-warning'].hidden = false;
+  } else if (state === 'saved' || state === 'normal') {
+    ui['save-warning'].hidden = true;
+  }
+  ui['pause-save-warning'].hidden = ui['save-warning'].hidden;
   updateSaveControls();
 }
 
@@ -924,6 +935,7 @@ function select(id, persist = true) {
 }
 
 function renderPalette() {
+  ui['selected-material'].textContent = blockName(selected);
   ui.palette.replaceChildren();
   const first = PALETTE_STARTS[palettePage];
   for (let id = first; id < PALETTE_STARTS[palettePage + 1]; id++) {
@@ -960,6 +972,7 @@ select(selected, false);
 
 function pause() {
   playing = false;
+  document.body.classList.remove('playing');
   music.stop();
   dragging = false;
   keys.clear();
@@ -977,6 +990,7 @@ function pause() {
 function play(useDrag) {
   dragMode = useDrag;
   playing = true;
+  document.body.classList.add('playing');
   if (ui['music-on'].checked) music.start();
   keys.clear();
   lastTime = performance.now();
@@ -987,6 +1001,11 @@ function play(useDrag) {
   ui['reset-confirm'].hidden = true;
   renderer.domElement.focus({ preventScroll: true });
   setText(ui['controls-hint'], useDrag ? 'hint.drag' : 'hint.pointer');
+  ui['controls-hint'].hidden = introducedControlModes.has(useDrag);
+  if (!ui['controls-hint'].hidden) {
+    controlsHintUntil = performance.now() + 8000;
+    introducedControlModes.add(useDrag);
+  }
 }
 
 async function requestPlay() {
@@ -1011,16 +1030,15 @@ function updateTarget() {
   camera.getWorldDirection(direction);
   target = pick(world, camera.position, direction);
   outline.visible = playing && Boolean(target);
+  ui.target.hidden = !target;
   if (target) {
     const blockId = world.get(...target.cell);
     const block = BLOCKS[blockId];
     const height = block.height ?? 1;
     outline.scale.y = height;
     outline.position.set(target.cell[0] + 0.5, target.cell[1] + height / 2, target.cell[2] + 0.5);
-    ui.target.textContent = t('target.block', {
-      block: blockName(blockId), selected: blockName(selected).toLocaleLowerCase(getLanguage())
-    });
-  } else ui.target.textContent = t('target.far');
+    ui.target.textContent = blockName(blockId);
+  }
 }
 
 let lastEdit = -Infinity;
@@ -1237,10 +1255,10 @@ ui['restore-backup'].addEventListener('click', async () => {
 });
 ui['save-now'].addEventListener('click', () => {
   saveWorld()
-    .then(() => notice(ui['save-details'].textContent, 12000))
+    .then(() => notice(t('details.labelSaved'), 3000))
     .catch(error => {
       console.error(error);
-      notice(t('notice.saveFailed', { error: errorText(error) }), 12000);
+      notice(t('notice.saveFailed', { error: errorText(error) }));
     });
 });
 ui['reload-save'].addEventListener('click', () => {
@@ -1287,6 +1305,10 @@ async function toggleFullscreen() {
   }
 }
 ui.fullscreen.addEventListener('click', toggleFullscreen);
+ui['save-warning-pause'].addEventListener('click', pause);
+ui['show-coordinates'].addEventListener('change', () => {
+  document.body.classList.toggle('show-coordinates', ui['show-coordinates'].checked);
+});
 ui.sensitivity.addEventListener('input', () => {
   controls.pointerSpeed = Number(ui.sensitivity.value);
   markDirty();
@@ -1477,6 +1499,7 @@ renderer.domElement.addEventListener('webglcontextlost', event => {
 function updateCoordinates() {
   ui.coordinates.textContent =
     `${biomeName(biomeAt(player.x, player.z))} · X ${Math.floor(player.x)} · Z ${Math.floor(player.z)}`;
+  ui['pause-coordinates'].textContent = ui.coordinates.textContent;
 }
 
 onLanguageChange(() => {
@@ -1558,6 +1581,7 @@ function frame(now) {
     updateCoordinates();
   }
   if (!ui.notice.hidden && now > noticeUntil) ui.notice.hidden = true;
+  if (!ui['controls-hint'].hidden && now > controlsHintUntil) ui['controls-hint'].hidden = true;
   waterTexture.offset.set(now * 0.000006 % 1, now * 0.000002 % 1);
   sky.position.copy(camera.position);
   renderer.render(scene, camera);

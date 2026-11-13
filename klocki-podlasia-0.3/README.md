@@ -14,8 +14,8 @@ a farmhouse with fields.
 
 ## Język / Language
 
-The game starts in **English** by default. The **EN / PL** switch in the top
-bar changes the whole interface instantly without reloading, so unsaved work is
+The game starts in **English** by default. The **EN / PL** switch in the start/
+pause screen's top bar changes the whole interface instantly without reloading, so unsaved work is
 kept. The choice is remembered in this browser (`localStorage` key
 `minecraft-0.3-language`), separately from the world save. Add `?lang=pl` or
 `?lang=en` to the address to override it for one visit without changing the
@@ -24,7 +24,27 @@ names) stay Polish; materials, biomes and structures are translated. An
 unnamed world is shown as Meadow / Łąka in the current language.
 
 Gra domyślnie uruchamia się po angielsku. Przełącznik **EN / PL** na górnym
-pasku zmienia język od razu, bez przeładowania i bez utraty niezapisanej pracy.
+pasku ekranu startowego i pauzy zmienia język od razu, bez przeładowania
+i bez utraty niezapisanej pracy.
+
+## Gameplay HUD
+
+Windowed and fullscreen play use the same compact HUD in both control modes:
+crosshair, material categories, eight numbered swatches, selected material name,
+and a small save-status/Pause control. A targeted block's name appears only
+when a block is in reach. Control hints appear for eight seconds the first
+time each control mode is used on the page; full instructions remain in pause.
+
+The world name, language/menu controls, manual Save, storage explanation and
+full save details are available while paused, not over the playing view.
+Manual-save success uses a brief confirmation instead of a large details popup.
+Save failures and conflicts remain prominent during play and pause, including
+while editing or retrying, until saving succeeds or a safe world state is loaded.
+Use **P** or the warning's pause button to access save/recovery options.
+
+Biome and coordinates are always available in pause. Enable **Show biome and
+coordinates during play** to add them above the hotbar for the current page
+session (off by default; this display choice is not stored in world backups).
 
 ## Zapisywanie
 
@@ -34,7 +54,8 @@ od razu; pasek u góry pokazuje jego rzeczywisty stan. Po ponownym otwarciu
 wybierz świat z listy albo użyj **Kontynuuj**, aby wrócić do ostatnio używanego;
 następnie wybierz sposób sterowania.
 
-Po kliknięciu **Zapisz** komunikat pokazuje wynik operacji, nazwę świata,
+Po kliknięciu **Zapisz** krótki komunikat potwierdza wynik operacji. Szczegóły
+w diagnostyce panelu pauzy pokazują nazwę świata,
 miejsce zapisu (adres strony → IndexedDB → `minecraft-0.3` → `world-records` →
 identyfikator świata) oraz szacowany rozmiar danych w MiB i bajtach. Szczegóły
 pozostają w panelu pauzy; są też aktualizowane po autozapisie i wczytaniu.
@@ -154,8 +175,9 @@ is needed to play. Requires a desktop keyboard/mouse and WebGL2.
   name. The icons also retain accessible labels.
 - P / Escape: pause; H / **Menu gier**: return to the portfolio.
 - F / **Full screen**: toggle browser fullscreen.
-- Follow the roads to the villages and roadside structures. The HUD shows your
-  biome and X/Z coordinates; the pause panel lists destinations. Jump up the watchtower steps.
+- Follow the roads to the villages and roadside structures. The pause panel
+  shows your biome and X/Z coordinates and lists destinations; coordinates
+  during play are optional. Jump up the watchtower steps.
 - **Wróć na start**: find a safe supported position without resetting the world.
 - **Nowa łąka**: choose a name (up to 32 characters) and confirm creating a
   world with a different seed; existing worlds remain unchanged.
