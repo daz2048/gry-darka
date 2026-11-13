@@ -88,6 +88,7 @@ output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: mo
 #server-diagnostics[data-state="healthy"] { color: #285d38; }
 #server-diagnostics[data-state="error"] { color: #7b3726; }
 #server-logs { max-height: 260px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px; border: 1px solid #9db19a; border-radius: 8px; background: #eff5ed; }
+#server-logs[data-state="error"] { color: #7b3726; }
 #notice { position: fixed; top: 80px; right: 24px; max-width: min(390px, 90vw); padding: 12px; background: #fff2ce; color: #67311e; border: 1px solid #ac653c; border-radius: 8px; font-size: 13px; pointer-events: none; z-index: 3; white-space: pre-line; overflow-wrap: anywhere; }
 .fatal { position: fixed; top: 10px; background: white; padding: 20px; z-index: 5; }
 @media (max-width: 700px) { .topbar { padding: 12px; } .brand strong { font-size: 17px; } .brand small { display: block; margin: 3px 0 0; font-size: 8px; letter-spacing: 0; } .world-label, .tools a { display: none; } .panel { padding: 22px; } .slot { font-size: 9px; } }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { formatServerDiagnostics, relativeAge } from '../diagnostics.js';
-import { setLanguage } from '../i18n.js?v=3';
+import { formatServerDiagnostics, readSaveStorageStatus, relativeAge } from '../diagnostics.js';
+import { setLanguage } from '../i18n.js?v=4';
 
 const now = Date.parse('2026-11-13T10:00:00Z');
 const snapshot = () => ({
@@ -46,6 +46,42 @@ test('HTTP errors, server exceptions, and missing Git metadata do not report hea
 test('malformed server responses cannot become a healthy status', () => {
   for (const data of [{}, { ...snapshot(), server: {} }, { ...snapshot(), git: null }]) {
     assert.throws(() => formatServerDiagnostics(data, now), /Invalid game server diagnostics response/);
+  }
+});
+
+test('save storage status checks persistence without requesting it', async () => {
+  const store = { loadWorld: async id => ({ previousAvailable: id === 'with-backup' }) };
+  for (const [id, persisted, backup, persistence] of [
+    ['with-backup', true, 'available', 'persistent'],
+    ['without-backup', false, 'missing', 'evictable']
+  ]) {
+    const storage = {
+      persisted: async () => persisted,
+      persist: () => { throw new Error('Must not request persistence'); }
+    };
+    assert.deepEqual(await readSaveStorageStatus(store, id, storage), { backup, persistence });
+  }
+  assert.deepEqual(await readSaveStorageStatus(store, 'with-backup', {}), {
+    backup: 'available', persistence: 'unavailable'
+  });
+});
+
+test('failed storage checks are reported separately without hiding successful results', async () => {
+  const errors = [];
+  const originalError = console.error;
+  console.error = (...args) => errors.push(args);
+  try {
+    const store = { loadWorld: async () => { throw new Error('database read failed'); } };
+    assert.deepEqual(await readSaveStorageStatus(store, 'world', { persisted: async () => true }), {
+      backup: 'unavailable', persistence: 'persistent'
+    });
+    const goodStore = { loadWorld: async () => ({ previousAvailable: false }) };
+    assert.deepEqual(await readSaveStorageStatus(goodStore, 'world', {
+      persisted: async () => { throw new Error('persistence check failed'); }
+    }), { backup: 'missing', persistence: 'unavailable' });
+    assert.equal(errors.length, 2);
+  } finally {
+    console.error = originalError;
   }
 });
 

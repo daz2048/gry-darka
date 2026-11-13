@@ -44,7 +44,7 @@ def git_metadata():
     def git(*args):
         return subprocess.run(
             ["git", "-C", str(ROOT), *args], capture_output=True, text=True,
-            check=True, timeout=3,
+            check=True, timeout=1.5,
         ).stdout.strip()
 
     commit, committed_at = git("log", "-1", "--format=%H%n%cI").splitlines()
@@ -62,8 +62,8 @@ def recent_logs():
         offset = max(0, size - LOG_TAIL_BYTES)
         file.seek(offset)
         data = file.read(LOG_TAIL_BYTES)
-    if offset:
-        data = data.partition(b"\n")[2]
+    while offset and data and data[0] & 0xC0 == 0x80:
+        data = data[1:]
     lines = data.splitlines(keepends=True)
     return {
         "text": b"".join(lines[-LOG_TAIL_LINES:]).decode("utf-8", errors="replace"),

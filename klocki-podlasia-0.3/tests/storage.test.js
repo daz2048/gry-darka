@@ -7,6 +7,7 @@ import {
   MAX_WORLDS, SAVE_DATABASE, LEGACY_SAVE_DATABASE, WORLD_STORE
 } from '../saves.js';
 import { FakeIndexedDB } from './fake-indexeddb.js';
+import { readSaveStorageStatus } from '../diagnostics.js';
 
 const world = new World(42);
 const settings = { sensitivity: 1, lowQuality: false, musicEnabled: false, musicVolume: 0.35 };
@@ -28,8 +29,10 @@ test('first save creates revision 1 and a second keeps the first as the previous
   assert.equal(first.status, 'empty');
   const saved = await store.save(snapshot(3), first.expected);
   assert.equal(saved.revision, 1);
+  assert.equal((await readSaveStorageStatus(store, 'test-world', {})).backup, 'missing');
   const second = await store.save(snapshot(4), { exists: true, revision: 1 });
   assert.equal(second.revision, 2);
+  assert.equal((await readSaveStorageStatus(store, 'test-world', {})).backup, 'available');
   const records = idb.records(SAVE_DATABASE, WORLD_STORE);
   assert.equal(records.get('world:test-world').selectedBlock, 4);
   assert.equal(records.get('previous:test-world').selectedBlock, 3);
@@ -118,9 +121,11 @@ test('damaged current and previous report corrupt and stay protected', async () 
 test('a damaged previous copy is ignored while current stays valid', async () => {
   const idb = new FakeIndexedDB();
   idb.seed(SAVE_DATABASE, { current: record(4, 2), previous: { revision: 1 } });
-  const loaded = await new WorldSaveStore(idb).load();
+  const store = new WorldSaveStore(idb);
+  const loaded = await store.load();
   assert.equal(loaded.status, 'current');
   assert.equal(loaded.previousAvailable, false);
+  assert.equal((await readSaveStorageStatus(store, 'test-world', {})).backup, 'missing');
 });
 
 test('legacy 0.4 save migrates into an empty slot and leaves the legacy database intact', async () => {
