@@ -6,6 +6,45 @@ Zbiór małych gier przeglądarowe — **graj od razu, bez instalacji**.
 
 **[👉 OTWÓRZ GRY](https://daz2048.github.io/gry-darka/)**
 
+Baner na stronie głównej zmienia efekt przy każdym obrocie. W czerwcu–sierpniu
+może pojawić się lato, we wrześniu jesień, w październiku dynie i gwiazdy,
+w listopadzie–lutym śnieg, w grudniu motywy świąteczne, w marcu i maju wiosna,
+a w kwietniu motywy wielkanocne i wiosenne. Po obróceniu banera mogą pojawić
+się bardziej dynamiczne efekty; pierwsze wyświetlenie zawsze jest spokojniejsze.
+Wybór motywów zależy od lokalnego miesiąca odwiedzającego.
+
+## Weather background
+
+The homepage background follows model-based current weather: sunshine or stars,
+clouds, fog, rain, snow, and a dark storm sky (no flashing lightning). Banner effects
+remain independent. Animations respect reduced motion and pause in hidden tabs.
+
+- On a new visit, [ipwho.is](https://ipwhois.io/documentation) estimates a city from
+  the visitor's IP without a device permission prompt. Failed, invalid or rate-limited
+  estimates fall back to London. Estimates can be inaccurate with VPNs/mobile networks.
+- **Change location** always remains available: search for a city or click
+  **Use my location** to request a single browser position. Device coordinates are
+  rounded to two decimal places before weather requests or storage; high accuracy
+  is disabled, but the browser can still return a precise position.
+- Explicit choices are stored in the `gry_weather_location` first-party cookie
+  for 180 days, scoped to this site's directory, with `SameSite=Lax` and `Secure`
+  on HTTPS. Saved choices skip IP lookup and never trigger location prompts.
+  **Use automatic estimate** clears the choice. Blocked cookies produce a warning.
+- IP requests disclose the visitor's IP to ipwho.is. Searches and rounded weather
+  coordinates are sent to [Open-Meteo](https://open-meteo.com/en/terms); requests
+  omit credentials and referrers. No raw device position or IP is stored by this code.
+- Weather refreshes every 30 minutes while visible (and on return if due). Network
+  errors or stale/invalid weather use the neutral background, not another city's
+  weather. Requests time out; the games/menu never wait for weather.
+
+No backend, API key, dependencies, or build step are needed. The free ipwho.is
+browser tier currently shares **1,000 requests/day per domain**. Open-Meteo's free
+service is non-commercial with **10,000 calls/day**, plus hourly/minute limits.
+Revisit provider plans before adding advertising or increasing traffic.
+Weather attribution and the CC BY 4.0 link appear beside the controls.
+
+Tests: `node --test scripts/test_weather.js scripts/test_banner.js`.
+
 ## Pomoc i aktualizacje dla graczy
 
 - [Jak grać / How to play](help.html): cele, sterowanie według wersji,

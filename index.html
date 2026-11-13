@@ -12,6 +12,8 @@
 <meta property="og:title" content="Pixel Otter Rocket | Gry Ekipy spod Lipy z Hajnówki" />
 <meta property="og:description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.3. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <meta property="og:url" content="https://daz2048.github.io/gry-darka/" />
+<link rel="stylesheet" href="weather.css?v=1" />
+<script src="weather.js?v=1" defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   
@@ -40,14 +42,9 @@
   .brand-face {
     grid-area: 1 / 1; display: flex; flex-direction: column; justify-content: center;
     align-items: center; gap: 12px; min-height: 170px; padding: 24px;
-    border: 2px solid rgba(104, 237, 255, .45); border-radius: 16px;
-    background: linear-gradient(135deg, #191636, #12253b);
-    box-shadow: inset 0 0 30px rgba(131, 56, 236, .16), 0 0 24px rgba(58, 134, 255, .16);
+    border: 2px solid #68edff; border-radius: 16px;
     backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  }
-  .brand-face-front {
     position: relative; overflow: hidden;
-    border-color: #68edff;
     background:
       radial-gradient(ellipse at 50% 45%, rgba(108, 61, 190, .45), transparent 65%),
       repeating-linear-gradient(0deg, transparent 0 27px, rgba(104, 237, 255, .09) 28px 29px),
@@ -55,7 +52,7 @@
       #10132e;
     animation: banner-glow 4s ease-in-out infinite;
   }
-  .brand-face-front::before {
+  .brand-face::before {
     content: ''; position: absolute; inset: 9px; border: 1px solid rgba(104, 237, 255, .25);
     border-radius: 9px; pointer-events: none;
     background:
@@ -64,11 +61,11 @@
       radial-gradient(circle, #ff70b8 0 2px, transparent 3px) 8px calc(100% - 8px) / 8px 8px no-repeat,
       radial-gradient(circle, #68edff 0 2px, transparent 3px) calc(100% - 8px) calc(100% - 8px) / 8px 8px no-repeat;
   }
-  .brand-face-front::after {
+  .brand-face::after {
     content: ''; position: absolute; inset: 12px; pointer-events: none;
   }
-  .brand-face-front:not([data-effect])::after,
-  .brand-face-front[data-effect="cloud"]::after {
+  .brand-face:not([data-effect])::after,
+  .brand-face[data-effect="cloud"]::after {
     background:
       radial-gradient(circle, #68edff 0 3px, transparent 4px) 18% 22% / 10px 10px no-repeat,
       radial-gradient(circle, #ff70b8 0 3px, transparent 4px) 76% 18% / 10px 10px no-repeat,
@@ -78,7 +75,7 @@
       linear-gradient(90deg, transparent, rgba(255, 112, 184, .6), transparent) 50% 78% / 80% 1px no-repeat;
     animation: network-pulse 4s ease-in-out infinite;
   }
-  .brand-face-front[data-effect="data"]::after {
+  .brand-face[data-effect="data"]::after {
     background:
       radial-gradient(circle, #68edff 0 3px, transparent 5px) 0% 20% / 10px 10px no-repeat,
       radial-gradient(circle, #ff70b8 0 3px, transparent 5px) 100% 80% / 10px 10px no-repeat,
@@ -86,7 +83,7 @@
       linear-gradient(90deg, transparent, rgba(255, 112, 184, .4), transparent) 50% 80% / 100% 1px no-repeat;
     animation: data-stream 5s linear infinite;
   }
-  .brand-face-front[data-effect="stars"]::after {
+  .brand-face[data-effect="stars"]::after {
     background:
       radial-gradient(circle, #fff5a8 0 2px, transparent 4px) 15% 16% / 10px 10px no-repeat,
       radial-gradient(circle, #68edff 0 2px, transparent 4px) 36% 85% / 10px 10px no-repeat,
@@ -96,9 +93,198 @@
       radial-gradient(circle, #ff70b8 0 2px, transparent 4px) 92% 30% / 10px 10px no-repeat;
     animation: network-pulse 3s ease-in-out infinite;
   }
-  .brand-face-front[data-effect="scan"]::after {
+  .brand-face[data-effect="scan"]::after {
     background: linear-gradient(180deg, transparent 40%, rgba(104, 237, 255, .22) 50%, transparent 60%);
     animation: terminal-scan 5s linear infinite;
+  }
+  .brand-face[data-effect="pixel-rain"]::after {
+    background:
+      repeating-linear-gradient(180deg, #68edff 0 5px, transparent 5px 24px) 9% 0 / 3px 72px repeat-y,
+      repeating-linear-gradient(180deg, #ff70b8 0 5px, transparent 5px 30px) 91% 16px / 3px 90px repeat-y,
+      repeating-linear-gradient(180deg, #a895ff 0 4px, transparent 4px 26px) 20% 12px / 3px 78px repeat-y,
+      repeating-linear-gradient(180deg, #68edff 0 4px, transparent 4px 26px) 80% 0 / 3px 78px repeat-y;
+    opacity: .6;
+    animation: pixel-rain 6s linear infinite;
+  }
+  .brand-face[data-effect="shooting-stars"]::after {
+    background:
+      linear-gradient(120deg, transparent 45%, #fff5a8 50%, transparent 55%) 12% 18% / 65px 24px no-repeat,
+      linear-gradient(120deg, transparent 45%, #68edff 50%, transparent 55%) 88% 75% / 55px 20px no-repeat,
+      radial-gradient(circle, #ff70b8 0 2px, transparent 3px) 84% 20% / 8px 8px no-repeat,
+      radial-gradient(circle, #fff5a8 0 2px, transparent 3px) 15% 80% / 8px 8px no-repeat;
+    animation: shooting-stars 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="circuits"]::after {
+    background:
+      linear-gradient(#68edff, #68edff) 3% 24% / 18% 2px no-repeat,
+      linear-gradient(#68edff, #68edff) 21% 24% / 2px 20% no-repeat,
+      linear-gradient(#ff70b8, #ff70b8) 97% 76% / 18% 2px no-repeat,
+      linear-gradient(#ff70b8, #ff70b8) 79% 76% / 2px 20% no-repeat,
+      radial-gradient(circle, #68edff 0 3px, transparent 4px) 21% 46% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 3px, transparent 4px) 79% 54% / 10px 10px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="aurora"]::after {
+    background:
+      radial-gradient(ellipse at 20% 100%, rgba(6, 255, 165, .3), transparent 55%),
+      radial-gradient(ellipse at 80% 0%, rgba(131, 56, 236, .35), transparent 55%),
+      linear-gradient(160deg, transparent 35%, rgba(104, 237, 255, .18) 48%, transparent 60%);
+    animation: network-pulse 6s ease-in-out infinite;
+  }
+  .brand-face[data-effect="snow"]::after {
+    background:
+      radial-gradient(circle, #fff 0 2px, transparent 3px) 0 0 / 47px 53px repeat,
+      radial-gradient(circle, #a5f8ff 0 1px, transparent 2px) 22px 18px / 73px 61px repeat;
+    opacity: .7;
+    animation: snowfall 8s linear infinite;
+  }
+  .brand-face[data-effect="frost"]::after {
+    background:
+      repeating-conic-gradient(from 0deg, #d6ffff 0 8deg, transparent 8deg 45deg) 8% 18% / 24px 24px no-repeat,
+      repeating-conic-gradient(from 0deg, #a5f8ff 0 8deg, transparent 8deg 45deg) 90% 78% / 30px 30px no-repeat,
+      radial-gradient(circle, #fff 0 2px, transparent 3px) 18% 78% / 8px 8px no-repeat,
+      radial-gradient(circle, #fff 0 2px, transparent 3px) 82% 20% / 8px 8px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="festive-lights"]::after {
+    background:
+      radial-gradient(circle, #ff706b 0 3px, transparent 4px) 8% 10% / 10px 10px no-repeat,
+      radial-gradient(circle, #fff5a8 0 3px, transparent 4px) 29% 10% / 10px 10px no-repeat,
+      radial-gradient(circle, #06ffa5 0 3px, transparent 4px) 50% 10% / 10px 10px no-repeat,
+      radial-gradient(circle, #68edff 0 3px, transparent 4px) 71% 10% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 3px, transparent 4px) 92% 10% / 10px 10px no-repeat,
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, .5), transparent) 50% 11% / 90% 1px no-repeat;
+    animation: network-pulse 3s ease-in-out infinite;
+  }
+  .brand-face[data-effect="presents"]::after {
+    background:
+      linear-gradient(90deg, transparent 40%, #fff5a8 40% 60%, transparent 60%) 9% 78% / 28px 25px no-repeat,
+      linear-gradient(0deg, transparent 40%, #fff5a8 40% 60%, transparent 60%) 9% 78% / 28px 25px no-repeat,
+      linear-gradient(#ff70b8, #ff70b8) 9% 78% / 28px 25px no-repeat,
+      linear-gradient(90deg, transparent 40%, #fff5a8 40% 60%, transparent 60%) 91% 22% / 28px 25px no-repeat,
+      linear-gradient(0deg, transparent 40%, #fff5a8 40% 60%, transparent 60%) 91% 22% / 28px 25px no-repeat,
+      linear-gradient(#68edff, #68edff) 91% 22% / 28px 25px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="easter-eggs"]::after {
+    background:
+      linear-gradient(#fff5a8, #fff5a8) 9% 75% / 15px 3px no-repeat,
+      linear-gradient(#ff70b8, #ff70b8) 91% 25% / 15px 3px no-repeat,
+      radial-gradient(ellipse, #ff70b8 0 60%, transparent 64%) 9% 75% / 23px 31px no-repeat,
+      radial-gradient(ellipse, #fff5a8 0 60%, transparent 64%) 91% 25% / 23px 31px no-repeat,
+      radial-gradient(circle, #a5f8ff 0 2px, transparent 3px) 16% 20% / 8px 8px no-repeat,
+      radial-gradient(circle, #a5f8ff 0 2px, transparent 3px) 84% 80% / 8px 8px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="blossoms"]::after {
+    background:
+      radial-gradient(circle at 50% 50%, #fff5a8 0 2px, transparent 3px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 50% 25%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 75% 42%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 65% 73%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 35% 73%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 25% 42%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 50% 50%, #fff5a8 0 2px, transparent 3px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 50% 25%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 75% 42%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 65% 73%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 35% 73%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 25% 42%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle, #ffb8da 0 2px, transparent 3px) 20% 75% / 8px 8px no-repeat,
+      radial-gradient(circle, #ffb8da 0 2px, transparent 3px) 80% 20% / 8px 8px no-repeat;
+    animation: network-pulse 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="otter-rocket"]::after,
+  .brand-face[data-effect="block-landscape"]::after,
+  .brand-face[data-effect="castle-arrows"]::after,
+  .brand-face[data-effect="arcade"]::after,
+  .brand-face[data-effect="summer-sun"]::after,
+  .brand-face[data-effect="summer-waves"]::after,
+  .brand-face[data-effect="autumn-leaves"]::after,
+  .brand-face[data-effect="autumn-woodland"]::after,
+  .brand-face[data-effect="pumpkins"]::after,
+  .brand-face[data-effect="spooky-stars"]::after {
+    background-position: 2% 15%, 98% 85%;
+    background-size: 64px 64px, 64px 64px;
+    background-repeat: no-repeat;
+    opacity: .55;
+    animation: banner-icons 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="otter-rocket"]::after { background-image: url('menu-previews/banner-otter-rocket.svg'), url('menu-previews/banner-otter-rocket.svg'); }
+  .brand-face[data-effect="block-landscape"]::after { background-image: url('menu-previews/banner-block-landscape.svg'), url('menu-previews/banner-block-landscape.svg'); }
+  .brand-face[data-effect="castle-arrows"]::after { background-image: url('menu-previews/banner-castle-arrows.svg'), url('menu-previews/banner-castle-arrows.svg'); }
+  .brand-face[data-effect="arcade"]::after { background-image: url('menu-previews/banner-arcade.svg'), url('menu-previews/banner-arcade.svg'); }
+  .brand-face[data-effect="summer-sun"]::after { background-image: url('menu-previews/banner-summer-sun.svg'), url('menu-previews/banner-summer-sun.svg'); }
+  .brand-face[data-effect="summer-waves"]::after { background-image: url('menu-previews/banner-summer-waves.svg'), url('menu-previews/banner-summer-waves.svg'); }
+  .brand-face[data-effect="autumn-leaves"]::after { background-image: url('menu-previews/banner-autumn-leaves.svg'), url('menu-previews/banner-autumn-leaves.svg'); }
+  .brand-face[data-effect="autumn-woodland"]::after { background-image: url('menu-previews/banner-autumn-woodland.svg'), url('menu-previews/banner-autumn-woodland.svg'); }
+  .brand-face[data-effect="pumpkins"]::after { background-image: url('menu-previews/banner-pumpkins.svg'), url('menu-previews/banner-pumpkins.svg'); }
+  .brand-face[data-effect="spooky-stars"]::after { background-image: url('menu-previews/banner-spooky-stars.svg'), url('menu-previews/banner-spooky-stars.svg'); }
+  .brand-face[data-effect="autumn-leaves"]::after { animation: falling-leaves 6s ease-in-out infinite; }
+  .brand-face[data-effect="fireworks"]::after,
+  .brand-face[data-effect="nebula-burst"]::after,
+  .brand-face[data-effect="campfire"]::after,
+  .brand-face[data-effect="bubble-surge"]::after,
+  .brand-face[data-effect="frost-hearts"]::after,
+  .brand-face[data-effect="winter-night"]::after,
+  .brand-face[data-effect="spring-storm"]::after,
+  .brand-face[data-effect="meadow-burst"]::after { opacity: .55; }
+  .brand-face[data-effect="fireworks"]::after {
+    background:
+      repeating-conic-gradient(from 10deg, #ff70b8 0 5deg, transparent 5deg 30deg) 5% 15% / 80px 80px no-repeat,
+      repeating-conic-gradient(from 0deg, #fff5a8 0 5deg, transparent 5deg 30deg) 95% 85% / 70px 70px no-repeat;
+    animation: firework-burst 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="nebula-burst"]::after {
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(255,112,184,.5), transparent 40%),
+      radial-gradient(ellipse at 80% 70%, rgba(104,237,255,.5), transparent 40%),
+      linear-gradient(160deg, transparent 45%, rgba(255,245,168,.6) 50%, transparent 55%);
+    animation: nebula-sweep 7s ease-in-out infinite;
+  }
+  .brand-face[data-effect="campfire"]::after {
+    background:
+      radial-gradient(ellipse at 50% 100%, #fff5a8 0 12%, #ff806b 28%, transparent 55%) 5% 90% / 70px 90px no-repeat,
+      radial-gradient(ellipse at 50% 100%, #fff5a8 0 12%, #ff806b 28%, transparent 55%) 95% 90% / 70px 90px no-repeat,
+      radial-gradient(circle, #ffcd53 0 3px, transparent 4px) 15% 30% / 8px 8px no-repeat,
+      radial-gradient(circle, #ff806b 0 3px, transparent 4px) 85% 40% / 8px 8px no-repeat;
+    animation: campfire-rise 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="bubble-surge"]::after {
+    background:
+      radial-gradient(circle, transparent 48%, #68edff 52% 62%, transparent 66%) 0 0 / 47px 53px repeat,
+      radial-gradient(circle, transparent 42%, #d6ffff 48% 58%, transparent 64%) 20px 20px / 75px 71px repeat;
+    opacity: .35;
+    animation: bubbles-rise 7s linear infinite;
+  }
+  .brand-face[data-effect="frost-hearts"]::after {
+    background:
+      linear-gradient(45deg, transparent 48%, #d6ffff 49% 51%, transparent 52%) 8% 15% / 90px 90px no-repeat,
+      linear-gradient(-45deg, transparent 48%, #d6ffff 49% 51%, transparent 52%) 92% 85% / 90px 90px no-repeat,
+      url('menu-previews/banner-frost-hearts.svg') 8% 15% / 64px 64px no-repeat,
+      url('menu-previews/banner-frost-hearts.svg') 92% 85% / 64px 64px no-repeat;
+    animation: frost-crack 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="winter-night"]::after {
+    background:
+      radial-gradient(circle, #fff 0 2px, transparent 3px) 0 0 / 63px 53px repeat,
+      linear-gradient(165deg, transparent 25%, rgba(6,255,165,.4) 45%, rgba(131,56,236,.4) 55%, transparent 75%);
+    animation: winter-aurora 7s ease-in-out infinite;
+  }
+  .brand-face[data-effect="spring-storm"]::after {
+    background:
+      repeating-linear-gradient(110deg, transparent 0 18px, rgba(104,237,255,.45) 19px 21px, transparent 22px 40px),
+      radial-gradient(ellipse at 90% 15%, rgba(255,245,168,.5), transparent 45%);
+    animation: spring-storm 8s ease-in-out infinite;
+  }
+  .brand-face[data-effect="meadow-burst"]::after {
+    background:
+      radial-gradient(circle, #fff5a8 0 4px, #ff70b8 5px 10px, transparent 11px) 8% 80% / 28px 28px no-repeat,
+      radial-gradient(circle, #fff5a8 0 4px, #a895ff 5px 10px, transparent 11px) 92% 80% / 28px 28px no-repeat,
+      radial-gradient(circle, #ffb8da 0 3px, transparent 4px) 15% 15% / 10px 10px no-repeat,
+      radial-gradient(circle, #fff5a8 0 3px, transparent 4px) 85% 20% / 10px 10px no-repeat,
+      linear-gradient(0deg, rgba(6,255,165,.35), transparent) 50% 100% / 100% 30% no-repeat;
+    animation: meadow-bloom 6s ease-in-out infinite;
   }
   @keyframes network-pulse {
     0%, 100% { opacity: .35; }
@@ -112,9 +298,58 @@
     from { transform: translateY(-100%); }
     to { transform: translateY(100%); }
   }
+  @keyframes pixel-rain {
+    to { background-position: 9% 72px, 91% 106px, 20% 90px, 80% 78px; }
+  }
+  @keyframes snowfall {
+    to { background-position: 0 53px, 22px 79px; }
+  }
+  @keyframes shooting-stars {
+    0%, 100% { opacity: .35; transform: translate(-8px, 4px); }
+    50% { opacity: 1; transform: translate(8px, -4px); }
+  }
+  @keyframes banner-icons {
+    0%, 100% { opacity: .35; }
+    50% { opacity: .6; }
+  }
+  @keyframes falling-leaves {
+    0%, 100% { opacity: .35; transform: translate(-4px, -6px); }
+    50% { opacity: .6; transform: translate(4px, 6px); }
+  }
+  @keyframes firework-burst {
+    0%, 100% { opacity: .2; transform: scale(.75); }
+    50% { opacity: .65; transform: scale(1.05); }
+  }
+  @keyframes nebula-sweep {
+    0%, 100% { opacity: .35; transform: translateX(-8px); }
+    50% { opacity: .75; transform: translateX(8px); }
+  }
+  @keyframes campfire-rise {
+    0%, 100% { opacity: .35; transform: translateY(5px); }
+    50% { opacity: .7; transform: translateY(-5px); }
+  }
+  @keyframes bubbles-rise {
+    from { background-position: 0 0, 20px 20px; }
+    to { background-position: 0 -53px, 20px -51px; }
+  }
+  @keyframes frost-crack {
+    0%, 100% { opacity: .25; transform: scale(.9); }
+    50% { opacity: .7; transform: scale(1.05); }
+  }
+  @keyframes winter-aurora {
+    0%, 100% { opacity: .3; transform: translateX(-8px); }
+    50% { opacity: .75; transform: translateX(8px); }
+  }
+  @keyframes spring-storm {
+    0%, 100% { opacity: .3; transform: translateX(-8px); }
+    50% { opacity: .7; transform: translateX(8px); }
+  }
+  @keyframes meadow-bloom {
+    0%, 100% { opacity: .3; transform: scale(.9); }
+    50% { opacity: .75; transform: scale(1.05); }
+  }
   .brand-face-back {
-    transform: rotateY(180deg); border-color: rgba(255, 112, 184, .5);
-    background: linear-gradient(135deg, #281735, #132c34);
+    transform: rotateY(180deg);
   }
   .brand-title {
     font-size: 30px; letter-spacing: 2px; line-height: 1.5;
@@ -124,7 +359,7 @@
     background-clip: text;
     text-shadow: 0 0 30px rgba(255, 0, 110, 0.3);
   }
-  .brand-face-front .brand-title {
+  .brand-face .brand-title {
     position: relative; z-index: 1;
     background-image: linear-gradient(90deg, #a5f8ff, #f8c5ff, #fff5a8, #a5f8ff);
     background-size: 220% 100%;
@@ -146,27 +381,21 @@
     font-family: "Segoe UI", sans-serif; font-weight: normal;
     letter-spacing: 1px;
   }
+  .brand-face .sub { position: relative; z-index: 1; }
   .site-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 20px; font: 600 12px/1.4 "Segoe UI", sans-serif; opacity: .8; }
   .site-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; color: #aeb4c0; text-underline-offset: 4px; }
-  .site-nav a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 4px; }
-  .brand-word {
-    display: inline-block;
-    background-size: 220% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: brand-shimmer 5s ease-in-out infinite, brand-glow 3s ease-in-out infinite;
+  .site-nav button {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px;
+    border: 1px solid rgba(174, 180, 192, .45); border-radius: 999px;
+    background: transparent; color: #aeb4c0; font: inherit; cursor: pointer;
   }
-  .brand-word:nth-child(1) { background-image: linear-gradient(100deg, #ffdc72, #ff70b8, #fff2a1, #ffdc72); }
-  .brand-word:nth-child(2) { background-image: linear-gradient(100deg, #68edff, #a895ff, #d6ffff, #68edff); animation-delay: .6s; }
-  .brand-word:nth-child(3) { background-image: linear-gradient(100deg, #ff806b, #ffd36b, #fff0a2, #ff806b); animation-delay: 1.2s; }
+  .site-nav button:hover:not(:disabled) { color: #fff; border-color: #ffcd53; }
+  .site-nav button:disabled { cursor: wait; opacity: .65; }
+  .site-nav a:focus-visible, .site-nav button:focus-visible { outline: 3px solid #ffcd53; outline-offset: 4px; }
+  .site-nav-status { flex-basis: 100%; color: #ffcd53; text-align: center; }
   @keyframes brand-shimmer {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
-  }
-  @keyframes brand-glow {
-    0%, 100% { opacity: .88; filter: drop-shadow(0 0 2px currentColor); }
-    50% { opacity: 1; filter: drop-shadow(0 0 6px rgba(255,255,255,.55)); }
   }
   .grid {
     display: grid; gap: 22px;
@@ -270,35 +499,66 @@
     .brand-face { padding: 20px 14px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .brand-word, .brand-face-front, .brand-face-front[data-effect]::after,
-    .brand-face-front:not([data-effect])::after, .brand-face-front .brand-title { animation: none; }
+    .brand-face, .brand-face[data-effect]::after,
+    .brand-face:not([data-effect])::after, .brand-face .brand-title { animation: none; }
     .brand-flip-inner { transition: none; }
   }
 </style>
 </head>
 <body>
+  <div class="weather-sky" aria-hidden="true"><div class="weather-clouds"></div><div class="weather-particles"></div></div>
   <div class="wrap">
     <header>
       <h1>
         <button class="brand-flip" type="button" disabled>
           <span class="brand-flip-inner">
             <span class="brand-face brand-face-front" lang="en">
-              <span class="brand-title">The Lime Tree Crew -<br>Pixel Otter Rocket</span>
+              <span class="brand-title">The Lime Tree Crew's Games (Hajnówka)<br>Pixel Otter Rocket</span>
+              <span class="sub">Free browser games from Podlasie. Play instantly, no installation needed!</span>
               <span class="brand-hint">Flip heading</span>
             </span>
             <span class="brand-face brand-face-back" lang="pl" aria-hidden="true">
-              <span class="brand-title">Gry Ekipy spod Lipy (Hajnówka)</span>
-              <span class="sub"><span class="brand-word">Pixel</span> <span class="brand-word">Otter</span> <span class="brand-word">Rocket</span> — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</span>
+              <span class="brand-title">Gry Ekipy spod Lipy (Hajnówka)<br>Pixel Otter Rocket</span>
+              <span class="sub">Darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</span>
               <span class="brand-hint">Obróć nagłówek</span>
             </span>
           </span>
         </button>
       </h1>
       <noscript><p class="sub">Gry Ekipy spod Lipy (Hajnówka) — Pixel Otter Rocket — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</p></noscript>
-      <nav class="site-nav" aria-label="Pomoc i aktualizacje">
+      <nav class="site-nav" aria-label="Pomoc, aktualizacje i muzyka">
         <a href="help.html">How to play</a>
         <a href="updates.html">Updates</a>
+        <button id="site-music-toggle" type="button" aria-pressed="false" disabled>Music: Off</button>
+        <span id="site-music-status" class="site-nav-status" role="status" aria-live="polite" hidden></span>
       </nav>
+      <section class="weather-panel" lang="en" aria-label="Weather background and location" hidden>
+        <p id="weather-status" role="status">Finding approximate city...</p>
+        <p id="weather-notice" role="status"></p>
+        <details class="weather-location">
+          <summary>Change location</summary>
+          <p>Choose a city to remember it in a cookie for 180 days. You can change it here anytime.</p>
+          <form id="weather-search">
+            <label for="weather-city">City name</label>
+            <div class="weather-search-row">
+              <input id="weather-city" name="city" type="search" minlength="2" maxlength="100" required autocomplete="off" placeholder="e.g. London">
+              <button type="submit">Search</button>
+            </div>
+          </form>
+          <p id="weather-search-status" role="status"></p>
+          <ul id="weather-results" aria-label="Matching cities"></ul>
+          <div class="weather-actions">
+            <button id="weather-device" type="button">Use my location</button>
+            <button id="weather-auto" type="button">Use automatic estimate</button>
+          </div>
+          <p id="weather-location-status" role="status"></p>
+          <p class="weather-privacy">Automatic estimates use your IP via <a href="https://ipwhois.io/privacy">ipwho.is</a> and can be inaccurate with VPNs.
+            City searches and approximate weather coordinates are sent to <a href="https://open-meteo.com/en/terms">Open-Meteo</a>.
+            Device location is requested only when you click the button; coordinates are rounded before use. No continuous tracking.</p>
+        </details>
+        <p class="weather-credit">Model-based weather by <a href="https://open-meteo.com/">Open-Meteo</a> /
+          <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; conditions simplified into background effects.</p>
+      </section>
     </header>
 
     <main class="grid">
@@ -417,19 +677,93 @@
   <script>
     const brandFlip = document.querySelector('.brand-flip');
     const brandFaces = brandFlip.querySelectorAll('.brand-face');
-    const brandEffects = ['cloud', 'data', 'stars', 'scan'];
-    function chooseBrandEffect() {
-      const choices = brandEffects.filter(effect => effect !== brandFaces[0].dataset.effect);
-      brandFaces[0].dataset.effect = choices[Math.floor(Math.random() * choices.length)];
+    const brandEffects = ['cloud', 'data', 'stars', 'scan', 'pixel-rain', 'shooting-stars', 'circuits', 'aurora',
+      'otter-rocket', 'block-landscape', 'castle-arrows', 'arcade'];
+    const seasonalBrandEffects = {
+      0: ['snow', 'frost'],
+      1: ['snow', 'frost'],
+      2: ['blossoms', 'summer-sun'],
+      3: ['easter-eggs', 'blossoms'],
+      4: ['blossoms', 'summer-sun'],
+      5: ['summer-sun', 'summer-waves'],
+      6: ['summer-sun', 'summer-waves'],
+      7: ['summer-sun', 'summer-waves'],
+      8: ['autumn-leaves', 'autumn-woodland'],
+      9: ['pumpkins', 'spooky-stars'],
+      10: ['snow', 'frost'],
+      11: ['festive-lights', 'presents'],
+    };
+    const highImpactBrandEffects = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge'];
+    const highImpactSeasonalBrandEffects = {
+      1: ['frost-hearts', 'winter-night'],
+      2: ['spring-storm', 'meadow-burst'],
+      4: ['spring-storm', 'meadow-burst'],
+    };
+    function chooseBrandEffect(face, previousEffect) {
+      const month = new Date().getMonth();
+      const seasonal = seasonalBrandEffects[month] && Math.random() < .5;
+      const calmPool = seasonal ? seasonalBrandEffects[month] : brandEffects;
+      const highImpactPool = seasonal ? highImpactSeasonalBrandEffects[month] : highImpactBrandEffects;
+      const pool = previousEffect && highImpactPool && Math.random() < .25 ? highImpactPool : calmPool;
+      const choices = pool.filter(effect => effect !== previousEffect);
+      face.dataset.effect = choices[Math.floor(Math.random() * choices.length)];
     }
-    chooseBrandEffect();
+    chooseBrandEffect(brandFaces[0]);
     brandFlip.disabled = false;
     brandFlip.addEventListener('click', () => {
-      if (brandFlip.classList.contains('is-flipped')) chooseBrandEffect();
+      const currentFace = brandFlip.classList.contains('is-flipped') ? 1 : 0;
+      chooseBrandEffect(brandFaces[1 - currentFace], brandFaces[currentFace].dataset.effect);
       const flipped = brandFlip.classList.toggle('is-flipped');
       brandFaces[0].setAttribute('aria-hidden', String(flipped));
       brandFaces[1].setAttribute('aria-hidden', String(!flipped));
     });
+  </script>
+  <script type="module">
+    const button = document.getElementById('site-music-toggle');
+    const status = document.getElementById('site-music-status');
+    let player;
+
+    function setMusicEnabled(enabled) {
+      button.textContent = `Music: ${enabled ? 'On' : 'Off'}`;
+      button.setAttribute('aria-pressed', String(enabled));
+    }
+
+    function setMusicStatus(message) {
+      status.textContent = message;
+      status.hidden = !message;
+    }
+
+    try {
+      const { loadMusicCatalogue, MusicPlayer } = await import('./klocki-podlasia-0.3/music-player.js?v=2');
+      const tracks = await loadMusicCatalogue();
+      if (!tracks.length) throw new Error('The music catalogue is empty.');
+
+      player = new MusicPlayer(tracks, {
+        onError: error => {
+          console.error('Site music playback failed.', error);
+          setMusicEnabled(false);
+          setMusicStatus('Music could not be played. Check your browser audio settings.');
+        }
+      });
+
+      button.disabled = false;
+      button.addEventListener('click', () => {
+        setMusicStatus('');
+        if (player.active) {
+          player.stop();
+          setMusicEnabled(false);
+          setMusicStatus('Music turned off.');
+          return;
+        }
+        player.start();
+        setMusicEnabled(true);
+        setMusicStatus('Music turned on.');
+      });
+    } catch (error) {
+      console.error('Site music could not be initialized.', error);
+      button.textContent = 'Music unavailable';
+      setMusicStatus('Music could not be loaded. Reload the page to try again.');
+    }
   </script>
 </body>
 </html>

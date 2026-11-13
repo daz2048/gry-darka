@@ -1,0 +1,80 @@
+body { isolation: isolate; }
+.weather-sky {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+  background: linear-gradient(135deg, #0a0e27, #1a1a2e 50%, #16213e);
+}
+body[data-weather] .weather-sky { background: linear-gradient(#1b4964, #17304a 60%, #121a31); }
+body[data-day="false"] .weather-sky { background: linear-gradient(#070d21, #172440 65%, #111729); }
+body[data-weather="clear"][data-day="true"] .weather-sky,
+body[data-weather="partly-cloudy"][data-day="true"] .weather-sky {
+  background: radial-gradient(circle at 82% 15%, #fff3ad 0 25px, #ffd66999 28px, transparent 160px),
+    linear-gradient(#276d92, #214561 60%, #16213e);
+}
+body[data-weather="clear"][data-day="false"] .weather-sky {
+  background:
+    radial-gradient(circle, #e4edff 1px, transparent 2px) 0 0 / 113px 137px,
+    radial-gradient(circle, #8cbfe0 1px, transparent 2px) 39px 27px / 191px 173px,
+    linear-gradient(#070d21, #172440 65%, #111729);
+}
+.weather-clouds {
+  position: absolute; inset: 0 -8%; opacity: 0;
+  background:
+    radial-gradient(ellipse at 18% 18%, #d7e5ef55, transparent 35%),
+    radial-gradient(ellipse at 76% 32%, #c5d5e855, transparent 40%),
+    radial-gradient(ellipse at 40% 75%, #a8c0d933, transparent 35%);
+}
+body:is([data-weather="partly-cloudy"], [data-weather="cloudy"], [data-weather="fog"],
+  [data-weather="rain"], [data-weather="snow"], [data-weather="storm"]) .weather-clouds {
+  opacity: 1; animation: weather-cloud-drift 22s ease-in-out infinite alternate;
+}
+body[data-weather="fog"] .weather-clouds {
+  background: repeating-linear-gradient(175deg, #c5d5e844, transparent 160px, #c5d5e833 320px);
+}
+body[data-weather="storm"] .weather-sky { background: linear-gradient(#161d31, #283044 60%, #111729); }
+.weather-particles { position: absolute; inset: -100px 0 0; opacity: .4; }
+body:is([data-weather="rain"], [data-weather="storm"]) .weather-particles {
+  background:
+    repeating-linear-gradient(175deg, #c4e8ff 0 10px, transparent 11px 70px) 0 0 / 71px 90px,
+    repeating-linear-gradient(175deg, #8ab9d6 0 7px, transparent 8px 90px) 29px 0 / 113px 110px;
+  background-repeat: repeat;
+  /* Narrow masks keep the rain as streaks rather than full-width stripes. */
+  mask-image: repeating-linear-gradient(90deg, #000 0 2px, transparent 2px 33px);
+  animation: weather-rain 1.1s linear infinite;
+}
+body[data-weather="snow"] .weather-particles {
+  background:
+    radial-gradient(circle, #fff 0 2px, transparent 3px) 0 0 / 67px 79px,
+    radial-gradient(circle, #cbe8ff 0 1px, transparent 2px) 21px 19px / 113px 127px;
+  animation: weather-snow 10s linear infinite;
+}
+@keyframes weather-cloud-drift { to { transform: translateX(5%); } }
+@keyframes weather-rain { to { transform: translateY(90px); } }
+@keyframes weather-snow { to { transform: translate(12px, 79px); } }
+body.weather-paused .weather-sky * { animation-play-state: paused; }
+.weather-panel {
+  margin: 20px auto 0; padding: 14px 18px; max-width: 680px; text-align: left;
+  border: 1px solid #7998b5; border-radius: 12px; background: #10192ee8;
+  color: #e8edf2; font: 14px/1.6 "Segoe UI", sans-serif;
+}
+.weather-panel p { margin: 6px 0; }
+.weather-panel a { color: #a5e5ff; text-underline-offset: 3px; }
+.weather-panel summary { cursor: pointer; min-height: 44px; padding: 10px 0; font-weight: 600; }
+.weather-panel button, .weather-panel input {
+  min-height: 44px; padding: 8px 12px; border: 1px solid #7998b5; border-radius: 6px;
+  background: #1c3049; color: #e8edf2; font: inherit;
+}
+.weather-panel button { cursor: pointer; }
+.weather-panel button:hover { background: #2b4563; }
+.weather-panel button:disabled { opacity: .6; cursor: wait; }
+.weather-panel :is(button, input, summary, a):focus-visible { outline: 3px solid #ffcd53; outline-offset: 3px; }
+.weather-search-row, .weather-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.weather-search-row input { flex: 1; min-width: 120px; width: 100%; }
+.weather-panel label { display: block; margin-top: 10px; }
+#weather-results { list-style: none; padding: 0; margin: 8px 0; }
+#weather-results li + li { margin-top: 6px; }
+#weather-results button { width: 100%; text-align: left; }
+.weather-panel .weather-privacy, .weather-panel .weather-credit { font-size: 12px; color: #becddd; }
+#weather-notice:empty, #weather-search-status:empty, #weather-location-status:empty { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .weather-sky * { animation: none !important; }
+}
