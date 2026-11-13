@@ -12,6 +12,11 @@
 <meta property="og:title" content="Pixel Otter Rocket | Gry Ekipy spod Lipy z Hajnówki" />
 <meta property="og:description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.3. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <meta property="og:url" content="https://daz2048.github.io/gry-darka/" />
+<link rel="stylesheet" href="weather.css?v=4" />
+<link rel="stylesheet" href="minecraft-news.css?v=1" />
+<script src="weather.js?v=3" defer></script>
+<script src="minecraft-news.js?v=1" defer></script>
+<script src="banner-gallery.js?v=2" defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   
@@ -24,40 +29,447 @@
   }
   .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 16px 60px; }
   header { text-align: center; margin-bottom: 40px; }
-  h1 { 
-    font-size: 30px; letter-spacing: 2px; margin: 0 0 12px;
+  h1 { margin: 0; }
+  .brand-flip {
+    display: block; width: 100%; padding: 0; border: 0; background: none;
+    color: inherit; font: inherit; text-align: center; cursor: pointer;
+    perspective: 1200px;
+  }
+  .brand-flip:disabled { cursor: default; }
+  .brand-flip:focus-visible { outline: 3px solid #ffcd53; outline-offset: 5px; border-radius: 16px; }
+  .brand-flip-inner {
+    display: grid; transform-style: preserve-3d;
+  }
+  .brand-flip.is-flipped .brand-flip-inner { transform: rotateY(180deg); }
+  .brand-face {
+    grid-area: 1 / 1; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; gap: 12px; min-height: 170px; padding: 24px;
+    border: 2px solid #68edff; border-radius: 16px;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    position: relative; overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(108, 61, 190, .45), transparent 65%),
+      repeating-linear-gradient(0deg, transparent 0 27px, rgba(104, 237, 255, .09) 28px 29px),
+      repeating-linear-gradient(90deg, transparent 0 27px, rgba(104, 237, 255, .09) 28px 29px),
+      #10132e;
+    animation: banner-glow 4s ease-in-out infinite;
+  }
+  .brand-face::before {
+    content: ''; position: absolute; inset: 9px; border: 1px solid rgba(104, 237, 255, .25);
+    border-radius: 9px; pointer-events: none;
+    background:
+      radial-gradient(circle, #68edff 0 2px, transparent 3px) 8px 8px / 8px 8px no-repeat,
+      radial-gradient(circle, #ff70b8 0 2px, transparent 3px) calc(100% - 8px) 8px / 8px 8px no-repeat,
+      radial-gradient(circle, #ff70b8 0 2px, transparent 3px) 8px calc(100% - 8px) / 8px 8px no-repeat,
+      radial-gradient(circle, #68edff 0 2px, transparent 3px) calc(100% - 8px) calc(100% - 8px) / 8px 8px no-repeat;
+  }
+  .brand-face::after {
+    content: ''; position: absolute; inset: 12px; pointer-events: none;
+  }
+  .brand-face:not([data-effect])::after,
+  .brand-face[data-effect="cloud"]::after {
+    background:
+      radial-gradient(circle, #68edff 0 3px, transparent 4px) 18% 22% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 3px, transparent 4px) 76% 18% / 10px 10px no-repeat,
+      radial-gradient(circle, #68edff 0 3px, transparent 4px) 86% 80% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 3px, transparent 4px) 12% 78% / 10px 10px no-repeat,
+      linear-gradient(90deg, transparent, rgba(104, 237, 255, .6), transparent) 50% 22% / 70% 1px no-repeat,
+      linear-gradient(90deg, transparent, rgba(255, 112, 184, .6), transparent) 50% 78% / 80% 1px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="data"]::after {
+    background:
+      radial-gradient(circle, #68edff 0 3px, transparent 5px) 0% 20% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 3px, transparent 5px) 100% 80% / 10px 10px no-repeat,
+      linear-gradient(90deg, transparent, rgba(104, 237, 255, .4), transparent) 50% 20% / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent, rgba(255, 112, 184, .4), transparent) 50% 80% / 100% 1px no-repeat;
+    animation: data-stream 5s linear infinite;
+  }
+  .brand-face[data-effect="stars"]::after {
+    background:
+      radial-gradient(circle, #fff5a8 0 2px, transparent 4px) 15% 16% / 10px 10px no-repeat,
+      radial-gradient(circle, #68edff 0 2px, transparent 4px) 36% 85% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 2px, transparent 4px) 68% 12% / 10px 10px no-repeat,
+      radial-gradient(circle, #fff5a8 0 2px, transparent 4px) 86% 75% / 10px 10px no-repeat,
+      radial-gradient(circle, #68edff 0 2px, transparent 4px) 8% 65% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 2px, transparent 4px) 92% 30% / 10px 10px no-repeat;
+    animation: network-pulse 3s ease-in-out infinite;
+  }
+  .brand-face[data-effect="scan"]::after {
+    background: linear-gradient(180deg, transparent 40%, rgba(104, 237, 255, .22) 50%, transparent 60%);
+    animation: terminal-scan 5s linear infinite;
+  }
+  .brand-face[data-effect="pixel-rain"]::after {
+    background:
+      repeating-linear-gradient(180deg, #68edff 0 5px, transparent 5px 24px) 9% 0 / 3px 72px repeat-y,
+      repeating-linear-gradient(180deg, #ff70b8 0 5px, transparent 5px 30px) 91% 16px / 3px 90px repeat-y,
+      repeating-linear-gradient(180deg, #a895ff 0 4px, transparent 4px 26px) 20% 12px / 3px 78px repeat-y,
+      repeating-linear-gradient(180deg, #68edff 0 4px, transparent 4px 26px) 80% 0 / 3px 78px repeat-y;
+    opacity: .6;
+    animation: pixel-rain 6s linear infinite;
+  }
+  .brand-face[data-effect="shooting-stars"]::after {
+    background:
+      linear-gradient(120deg, transparent 45%, #fff5a8 50%, transparent 55%) 12% 18% / 65px 24px no-repeat,
+      linear-gradient(120deg, transparent 45%, #68edff 50%, transparent 55%) 88% 75% / 55px 20px no-repeat,
+      radial-gradient(circle, #ff70b8 0 2px, transparent 3px) 84% 20% / 8px 8px no-repeat,
+      radial-gradient(circle, #fff5a8 0 2px, transparent 3px) 15% 80% / 8px 8px no-repeat;
+    animation: shooting-stars 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="circuits"]::after {
+    background:
+      linear-gradient(#68edff, #68edff) 3% 24% / 18% 2px no-repeat,
+      linear-gradient(#68edff, #68edff) 21% 24% / 2px 20% no-repeat,
+      linear-gradient(#ff70b8, #ff70b8) 97% 76% / 18% 2px no-repeat,
+      linear-gradient(#ff70b8, #ff70b8) 79% 76% / 2px 20% no-repeat,
+      radial-gradient(circle, #68edff 0 3px, transparent 4px) 21% 46% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 3px, transparent 4px) 79% 54% / 10px 10px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="aurora"]::after {
+    background:
+      radial-gradient(ellipse at 20% 100%, rgba(6, 255, 165, .3), transparent 55%),
+      radial-gradient(ellipse at 80% 0%, rgba(131, 56, 236, .35), transparent 55%),
+      linear-gradient(160deg, transparent 35%, rgba(104, 237, 255, .18) 48%, transparent 60%);
+    animation: network-pulse 6s ease-in-out infinite;
+  }
+  .brand-face[data-effect="snow"]::after {
+    background:
+      radial-gradient(circle, #fff 0 2px, transparent 3px) 0 0 / 47px 53px repeat,
+      radial-gradient(circle, #a5f8ff 0 1px, transparent 2px) 22px 18px / 73px 61px repeat;
+    opacity: .7;
+    animation: snowfall 8s linear infinite;
+  }
+  .brand-face[data-effect="frost"]::after {
+    background:
+      repeating-conic-gradient(from 0deg, #d6ffff 0 8deg, transparent 8deg 45deg) 8% 18% / 24px 24px no-repeat,
+      repeating-conic-gradient(from 0deg, #a5f8ff 0 8deg, transparent 8deg 45deg) 90% 78% / 30px 30px no-repeat,
+      radial-gradient(circle, #fff 0 2px, transparent 3px) 18% 78% / 8px 8px no-repeat,
+      radial-gradient(circle, #fff 0 2px, transparent 3px) 82% 20% / 8px 8px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="festive-lights"]::after {
+    background:
+      radial-gradient(circle, #ff706b 0 3px, transparent 4px) 8% 10% / 10px 10px no-repeat,
+      radial-gradient(circle, #fff5a8 0 3px, transparent 4px) 29% 10% / 10px 10px no-repeat,
+      radial-gradient(circle, #06ffa5 0 3px, transparent 4px) 50% 10% / 10px 10px no-repeat,
+      radial-gradient(circle, #68edff 0 3px, transparent 4px) 71% 10% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 3px, transparent 4px) 92% 10% / 10px 10px no-repeat,
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, .5), transparent) 50% 11% / 90% 1px no-repeat;
+    animation: network-pulse 3s ease-in-out infinite;
+  }
+  .brand-face[data-effect="presents"]::after {
+    background:
+      linear-gradient(90deg, transparent 40%, #fff5a8 40% 60%, transparent 60%) 9% 78% / 28px 25px no-repeat,
+      linear-gradient(0deg, transparent 40%, #fff5a8 40% 60%, transparent 60%) 9% 78% / 28px 25px no-repeat,
+      linear-gradient(#ff70b8, #ff70b8) 9% 78% / 28px 25px no-repeat,
+      linear-gradient(90deg, transparent 40%, #fff5a8 40% 60%, transparent 60%) 91% 22% / 28px 25px no-repeat,
+      linear-gradient(0deg, transparent 40%, #fff5a8 40% 60%, transparent 60%) 91% 22% / 28px 25px no-repeat,
+      linear-gradient(#68edff, #68edff) 91% 22% / 28px 25px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="easter-eggs"]::after {
+    background:
+      linear-gradient(#fff5a8, #fff5a8) 9% 75% / 15px 3px no-repeat,
+      linear-gradient(#ff70b8, #ff70b8) 91% 25% / 15px 3px no-repeat,
+      radial-gradient(ellipse, #ff70b8 0 60%, transparent 64%) 9% 75% / 23px 31px no-repeat,
+      radial-gradient(ellipse, #fff5a8 0 60%, transparent 64%) 91% 25% / 23px 31px no-repeat,
+      radial-gradient(circle, #a5f8ff 0 2px, transparent 3px) 16% 20% / 8px 8px no-repeat,
+      radial-gradient(circle, #a5f8ff 0 2px, transparent 3px) 84% 80% / 8px 8px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="blossoms"]::after {
+    background:
+      radial-gradient(circle at 50% 50%, #fff5a8 0 2px, transparent 3px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 50% 25%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 75% 42%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 65% 73%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 35% 73%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 25% 42%, #ffb8da 0 4px, transparent 5px) 10% 20% / 24px 24px no-repeat,
+      radial-gradient(circle at 50% 50%, #fff5a8 0 2px, transparent 3px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 50% 25%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 75% 42%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 65% 73%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 35% 73%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle at 25% 42%, #ffb8da 0 4px, transparent 5px) 89% 75% / 24px 24px no-repeat,
+      radial-gradient(circle, #ffb8da 0 2px, transparent 3px) 20% 75% / 8px 8px no-repeat,
+      radial-gradient(circle, #ffb8da 0 2px, transparent 3px) 80% 20% / 8px 8px no-repeat;
+    animation: network-pulse 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="otter-rocket"]::after,
+  .brand-face[data-effect="block-landscape"]::after,
+  .brand-face[data-effect="castle-arrows"]::after,
+  .brand-face[data-effect="arcade"]::after,
+  .brand-face[data-effect="summer-sun"]::after,
+  .brand-face[data-effect="summer-waves"]::after,
+  .brand-face[data-effect="autumn-leaves"]::after,
+  .brand-face[data-effect="autumn-woodland"]::after,
+  .brand-face[data-effect="pumpkins"]::after,
+  .brand-face[data-effect="spooky-stars"]::after {
+    background-position: 2% 15%, 98% 85%;
+    background-size: 64px 64px, 64px 64px;
+    background-repeat: no-repeat;
+    opacity: .55;
+    animation: banner-icons 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="otter-rocket"]::after { background-image: url('menu-previews/banner-otter-rocket.svg'), url('menu-previews/banner-otter-rocket.svg'); }
+  .brand-face[data-effect="block-landscape"]::after { background-image: url('menu-previews/banner-block-landscape.svg'), url('menu-previews/banner-block-landscape.svg'); }
+  .brand-face[data-effect="castle-arrows"]::after { background-image: url('menu-previews/banner-castle-arrows.svg'), url('menu-previews/banner-castle-arrows.svg'); }
+  .brand-face[data-effect="arcade"]::after { background-image: url('menu-previews/banner-arcade.svg'), url('menu-previews/banner-arcade.svg'); }
+  .brand-face[data-effect="summer-sun"]::after { background-image: url('menu-previews/banner-summer-sun.svg'), url('menu-previews/banner-summer-sun.svg'); }
+  .brand-face[data-effect="summer-waves"]::after { background-image: url('menu-previews/banner-summer-waves.svg'), url('menu-previews/banner-summer-waves.svg'); }
+  .brand-face[data-effect="autumn-leaves"]::after { background-image: url('menu-previews/banner-autumn-leaves.svg'), url('menu-previews/banner-autumn-leaves.svg'); }
+  .brand-face[data-effect="autumn-woodland"]::after { background-image: url('menu-previews/banner-autumn-woodland.svg'), url('menu-previews/banner-autumn-woodland.svg'); }
+  .brand-face[data-effect="pumpkins"]::after { background-image: url('menu-previews/banner-pumpkins.svg'), url('menu-previews/banner-pumpkins.svg'); }
+  .brand-face[data-effect="spooky-stars"]::after { background-image: url('menu-previews/banner-spooky-stars.svg'), url('menu-previews/banner-spooky-stars.svg'); }
+  .brand-face[data-effect="autumn-leaves"]::after { animation: falling-leaves 6s ease-in-out infinite; }
+  .brand-face[data-effect="fireworks"]::after,
+  .brand-face[data-effect="nebula-burst"]::after,
+  .brand-face[data-effect="campfire"]::after,
+  .brand-face[data-effect="bubble-surge"]::after,
+  .brand-face[data-effect="frost-hearts"]::after,
+  .brand-face[data-effect="winter-night"]::after,
+  .brand-face[data-effect="spring-storm"]::after,
+  .brand-face[data-effect="meadow-burst"]::after { opacity: .55; }
+  .brand-face[data-effect="fireworks"]::after {
+    background:
+      repeating-conic-gradient(from 10deg, #ff70b8 0 5deg, transparent 5deg 30deg) 5% 15% / 80px 80px no-repeat,
+      repeating-conic-gradient(from 0deg, #fff5a8 0 5deg, transparent 5deg 30deg) 95% 85% / 70px 70px no-repeat;
+    animation: firework-burst 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="nebula-burst"]::after {
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(255,112,184,.5), transparent 40%),
+      radial-gradient(ellipse at 80% 70%, rgba(104,237,255,.5), transparent 40%),
+      linear-gradient(160deg, transparent 45%, rgba(255,245,168,.6) 50%, transparent 55%);
+    animation: nebula-sweep 7s ease-in-out infinite;
+  }
+  .brand-face[data-effect="campfire"]::after {
+    background:
+      radial-gradient(ellipse at 50% 100%, #fff5a8 0 12%, #ff806b 28%, transparent 55%) 5% 90% / 70px 90px no-repeat,
+      radial-gradient(ellipse at 50% 100%, #fff5a8 0 12%, #ff806b 28%, transparent 55%) 95% 90% / 70px 90px no-repeat,
+      radial-gradient(circle, #ffcd53 0 3px, transparent 4px) 15% 30% / 8px 8px no-repeat,
+      radial-gradient(circle, #ff806b 0 3px, transparent 4px) 85% 40% / 8px 8px no-repeat;
+    animation: campfire-rise 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="bubble-surge"]::after {
+    background:
+      radial-gradient(circle, transparent 48%, #68edff 52% 62%, transparent 66%) 0 0 / 47px 53px repeat,
+      radial-gradient(circle, transparent 42%, #d6ffff 48% 58%, transparent 64%) 20px 20px / 75px 71px repeat;
+    opacity: .35;
+    animation: bubbles-rise 7s linear infinite;
+  }
+  .brand-face[data-effect="frost-hearts"]::after {
+    background:
+      linear-gradient(45deg, transparent 48%, #d6ffff 49% 51%, transparent 52%) 8% 15% / 90px 90px no-repeat,
+      linear-gradient(-45deg, transparent 48%, #d6ffff 49% 51%, transparent 52%) 92% 85% / 90px 90px no-repeat,
+      url('menu-previews/banner-frost-hearts.svg') 8% 15% / 64px 64px no-repeat,
+      url('menu-previews/banner-frost-hearts.svg') 92% 85% / 64px 64px no-repeat;
+    animation: frost-crack 5s ease-in-out infinite;
+  }
+  .brand-face[data-effect="winter-night"]::after {
+    background:
+      radial-gradient(circle, #fff 0 2px, transparent 3px) 0 0 / 63px 53px repeat,
+      linear-gradient(165deg, transparent 25%, rgba(6,255,165,.4) 45%, rgba(131,56,236,.4) 55%, transparent 75%);
+    animation: winter-aurora 7s ease-in-out infinite;
+  }
+  .brand-face[data-effect="spring-storm"]::after {
+    background:
+      repeating-linear-gradient(110deg, transparent 0 18px, rgba(104,237,255,.45) 19px 21px, transparent 22px 40px),
+      radial-gradient(ellipse at 90% 15%, rgba(255,245,168,.5), transparent 45%);
+    animation: spring-storm 8s ease-in-out infinite;
+  }
+  .brand-face[data-effect="meadow-burst"]::after {
+    background:
+      radial-gradient(circle, #fff5a8 0 4px, #ff70b8 5px 10px, transparent 11px) 8% 80% / 28px 28px no-repeat,
+      radial-gradient(circle, #fff5a8 0 4px, #a895ff 5px 10px, transparent 11px) 92% 80% / 28px 28px no-repeat,
+      radial-gradient(circle, #ffb8da 0 3px, transparent 4px) 15% 15% / 10px 10px no-repeat,
+      radial-gradient(circle, #fff5a8 0 3px, transparent 4px) 85% 20% / 10px 10px no-repeat,
+      linear-gradient(0deg, rgba(6,255,165,.35), transparent) 50% 100% / 100% 30% no-repeat;
+    animation: meadow-bloom 6s ease-in-out infinite;
+  }
+  .brand-face[data-effect="pink"] {
+    border-color: #ff70b8;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(255, 64, 170, .42), transparent 65%),
+      repeating-linear-gradient(0deg, transparent 0 27px, rgba(255, 150, 220, .12) 28px 29px),
+      repeating-linear-gradient(90deg, transparent 0 27px, rgba(255, 150, 220, .12) 28px 29px),
+      #21102e;
+    animation: pink-glow 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="pink"] .brand-title {
+    background-image: linear-gradient(90deg, #ff70b8, #ffd1ed, #ff8cc8);
+    filter: drop-shadow(0 0 8px rgba(255, 112, 184, .8));
+  }
+  .brand-face[data-effect="pink"]::after {
+    background:
+      radial-gradient(circle, #ffd1ed 0 3px, transparent 4px) 12% 22% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 4px, transparent 5px) 86% 76% / 12px 12px no-repeat,
+      radial-gradient(circle, #ffb8da 0 2px, transparent 3px) 72% 20% / 8px 8px no-repeat,
+      radial-gradient(circle, #ffd1ed 0 2px, transparent 3px) 22% 78% / 8px 8px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="orange"] {
+    border-color: #ff9a3c;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(255, 126, 35, .4), transparent 65%),
+      repeating-linear-gradient(0deg, transparent 0 27px, rgba(255, 190, 90, .12) 28px 29px),
+      repeating-linear-gradient(90deg, transparent 0 27px, rgba(255, 190, 90, .12) 28px 29px),
+      #261522;
+    animation: orange-glow 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="orange"] .brand-title {
+    background-image: linear-gradient(90deg, #ff9a3c, #fff0a8, #ff7043);
+    filter: drop-shadow(0 0 8px rgba(255, 154, 60, .8));
+  }
+  .brand-face[data-effect="orange"]::after {
+    background:
+      radial-gradient(circle, #fff0a8 0 3px, transparent 4px) 12% 22% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff7043 0 4px, transparent 5px) 86% 76% / 12px 12px no-repeat,
+      radial-gradient(circle, #ffcd53 0 2px, transparent 3px) 72% 20% / 8px 8px no-repeat,
+      radial-gradient(circle, #fff0a8 0 2px, transparent 3px) 22% 78% / 8px 8px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="strobe-lights"] {
+    border-color: #c99cff;
+    background:
+      radial-gradient(ellipse at 15% 50%, rgba(185, 90, 255, .3), transparent 42%),
+      radial-gradient(ellipse at 85% 50%, rgba(70, 180, 255, .3), transparent 42%),
+      #111127;
+    animation: strobe-glow 3s ease-in-out infinite;
+  }
+  .brand-face[data-effect="strobe-lights"]::after {
+    background:
+      linear-gradient(110deg, transparent 25%, rgba(209, 157, 255, .28) 48%, transparent 70%) 0 0 / 55% 100% no-repeat,
+      linear-gradient(250deg, transparent 25%, rgba(104, 190, 255, .28) 48%, transparent 70%) 100% 0 / 55% 100% no-repeat;
+    animation: strobe-sweep 4s ease-in-out infinite alternate;
+  }
+  @keyframes network-pulse {
+    0%, 100% { opacity: .35; }
+    50% { opacity: 1; }
+  }
+  @keyframes pink-glow {
+    0%, 100% { box-shadow: inset 0 0 24px rgba(255, 112, 184, .18), 0 0 14px rgba(255, 112, 184, .3); }
+    50% { box-shadow: inset 0 0 34px rgba(255, 112, 184, .32), 0 0 22px rgba(255, 112, 184, .45); }
+  }
+  @keyframes orange-glow {
+    0%, 100% { box-shadow: inset 0 0 24px rgba(255, 154, 60, .16), 0 0 14px rgba(255, 154, 60, .28); }
+    50% { box-shadow: inset 0 0 34px rgba(255, 154, 60, .3), 0 0 22px rgba(255, 154, 60, .42); }
+  }
+  @keyframes strobe-glow {
+    0%, 100% { box-shadow: inset 0 0 26px rgba(185, 90, 255, .2), 0 0 14px rgba(185, 90, 255, .3); }
+    50% { box-shadow: inset 0 0 30px rgba(70, 180, 255, .24), 0 0 18px rgba(70, 180, 255, .34); }
+  }
+  @keyframes strobe-sweep {
+    from { background-position: -50% 0, 150% 0; opacity: .45; }
+    to { background-position: 50% 0, 50% 0; opacity: .8; }
+  }
+  @keyframes data-stream {
+    from { background-position: 0% 20%, 100% 80%, 50% 20%, 50% 80%; }
+    to { background-position: 100% 20%, 0% 80%, 50% 20%, 50% 80%; }
+  }
+  @keyframes terminal-scan {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(100%); }
+  }
+  @keyframes pixel-rain {
+    to { background-position: 9% 72px, 91% 106px, 20% 90px, 80% 78px; }
+  }
+  @keyframes snowfall {
+    to { background-position: 0 53px, 22px 79px; }
+  }
+  @keyframes shooting-stars {
+    0%, 100% { opacity: .35; transform: translate(-8px, 4px); }
+    50% { opacity: 1; transform: translate(8px, -4px); }
+  }
+  @keyframes banner-icons {
+    0%, 100% { opacity: .35; }
+    50% { opacity: .6; }
+  }
+  @keyframes falling-leaves {
+    0%, 100% { opacity: .35; transform: translate(-4px, -6px); }
+    50% { opacity: .6; transform: translate(4px, 6px); }
+  }
+  @keyframes firework-burst {
+    0%, 100% { opacity: .2; transform: scale(.75); }
+    50% { opacity: .65; transform: scale(1.05); }
+  }
+  @keyframes nebula-sweep {
+    0%, 100% { opacity: .35; transform: translateX(-8px); }
+    50% { opacity: .75; transform: translateX(8px); }
+  }
+  @keyframes campfire-rise {
+    0%, 100% { opacity: .35; transform: translateY(5px); }
+    50% { opacity: .7; transform: translateY(-5px); }
+  }
+  @keyframes bubbles-rise {
+    from { background-position: 0 0, 20px 20px; }
+    to { background-position: 0 -53px, 20px -51px; }
+  }
+  @keyframes frost-crack {
+    0%, 100% { opacity: .25; transform: scale(.9); }
+    50% { opacity: .7; transform: scale(1.05); }
+  }
+  @keyframes winter-aurora {
+    0%, 100% { opacity: .3; transform: translateX(-8px); }
+    50% { opacity: .75; transform: translateX(8px); }
+  }
+  @keyframes spring-storm {
+    0%, 100% { opacity: .3; transform: translateX(-8px); }
+    50% { opacity: .7; transform: translateX(8px); }
+  }
+  @keyframes meadow-bloom {
+    0%, 100% { opacity: .3; transform: scale(.9); }
+    50% { opacity: .75; transform: scale(1.05); }
+  }
+  .brand-face-back {
+    transform: rotateY(180deg);
+  }
+  .brand-title {
+    font-size: 30px; letter-spacing: 2px; line-height: 1.5;
     background: linear-gradient(90deg, #ff006e, #8338ec, #3a86ff, #06ffa5);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-shadow: 0 0 30px rgba(255, 0, 110, 0.3);
   }
+  .brand-face .brand-title {
+    position: relative; z-index: 1;
+    background-image: linear-gradient(90deg, #a5f8ff, #f8c5ff, #fff5a8, #a5f8ff);
+    background-size: 220% 100%;
+    text-shadow: none;
+    filter: drop-shadow(0 0 8px rgba(104, 237, 255, .65));
+    animation: brand-shimmer 6s ease-in-out infinite;
+  }
+  @keyframes banner-glow {
+    0%, 100% { box-shadow: inset 0 0 30px rgba(131, 56, 236, .3), 0 0 16px rgba(58, 134, 255, .35); }
+    50% { box-shadow: inset 0 0 40px rgba(255, 112, 184, .24), 0 0 30px rgba(104, 237, 255, .6); }
+  }
+  .brand-hint {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+  .brand-flip:disabled .brand-hint { display: none; }
   .sub { 
     opacity: .88; font-size: 14px; margin: 0; color: #06ffa5;
-    font-family: "Segoe UI", sans-serif;
+    font-family: "Segoe UI", sans-serif; font-weight: normal;
     letter-spacing: 1px;
   }
+  .brand-face .sub { position: relative; z-index: 1; }
   .site-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 20px; font: 600 12px/1.4 "Segoe UI", sans-serif; opacity: .8; }
   .site-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; color: #aeb4c0; text-underline-offset: 4px; }
-  .site-nav a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 4px; }
-  .brand-word {
-    display: inline-block;
-    background-size: 220% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: brand-shimmer 5s ease-in-out infinite, brand-glow 3s ease-in-out infinite;
+  .site-nav button {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px;
+    border: 1px solid rgba(174, 180, 192, .45); border-radius: 999px;
+    background: transparent; color: #aeb4c0; font: inherit; cursor: pointer;
   }
-  .brand-word:nth-child(1) { background-image: linear-gradient(100deg, #ffdc72, #ff70b8, #fff2a1, #ffdc72); }
-  .brand-word:nth-child(2) { background-image: linear-gradient(100deg, #68edff, #a895ff, #d6ffff, #68edff); animation-delay: .6s; }
-  .brand-word:nth-child(3) { background-image: linear-gradient(100deg, #ff806b, #ffd36b, #fff0a2, #ff806b); animation-delay: 1.2s; }
+  .site-nav button:hover:not(:disabled) { color: #fff; border-color: #ffcd53; }
+  .site-nav button:disabled { cursor: wait; opacity: .65; }
+  .site-nav a:focus-visible, .site-nav button:focus-visible { outline: 3px solid #ffcd53; outline-offset: 4px; }
+  .site-nav-status { flex-basis: 100%; color: #ffcd53; text-align: center; }
   @keyframes brand-shimmer {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
-  }
-  @keyframes brand-glow {
-    0%, 100% { opacity: .88; filter: drop-shadow(0 0 2px currentColor); }
-    50% { opacity: 1; filter: drop-shadow(0 0 6px rgba(255,255,255,.55)); }
   }
   .grid {
     display: grid; gap: 22px;
@@ -79,6 +491,7 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
     transform: translateX(-100%);
     transition: transform .6s;
+    pointer-events: none;
   }
   .card:hover::before { transform: translateX(100%); }
   .card:hover { 
@@ -104,6 +517,8 @@
   .thumb.mario-game img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
   .card h2 { margin: 0 0 8px; font-size: 16px; letter-spacing: 1px; font-family: 'Courier New', monospace; }
   .card p { margin: 0 0 16px; font-size: 12px; line-height: 1.6; opacity: .85; flex: 1; font-family: "Segoe UI", sans-serif; }
+  .card-link { display: flex; flex: 1; flex-direction: column; position: relative; z-index: 1; color: inherit; text-decoration: none; }
+  .card-link:focus-visible { outline: 3px solid #ffcd53; outline-offset: 4px; border-radius: 6px; }
   .btn {
     align-self: flex-start; border-radius: 6px; padding: 10px 20px;
     font-size: 12px; font-weight: 700; border: 2px solid;
@@ -112,6 +527,21 @@
     cursor: pointer;
     font-family: 'Courier New', monospace;
   }
+  .version-history { align-self: flex-end; position: relative; z-index: 1; margin-top: 12px; font: 600 12px/1.4 "Segoe UI", sans-serif; }
+  .version-history summary {
+    display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px;
+    border: 1px solid rgba(232, 237, 242, .35); border-radius: 6px;
+    color: #d7e2ee; background: rgba(255,255,255,.06); cursor: pointer; list-style: none;
+  }
+  .version-history summary::-webkit-details-marker { display: none; }
+  .version-history summary::after { content: '+'; font-size: 16px; }
+  .version-history[open] summary::after { content: '−'; }
+  .version-history summary:focus-visible { outline: 3px solid #ffcd53; outline-offset: 3px; }
+  .version-history-list { margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid rgba(232, 237, 242, .2); list-style: none; text-align: right; }
+  .version-history-list li + li { margin-top: 4px; }
+  .version-history-list a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 4px; color: #b9d8e8; text-underline-offset: 3px; }
+  .version-history-list a:hover { color: #fff; }
+  .version-history-list a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 2px; border-radius: 3px; }
   .card.castle-game { --card-accent: #ff6b35; --card-ink: #000; }
   .card.zombie-vanilla { --card-accent: #7209b7; --card-ink: #fff; }
   .card.zombie-max-one { --card-accent: #00d9ff; --card-ink: #000; }
@@ -138,72 +568,130 @@
   .card.ragdoll-archers-community .thumb.preview img { object-fit: cover; background: #252525; }
   footer { text-align: center; margin-top: 48px; font-size: 11px; opacity: .5; font-family: "Segoe UI", sans-serif; }
   footer a { color: inherit; }
+  .site-nav .banner-gallery-link { font-size: 11px; color: #aeb4c0; }
+  .banner-gallery {
+    margin-top: 20px; padding: 18px; border: 1px solid #53677d; border-radius: 12px;
+    background: #101b30; color: #e8edf2; font: 14px/1.5 "Segoe UI", sans-serif;
+  }
+  .banner-gallery summary { cursor: pointer; min-height: 44px; padding: 10px 0; font-weight: 600; }
+  .banner-gallery h2 { font-size: 18px; }
+  .banner-gallery h3 { margin: 24px 0 10px; font-size: 16px; }
+  .banner-gallery-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .banner-gallery button {
+    min-height: 44px; padding: 8px 12px; color: #e8edf2; background: #263d58;
+    border: 1px solid #89a5bd; border-radius: 6px; cursor: pointer; font: inherit;
+  }
+  .banner-gallery :is(button, input, summary):focus-visible { outline: 3px solid #ffcd53; outline-offset: 3px; }
+  .banner-gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; }
+  .banner-gallery-card { padding: 10px; background: #1b2b43; border-radius: 8px; }
+  .banner-gallery-card label { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
+  .banner-gallery-card input { width: 20px; height: 20px; flex: none; }
+  .banner-gallery .brand-face {
+    grid-area: auto; display: flex; min-height: 120px; padding: 14px; gap: 6px;
+    font: 14px/1.4 "Segoe UI", sans-serif; text-align: center;
+  }
+  .banner-gallery .brand-title { font-size: 16px; letter-spacing: 0; }
+  .banner-gallery .sub { font-size: 12px; }
+  .banner-gallery-card button { margin-top: 8px; }
+  .banner-gallery-preview { margin: 16px 0; }
+  .banner-gallery-message { color: #fff5a8; min-height: 1.5em; }
   @media (max-width: 600px) {
-    h1 { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
+    .brand-title { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
+    .brand-face { padding: 20px 14px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .brand-word { animation: none; }
+    .brand-face, .brand-face[data-effect]::after,
+    .brand-face:not([data-effect])::after, .brand-face .brand-title { animation: none; }
+    .brand-face[data-effect="pink"], .brand-face[data-effect="orange"],
+    .brand-face[data-effect="strobe-lights"],
+    .brand-face[data-effect="pink"] .brand-title,
+    .brand-face[data-effect="orange"] .brand-title { animation: none; }
   }
 </style>
 </head>
 <body>
+  <div class="weather-sky" aria-hidden="true"><div class="weather-stars"></div><div class="weather-moon"></div><div class="weather-clouds"></div><div class="weather-particles"></div></div>
   <div class="wrap">
     <header>
-      <h1>Gry Ekipy spod Lipy (Hajnówka)</h1>
-      <p class="sub"><span class="brand-word">Pixel</span> <span class="brand-word">Otter</span> <span class="brand-word">Rocket</span> — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</p>
-      <nav class="site-nav" aria-label="Pomoc i aktualizacje">
+      <h1>
+        <button class="brand-flip" type="button" disabled>
+          <span class="brand-flip-inner">
+            <span class="brand-face brand-face-front" lang="en">
+              <span class="brand-title">The Lime Tree Crew's Games (Hajnówka)<br>Pixel Otter Rocket</span>
+              <span class="sub">Free browser games from Podlasie. Play instantly, no installation needed!</span>
+              <span class="brand-hint">Flip heading</span>
+            </span>
+            <span class="brand-face brand-face-back" lang="pl" aria-hidden="true">
+              <span class="brand-title">Gry Ekipy spod Lipy (Hajnówka)<br>Pixel Otter Rocket</span>
+              <span class="sub">Darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</span>
+              <span class="brand-hint">Obróć nagłówek</span>
+            </span>
+          </span>
+        </button>
+      </h1>
+      <noscript><p class="sub">Gry Ekipy spod Lipy (Hajnówka) — Pixel Otter Rocket — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</p></noscript>
+      <nav class="site-nav" aria-label="Pomoc, aktualizacje, wiadomości i muzyka">
+        <a class="weather-shortcut" href="#weather-panel" aria-label="Weather and location" title="Weather and location" lang="en" hidden>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2v2m-7 1 1.5 1.5M2 12h2m15-7-1.5 1.5M20 12h2" />
+            <path d="M8 11a4 4 0 1 1 8 0M7 20a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 14H18a3 3 0 0 1 0 6Z" />
+          </svg>
+          <span class="weather-shortcut-text">
+            <span id="weather-shortcut-location">Finding city...</span>
+            <span id="weather-shortcut-conditions">Loading weather...</span>
+          </span>
+        </a>
+        <button id="site-music-toggle" type="button" aria-pressed="false" disabled>Music: Off</button>
+        <a class="banner-gallery-link" href="#banner-gallery" lang="en">Banner styles</a>
+        <a class="minecraft-news-shortcut" href="#minecraft-news" aria-label="Minecraft news and videos" title="Minecraft news and videos" lang="en">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 5h18v14H3zM6 8h5v5H6zM14 8h4M14 11h4M6 16h12" />
+          </svg>
+          <span>Minecraft news</span>
+        </a>
         <a href="help.html">How to play</a>
         <a href="updates.html">Updates</a>
+        <span id="banner-storage-status" class="site-nav-status" role="status" hidden></span>
+        <span id="site-music-status" class="site-nav-status" role="status" aria-live="polite" hidden></span>
       </nav>
     </header>
 
     <main class="grid">
-      <a class="card voxel-game" href="klocki-podlasia-0.3/">
-        <div class="thumb preview"><img src="klocki-podlasia-0.3/preview.svg?v=4" alt="Minecraft 0.3: jasny świat klocków z podlaskimi wioskami, drogą, górami i zwierzętami" fetchpriority="high"></div>
-        <h2>Minecraft 0.3 · budowanie kreatywne</h2>
-        <p>Świat 256×256, 11 biomów i 17 wiosek. Odkrywaj, buduj z 37 materiałów i zapisuj świat lokalnie w Chrome na Macu.</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card voxel-game">
+        <a class="card-link" href="klocki-podlasia-0.3/">
+          <div class="thumb preview"><img src="klocki-podlasia-0.3/preview.svg?v=4" alt="Minecraft 0.3: jasny świat klocków z podlaskimi wioskami, drogą, górami i zwierzętami" fetchpriority="high"></div>
+          <h2>Minecraft 0.3 · budowanie kreatywne</h2>
+          <p>Świat 256×256, 11 biomów i 17 wiosek. Odkrywaj, buduj z 37 materiałów i zapisuj świat lokalnie w Chrome na Macu.</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Older versions</summary>
+          <ul class="version-history-list">
+            <li><a href="klocki-podlasia-0.2/">Minecraft 0.2</a></li>
+            <li><a href="klocki-podlasia-0.1/">Klocki Podlasia 0.1 · prototyp</a></li>
+          </ul>
+        </details>
+      </article>
 
-      <a class="card voxel-game" href="klocki-podlasia-0.2/">
-        <div class="thumb preview"><img src="klocki-podlasia-0.2/preview.svg?v=3" alt="Minecraft 0.2: trzy podlaskie wioski z domami, studniami, mieszkańcami i zwierzętami" loading="lazy"></div>
-        <h2>Minecraft 0.2</h2>
-        <p>Świat 64×64 z trzema podlaskimi wioskami połączonymi drogami. Poznawaj mieszkańców i zwierzęta, wydobywaj rudy i buduj z 29 materiałów.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card voxel-game" href="klocki-podlasia-0.1/">
-        <div class="thumb preview"><img src="klocki-podlasia-0.1/preview.svg" alt="Klocki Podlasia: drewniany domek i lipa z kolorowych klocków na zielonej łące" loading="lazy"></div>
-        <h2>Klocki Podlasia 0.1 · prototyp</h2>
-        <p>Pierwszy świat 3D Ekipy spod Lipy: odkrywaj podlaską łąkę 64×64, spaceruj, skacz i buduj domek z 8 materiałów. Prototyp na komputer, bez zapisu.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card flappy-game" href="flappy-0.2/">
-        <div class="thumb preview"><img src="flappy-0.2/preview.png" alt="Flappy Bird 0.2: pikselowy zolty ptak pomiedzy zielonymi rurami na tle miasta" fetchpriority="high"></div>
-        <h2>Flappy Bird 0.2</h2>
-        <p>Pikselowy ptak, zielone rury i przewijane miasto. Zlap rytm, przelatuj przez luki i pobij swoj rekord!</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card flappy-game" href="flappy-0.1/">
-        <div class="thumb preview"><img src="flappy-0.1/preview.png" alt="Flappy Podlasie 0.1: zolty ptak leci pomiedzy drewnianymi bramami nad podlaska laka" loading="lazy"></div>
-        <h2>Flappy Podlasie 0.1</h2>
-        <p>Maly ptak, wielka przygoda. Przelatuj przez drewniane bramy nad Podlasiem i pobij swoj rekord!</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card flappy-game">
+        <a class="card-link" href="flappy-0.2/">
+          <div class="thumb preview"><img src="flappy-0.2/preview.png" alt="Flappy Bird 0.2: pikselowy zolty ptak pomiedzy zielonymi rurami na tle miasta" fetchpriority="high"></div>
+          <h2>Flappy Bird 0.2</h2>
+          <p>Pikselowy ptak, zielone rury i przewijane miasto. Zlap rytm, przelatuj przez luki i pobij swoj rekord!</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Older versions</summary>
+          <ul class="version-history-list">
+            <li><a href="flappy-0.1/">Flappy Podlasie 0.1</a></li>
+          </ul>
+        </details>
+      </article>
 
       <a class="card ragdoll-archers-community" href="ragdoll-archers/">
         <div class="thumb preview"><img src="ragdoll-archers/favicon.jpeg" alt="Ragdoll Archers game icon" loading="lazy"></div>
         <h2>Ragdoll Archers</h2>
         <p>Self-hosted Unity WebGL game. Play the original ragdoll archery game in your browser. You may need to start a game-server.py in scripts</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card castle-game" href="pojedynek-zamkow-janek-i-baranek/">
-        <div class="thumb castle preview"><img src="menu-previews/castle-duel.svg" alt="Dwa zamki i kula armatnia nad polem bitwy" loading="lazy"></div>
-        <h2>Pojedynek Zamków (Janek i Baranek)</h2>
-        <p>Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.</p>
         <span class="btn">Graj</span>
       </a>
 
@@ -214,19 +702,20 @@
         <span class="btn">Graj</span>
       </a>
 
-      <a class="card zombie-max-two" href="zombie-max-0.2/">
-        <div class="thumb zombie-max-2 preview"><img src="menu-previews/zombie-max-2.svg" alt="Mroczne miasto i starcie z demonem" loading="lazy"></div>
-        <h2>Zombie Max 0.2</h2>
-        <p>Nowsza odsłona strzelanki Maksa: broń bazy przed falami zombie, rozwijaj ulepszenia i zmierz się z Super Hard Demon.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card zombie-max-one" href="zombie-max-0.1/">
-        <div class="thumb zombie-max-1 preview"><img src="menu-previews/zombie-max-1.svg" alt="Obrona przed zombie pod czerwonym ksiezycem" loading="lazy"></div>
-        <h2>Zombie Max 0.1</h2>
-        <p>Dotychczasowy wariant Maksa. Broń bazy przed falami zombie i rozwijaj swoją ekipę.</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card zombie-max-two">
+        <a class="card-link" href="zombie-max-0.2/">
+          <div class="thumb zombie-max-2 preview"><img src="menu-previews/zombie-max-2.svg" alt="Mroczne miasto i starcie z demonem" loading="lazy"></div>
+          <h2>Zombie Max 0.2</h2>
+          <p>Nowsza odsłona strzelanki Maksa: broń bazy przed falami zombie, rozwijaj ulepszenia i zmierz się z Super Hard Demon.</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Older versions</summary>
+          <ul class="version-history-list">
+            <li><a href="zombie-max-0.1/">Zombie Max 0.1</a></li>
+          </ul>
+        </details>
+      </article>
 
       <a class="card zombie-aleksa" href="zombie-aleksa/">
         <div class="thumb zombie-ax preview"><img src="menu-previews/zombie-ax.svg" alt="Strzelec odpiera zombie na cyfrowym polu bitwy" loading="lazy"></div>
@@ -236,58 +725,262 @@
       </a>
 
 
-      <a class="card mario-game" href="mario-0.3/index.html">
-        <div class="thumb mario-game"><img src="mario-0.3/preview.svg" alt="Poziom 100: Maks biegnie ku złotej mecie przez skarby Złotej Korony" loading="lazy"></div>
-        <h2>Mario 0.3</h2>
-        <p>Najnowsza odsłona przygody Maksa. Odkrywaj 100 etapów z nowymi przeciwnikami i zmiennymi światami.</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card mario-game">
+        <a class="card-link" href="mario-0.3/index.html">
+          <div class="thumb mario-game"><img src="mario-0.3/preview.svg?v=1" alt="Poziom 100: Maks biegnie ku złotej mecie przez skarby Złotej Korony" loading="lazy"></div>
+          <h2>Mario 0.3</h2>
+          <p>Najnowsza odsłona przygody Maksa. Odkrywaj 100 etapów z nowymi przeciwnikami i zmiennymi światami.</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Older versions</summary>
+          <ul class="version-history-list">
+            <li><a href="mario-0.2/index.html">Mario 0.2</a></li>
+            <li><a href="mario-0.1/index.html">Mario 0.1</a></li>
+          </ul>
+        </details>
+      </article>
 
-      <a class="card mario-game" href="mario-0.2/index.html">
-        <div class="thumb mario-game"><img src="mario-0.2/preview.svg" alt="Maks skacze między platformami, monetami i przeciwnikami" loading="lazy"></div>
-        <h2>Mario 0.2</h2>
-        <p>Pierwsze wydanie platformowej przygody. Zbieraj monety, odkrywaj sekrety i dotrzyj do bramy na szczycie!</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card ragdoll-archer ragdoll-archer-03">
+        <a class="card-link" href="archers-0.4/index.html">
+          <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.4.svg" alt="Archers 0.4: mietowy lucznik strzela do pomaranczowego robota na podestach" loading="lazy"></div>
+          <h2>Archers 0.4 (wre jak w garncu)</h2>
+          <p>Celuj w rywala, przytrzymaj, by naładować strzał, i wypuść strzałę w odpowiednim momencie. Pokonuj kolejne rundy, zdobywaj punkty i ulepszaj strzały oraz pancerz.</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Older versions</summary>
+          <ul class="version-history-list">
+            <li><a href="archers-0.3/index.html">Archers 0.3</a></li>
+            <li><a href="archers-0.2/index.html">Archers 0.2</a></li>
+            <li><a href="archers-0.1/index.html">Archers 0.1</a></li>
+          </ul>
+        </details>
+      </article>
 
-      <a class="card mario-game-0-1" href="mario-0.1/index.html">
-        <div class="thumb preview"><img src="mario-0.1/preview.svg" alt="Mario 0.1: platformowy szlak z monetami i brama" loading="lazy"></div>
-        <h2>Mario 0.1</h2>
-        <p>Klasyczny wariant platformowej przygody: skacz po platformach, zbieraj monety i dotrzyj do mety.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card ragdoll-archer ragdoll-archer-03" href="archers-0.4/index.html">
-        <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.4.svg" alt="Archers 0.4: mietowy lucznik strzela do pomaranczowego robota na podestach" loading="lazy"></div>
-        <h2>Archers 0.4 (Praca w toku, wre jak w garncu. poczej Januszku)</h2>
-        <p>Celuj w rywala, przytrzymaj, by naładować strzał, i wypuść strzałę w odpowiednim momencie. Pokonuj kolejne rundy, zdobywaj punkty i ulepszaj strzały oraz pancerz.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card ragdoll-archer ragdoll-archer-03" href="archers-0.3/index.html">
-        <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.3.svg" alt="Lucznik w niebiesko-zlotej zbroi mierzy do rywala w wersji 0.3" loading="lazy"></div>
-        <h2>Archers 0.3</h2>
-        <p>Osobna wersja pojedynku lukiem z robotem, zachowana jako wydanie 0.3.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card ragdoll-archer" href="archers-0.2/index.html">
-        <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.2.svg" alt="Pojedynek lukowy z niebieska strzala SWIFT, paskiem zdrowia i sklepem z bronia" loading="lazy"></div>
-        <h2>Archers 0.2</h2>
-        <p>Pojedynek lukiem z robotem. Celuj, laduj sile strzalu i przechodz kolejne rundy.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card ragdoll-archer" href="archers-0.1/index.html">
-        <div class="thumb preview"><img src="menu-previews/ragdoll-archer.svg" alt="Pojedynek z robotem z paskami zdrowia, ladowaniem strzalu i sklepem z czterema typami strzal" loading="lazy"></div>
-        <h2>Archers 0.1</h2>
-        <p>Pojedynek lukiem z robotem. Celuj, laduj sile strzalu i przechodz kolejne rundy.</p>
+      <a class="card castle-game" href="pojedynek-zamkow-janek-i-baranek/">
+        <div class="thumb castle preview"><img src="menu-previews/castle-duel.svg" alt="Dwa zamki i kula armatnia nad polem bitwy" loading="lazy"></div>
+        <h2>Pojedynek Zamków (Janek i Baranek)</h2>
+        <p>Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.</p>
         <span class="btn">Graj</span>
       </a>
 
     </main>
 
     <footer><a href="help.html">How to play</a> · <a href="updates.html">Updates</a><p>github.com/dariusz22p/gry-darka</p></footer>
+    <section id="weather-panel" class="weather-panel" lang="en" aria-label="Weather background and location" tabindex="-1" hidden>
+      <p id="weather-status" role="status">Finding approximate city...</p>
+      <p id="weather-notice" role="status"></p>
+      <details class="weather-location">
+        <summary>Change location</summary>
+        <p>Choose a city to remember it in a cookie for 180 days. You can change it here anytime.</p>
+        <form id="weather-search">
+          <label for="weather-city">City name</label>
+          <div class="weather-search-row">
+            <input id="weather-city" name="city" type="search" minlength="2" maxlength="100" required autocomplete="off" placeholder="e.g. London">
+            <button type="submit">Search</button>
+          </div>
+        </form>
+        <p id="weather-search-status" role="status"></p>
+        <ul id="weather-results" aria-label="Matching cities"></ul>
+        <div class="weather-actions">
+          <button id="weather-device" type="button">Use my location</button>
+          <button id="weather-auto" type="button">Use automatic estimate</button>
+        </div>
+        <p id="weather-location-status" role="status"></p>
+        <p class="weather-privacy">Automatic estimates use your IP via <a href="https://ipwhois.io/privacy">ipwho.is</a> and can be inaccurate with VPNs.
+          City searches and approximate weather coordinates are sent to <a href="https://open-meteo.com/en/terms">Open-Meteo</a>.
+          Device location is requested only when you click the button; coordinates are rounded before use. No continuous tracking.</p>
+      </details>
+      <p class="weather-credit">Model-based weather by <a href="https://open-meteo.com/">Open-Meteo</a> /
+        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; conditions simplified into background effects.</p>
+    </section>
+    <section id="minecraft-news" class="minecraft-news-panel" lang="en" aria-labelledby="minecraft-news-heading">
+      <h2 id="minecraft-news-heading">Official Minecraft news &amp; videos</h2>
+      <p>News from Minecraft.net and the official Minecraft YouTube channel, not updates to our game.</p>
+      <div class="minecraft-news-sources">
+        <div>
+          <h3>News</h3>
+          <p id="minecraft-news-status" role="status">Loading news; JavaScript is required to show the feed.</p>
+          <ul id="minecraft-news-items"></ul>
+          <a href="https://www.minecraft.net/en-us/articles">More on Minecraft.net</a>
+        </div>
+        <div>
+          <h3>Videos</h3>
+          <p id="minecraft-videos-status" role="status">Loading videos; JavaScript is required to show the feed.</p>
+          <ul id="minecraft-videos-items"></ul>
+          <a href="https://www.youtube.com/@minecraft">Official Minecraft YouTube channel</a>
+        </div>
+      </div>
+    </section>
+    <details id="banner-gallery" class="banner-gallery" lang="en">
+      <summary>Banner styles</summary>
+      <p>Preview and choose the styles used when you flip the banner. Changes are saved automatically in this browser; the first banner stays calm.</p>
+      <div class="banner-gallery-actions">
+        <button type="button" id="banner-select-all">Select all</button>
+        <button type="button" id="banner-clear">Clear</button>
+        <button type="button" id="banner-reset">Restore defaults</button>
+      </div>
+      <p id="banner-gallery-status" class="banner-gallery-message" role="status"></p>
+      <div class="banner-gallery-preview" hidden>
+        <h2 id="banner-preview-name">Preview</h2>
+        <div class="brand-face" id="banner-preview" aria-hidden="true">
+          <span class="brand-title">Pixel Otter Rocket</span>
+          <span class="sub">The Lime Tree Crew · Ekipa spod Lipy</span>
+        </div>
+      </div>
+      <div id="banner-gallery-groups"></div>
+    </details>
   </div>
+  <script>
+    const brandFlip = document.querySelector('.brand-flip');
+    const brandFlipInner = brandFlip.querySelector('.brand-flip-inner');
+    const brandFaces = brandFlip.querySelectorAll('.brand-face');
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    let flipAnimation;
+    reducedMotion.addEventListener('change', event => {
+      if (event.matches && flipAnimation) flipAnimation.cancel();
+    });
+    const brandEffects = ['cloud', 'data', 'stars', 'scan', 'pixel-rain', 'shooting-stars', 'circuits', 'aurora', 'pink', 'orange',
+      'otter-rocket', 'block-landscape', 'castle-arrows', 'arcade'];
+    const seasonalBrandEffects = {
+      0: ['snow', 'frost'],
+      1: ['snow', 'frost'],
+      2: ['blossoms', 'summer-sun'],
+      3: ['easter-eggs', 'blossoms'],
+      4: ['blossoms', 'summer-sun'],
+      5: ['summer-sun', 'summer-waves'],
+      6: ['summer-sun', 'summer-waves'],
+      7: ['summer-sun', 'summer-waves'],
+      8: ['autumn-leaves', 'autumn-woodland'],
+      9: ['pumpkins', 'spooky-stars'],
+      10: ['snow', 'frost'],
+      11: ['festive-lights', 'presents'],
+    };
+    const highImpactBrandEffects = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge', 'strobe-lights'];
+    const highImpactSeasonalBrandEffects = {
+      1: ['frost-hearts', 'winter-night'],
+      2: ['spring-storm', 'meadow-burst'],
+      4: ['spring-storm', 'meadow-burst'],
+    };
+    const bannerStorageKey = 'gry_banner_styles';
+    const allBrandEffects = new Set([...brandEffects, ...Object.values(seasonalBrandEffects).flat(),
+      ...highImpactBrandEffects, ...Object.values(highImpactSeasonalBrandEffects).flat()]);
+    function reportBannerStorageError(message) {
+      const status = document.getElementById('banner-storage-status');
+      status.textContent = message;
+      status.hidden = !message;
+    }
+    function readBannerSelection() {
+      let raw;
+      try {
+        raw = localStorage.getItem(bannerStorageKey);
+      } catch (error) {
+        reportBannerStorageError('Banner styles could not be read from browser storage.');
+        return null;
+      }
+      if (raw === null) return null;
+      let selection;
+      try {
+        selection = JSON.parse(raw);
+      } catch (error) {
+        reportBannerStorageError('Saved banner styles are invalid. Restore defaults in Banner styles.');
+        return null;
+      }
+      if (!Array.isArray(selection) || !selection.length ||
+          selection.some(effect => typeof effect !== 'string' || !allBrandEffects.has(effect))) {
+        reportBannerStorageError('Saved banner styles are invalid. Restore defaults in Banner styles.');
+        return null;
+      }
+      return [...new Set(selection)];
+    }
+    function chooseBrandEffect(face, previousEffect) {
+      if (previousEffect) {
+        const selected = readBannerSelection();
+        if (selected) {
+          const choices = selected.length === 1 ? selected : selected.filter(effect => effect !== previousEffect);
+          face.dataset.effect = choices[Math.floor(Math.random() * choices.length)];
+          return;
+        }
+      }
+      const month = new Date().getMonth();
+      const seasonal = seasonalBrandEffects[month] && Math.random() < .5;
+      const calmPool = seasonal ? seasonalBrandEffects[month] : brandEffects;
+      const highImpactPool = seasonal ? highImpactSeasonalBrandEffects[month] : highImpactBrandEffects;
+      const pool = previousEffect && highImpactPool && Math.random() < .25 ? highImpactPool : calmPool;
+      const choices = pool.filter(effect => effect !== previousEffect);
+      face.dataset.effect = choices[Math.floor(Math.random() * choices.length)];
+    }
+    chooseBrandEffect(brandFaces[0]);
+    brandFlip.disabled = false;
+    brandFlip.addEventListener('click', () => {
+      const currentFace = brandFlip.classList.contains('is-flipped') ? 1 : 0;
+      chooseBrandEffect(brandFaces[1 - currentFace], brandFaces[currentFace].dataset.effect);
+      if (flipAnimation) flipAnimation.cancel();
+      if (!reducedMotion.matches) {
+        const variant = Math.floor(Math.random() * 3);
+        const start = currentFace * 180;
+        const end = start + (variant === 1 ? -180 : 180);
+        const keyframes = [
+          { transform: `rotateY(${start}deg) scale(1)` },
+          ...(variant === 2 ? [{ transform: `rotateY(${(start + end) / 2}deg) scale(.85)` }] : []),
+          { transform: `rotateY(${end}deg) scale(1)` },
+        ];
+        flipAnimation = brandFlipInner.animate(keyframes, {
+          duration: 600, easing: 'cubic-bezier(.2, .7, .2, 1)',
+        });
+      }
+      const flipped = brandFlip.classList.toggle('is-flipped');
+      brandFaces[0].setAttribute('aria-hidden', String(flipped));
+      brandFaces[1].setAttribute('aria-hidden', String(!flipped));
+    });
+  </script>
+  <script type="module">
+    const button = document.getElementById('site-music-toggle');
+    const status = document.getElementById('site-music-status');
+    let player;
+
+    function setMusicEnabled(enabled) {
+      button.textContent = `Music: ${enabled ? 'On' : 'Off'}`;
+      button.setAttribute('aria-pressed', String(enabled));
+    }
+
+    function setMusicStatus(message) {
+      status.textContent = message;
+      status.hidden = !message;
+    }
+
+    try {
+      const { loadMusicCatalogue, MusicPlayer } = await import('./klocki-podlasia-0.3/music-player.js?v=2');
+      const tracks = await loadMusicCatalogue();
+      if (!tracks.length) throw new Error('The music catalogue is empty.');
+
+      player = new MusicPlayer(tracks, {
+        onError: error => {
+          console.error('Site music playback failed.', error);
+          setMusicEnabled(false);
+          setMusicStatus('Music could not be played. Check your browser audio settings.');
+        }
+      });
+
+      button.disabled = false;
+      button.addEventListener('click', () => {
+        setMusicStatus('');
+        if (player.active) {
+          player.stop();
+          setMusicEnabled(false);
+          setMusicStatus('Music turned off.');
+          return;
+        }
+        player.start();
+        setMusicEnabled(true);
+        setMusicStatus('Music turned on.');
+      });
+    } catch (error) {
+      console.error('Site music could not be initialized.', error);
+      button.textContent = 'Music unavailable';
+      setMusicStatus('Music could not be loaded. Reload the page to try again.');
+    }
+  </script>
 </body>
 </html>

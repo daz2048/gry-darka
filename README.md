@@ -6,6 +6,84 @@ Zbiór małych gier przeglądarowe — **graj od razu, bez instalacji**.
 
 **[👉 OTWÓRZ GRY](https://daz2048.github.io/gry-darka/)**
 
+Baner na stronie głównej zmienia efekt przy każdym obrocie. W czerwcu–sierpniu
+może pojawić się lato, we wrześniu jesień, w październiku dynie i gwiazdy,
+w listopadzie–lutym śnieg, w grudniu motywy świąteczne, w marcu i maju wiosna,
+a w kwietniu motywy wielkanocne i wiosenne. Po obróceniu banera mogą pojawić
+się bardziej dynamiczne efekty; pierwsze wyświetlenie zawsze jest spokojniejsze.
+Wybór motywów zależy od lokalnego miesiąca odwiedzającego.
+Ruch obrotu również jest losowy (w lewo, w prawo lub z pomniejszeniem);
+przy ustawieniu ograniczonego ruchu baner zmienia stronę bez animacji.
+Łącze „Banner styles” obok pogody otwiera galerię wszystkich stylów, w tym
+różowe i pomarańczowe motywy, fajerwerki oraz spokojne, wolno zmieniające się
+światła sceniczne (bez szybkiego migania). Zmiany wyboru zapisują się automatycznie
+lokalnie w przeglądarce i obowiązują przy następnym obrocie. „Clear” pozwala zacząć
+wybór od nowa, zachowując poprzedni wybór do zaznaczenia nowego motywu;
+„Restore defaults” przywraca domyślny wybór sezonowy.
+
+## Weather background
+
+The homepage background follows model-based current weather: sunshine, clouds, fog,
+rain, snow, and a dark storm sky (no flashing lightning). Clear and partly cloudy
+nights show stars and a decorative moon; its position and phase are not astronomical.
+Banner effects remain independent. Animations respect reduced motion and pause in hidden tabs.
+The weather/location panel is the last content below the footer. The small weather
+icon in the top navigation shows the selected location, current temperature and
+this hour's rain chance; clicking it jumps to the panel and expands all location
+options. Rain chance uses Open-Meteo's hourly precipitation probability (including
+snow), matched by UTC timestamp rather than the visitor's timezone. Missing rain
+probability is labelled unavailable without hiding otherwise valid weather.
+
+- On a new visit, [ipwho.is](https://ipwhois.io/documentation) estimates a city from
+  the visitor's IP without a device permission prompt. Failed, invalid or rate-limited
+  estimates fall back to London. Estimates can be inaccurate with VPNs/mobile networks.
+- **Change location** always remains available: search for a city or click
+  **Use my location** to request a single browser position. Device coordinates are
+  rounded to two decimal places before weather requests or storage; high accuracy
+  is disabled, but the browser can still return a precise position.
+- Explicit choices are stored in the `gry_weather_location` first-party cookie
+  for 180 days, scoped to this site's directory, with `SameSite=Lax` and `Secure`
+  on HTTPS. Saved choices skip IP lookup and never trigger location prompts.
+  **Use automatic estimate** clears the choice. Blocked cookies produce a warning.
+- IP requests disclose the visitor's IP to ipwho.is. Searches and rounded weather
+  coordinates are sent to [Open-Meteo](https://open-meteo.com/en/terms); requests
+  omit credentials and referrers. No raw device position or IP is stored by this code.
+- Weather refreshes every 30 minutes while visible (and on return if due). Network
+  errors or stale/invalid weather use the neutral background, not another city's
+  weather. Requests time out; the games/menu never wait for weather.
+
+No backend, API key, dependencies, or build step are needed. The free ipwho.is
+browser tier currently shares **1,000 requests/day per domain**. Open-Meteo's free
+service is non-commercial with **10,000 calls/day**, plus hourly/minute limits.
+Revisit provider plans before adding advertising or increasing traffic.
+Weather attribution and the CC BY 4.0 link appear beside the controls.
+
+Tests: `node --test scripts/test_weather.js scripts/test_banner.js`.
+
+## Minecraft news and videos
+
+The homepage has a **Minecraft news** shortcut in the top navigation. It jumps
+to a panel below the weather section with official Minecraft.net headlines and
+videos from the official Minecraft YouTube channel. These are not updates to our
+own Minecraft-inspired game. The panel links directly to the sources even when
+JavaScript or the data is unavailable; videos are links, not embedded players.
+
+The panel reads the same-origin `minecraft-news.json` file. To refresh it before
+publishing, run `python3 scripts/update_minecraft_news.py` and publish the resulting
+file with the site. The script needs no API key or third-party packages. It fetches
+the [official Minecraft RSS feed](https://www.minecraft.net/en-us/feeds/community-content/rss)
+and the [official YouTube channel feed](https://www.youtube.com/feeds/videos.xml?channel_id=UC1sELGmy5jp5fQUugmuYlXQ),
+and reports failures on stderr. If either feed fails, that source keeps its last
+successful data and timestamp; an unavailable feed with no earlier data shows a
+source link instead. Data is labelled potentially outdated after 24 hours.
+
+The feed file must be refreshed and republished regularly to remain current;
+there is currently no automated scheduled deployment in this repository.
+The browser does not contact the feed providers until a visitor follows a link.
+
+Tests: `python3 -m unittest discover -s scripts -p 'test_minecraft_news.py'`
+and `node --test scripts/test_minecraft_news.js`.
+
 ## Pomoc i aktualizacje dla graczy
 
 - [Jak grać / How to play](help.html): cele, sterowanie według wersji,

@@ -1,0 +1,47 @@
+{
+  "news": {
+    "updated": "2026-11-13T12:09:46.281763+00:00",
+    "items": [
+      {
+        "title": "Minecraft Parents’ Guide",
+        "url": "https://www.minecraft.net/en-us/article/parents--guide-minecraft",
+        "published": "2026-11-12T09:00:00+00:00"
+      },
+      {
+        "title": "Marketplace Spotlight: The Sound Effects Edition",
+        "url": "https://www.minecraft.net/en-us/article/marketplace-spotlight-sound-effects",
+        "published": "2026-11-10T19:00:50+00:00"
+      },
+      {
+        "title": "New watch time challenge",
+        "url": "https://www.minecraft.net/en-us/article/twitchcon-watch-time-quest",
+        "published": "2026-11-10T18:00:00+00:00"
+      },
+      {
+        "title": "Minecraft 26.4 Snapshot 8",
+        "url": "https://www.minecraft.net/en-us/article/minecraft-26-4-snapshot-8",
+        "published": "2026-11-10T14:00:00+00:00"
+      },
+      {
+        "title": "Introducing Realms Pro",
+        "url": "https://www.minecraft.net/en-us/article/introducing-realms-pro",
+        "published": "2026-11-09T19:00:08+00:00"
+      }
+    ]
+  },
+  "videos": {
+    "updated": "2026-11-13T12:09:46.281763+00:00",
+    "items": [
+      {
+        "title": "Remix Your World | Sound Effects Packs are here!",
+        "url": "https://www.youtube.com/watch?v=x7nvbiNKkio",
+        "published": "2026-11-10T18:00:27+00:00"
+      },
+      {
+        "title": "Introducing Minecraft Realms Pro",
+        "url": "https://www.youtube.com/watch?v=8JGY7vGkMX0",
+        "published": "2026-11-09T19:00:46+00:00"
+      }
+    ]
+  }
+}
