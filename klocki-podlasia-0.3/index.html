@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#183f36">
   <title>Minecraft 0.3 — creative building with Ekipa spod Lipy</title>
   <link rel="icon" href="preview.svg?v=4" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
   <script type="importmap">
     {"imports":{"three":"./vendor/three.module.js"}}
   </script>
@@ -94,8 +94,15 @@
         <label><span data-i18n="settings.sensitivity">Mouse sensitivity</span> <input id="sensitivity" type="range" min="0.4" max="2" step="0.1" value="1"></label>
         <label><input id="low-quality" type="checkbox"> <span data-i18n="settings.lowQuality">Lower resolution</span></label>
         <label><input id="music-on" type="checkbox" checked> <span data-i18n="settings.music">Music</span></label>
+        <label><span data-i18n="settings.musicChoice">Soundtrack</span>
+          <select id="music-choice" disabled>
+            <option value="random" data-i18n="music.random">Random MP3</option>
+            <option value="original" data-i18n="music.original">Original music</option>
+          </select>
+        </label>
         <label><span data-i18n="settings.volume">Music volume</span> <input id="music-volume" type="range" min="0" max="100" step="5" value="35"></label>
       </div>
+      <p id="music-status" class="small" role="status" data-i18n="music.loading">Loading music catalogue…</p>
       <div id="secondary-actions" class="actions secondary" hidden>
         <button id="recover" disabled data-i18n="button.recover">Back to start</button>
         <button id="new-world" disabled data-i18n="button.newWorld">New world</button>
@@ -142,9 +149,9 @@
         'Start the repository server and open http://localhost:8765/klocki-podlasia-0.3/ — modules need HTTP.',
         'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.3/ — moduły wymagają HTTP.');
     } else {
-      import('./i18n.js?v=5').then(i18n => {
+      import('./i18n.js?v=7').then(i18n => {
         i18n.initLanguage();
-        return import('./game.js?v=29');
+        return import('./game.js?v=31');
       }).catch(error => {
         console.error('Minecraft: cannot start the game.', error);
         status.textContent = pick(

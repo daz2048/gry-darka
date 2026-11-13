@@ -8,6 +8,18 @@ Zbiór małych gier przeglądarowe — **graj od razu, bez instalacji**.
 
 ---
 
+## Wspólna muzyka
+
+Pliki MP3 dla gier znajdują się w katalogu `music/`. Po dodaniu lub usunięciu
+utworów uruchom `python3 scripts/generate-music-catalogue.py` z katalogu
+repozytorium i odśwież grę. Do publikacji należy zapisać w Git zarówno zmiany
+MP3, jak i wygenerowany `music/catalogue.json`. Publikuj tylko utwory, które
+masz prawo udostępniać: pliki na stronie są publiczne.
+Szczegóły i wymagania dla przyszłej automatyzacji znajdują się w
+[runbooku katalogu muzyki](runbooks/music-catalogue.md).
+
+---
+
 ## Google Search Console
 
 Mapa witryny znajduje się w [sitemap.xml](sitemap.xml). Dodawaj do niej nowe

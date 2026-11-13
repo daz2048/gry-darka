@@ -76,6 +76,16 @@ przetrwania, craftingu, multiplayera, sterowania dotykowego, synchronizacji
 chmurowej ani gwarancji działania offline/PWA. Więcej szczegółów i aktualne
 bramki wydania zawiera [backlog](../backlog/voxel-sandbox-backlog.md).
 
+From **Your worlds**, creating or deleting a world keeps the list open and
+shows a confirmation. A newly created world is selected and focused; deleting
+the selected world selects another available world without leaving the list.
+Deleting the last world shows the empty state. Select a world or **Continue**
+to choose a play mode. Creating a world from the pause menu still returns
+directly to the play-mode controls. Conflicting world actions are disabled
+during confirmations and pending operations; failures remain visible and
+can be retried. If a change succeeds but refreshing the list fails, the message
+asks you to reload instead of presenting the change as failed.
+
 Przy pierwszym uruchomieniu wersja 0.3 może przenieść poprawne rekordy z dawnej
 bazy `minecraft-0.4`, ale tylko jeśli katalog 0.3 jest pusty. Zachowuje też
 informację o uszkodzonym zapisie, aby pokazać odzyskiwanie lub wymagać
@@ -143,15 +153,20 @@ is needed to play. Requires a desktop keyboard/mouse and WebGL2.
 - On narrow screens the palette uses compact icons; hover an icon to see its
   name. The icons also retain accessible labels.
 - P / Escape: pause; H / **Menu gier**: return to the portfolio.
+- F / **Full screen**: toggle browser fullscreen.
 - Follow the roads to the villages and roadside structures. The HUD shows your
   biome and X/Z coordinates; the pause panel lists destinations. Jump up the watchtower steps.
 - **Wróć na start**: find a safe supported position without resetting the world.
 - **Nowa łąka**: choose a name (up to 32 characters) and confirm creating a
   world with a different seed; existing worlds remain unchanged.
 - Fullscreen and lower resolution are optional; denied fullscreen leaves windowed play.
-- **Muzyka / Głośność muzyki**: enable or mute the original ambient music and
-  adjust its volume in the start/pause panel. It begins after choosing a play mode
-  and stops when the game is paused or loses focus. Its setting and volume are saved.
+- **Music / Soundtrack / Music volume**: select a random MP3 (the default), a
+  named track, or the original generated music, and adjust the volume in the
+  start/pause panel. Random mode picks another track when one ends; a named track
+  repeats. Playback pauses with the game and resumes at the same position.
+  The on/off setting and volume are saved with the world; the soundtrack choice
+  lasts for the current page session only. If the catalogue cannot be loaded
+  or contains no tracks, the original music is selected and a message is shown.
 
 **Navigation exception:** unlike the 2D games, Escape pauses instead of returning
 to the portfolio because browsers use it to release pointer lock. H still goes home.
@@ -285,6 +300,11 @@ running, apply the server update with `python3 scripts/game-server.py restart`.
 The original melodic instrumental
 soundtrack is generated locally with Web Audio, with soft keys, bass and
 sustained harmonies. It does not contain Minecraft music or require downloads.
+MP3 files are shared through the repository's `music/` directory. After adding
+or removing tracks, run `python3 scripts/generate-music-catalogue.py` from the
+repository root and refresh the game. Commit both the MP3 changes and the
+generated `music/catalogue.json` to publish them on the existing static site.
+Only publish music you have permission to distribute; files on the site are public.
 
 ## Dependency
 

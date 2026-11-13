@@ -31,6 +31,10 @@ profile and site.
   world**. With no saved worlds, guide the player directly to world creation.
 - Let players rename and delete worlds. Deletion requires explicit confirmation;
   deleting the last world returns to the empty-state/new-world flow.
+- Creating from the picker or deleting a world keeps the picker open. Highlight
+  and focus the new or remaining selected world; only explicit selection or
+  Continue opens the play-mode controls. Creation from the pause menu retains
+  its direct ready-to-play flow.
 - Show world name and last-saved time in the list. Keep the existing 32-character
   name limit and EN/PL localization.
 - Do not add cloud sync or export/import in this feature.
@@ -116,3 +120,16 @@ profile and site.
   64-test suite covers migration, recovery, corruption, quota failure, storage
   denial, save conflicts, and interrupted operations; syntax and whitespace
   checks pass.
+- 2026-11-13: Fixed the picker disappearing after creating a world from the list
+  or deleting its selected world. Added EN/PL creation, deletion, rename, and
+  failure feedback; restored focus after management; blocked conflicting
+  actions and duplicate mutation submissions. Pause-menu creation retains
+  its ready-to-play behavior. Browser DOM-activation checks on an isolated
+  localhost origin cover creation, cancellation, selected/non-selected/last-world
+  deletion, selection/Continue, rename validation, live language changes,
+  reload persistence, and injected save/deletion failures with successful
+  retries. Refresh failures after committed creation/deletion report the partial
+  outcome accurately; reload verifies persistence without resurrecting deleted
+  worlds. The existing 90-test suite passes. Native pointer delivery was not
+  available in the hidden integrated-browser tab, so these checks activate
+  visible, enabled controls through DOM events and verify focus/state directly.
