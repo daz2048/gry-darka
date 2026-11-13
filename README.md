@@ -10,16 +10,21 @@ Baner na stronie głównej zmienia efekt przy każdym obrocie. W czerwcu–sierp
 może pojawić się lato, we wrześniu jesień, w październiku dynie i gwiazdy,
 w listopadzie–lutym śnieg, w grudniu motywy świąteczne, w marcu i maju wiosna,
 a w kwietniu motywy wielkanocne i wiosenne. Po obróceniu banera mogą pojawić
-się bardziej dynamiczne efekty; pierwsze wyświetlenie zawsze jest spokojniejsze.
+się bardziej dynamiczne efekty; pierwsze wyświetlenie jest spokojniejsze,
+chyba że zapisano tylko jeden motyw.
 Wybór motywów zależy od lokalnego miesiąca odwiedzającego.
 Ruch obrotu również jest losowy (w lewo, w prawo lub z pomniejszeniem);
 przy ustawieniu ograniczonego ruchu baner zmienia stronę bez animacji.
 Łącze „Banner styles” obok pogody otwiera galerię wszystkich stylów, w tym
 różowe i pomarańczowe motywy, fajerwerki oraz spokojne, wolno zmieniające się
 światła sceniczne (bez szybkiego migania). Zmiany wyboru zapisują się automatycznie
-lokalnie w przeglądarce i obowiązują przy następnym obrocie. „Clear” pozwala zacząć
+lokalnie w przeglądarce. Wybór jednego motywu działa od razu i po odświeżeniu;
+kilka motywów zmienia się przy następnym obrocie. „Clear” pozwala zacząć
 wybór od nowa, zachowując poprzedni wybór do zaznaczenia nowego motywu;
 „Restore defaults” przywraca domyślny wybór sezonowy.
+Na początku galerii sekcja „Games” zawiera ciche automatyczne symulacje Snake,
+Zombie Defense, Platformer i Flappy. Przy ograniczonym ruchu pokazują nieruchomą
+scenę, a poza widocznym obszarem i w ukrytej karcie nie zużywają czasu animacji.
 
 ## Weather background
 
@@ -58,7 +63,7 @@ service is non-commercial with **10,000 calls/day**, plus hourly/minute limits.
 Revisit provider plans before adding advertising or increasing traffic.
 Weather attribution and the CC BY 4.0 link appear beside the controls.
 
-Tests: `node --test scripts/test_weather.js scripts/test_banner.js`.
+Tests: `node --test scripts/test_weather.js scripts/test_banner.js scripts/test_banner_snake.js`.
 
 ## Minecraft news and videos
 

@@ -16,7 +16,8 @@
 <link rel="stylesheet" href="minecraft-news.css?v=1" />
 <script src="weather.js?v=3" defer></script>
 <script src="minecraft-news.js?v=1" defer></script>
-<script src="banner-gallery.js?v=2" defer></script>
+<script src="banner-gallery.js?v=4" defer></script>
+<script src="banner-snake.js?v=2" defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   
@@ -223,6 +224,23 @@
   .brand-face[data-effect="pumpkins"]::after { background-image: url('menu-previews/banner-pumpkins.svg'), url('menu-previews/banner-pumpkins.svg'); }
   .brand-face[data-effect="spooky-stars"]::after { background-image: url('menu-previews/banner-spooky-stars.svg'), url('menu-previews/banner-spooky-stars.svg'); }
   .brand-face[data-effect="autumn-leaves"]::after { animation: falling-leaves 6s ease-in-out infinite; }
+  .brand-face:is([data-effect="snake"], [data-effect="zombie-defense"],
+    [data-effect="platformer"], [data-effect="flappy"])::after {
+    background-position: center; background-size: contain; background-repeat: no-repeat;
+    opacity: .6;
+  }
+  .brand-face[data-effect="snake"]::after { background-image: url('menu-previews/banner-snake.svg'); }
+  .brand-face[data-effect="zombie-defense"]::after { background-image: url('menu-previews/banner-zombie-defense.svg'); }
+  .brand-face[data-effect="platformer"]::after { background-image: url('menu-previews/banner-platformer.svg'); }
+  .brand-face[data-effect="flappy"]::after { background-image: url('menu-previews/banner-flappy.svg'); }
+  .brand-face:has(.banner-snake):is([data-effect="snake"], [data-effect="zombie-defense"],
+    [data-effect="platformer"], [data-effect="flappy"])::after { background: none; }
+  .banner-snake {
+    display: none; position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: .65; pointer-events: none;
+  }
+  .brand-face:is([data-effect="snake"], [data-effect="zombie-defense"],
+    [data-effect="platformer"], [data-effect="flappy"]) .banner-snake { display: block; }
   .brand-face[data-effect="fireworks"]::after,
   .brand-face[data-effect="nebula-burst"]::after,
   .brand-face[data-effect="campfire"]::after,
@@ -617,11 +635,13 @@
         <button class="brand-flip" type="button" disabled>
           <span class="brand-flip-inner">
             <span class="brand-face brand-face-front" lang="en">
+              <canvas class="banner-snake" width="720" height="160" aria-hidden="true"></canvas>
               <span class="brand-title">The Lime Tree Crew's Games (Hajnówka)<br>Pixel Otter Rocket</span>
               <span class="sub">Free browser games from Podlasie. Play instantly, no installation needed!</span>
               <span class="brand-hint">Flip heading</span>
             </span>
             <span class="brand-face brand-face-back" lang="pl" aria-hidden="true">
+              <canvas class="banner-snake" width="720" height="160" aria-hidden="true"></canvas>
               <span class="brand-title">Gry Ekipy spod Lipy (Hajnówka)<br>Pixel Otter Rocket</span>
               <span class="sub">Darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</span>
               <span class="brand-hint">Obróć nagłówek</span>
@@ -816,7 +836,7 @@
     </section>
     <details id="banner-gallery" class="banner-gallery" lang="en">
       <summary>Banner styles</summary>
-      <p>Preview and choose the styles used when you flip the banner. Changes are saved automatically in this browser; the first banner stays calm.</p>
+      <p>Choose at least one style. One style stays active; multiple styles change when you flip the banner. Your selection is saved in this browser.</p>
       <div class="banner-gallery-actions">
         <button type="button" id="banner-select-all">Select all</button>
         <button type="button" id="banner-clear">Clear</button>
@@ -826,6 +846,7 @@
       <div class="banner-gallery-preview" hidden>
         <h2 id="banner-preview-name">Preview</h2>
         <div class="brand-face" id="banner-preview" aria-hidden="true">
+          <canvas class="banner-snake" width="720" height="160" aria-hidden="true"></canvas>
           <span class="brand-title">Pixel Otter Rocket</span>
           <span class="sub">The Lime Tree Crew · Ekipa spod Lipy</span>
         </div>
@@ -858,7 +879,8 @@
       10: ['snow', 'frost'],
       11: ['festive-lights', 'presents'],
     };
-    const highImpactBrandEffects = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge', 'strobe-lights'];
+    const highImpactBrandEffects = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge', 'strobe-lights',
+      'snake', 'zombie-defense', 'platformer', 'flappy'];
     const highImpactSeasonalBrandEffects = {
       1: ['frost-hearts', 'winter-night'],
       2: ['spring-storm', 'meadow-burst'],
@@ -896,13 +918,15 @@
       return [...new Set(selection)];
     }
     function chooseBrandEffect(face, previousEffect) {
-      if (previousEffect) {
-        const selected = readBannerSelection();
-        if (selected) {
-          const choices = selected.length === 1 ? selected : selected.filter(effect => effect !== previousEffect);
-          face.dataset.effect = choices[Math.floor(Math.random() * choices.length)];
-          return;
-        }
+      const selected = readBannerSelection();
+      if (selected && selected.length === 1) {
+        face.dataset.effect = selected[0];
+        return;
+      }
+      if (previousEffect && selected) {
+        const choices = selected.filter(effect => effect !== previousEffect);
+        face.dataset.effect = choices[Math.floor(Math.random() * choices.length)];
+        return;
       }
       const month = new Date().getMonth();
       const seasonal = seasonalBrandEffects[month] && Math.random() < .5;

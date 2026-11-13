@@ -2,6 +2,15 @@
 
 Planning documents and explicitly recorded prototype progress, not release claims.
 
+## Homepage banner simulations
+
+- [x] Zombie defense: small automatic squad shooting approaching zombies.
+- [x] Original Mario-style platformer: a character runs, jumps and collects coins.
+- [x] Flappy-style scene: a bird automatically flies through scrolling pipes.
+
+Keep these optional decorative banner styles silent and legible, with static
+reduced-motion alternatives and animation paused when not visible.
+
 ## Homepage Minecraft news
 
 - [ ] Automate refresh and publication of the Minecraft news and video feeds.

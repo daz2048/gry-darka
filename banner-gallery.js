@@ -4,8 +4,10 @@ const bannerGalleryStatus = document.getElementById('banner-gallery-status');
 const bannerPreview = document.getElementById('banner-preview');
 const bannerPreviewContainer = document.querySelector('.banner-gallery-preview');
 const bannerPreviewName = document.getElementById('banner-preview-name');
+const gameBannerEffects = ['snake', 'zombie-defense', 'platformer', 'flappy'];
 const bannerGroups = [
-  ['Year-round', [...brandEffects, ...highImpactBrandEffects]],
+  ['Games', gameBannerEffects],
+  ['Year-round', [...brandEffects, ...highImpactBrandEffects].filter(effect => !gameBannerEffects.includes(effect))],
   ['Winter · November–February', ['snow', 'frost', 'frost-hearts', 'winter-night']],
   ['Christmas · December', ['festive-lights', 'presents']],
   ['Spring · March–May', ['blossoms', 'spring-storm', 'meadow-burst', 'easter-eggs']],
@@ -36,7 +38,13 @@ function saveBannerSelection() {
     return;
   }
   reportBannerStorageError('');
-  bannerGalleryStatus.textContent = `Saved ${selected.length} styles. They will be used on the next flip.`;
+  if (selected.length === 1) {
+    const currentFace = brandFaces[brandFlip.classList.contains('is-flipped') ? 1 : 0];
+    currentFace.dataset.effect = selected[0];
+  }
+  bannerGalleryStatus.textContent = selected.length === 1
+    ? 'Saved 1 style. It will remain active until you change your selection.'
+    : `Saved ${selected.length} styles. They will be used on the next flip.`;
 }
 
 function initializeBannerGallery() {
