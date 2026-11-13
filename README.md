@@ -99,8 +99,8 @@ and `node --test scripts/test_minecraft_news.js`.
 ## Wspólna muzyka
 
 Pliki MP3, WAV, OGG i M4A dla gier znajdują się w katalogu `music/`. Po dodaniu lub usunięciu
-utworów uruchom `python3 scripts/generate-music-catalogue.py` z katalogu
-repozytorium i odśwież grę. Do publikacji należy zapisać w Git zarówno zmiany
+utworów uruchom `scripts/generate-music-catalogue.sh` z katalogu repozytorium
+i odśwież grę. Do publikacji należy zapisać w Git zarówno zmiany
 plików audio, jak i wygenerowany `music/catalogue.json`. Obsługa formatów i
 kodeków zależy od przeglądarki. Publikuj tylko utwory, które
 masz prawo udostępniać: pliki na stronie są publiczne.

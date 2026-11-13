@@ -15,7 +15,7 @@ catalogue refresh or custom Pages deployment workflow.**
 2. From the repository root, run:
 
    ```sh
-   python3 scripts/generate-music-catalogue.py
+   scripts/generate-music-catalogue.sh
    ```
 
    The catalogue is overwritten with a filename-sorted list of supported audio files
