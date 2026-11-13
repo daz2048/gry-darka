@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { World, SIZE } from '../world.js';
+import { World, SIZE, hauntedHouseIdAt, updateHauntedCurse } from '../world.js';
 import { createPlayer } from '../player.js';
 import {
   applySnapshot, createSnapshot, CorruptSaveError, saveDataSize, suggestUniqueWorldName, validateSnapshot
@@ -137,6 +137,32 @@ test('haunted-world curse persists in saves and missing legacy curse state defau
   const restoredNightmare = applySnapshot(new World(1), nightmareSnapshot);
   assert.equal(restoredNightmare.cursed, false);
   assert.equal(restoredNightmare.nightmare, true);
+  assert.equal(restoredNightmare.hauntedVisits, 3);
+
+  const opWorld = new World(42);
+  opWorld.curseLifted = true;
+  opWorld.opMode = true;
+  opWorld.hauntedVisits = 4;
+  const opSnapshot = createSnapshot(opWorld, createPlayer(opWorld), 0, 0, 1, {
+    sensitivity: 1, lowQuality: true, musicEnabled: false, musicVolume: 0
+  }, 'op-world');
+  const restoredOp = applySnapshot(new World(1), opSnapshot);
+  assert.equal(restoredOp.opMode, true);
+  assert.equal(restoredOp.hauntedVisits, 4);
+
+  const visitWorld = new World(42);
+  const house = hauntedHouseIdAt(105, 63);
+  const insidePlayer = createPlayer(visitWorld);
+  insidePlayer.x = 105.5;
+  insidePlayer.y = 8.5;
+  insidePlayer.z = 63.5;
+  assert.equal(updateHauntedCurse(visitWorld, house), true);
+  const visitSnapshot = createSnapshot(visitWorld, insidePlayer, 0, 0, 1, {
+    sensitivity: 1, lowQuality: true, musicEnabled: false, musicVolume: 0
+  }, 'inside-haunted-home');
+  const restoredVisit = applySnapshot(new World(1), visitSnapshot);
+  assert.equal(updateHauntedCurse(restoredVisit, house), false);
+  assert.equal(restoredVisit.hauntedVisits, 1);
 });
 
 test('snapshot validation rejects incompatible schemas, dimensions, and payload lengths', () => {

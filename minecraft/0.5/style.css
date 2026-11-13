@@ -101,8 +101,10 @@ h1 em { font-style: normal; color: #ad4934; }
 }
 .world-picker { margin: 14px 0; padding: 14px; border: 1px solid #9db19a; border-radius: 12px; background: #eff5ed; }
 .world-picker h2 { margin: 0 0 8px; font-size: 18px; }
+.world-bulk-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.world-bulk-controls label, .world-select-label { display: flex; align-items: center; gap: 5px; font-size: 11px; }
 .world-list { display: grid; gap: 7px; max-height: min(220px, 30vh); overflow-y: auto; margin: 10px 0; }
-.world-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: stretch; }
+.world-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; align-items: stretch; }
 .world-option { display: grid; gap: 4px; width: 100%; text-align: left; }
 .world-option[aria-pressed="true"] { border-color: #183f36; background: #ffe193; }
 .world-option strong { overflow-wrap: anywhere; }
@@ -187,7 +189,7 @@ output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: mo
 }
 .fatal { position: fixed; top: 10px; background: white; padding: 20px; z-index: 5; }
 @media (max-width: 700px) { .topbar { padding: 12px; } .brand strong { font-size: 17px; } .brand small { display: block; margin: 3px 0 0; font-size: 8px; letter-spacing: 0; } .tools a { display: none; } .panel { padding: 22px; } .slot { font-size: 9px; } }
-@media (max-width: 480px) { .world-card { grid-template-columns: 1fr; } .world-actions { justify-content: flex-end; } }
+@media (max-width: 480px) { .world-card { grid-template-columns: auto minmax(0, 1fr); } .world-actions { grid-column: 2; justify-content: flex-end; } }
 @media (max-height: 650px) { .overlay { place-items: start center; } .panel { padding: 20px; } h1 { font-size: 32px; } }
 @media (max-width: 600px) {
   #hud { bottom: 8px; padding: 6px; border-radius: 12px; }

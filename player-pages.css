@@ -21,6 +21,7 @@ li { margin: 8px 0; }
 kbd { padding: 2px 6px; border: 1px solid #8391a9; border-radius: 4px; font-size: .9em; white-space: nowrap; }
 .english { padding-top: 12px; margin-top: 16px; border-top: 1px solid #526079; }
 .note { border-left: 4px solid #ffcd53; padding-left: 16px; }
+.special-release-badge { display: inline-block; padding: 2px 7px; border: 1px solid #ffcd53; border-radius: 4px; color: #ffcd53; font-size: .75em; font-weight: 700; line-height: 1.5; }
 .meta, footer { color: #bbc7dc; font-size: 15px; }
 summary { cursor: pointer; min-height: 44px; padding: 8px 0; font-weight: 700; }
 footer { margin-top: 32px; }

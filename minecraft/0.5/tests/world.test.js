@@ -220,24 +220,33 @@ test('haunted-house blocks are identified and tagged for the changing effect', (
   assert.equal(hauntedHouseIdAt(0, 0), null);
 });
 
-test('a different haunted home lifts the curse and a later one triggers a nightmare', () => {
+test('four haunted-home entries curse, clear, frighten and then enable overpowered mode', () => {
   const world = new World();
-  const firstHouse = hauntedHouseIdAt(VILLAGES[0].x - 7, VILLAGES[0].z + 7);
-  const secondHouse = hauntedHouseIdAt(VILLAGES[1].x - 7, VILLAGES[1].z + 7);
-  const thirdHouse = hauntedHouseIdAt(VILLAGES[2].x - 7, VILLAGES[2].z + 7);
+  const house = hauntedHouseIdAt(VILLAGES[0].x - 7, VILLAGES[0].z + 7);
 
-  assert.equal(updateHauntedCurse(world, firstHouse), true);
-  assert.equal(updateHauntedCurse(world, firstHouse), false);
+  assert.equal(updateHauntedCurse(world, house), true);
+  assert.equal(updateHauntedCurse(world, house), false);
+  assert.equal(world.hauntedVisits, 1);
   assert.equal(world.cursed, true);
-  assert.equal(updateHauntedCurse(world, secondHouse), true);
+  assert.equal(updateHauntedCurse(world, null), false);
+  assert.equal(updateHauntedCurse(world, house), true);
+  assert.equal(world.hauntedVisits, 2);
   assert.equal(world.cursed, false);
   assert.equal(world.curseLifted, true);
-  assert.equal(world.curseHouse, secondHouse);
-  assert.equal(updateHauntedCurse(world, secondHouse), false);
-  assert.equal(updateHauntedCurse(world, thirdHouse), true);
-  assert.equal(world.cursed, false);
+  assert.equal(updateHauntedCurse(world, null), false);
+  assert.equal(updateHauntedCurse(world, house), true);
+  assert.equal(world.hauntedVisits, 3);
   assert.equal(world.nightmare, true);
-  assert.equal(updateHauntedCurse(world, firstHouse), false);
+  assert.equal(world.opMode, false);
+  assert.equal(updateHauntedCurse(world, null), false);
+  assert.equal(updateHauntedCurse(world, house), true);
+  assert.equal(world.hauntedVisits, 4);
+  assert.equal(world.cursed, false);
+  assert.equal(world.nightmare, false);
+  assert.equal(world.opMode, true);
+  assert.equal(updateHauntedCurse(world, null), false);
+  assert.equal(updateHauntedCurse(world, house), false);
+  assert.equal(world.hauntedVisits, 4);
 });
 
 test('villages connect by roads and contain seeded mineable ore veins', () => {
@@ -711,6 +720,16 @@ test('diagonal movement is normalized and the world edge blocks movement', () =>
   for (let i = 0; i < 600; i++) stepPlayer(world, a, { forward: true }, 0, 1 / 30);
   assert.ok(a.z >= 0.3);
   assert.equal(collides(world, a), false);
+});
+
+test('overpowered mode grants faster movement and a stronger jump', () => {
+  const world = flat();
+  const regular = { x: 10.5, y: 1, z: 10.5, vy: 0, grounded: true };
+  const powered = { ...regular };
+  stepPlayer(world, regular, { forward: true, jump: true }, 0, 1 / 60);
+  stepPlayer(world, powered, { forward: true, jump: true, overpowered: true }, 0, 1 / 60);
+  assert.ok(powered.z < regular.z);
+  assert.ok(powered.vy > regular.vy);
 });
 
 test('ceiling stops a jump and a removed support allows falling', () => {

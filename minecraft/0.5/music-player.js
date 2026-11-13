@@ -32,6 +32,10 @@ export class MusicPlayer {
     this.onError = onError;
     this.onFallback = onFallback;
     this.base = base;
+    this.scaryBase = new URL('scary_music/', base);
+    this.scaryTracks = [];
+    this.scary = false;
+    this.failedScaryTracks = new Set();
     this.selection = tracks.length ? 'random' : 'original';
     this.active = false;
     this.generation = 0;
@@ -41,12 +45,12 @@ export class MusicPlayer {
     this.audio.preload = 'none';
     this.audio.volume = 0.35;
     this.audio.addEventListener('ended', () => {
-      if (!this.active || this.selection !== 'random') return;
+      if (!this.active || (!this.scary && this.selection !== 'random')) return;
       this.current = null;
       this.playTrack();
     });
     this.audio.addEventListener('error', () => {
-      if (this.audio.error && this.active && this.selection !== 'original') {
+      if (this.audio.error && this.active && (this.scary || this.selection !== 'original')) {
         this.fail(new Error('The audio file could not be played.'), this.generation);
       }
     });
@@ -88,11 +92,19 @@ export class MusicPlayer {
     this.audio.volume = volume;
   }
 
+  setScary(scary, shouldPlay = this.active) {
+    if (this.scary === scary) return;
+    this.stop();
+    this.scary = scary;
+    this.current = null;
+    if (shouldPlay) this.start();
+  }
+
   start() {
     if (this.active) return;
     this.active = true;
     const generation = ++this.generation;
-    if (this.selection === 'original') {
+    if (!this.scary && this.selection === 'original') {
       this.ambient.prepare().catch(error => this.fail(error, generation));
       this.ambient.start();
     } else {
@@ -103,8 +115,10 @@ export class MusicPlayer {
   playTrack() {
     const generation = ++this.generation;
     if (!this.current) {
-      const available = this.availableTracks();
-      const track = this.selection === 'random'
+      const available = this.scary
+        ? this.scaryTracks.filter(track => !this.failedScaryTracks.has(track.file))
+        : this.availableTracks();
+      const track = this.scary || this.selection === 'random'
         ? available[Math.floor(this.random() * available.length)]
         : this.tracks.find(item => `track:${item.file}` === this.selection);
       if (!track) {
@@ -112,9 +126,9 @@ export class MusicPlayer {
         return;
       }
       this.current = track.file;
-      this.audio.src = new URL(encodeURIComponent(track.file), this.base).href;
+      this.audio.src = new URL(encodeURIComponent(track.file), this.scary ? this.scaryBase : this.base).href;
     }
-    this.audio.loop = this.selection !== 'random';
+    this.audio.loop = !this.scary && this.selection !== 'random';
     this.audio.play().catch(error => this.fail(error, generation));
   }
 
@@ -123,6 +137,16 @@ export class MusicPlayer {
     this.stop();
     if (error.name === 'NotAllowedError') {
       this.onError(error);
+      return;
+    }
+    if (this.scary) {
+      if (this.current) this.failedScaryTracks.add(this.current);
+      this.current = null;
+      if (this.scaryTracks.some(track => !this.failedScaryTracks.has(track.file))) {
+        this.start();
+      } else {
+        this.onError(error);
+      }
       return;
     }
     if (this.selection === 'original') this.failedOriginal = true;
@@ -148,6 +172,6 @@ export class MusicPlayer {
   }
 
   tick() {
-    if (this.active && this.selection === 'original') this.ambient.tick();
+    if (this.active && !this.scary && this.selection === 'original') this.ambient.tick();
   }
 }

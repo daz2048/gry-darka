@@ -188,6 +188,69 @@ test('random tracks advance, pause resumes, and individual and original choices 
   assert.equal(ambient.active, false);
 });
 
+test('scary mode immediately overrides and later restores the selected soundtrack', async () => {
+  const audio = new MediaAudio();
+  const ambient = new AmbientMusic(AudioContext);
+  let choice = 0;
+  const player = new MusicPlayer([{ file: 'normal.mp3', title: 'Normal' }], {
+    audio, ambient, random: () => choice, base: new URL('https://example.test/music/')
+  });
+  player.scaryTracks = [{ file: 'first.mp3' }, { file: 'second #1.ogg' }];
+  player.setSelection('original');
+  player.start();
+  await Promise.resolve();
+  assert.equal(ambient.active, true);
+  player.setScary(true);
+  assert.equal(ambient.active, false);
+  assert.equal(player.selection, 'original');
+  assert.equal(audio.src, 'https://example.test/music/scary_music/first.mp3');
+  assert.equal(audio.loop, false);
+  choice = 0.9;
+  audio.emit('ended');
+  assert.equal(audio.src, 'https://example.test/music/scary_music/second%20%231.ogg');
+  player.stop();
+  player.start();
+  assert.match(audio.src, /second%20%231\.ogg$/);
+  player.setScary(false);
+  await Promise.resolve();
+  assert.equal(ambient.active, true);
+  assert.equal(player.selection, 'original');
+  player.stop();
+  const plays = audio.plays;
+  player.setScary(true);
+  assert.equal(audio.plays, plays);
+  player.start();
+  assert.match(audio.src, /scary_music\/second%20%231\.ogg$/);
+  player.setSelection('track:normal.mp3');
+  player.start();
+  assert.match(audio.src, /scary_music\//);
+  player.setScary(false);
+  assert.match(audio.src, /music\/normal\.mp3$/);
+  assert.equal(audio.loop, true);
+});
+
+test('scary playback retries only scary tracks and reports exhaustion without changing the selection', () => {
+  const audio = new MediaAudio();
+  const errors = [];
+  const player = new MusicPlayer([{ file: 'normal.mp3' }], {
+    audio, ambient: new AmbientMusic(AudioContext), random: () => 0,
+    onError: error => errors.push(error),
+    onFallback: () => assert.fail('Scary failures must not change the normal soundtrack')
+  });
+  player.scaryTracks = [{ file: 'broken.mp3' }, { file: 'other.mp3' }];
+  player.setScary(true);
+  player.start();
+  audio.emit('error');
+  assert.match(audio.src, /scary_music\/other\.mp3$/);
+  audio.emit('error');
+  assert.equal(player.active, false);
+  assert.equal(player.selection, 'random');
+  assert.equal(errors.length, 1);
+  player.setScary(false, true);
+  assert.equal(player.active, true);
+  assert.match(audio.src, /music\/normal\.mp3$/);
+});
+
 test('playback failures are reported once and stale rejections do not stop a resumed track', async () => {
   const audio = new MediaAudio();
   const errors = [];

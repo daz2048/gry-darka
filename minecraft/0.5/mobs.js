@@ -1,4 +1,4 @@
-import { SIZE, VILLAGES, BIOME_VILLAGES } from './world.js?v=10';
+import { SIZE, VILLAGES, BIOME_VILLAGES } from './world.js?v=11';
 
 const PASTURES = [
   { kind: 'cow', x: 25.4, z: 28.2, radius: 0.58, height: 1.62, speed: 0.55,

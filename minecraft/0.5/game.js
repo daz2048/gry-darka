@@ -2,23 +2,24 @@ import * as THREE from 'three';
 import { PointerLockControls } from '../shared/vendor/three/0.180.0/PointerLockControls.js';
 import { World, SIZE, CHUNK, BLOCKS, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTURES,
   nearbyChunks, chunkGeometry, waterGeometry, pick, hauntedHouseIdAt, updateHauntedCurse }
-  from './world.js?v=10';
+  from './world.js?v=11';
 import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=3';
-import { createPlayer, collides, stepPlayer } from './player.js?v=2';
-import { createMobs, createMobModel, stepMobs } from './mobs.js?v=6';
-import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=3';
+import { createPlayer, collides, stepPlayer } from './player.js?v=3';
+import { createMobs, createMobModel, stepMobs } from './mobs.js?v=7';
+import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=4';
 import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, WORLD_STORE,
   MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
-  suggestUniqueWorldName } from './saves.js?v=14';
-import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=5';
-import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=15';
-import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=12';
+  suggestUniqueWorldName } from './saves.js?v=16';
+import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=7';
+import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=16';
+import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=13';
 
 initDiagnostics();
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
   'pause', 'recover', 'new-world', 'choose-world', 'fullscreen', 'world-picker', 'world-picker-status',
   'world-list', 'world-continue', 'world-create', 'world-import', 'world-import-file', 'world-transfer-status',
+  'world-bulk-controls', 'world-select-all', 'world-delete-selected',
   'world-action-confirm', 'world-action-message',
   'world-action-name-label', 'world-action-name', 'confirm-world-action', 'cancel-world-action',
   'play-actions', 'secondary-actions',
@@ -43,6 +44,7 @@ const scene = new THREE.Scene();
 const outdoorFogColor = new THREE.Color(0xc9e7e5);
 const hauntedFogColor = new THREE.Color('#21191f');
 const nightmareFogColor = new THREE.Color('#15070f');
+const opFogColor = new THREE.Color('#fff1bd');
 scene.fog = new THREE.Fog(outdoorFogColor, 36, 62);
 const camera = new THREE.PerspectiveCamera(70, 1, 0.05, 140);
 camera.rotation.order = 'YXZ';
@@ -155,12 +157,14 @@ const material = new THREE.MeshLambertMaterial({ vertexColors: true, map: atlas 
 const hauntedUniforms = {
   time: { value: 0 },
   intensity: { value: 0 },
-  nightmare: { value: 0 }
+  nightmare: { value: 0 },
+  overpowered: { value: 0 }
 };
 material.onBeforeCompile = shader => {
   shader.uniforms.hauntTime = hauntedUniforms.time;
   shader.uniforms.hauntIntensity = hauntedUniforms.intensity;
   shader.uniforms.nightmareIntensity = hauntedUniforms.nightmare;
+  shader.uniforms.opIntensity = hauntedUniforms.overpowered;
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', `#include <common>
       attribute float haunted;
@@ -171,7 +175,8 @@ material.onBeforeCompile = shader => {
       uniform float hauntTime;
       uniform float hauntIntensity;`)
     .replace('uniform float hauntIntensity;', `uniform float hauntIntensity;
-      uniform float nightmareIntensity;`)
+      uniform float nightmareIntensity;
+      uniform float opIntensity;`)
     .replace('#include <begin_vertex>', `#include <begin_vertex>
       vHaunted = haunted;
       vHauntedFloor = hauntedFloor;
@@ -184,7 +189,8 @@ material.onBeforeCompile = shader => {
       transformed.z += hauntStrength * cos(hauntWave * 0.77) * 0.11;
       transformed.x += nightmareIntensity * sin(hauntWave * 1.31) * 0.09;
       transformed.z += nightmareIntensity * cos(hauntWave * 1.17) * 0.09;
-      transformed.y += nightmareIntensity * sin(hauntWave * 0.83) * 0.055;`);
+      transformed.y += nightmareIntensity * sin(hauntWave * 0.83) * 0.055;
+      transformed.y += opIntensity * sin(hauntWave * 2.1) * 0.035;`);
   shader.fragmentShader = shader.fragmentShader
     .replace('#include <common>', `#include <common>
       varying float vHaunted;
@@ -193,7 +199,8 @@ material.onBeforeCompile = shader => {
       uniform float hauntTime;
       uniform float hauntIntensity;`)
     .replace('uniform float hauntIntensity;', `uniform float hauntIntensity;
-      uniform float nightmareIntensity;`)
+      uniform float nightmareIntensity;
+      uniform float opIntensity;`)
     .replace('#include <output_fragment>', `#include <output_fragment>
       float hauntPulse = 0.5 + 0.5 * sin(hauntTime * 3.2 +
         dot(vHauntPosition, vec3(1.7, 2.3, 1.3)));
@@ -223,7 +230,11 @@ material.onBeforeCompile = shader => {
         (0.34 + crimsonPool * 0.5) * (0.72 + hauntPulse * 0.28));
       gl_FragColor.rgb = mix(gl_FragColor.rgb, stainedFloor, vHauntedFloor);
       gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.12, 0.006, 0.025),
-        nightmareIntensity * (0.24 + 0.12 * hauntPulse));`);
+        nightmareIntensity * (0.24 + 0.12 * hauntPulse));
+      float opPulse = 0.5 + 0.5 * sin(hauntTime * 4.1 +
+        dot(vHauntPosition, vec3(2.1, 1.4, 2.7)));
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(1.0, 0.67, 0.08),
+        opIntensity * (0.24 + opPulse * 0.24));`);
 };
 const waterCanvas = document.createElement('canvas');
 waterCanvas.width = waterCanvas.height = 64;
@@ -252,6 +263,8 @@ const normalWaterColor = new THREE.Color(0xffffff);
 const hauntedWaterColor = new THREE.Color('#4b182c');
 const nightmareWaterColor = new THREE.Color('#210913');
 const nightmareMobTint = new THREE.Color('#493141');
+const opWaterColor = new THREE.Color('#d7a833');
+const opMobTint = new THREE.Color('#ffe08a');
 const chunks = new Map();
 const waterChunks = new Map();
 const loadedChunks = new Set();
@@ -275,6 +288,7 @@ const customWorldName = name => (name && !DEFAULT_WORLD_NAMES.has(name) ? name :
 const displayWorldName = name => customWorldName(name) ?? t('world.defaultName');
 let worldName;
 let savedWorlds = [];
+const selectedWorldIds = new Set();
 let worldPickerUnavailable = false;
 let selectingWorld = false;
 let transferringWorld = false;
@@ -347,6 +361,13 @@ function renderWorldPicker() {
   const validWorlds = savedWorlds.filter(entry => !entry.corrupt);
   const mostRecent = validWorlds[0];
   const atWorldLimit = !worldPickerUnavailable && savedWorlds.length >= MAX_WORLDS;
+  const availableIds = new Set(savedWorlds.map(entry => entry.worldId));
+  for (const id of selectedWorldIds) if (!availableIds.has(id)) selectedWorldIds.delete(id);
+  ui['world-bulk-controls'].hidden = !savedWorlds.length;
+  ui['world-select-all'].disabled = busy;
+  ui['world-delete-selected'].disabled = busy || !selectedWorldIds.size;
+  ui['world-select-all'].checked = savedWorlds.length > 0 && selectedWorldIds.size === savedWorlds.length;
+  ui['world-select-all'].indeterminate = selectedWorldIds.size > 0 && selectedWorldIds.size < savedWorlds.length;
   ui['world-continue'].hidden = !mostRecent;
   ui['world-continue'].disabled = busy;
   if (mostRecent) {
@@ -385,6 +406,23 @@ function renderWorldPicker() {
     const item = document.createElement('div');
     item.setAttribute('role', 'listitem');
     item.className = 'world-card';
+    const selectLabel = document.createElement('label');
+    selectLabel.className = 'world-select-label';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = selectedWorldIds.has(entry.worldId);
+    checkbox.disabled = busy;
+    checkbox.setAttribute('aria-label', t('worldPicker.selectNamed', {
+      world: displayWorldName(entry.worldName)
+    }));
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) selectedWorldIds.add(entry.worldId);
+      else selectedWorldIds.delete(entry.worldId);
+      ui['world-select-all'].checked = selectedWorldIds.size === savedWorlds.length;
+      ui['world-select-all'].indeterminate = selectedWorldIds.size > 0 && selectedWorldIds.size < savedWorlds.length;
+      ui['world-delete-selected'].disabled = !selectedWorldIds.size;
+    });
+    selectLabel.append(checkbox);
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'world-option';
@@ -441,7 +479,7 @@ function renderWorldPicker() {
     }));
     exportButton.addEventListener('click', () => transferWorld(() => exportSavedWorld(entry.worldId)));
     actions.append(exportButton, rename, remove);
-    item.append(button, actions);
+    item.append(selectLabel, button, actions);
     ui['world-list'].append(item);
   }
 }
@@ -526,6 +564,9 @@ function reportError(error) {
 
 function notice(message, duration = 5000, state = 'normal') {
   clearTimeout(noticeTimer);
+  for (const property of ['left', 'top', 'right', 'bottom', 'transform']) {
+    ui.notice.style.removeProperty(property);
+  }
   ui.notice.textContent = message;
   ui.notice.hidden = false;
   ui.notice.dataset.state = state;
@@ -533,7 +574,7 @@ function notice(message, duration = 5000, state = 'normal') {
 }
 
 function savedPauseNotice() {
-  notice('', 3000, 'saved');
+  notice('', 1000, 'saved');
   const card = document.createElement('span');
   card.className = 'save-confirmation';
   const heading = document.createElement('strong');
@@ -543,6 +584,15 @@ function savedPauseNotice() {
   card.append(heading, details);
   ui.notice.replaceChildren(card);
   renderSavedPauseNotice();
+  const bounds = ui.notice.getBoundingClientRect();
+  const margin = 16;
+  const maxLeft = Math.max(margin, window.innerWidth - bounds.width - margin);
+  const maxTop = Math.max(margin, window.innerHeight - bounds.height - margin);
+  ui.notice.style.left = `${margin + Math.random() * (maxLeft - margin)}px`;
+  ui.notice.style.top = `${margin + Math.random() * (maxTop - margin)}px`;
+  ui.notice.style.right = 'auto';
+  ui.notice.style.bottom = 'auto';
+  ui.notice.style.transform = 'none';
 }
 
 function renderSavedPauseNotice() {
@@ -750,16 +800,18 @@ async function saveWorld({ snapshot = null, replaceCorrupt = false, expected: ex
 function renderWorldAction() {
   if (!pendingWorldAction) return;
   const { type, worldName: name } = pendingWorldAction;
-  ui['world-action-message'].textContent = type === 'delete'
+  ui['world-action-message'].textContent = type === 'deleteSelected'
+    ? t('worldPicker.deleteSelectedQuestion', { count: pendingWorldAction.worldIds.length })
+    : type === 'delete'
     ? t('worldPicker.deleteQuestion', { world: displayWorldName(name) })
     : t('worldPicker.renameQuestion', { world: displayWorldName(name) });
   ui['world-action-name-label'].hidden = type !== 'rename';
   ui['world-action-name'].hidden = type !== 'rename';
   ui['world-action-name'].setCustomValidity('');
   ui['confirm-world-action'].textContent = t(`worldPicker.${type}`);
-  ui['world-action-confirm'].classList.toggle('delete-confirm-active', type === 'delete');
+  ui['world-action-confirm'].classList.toggle('delete-confirm-active', type !== 'rename');
   ui['confirm-world-action'].classList.remove('delete-confirm-breathe');
-  ui['confirm-world-action'].classList.toggle('delete-confirm-flash', type === 'delete');
+  ui['confirm-world-action'].classList.toggle('delete-confirm-flash', type !== 'rename');
   ui['world-action-confirm'].hidden = false;
 }
 
@@ -790,7 +842,8 @@ function closeWorldAction() {
   renderWorldPicker();
   const trigger = [...ui['world-list'].querySelectorAll('[data-world-action]')]
     .find(button => button.dataset.worldAction === action?.type && button.dataset.worldId === action?.worldId);
-  if (trigger) trigger.focus();
+  if (action?.type === 'deleteSelected' && !ui['world-delete-selected'].disabled) ui['world-delete-selected'].focus();
+  else if (trigger) trigger.focus();
   else focusWorldOption();
 }
 
@@ -803,7 +856,8 @@ async function confirmWorldAction() {
     ui['world-action-name'].reportValidity();
     return;
   }
-  const deletingCurrent = action.type === 'delete' && action.worldId === worldId;
+  const deletingCurrent = action.type === 'delete' ? action.worldId === worldId
+    : action.type === 'deleteSelected' && action.worldIds.includes(worldId);
   let committed = false;
   mutatingWorld = true;
   ui['confirm-world-action'].disabled = true;
@@ -833,9 +887,17 @@ async function confirmWorldAction() {
         autosaveTimer = null;
         if (saveInProgress) await saveInProgress;
       }
-      const deleted = await saveStore.deleteWorld(action.worldId);
+      const deleted = action.type === 'deleteSelected'
+        ? await saveStore.deleteWorlds(action.worldIds)
+        : await saveStore.deleteWorld(action.worldId);
       if (!deleted) throw codedError('world-not-found');
-      worldFeedback = { key: 'worldPicker.deleted', worldName: action.worldName };
+      if (action.type === 'deleteSelected') {
+        for (const id of action.worldIds) selectedWorldIds.delete(id);
+        worldFeedback = { key: 'worldPicker.deletedSelected', params: { count: action.worldIds.length } };
+      } else {
+        selectedWorldIds.delete(action.worldId);
+        worldFeedback = { key: 'worldPicker.deleted', worldName: action.worldName };
+      }
     }
 
     committed = true;
@@ -865,6 +927,7 @@ async function confirmWorldAction() {
       if (nextWorld) await selectSavedWorld(nextWorld.worldId, { keepPickerOpen: true });
     }
   } catch (error) {
+    if (!committed && deletingCurrent && saveDirty && !saveGate) scheduleAutosave();
     worldFeedback = {
       key: committed ? 'worldPicker.changedRefreshFailed' : 'worldPicker.actionFailed',
       error
@@ -958,10 +1021,14 @@ async function openWorldPicker() {
 
 function prepareMusic() {
   if (!ui['music-on'].checked) return;
+  music.setScary(world.cursed || world.nightmare);
   music.start();
 }
 
 async function initializeMusic() {
+  const scaryCatalogue = loadMusicCatalogue(music.scaryBase)
+    .then(tracks => { music.scaryTracks = tracks; })
+    .catch(error => { console.error('Scary music catalogue:', error); });
   try {
     const tracks = await loadMusicCatalogue();
     music.tracks = tracks;
@@ -985,6 +1052,7 @@ async function initializeMusic() {
   }
   ui['music-choice'].value = music.selection;
   ui['music-choice'].disabled = !ui['music-on'].checked;
+  await scaryCatalogue;
 }
 
 function resize() {
@@ -1163,7 +1231,7 @@ function play(useDrag) {
   dragMode = useDrag;
   playing = true;
   document.body.classList.add('playing');
-  if (ui['music-on'].checked) music.start();
+  prepareMusic();
   keys.clear();
   lastTime = performance.now();
   accumulator = 0;
@@ -1230,7 +1298,7 @@ function updateTarget() {
 
 let lastEdit = -Infinity;
 function edit(place) {
-  if (!playing || performance.now() - lastEdit < 140) return;
+  if (!playing || performance.now() - lastEdit < (world.opMode ? 35 : 140)) return;
   lastEdit = performance.now();
   updateTarget();
   if (!target) { notice(t('notice.tooFar')); return; }
@@ -1301,6 +1369,21 @@ ui['world-import-file'].addEventListener('change', () => {
   if (file) transferWorld(() => importWorldFile(file));
 });
 ui['choose-world'].addEventListener('click', () => openWorldPicker().catch(reportError));
+ui['world-select-all'].addEventListener('change', () => {
+  selectedWorldIds.clear();
+  if (ui['world-select-all'].checked) {
+    for (const entry of savedWorlds) selectedWorldIds.add(entry.worldId);
+  }
+  renderWorldPicker();
+});
+ui['world-delete-selected'].addEventListener('click', () => {
+  if (selectingWorld || transferringWorld || mutatingWorld || pendingWorldAction || !selectedWorldIds.size) return;
+  worldFeedback = null;
+  pendingWorldAction = { type: 'deleteSelected', worldIds: [...selectedWorldIds] };
+  renderWorldPicker();
+  renderWorldAction();
+  ui['confirm-world-action'].focus();
+});
 ui['confirm-world-action'].addEventListener('animationend', event => {
   if (event.animationName !== 'delete-confirm-flash' || pendingWorldAction?.type !== 'delete') return;
   ui['confirm-world-action'].classList.remove('delete-confirm-flash');
@@ -1718,14 +1801,19 @@ function frame(now) {
     hauntedHouseIdAt(player.x, player.z) : null;
   if (updateHauntedCurse(world, hauntedHouseId)) markDirty();
   const hauntTarget = world.cursed || world.nightmare ? 1 : 0;
+  music.setScary(Boolean(hauntTarget), music.active || (playing && ui['music-on'].checked));
+  const opTarget = world.opMode ? 1 : 0;
   hauntedUniforms.time.value = now / 1000;
   hauntedUniforms.intensity.value += (hauntTarget - hauntedUniforms.intensity.value) *
     Math.min(elapsed / 450, 1);
   const nightmareTarget = world.nightmare ? 1 : 0;
   hauntedUniforms.nightmare.value += (nightmareTarget - hauntedUniforms.nightmare.value) *
     Math.min(elapsed / 700, 1);
+  hauntedUniforms.overpowered.value += (opTarget - hauntedUniforms.overpowered.value) *
+    Math.min(elapsed / 600, 1);
   const haunted = hauntedUniforms.intensity.value;
   const nightmare = hauntedUniforms.nightmare.value;
+  const overpowered = hauntedUniforms.overpowered.value;
   hauntedMotes.visible = haunted > 0.01;
   hauntedMoteMaterial.opacity = haunted * (0.68 + nightmare * 0.3);
   if (hauntedMotes.visible) {
@@ -1741,35 +1829,39 @@ function frame(now) {
     motePositions.needsUpdate = true;
   }
   ambientLight.intensity = THREE.MathUtils.lerp(1.25,
-    THREE.MathUtils.lerp(0.35, 0.12, nightmare), haunted);
+    THREE.MathUtils.lerp(0.35, 0.12, nightmare), haunted) + overpowered * 0.25;
   sunlight.intensity = THREE.MathUtils.lerp(2.1,
-    THREE.MathUtils.lerp(0.18, 0.04, nightmare), haunted);
+    THREE.MathUtils.lerp(0.18, 0.04, nightmare), haunted) + overpowered * 0.55;
   hauntedLight.position.set(player.x, player.y + 1.1, player.z);
   hauntedLight.intensity = haunted * (1.2 + nightmare * 0.8 +
     0.35 * Math.sin(now / 1000 * 1.7));
   scene.fog.color.copy(outdoorFogColor).lerp(hauntedFogColor, haunted);
   scene.fog.color.lerp(nightmareFogColor, nightmare * 0.72);
+  scene.fog.color.lerp(opFogColor, overpowered * 0.38);
   scene.fog.near = THREE.MathUtils.lerp(36,
     THREE.MathUtils.lerp(0.8, 0.3, nightmare), haunted);
   scene.fog.far = THREE.MathUtils.lerp(62,
     THREE.MathUtils.lerp(11, 6, nightmare), haunted);
   waterMaterial.color.copy(normalWaterColor).lerp(hauntedWaterColor, haunted);
   waterMaterial.color.lerp(nightmareWaterColor, nightmare);
+  waterMaterial.color.lerp(opWaterColor, overpowered);
   stepMobs(world, mobs, elapsed / 1000);
   for (const mob of mobs) {
     const bob = mob.walking ? Math.abs(Math.sin(mob.animation * 9 + mob.phase)) * 0.035 : 0;
     const mobHaunt = haunted * (mob.haunted ? 1 : 0.72);
     for (const [material, normalColor] of mob.model.normalColors) {
-      material.color.copy(normalColor).lerp(nightmareMobTint,
-        mobHaunt * (0.68 + nightmare * 0.25));
+      material.color.copy(normalColor)
+        .lerp(nightmareMobTint, mobHaunt * (0.68 + nightmare * 0.25))
+        .lerp(opMobTint, overpowered * 0.82);
     }
     mob.model.group.position.set(mob.x, mob.groundY + bob, mob.z);
     const nightmareSway = Math.sin(mob.animation * 1.7 + mob.phase) * mobHaunt *
       (0.14 + nightmare * 0.18);
-    mob.model.group.rotation.y = mob.yaw + nightmareSway;
+    const overpoweredSway = Math.sin(mob.animation * 2.4 + mob.phase) * overpowered * 0.22;
+    mob.model.group.rotation.y = mob.yaw + nightmareSway + overpoweredSway;
     const nightmareScale = 1 + mobHaunt *
       (0.025 + 0.015 * Math.sin(mob.animation * 2.1 + mob.phase)) +
-      nightmare * 0.045;
+      nightmare * 0.045 + overpowered * 0.22;
     mob.model.group.scale.setScalar(nightmareScale);
     const gait = mob.walking ? Math.sin(mob.animation * 9 + mob.phase) * 0.48 : 0;
     mob.model.legs.forEach((leg, index) => {
@@ -1797,7 +1889,8 @@ function frame(now) {
         back: keys.has('KeyS') || keys.has('ArrowDown'),
         left: keys.has('KeyA') || keys.has('ArrowLeft'),
         right: keys.has('KeyD') || keys.has('ArrowRight'),
-        jump: keys.has('Space')
+        jump: keys.has('Space'),
+        overpowered: world.opMode
       }, camera.rotation.y, 1 / 60);
       accumulator -= 1 / 60;
     }

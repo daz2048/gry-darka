@@ -60,31 +60,30 @@ export function hauntedHouseAt(x, z) {
 }
 
 export function updateHauntedCurse(world, houseId) {
-  if (!houseId) return false;
-  if (world.curseLifted) {
-    if (!world.curseHouse) {
-      world.curseHouse = houseId;
-      return true;
-    }
-    if (!world.nightmare && world.curseHouse !== houseId) {
-      world.nightmare = true;
-      return true;
-    }
+  if (!houseId) {
+    world.currentHauntedHouse = null;
     return false;
   }
-  if (!world.cursed) {
-    world.cursed = true;
-    world.curseHouse = houseId;
-    return true;
-  }
-  if (!world.curseHouse) {
-    world.curseHouse = houseId;
-    return true;
-  }
-  if (world.curseHouse === houseId) return false;
-  world.cursed = false;
+  if (world.currentHauntedHouse === houseId) return false;
+  world.currentHauntedHouse = houseId;
+  if (world.opMode) return false;
+  world.hauntedVisits = Math.min(world.hauntedVisits + 1, 4);
   world.curseHouse = houseId;
-  world.curseLifted = true;
+  if (world.hauntedVisits === 1) {
+    world.cursed = true;
+  } else if (world.hauntedVisits === 2) {
+    world.cursed = false;
+    world.curseLifted = true;
+    world.nightmare = false;
+  } else if (world.hauntedVisits === 3) {
+    world.nightmare = true;
+  } else if (world.hauntedVisits === 4) {
+    world.cursed = false;
+    world.nightmare = false;
+    world.opMode = true;
+  } else {
+    return false;
+  }
   return true;
 }
 
@@ -480,6 +479,9 @@ export class World {
     this.curseHouse = null;
     this.curseLifted = false;
     this.nightmare = false;
+    this.hauntedVisits = 0;
+    this.currentHauntedHouse = null;
+    this.opMode = false;
     this.blocks = new Uint8Array(SIZE[0] * SIZE[1] * SIZE[2]);
     this.water = new Uint8Array(this.blocks.length);
     this.dirty = new Set();

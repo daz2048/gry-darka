@@ -356,6 +356,48 @@ test('a failed world deletion leaves its current and previous generations intact
   assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('previous:world-a').selectedBlock, 3);
 });
 
+test('bulk deletion removes selected worlds and recovery copies while keeping others', async () => {
+  const idb = new FakeIndexedDB();
+  const store = new WorldSaveStore(idb);
+  for (const id of ['world-a', 'world-b', 'world-c']) {
+    await store.save(snapshot(3, id), { exists: false, revision: null, worldId: id });
+    await store.save(snapshot(4, id), { exists: true, revision: 1, worldId: id });
+  }
+  await store.activateWorld('world-a');
+  assert.equal(await store.deleteWorlds(['world-a', 'world-b']), true);
+  const records = idb.records(SAVE_DATABASE, WORLD_STORE);
+  for (const id of ['world-a', 'world-b']) {
+    assert.equal(records.has(`world:${id}`), false);
+    assert.equal(records.has(`previous:${id}`), false);
+  }
+  assert.equal(records.get('previous:world-c').selectedBlock, 3);
+  assert.deepEqual((await store.listWorlds()).map(entry => entry.worldId), ['world-c']);
+  assert.equal((await store.load()).record.worldId, 'world-c');
+  assert.equal(await store.deleteWorlds(['world-c']), true);
+  assert.deepEqual(await store.listWorlds(), []);
+});
+
+test('bulk deletion is atomic on missing worlds or storage failure', async () => {
+  const idb = new FakeIndexedDB();
+  const store = new WorldSaveStore(idb);
+  for (const id of ['world-a', 'world-b']) {
+    await store.save(snapshot(3, id), { exists: false, revision: null, worldId: id });
+    await store.save(snapshot(4, id), { exists: true, revision: 1, worldId: id });
+  }
+  await store.activateWorld('world-a');
+  assert.equal(await store.deleteWorlds(['world-a', 'missing']), false);
+  await assert.rejects(store.deleteWorlds([]), TypeError);
+  await assert.rejects(store.deleteWorlds(['world-a', 'world-a']), TypeError);
+  idb.faults.commit = quota;
+  await assert.rejects(store.deleteWorlds(['world-a', 'world-b']), error => error.name === 'QuotaExceededError');
+  delete idb.faults.commit;
+  for (const id of ['world-a', 'world-b']) {
+    assert.equal((await store.load(id)).record.selectedBlock, 4);
+    assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get(`previous:${id}`).selectedBlock, 3);
+  }
+  assert.equal((await store.load()).record.worldId, 'world-a');
+});
+
 test('an interrupted single-slot migration preserves both legacy slots and can retry', async () => {
   const idb = new FakeIndexedDB();
   idb.seed(SAVE_DATABASE, { current: record(6, 3), previous: record(2, 2) });

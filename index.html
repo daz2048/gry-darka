@@ -590,6 +590,16 @@
   .version-history-list a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 4px; color: #b9d8e8; text-underline-offset: 3px; }
   .version-history-list a:hover { color: #fff; }
   .version-history-list a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 2px; border-radius: 3px; }
+  .voxel-release-actions { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: space-between; gap: 8px; position: relative; z-index: 1; margin-top: 12px; }
+  .voxel-release-actions .version-history { align-self: auto; margin: 0; }
+  .voxel-release-actions .version-history summary { gap: 6px; padding: 6px 8px; font-size: 11px; white-space: nowrap; }
+  .voxel-release-actions .version-history summary::after { font-size: 14px; }
+  .special-release-list { margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid rgba(232, 237, 242, .2); list-style: none; }
+  .special-release-list a { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 8px 4px; color: #b9d8e8; text-decoration: underline; text-underline-offset: 3px; }
+  .special-release-list a:hover { color: #fff; }
+  .special-release-list a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 2px; border-radius: 3px; }
+  .special-release-list p { margin: 0 4px 8px; font: 12px/1.5 "Segoe UI", sans-serif; text-align: left; opacity: .85; }
+  .special-release-badge { flex: 0 0 auto; padding: 3px 6px; border: 1px solid #ffcd53; border-radius: 4px; color: #ffcd53; font-size: 10px; line-height: 1.2; text-transform: uppercase; }
   .card.castle-game { --card-accent: #ff6b35; --card-ink: #000; }
   .card.zombie-vanilla { --card-accent: #7209b7; --card-ink: #fff; }
   .card.zombie-max-one { --card-accent: #00d9ff; --card-ink: #000; }
@@ -660,6 +670,11 @@
   @media (max-width: 600px) {
     .brand-title { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
     .brand-face { padding: 20px 14px; }
+  }
+  @media (max-width: 400px) {
+    .voxel-release-actions { gap: 4px; }
+    .voxel-release-actions .version-history summary { gap: 4px; padding: 4px 5px; font-size: 9px; }
+    .voxel-release-actions .version-history summary::after { font-size: 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .brand-face, .brand-face[data-effect]::after,
@@ -748,21 +763,33 @@
     <main class="grid">
       <article class="card voxel-game">
         <a class="card-link" href="minecraft/0.5/">
-          <div class="thumb preview"><img src="minecraft/0.5/preview.svg?v=1" alt="Minecraft 0.5: jasny świat klocków z podlaskimi wioskami, drogą, górami i zwierzętami" fetchpriority="high"></div>
+          <div class="thumb preview"><img src="minecraft/0.5/preview.svg?v=2" alt="Minecraft 0.5: nawiedzony dom nocą, przy upiornym księżycu, z nietoperzami i dyniami" fetchpriority="high"></div>
           <h2>Minecraft 0.5 · w przygotowaniu</h2>
           <p>Wersja rozwojowa oparta na Minecraft 0.4, z osobnymi zapisami i nową strukturą wersji.</p>
           <span class="btn">Graj</span>
         </a>
-        <details class="version-history">
-          <summary>Archived versions</summary>
-          <ul class="version-history-list">
-            <li><a href="minecraft/">All Minecraft versions / Wszystkie wersje</a></li>
-            <li><a href="klocki-podlasia-0.4/">Minecraft 0.4 · archived</a></li>
-            <li><a href="klocki-podlasia-0.3/">Minecraft 0.3 · archived</a></li>
-            <li><a href="klocki-podlasia-0.2/">Minecraft 0.2</a></li>
-            <li><a href="klocki-podlasia-0.1/">Klocki Podlasia 0.1 · prototyp</a></li>
-          </ul>
-        </details>
+        <div class="voxel-release-actions">
+          <details class="version-history">
+            <summary>Special releases</summary>
+            <ul class="special-release-list">
+              <li>
+                <a href="minecraft/0.5/"><span>Minecraft 0.5</span><span class="special-release-badge">Special</span></a>
+                <p lang="pl">Wersja rozwojowa oparta na Minecraft 0.4, z osobnymi zapisami i nową strukturą wersji.</p>
+              </li>
+            </ul>
+          </details>
+          <details class="version-history">
+            <summary>Archived versions</summary>
+            <ul class="version-history-list">
+              <li><a href="minecraft/">All Minecraft versions / Wszystkie wersje</a></li>
+              <li><a href="minecraft/0.5/"><span>Minecraft 0.5</span> <span class="special-release-badge">Special</span></a></li>
+              <li><a href="klocki-podlasia-0.4/">Minecraft 0.4 · archived</a></li>
+              <li><a href="klocki-podlasia-0.3/">Minecraft 0.3 · archived</a></li>
+              <li><a href="klocki-podlasia-0.2/">Minecraft 0.2</a></li>
+              <li><a href="klocki-podlasia-0.1/">Klocki Podlasia 0.1 · prototyp</a></li>
+            </ul>
+          </details>
+        </div>
       </article>
 
       <article class="card flappy-game">

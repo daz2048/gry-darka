@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { formatServerDiagnostics, readSaveStorageStatus, relativeAge } from '../diagnostics.js';
-import { setLanguage } from '../i18n.js?v=15';
+import { setLanguage } from '../i18n.js?v=16';
 
 const now = Date.parse('2026-11-13T10:00:00Z');
 const snapshot = () => ({

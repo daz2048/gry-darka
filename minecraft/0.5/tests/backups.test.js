@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { World } from '../world.js';
 import { createPlayer } from '../player.js';
-import { createSnapshot, CorruptSaveError } from '../saves.js?v=14';
+import { createSnapshot, CorruptSaveError } from '../saves.js?v=16';
 import {
   backupFileName, decodeWorldBackup, encodeWorldBackup, MAX_BACKUP_BYTES, readWorldBackup
 } from '../backups.js';
@@ -63,6 +63,11 @@ test('backup round trips preserve soundtrack assignments and accept backups with
     ...original, curseLifted: true, curseHouse: '105,63', nightmare: true
   }));
   assert.equal(nightmare.nightmare, true);
+  const overpowered = await decodeWorldBackup(await encodeWorldBackup({
+    ...original, curseLifted: true, curseHouse: '105,63', hauntedVisits: 4, opMode: true
+  }));
+  assert.equal(overpowered.opMode, true);
+  assert.equal(overpowered.hauntedVisits, 4);
 });
 
 test('malformed, truncated, and unsupported backups are rejected', async () => {

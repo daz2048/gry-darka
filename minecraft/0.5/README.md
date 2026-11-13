@@ -111,9 +111,15 @@ przetrwania, craftingu, multiplayera, sterowania dotykowego, synchronizacji
 chmurowej ani gwarancji działania offline/PWA. Więcej szczegółów i aktualne
 bramki wydania zawiera [backlog](../../backlog/voxel-sandbox-backlog.md).
 
+Na liście światów zaznacz wybrane pozycje lub **Zaznacz wszystkie światy**,
+a następnie wybierz **Usuń zaznaczone** i potwierdź. Światy i ich kopie
+odzyskiwania są usuwane razem; tej operacji nie można cofnąć.
+
 From **Your worlds**, creating or deleting a world keeps the list open and
 shows a confirmation. A newly created world is selected and focused; deleting
 the selected world selects another available world without leaving the list.
+Use the checkboxes or **Select all worlds** and **Delete selected** to remove
+multiple worlds and their recovery copies together after confirmation.
 Deleting the last world shows the empty state. Select a world or press
 **Play [world name]** to load it and choose a play mode. Creating a world from
 the pause menu still returns directly to the play-mode controls. Conflicting
@@ -346,6 +352,11 @@ MP3, WAV, OGG and M4A files are shared through the repository's `music/` directo
 or removing tracks, run `python3 scripts/generate-music-catalogue.py` from the
 repository root and refresh the game. Commit both the audio file changes and the
 generated `music/catalogue.json` to publish them on the existing static site.
+While a world is cursed or in nightmare mode, music switches immediately to random
+tracks from `music/scary_music/` and returns to the selected soundtrack when the
+scary mode ends. Music off and volume settings still apply. After adding or
+removing scary tracks, run `python3 scripts/generate-music-catalogue.py music/scary_music`
+and publish the generated catalogue with the audio changes.
 Format and codec support varies by browser; an unplayable track reports an error.
 Only publish music you have permission to distribute; files on the site are public.
 

@@ -87,6 +87,8 @@ export function createSnapshot(world, player, yaw, pitch, selectedBlock, setting
       { curseHouse: world.curseHouse }),
     ...(world.curseLifted === true ? { curseLifted: true } : {}),
     ...(world.nightmare === true ? { nightmare: true } : {}),
+    ...(world.hauntedVisits > 0 ? { hauntedVisits: world.hauntedVisits } : {}),
+    ...(world.opMode === true ? { opMode: true } : {}),
     blocks: world.blocks.slice(),
     water: world.water.slice(),
     player: { x: player.x, y: player.y, z: player.z, yaw, pitch },
@@ -125,11 +127,20 @@ export function validateSnapshot(snapshot) {
     'Invalid cleared curse state.');
   assert(snapshot.nightmare === undefined || typeof snapshot.nightmare === 'boolean',
     'Invalid nightmare state.');
+  assert(snapshot.hauntedVisits === undefined ||
+    (Number.isInteger(snapshot.hauntedVisits) && snapshot.hauntedVisits >= 0 &&
+      snapshot.hauntedVisits <= 4),
+  'Invalid haunted-home visit count.');
+  assert(snapshot.opMode === undefined || typeof snapshot.opMode === 'boolean',
+    'Invalid overpowered mode state.');
   assert(snapshot.cursed !== true || snapshot.curseLifted !== true,
     'A cleared curse cannot still be active.');
   assert(snapshot.nightmare !== true ||
     (snapshot.curseLifted === true && snapshot.cursed !== true),
   'Nightmare state requires a lifted curse.');
+  assert(snapshot.opMode !== true ||
+    (snapshot.curseLifted === true && snapshot.cursed !== true && snapshot.nightmare !== true),
+  'Overpowered mode requires a cleared nightmare.');
   assert(snapshot.curseHouse === undefined || validCurseHouse(snapshot.curseHouse),
     'Invalid haunted-house curse origin.');
   assert(snapshot.curseHouse === undefined ||
@@ -678,6 +689,14 @@ export class WorldSaveStore {
   }
 
   async deleteWorld(worldId) {
+    return this.deleteWorlds([worldId]);
+  }
+
+  async deleteWorlds(worldIds) {
+    if (!Array.isArray(worldIds) || !worldIds.length ||
+        worldIds.some(id => typeof id !== 'string' || !id) || new Set(worldIds).size !== worldIds.length) {
+      throw new TypeError('Expected a non-empty list of distinct world IDs.');
+    }
     const db = await this.db();
     if (!this.migration) this.migration = this.prepareCatalog(db);
     await this.migration;
@@ -685,26 +704,30 @@ export class WorldSaveStore {
       const records = transaction.objectStore(WORLD_STORE);
       const catalog = transaction.objectStore(CATALOG_STORE);
       const activeRequest = catalog.get(ACTIVE_KEY);
-      const metadataRequest = catalog.get(CATALOG_KEY(worldId));
+      const metadataRequests = worldIds.map(id => catalog.get(CATALOG_KEY(id)));
       let active;
-      let metadata;
-      let remaining = 2;
+      const metadata = [];
+      let remaining = metadataRequests.length + 1;
       const complete = () => {
         remaining--;
         if (remaining !== 0) return;
-        if (!metadata) {
+        if (metadata.some(entry => !entry)) {
           setResult(false);
           return;
         }
-        records.delete(WORLD_KEY(worldId));
-        records.delete(BACKUP_KEY(worldId));
-        catalog.delete(CATALOG_KEY(worldId));
-        if (active === worldId) catalog.delete(ACTIVE_KEY);
+        for (const id of worldIds) {
+          records.delete(WORLD_KEY(id));
+          records.delete(BACKUP_KEY(id));
+          catalog.delete(CATALOG_KEY(id));
+        }
+        if (worldIds.includes(active)) catalog.delete(ACTIVE_KEY);
         setResult(true);
       };
       activeRequest.onsuccess = () => { active = activeRequest.result; complete(); };
-      metadataRequest.onsuccess = () => { metadata = metadataRequest.result; complete(); };
-      for (const request of [activeRequest, metadataRequest]) {
+      for (const request of metadataRequests) {
+        request.onsuccess = () => { metadata.push(request.result); complete(); };
+      }
+      for (const request of [activeRequest, ...metadataRequests]) {
         request.onerror = () => fail(request.error || storageError('Cannot delete the world.', 'save-failed'));
       }
     }, 'Deleting the world was interrupted.');
@@ -718,6 +741,13 @@ export function applySnapshot(world, snapshot) {
   world.curseHouse = snapshot.curseHouse ?? null;
   world.curseLifted = snapshot.curseLifted === true;
   world.nightmare = snapshot.nightmare === true;
+  const inferredVisits = snapshot.opMode === true ? 4 :
+    snapshot.nightmare === true ? 3 :
+      snapshot.curseLifted === true ? 2 : snapshot.cursed === true ? 1 : 0;
+  world.hauntedVisits = Math.max(snapshot.hauntedVisits ?? 0, inferredVisits);
+  world.opMode = snapshot.opMode === true;
+  world.currentHauntedHouse = snapshot.player.y >= 8 && snapshot.player.y < 15 ?
+    hauntedHouseIdAt(snapshot.player.x, snapshot.player.z) : null;
   world.blocks.set(snapshot.blocks);
   world.water.set(snapshot.water);
   world.dirty.clear();
