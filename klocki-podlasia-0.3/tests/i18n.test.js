@@ -30,6 +30,26 @@ test('every language defines the same messages and placeholders', () => {
   assert.deepEqual(MESSAGES.pl.biomes, Object.fromEntries(Object.entries(BIOMES).map(([key, biome]) => [key, biome.name])));
 });
 
+test('new-world action and confirmation use consistent localized labels', () => {
+  assert.equal(MESSAGES.en['button.newWorld'], 'New world');
+  assert.equal(MESSAGES.en['button.confirmReset'], 'Yes, new world');
+  assert.equal(MESSAGES.en['reset.label'], 'Confirm new world');
+  assert.equal(MESSAGES.pl['button.newWorld'], 'Nowy świat');
+  assert.equal(MESSAGES.pl['button.confirmReset'], 'Tak, nowy świat');
+  assert.equal(MESSAGES.pl['reset.label'], 'Potwierdzenie nowego świata');
+});
+
+test('world-limit message is localized and includes the configured maximum', () => {
+  assert.match(MESSAGES.en['worldPicker.limitReached'], /\{count\}/);
+  assert.match(MESSAGES.pl['worldPicker.limitReached'], /\{count\}/);
+  assert.match(t('worldPicker.limitReached', { count: 10 }), /10/);
+});
+
+test('game branding is localized for the launch screen', () => {
+  assert.equal(MESSAGES.en['overlay.eyebrow'], 'Podlasie Blocks · The Lime Tree Crew · <b class="version-highlight">v0.3</b>');
+  assert.equal(MESSAGES.pl['overlay.eyebrow'], 'KLOCKI PODLASIA · EKIPA SPOD LIPY · <b class="version-highlight">v0.3</b>');
+});
+
 test('world edit results are translatable message keys in both languages', () => {
   const world = new World(1);
   world.blocks.fill(0);
@@ -55,4 +75,28 @@ test('translation switches language and fills placeholders', () => {
   setLanguage('en', { persist: false });
   assert.equal(t('save.saved', { time: '08:26' }), 'Saved 08:26');
   assert.equal(t('missing.key'), 'missing.key');
+});
+
+test('model diagnostics include render-buffer resolution in both languages', () => {
+  const params = {
+    revision: '180',
+    size: '256 × 32 × 256',
+    seed: 42,
+    fps: 60,
+    calls: 10,
+    geometries: 20,
+    resolution: '1920 × 1080',
+    pixelRatio: '1.50',
+    first: 500,
+    samples: 60,
+    median: '16.7',
+    p95: '20.0',
+    edits: 3,
+    position: '1.0, 2.0, 3.0'
+  };
+  setLanguage('en', { persist: false });
+  assert.match(t('metrics.text', params), /Render buffer: 1920 × 1080 px · pixel ratio: 1\.50/);
+  setLanguage('pl', { persist: false });
+  assert.match(t('metrics.text', params), /Bufor renderowania: 1920 × 1080 px · współczynnik pikseli: 1\.50/);
+  setLanguage('en', { persist: false });
 });

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#183f36">
   <title>Minecraft 0.3 — creative building with Ekipa spod Lipy</title>
   <link rel="icon" href="preview.svg?v=4" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=14">
   <script type="importmap">
     {"imports":{"three":"./vendor/three.module.js"}}
   </script>
@@ -46,8 +46,8 @@
   <p id="notice" role="status" hidden></p>
   <section id="overlay" class="overlay" aria-labelledby="heading">
     <div class="panel">
-      <span class="eyebrow" data-i18n="overlay.eyebrow">EKIPA SPOD LIPY · VERSION 0.3</span>
-      <h1 id="heading">Klocki <em>Podlasia</em></h1>
+      <span class="eyebrow" data-i18n-html="overlay.eyebrow">EKIPA SPOD LIPY · VERSION <b class="version-highlight">0.3</b></span>
+      <h1 id="heading">Maks <em>Minecraft</em></h1>
       <p id="intro" data-i18n="overlay.intro">The house under the linden tree is just the beginning. Wander the meadow, take blocks apart and build your own way.</p>
       <div class="instructions">
         <p data-i18n-html="instructions.move"><b>WASD / arrows</b> move · <b>Space</b> jump · mouse turns the view</p>
@@ -55,13 +55,28 @@
         <p data-i18n-html="instructions.pause"><b>Esc / P</b> pause and release the mouse · <b>H</b> games menu</p>
       </div>
       <p id="load-status" role="status" data-i18n="load.preparing">Preparing the meadow…</p>
-      <p id="save-details" class="small" role="status" aria-live="polite" hidden></p>
       <p class="small" data-i18n="overlay.saveInfo">The world is saved locally in this Chrome profile. The top bar shows the save status; a storage failure does not stop the game, but leaves the session unsaved.</p>
       <div id="save-recovery" class="reset-confirm" role="group" aria-label="Save recovery" data-i18n-attr="aria-label:recovery.label" hidden>
         <p id="save-recovery-message"></p>
         <button id="restore-backup" data-i18n="button.restoreBackup">Restore the previous save</button>
       </div>
-      <div class="actions">
+      <section id="world-picker" class="world-picker" aria-labelledby="world-picker-heading" hidden>
+        <h2 id="world-picker-heading" data-i18n="worldPicker.label">Your worlds</h2>
+        <p id="world-picker-status" class="small" role="status" aria-live="polite"></p>
+        <div id="world-list" class="world-list" role="list"></div>
+        <div class="actions">
+          <button id="world-continue" class="primary" data-i18n="worldPicker.continue">Continue</button>
+          <button id="world-create" data-i18n="worldPicker.create">Create a new world</button>
+        </div>
+      </section>
+      <div id="world-action-confirm" class="reset-confirm" role="group" aria-label="Manage world" data-i18n-attr="aria-label:worldPicker.manage" hidden>
+        <p id="world-action-message"></p>
+        <label id="world-action-name-label" for="world-action-name" data-i18n="worldPicker.nameLabel">New world name</label>
+        <input id="world-action-name" type="text" maxlength="32" autocomplete="off">
+        <button id="confirm-world-action" data-i18n="worldPicker.rename">Rename</button>
+        <button id="cancel-world-action" data-i18n="worldPicker.cancel">Cancel</button>
+      </div>
+      <div id="play-actions" class="actions" hidden>
         <button id="start" class="primary" disabled data-i18n="button.start">Play — capture mouse</button>
         <button id="drag-start" disabled data-i18n="button.dragStart">Play without capturing</button>
       </div>
@@ -77,17 +92,18 @@
         <label><input id="music-on" type="checkbox" checked> <span data-i18n="settings.music">Music</span></label>
         <label><span data-i18n="settings.volume">Music volume</span> <input id="music-volume" type="range" min="0" max="100" step="5" value="35"></label>
       </div>
-      <div class="actions secondary">
+      <div id="secondary-actions" class="actions secondary" hidden>
         <button id="recover" disabled data-i18n="button.recover">Back to start</button>
-        <button id="new-world" disabled data-i18n="button.newWorld">New meadow</button>
+        <button id="new-world" disabled data-i18n="button.newWorld">New world</button>
+        <button id="choose-world" data-i18n="worldPicker.choose">Choose world</button>
         <button id="fullscreen" data-i18n="button.fullscreen">Full screen</button>
         <a href="../index.html" data-i18n="link.menu">Games menu</a>
       </div>
-      <div id="reset-confirm" class="reset-confirm" role="group" aria-label="Confirm new meadow" data-i18n-attr="aria-label:reset.label" hidden>
-        <p id="reset-message" data-i18n="reset.normal">The current world will be kept as the previous save and a new meadow will replace it. Continue?</p>
+      <div id="reset-confirm" class="reset-confirm" role="group" aria-label="Confirm new world" data-i18n-attr="aria-label:reset.label" hidden>
+        <p id="reset-message" data-i18n="reset.normal">A new world will be created. Your current world will be kept. Continue?</p>
         <label for="world-name-input" data-i18n="world.nameLabel">World name (max. 32 characters)</label>
         <input id="world-name-input" type="text" maxlength="32" value="New world" autocomplete="off" required>
-        <button id="confirm-reset" data-i18n="button.confirmReset">Yes, new meadow</button>
+        <button id="confirm-reset" data-i18n="button.confirmReset">Yes, new world</button>
         <button id="cancel-reset" data-i18n="button.cancelReset">No, keep my build</button>
       </div>
       <div id="leave-confirm" class="reset-confirm" role="group" aria-label="Unsaved changes" data-i18n-attr="aria-label:leave.label" hidden>
@@ -96,7 +112,17 @@
         <button id="leave-unsaved" data-i18n="button.leave">Leave without saving</button>
       </div>
       <p class="small warning" data-i18n="overlay.scope">Desktop version: no survival, crafting, multiplayer or touch controls.</p>
-      <details><summary data-i18n="metrics.summary">Model diagnostics</summary><output id="metrics" data-i18n="metrics.waiting">Waiting for the renderer.</output></details>
+      <details id="diagnostics">
+        <summary data-i18n="metrics.summary">Model diagnostics</summary>
+        <output id="metrics" data-i18n="metrics.waiting">Waiting for the renderer.</output>
+        <output id="server-diagnostics" aria-live="polite"></output>
+        <div class="actions secondary">
+          <button id="refresh-diagnostics" data-i18n="diagnostics.refresh">Refresh diagnostics</button>
+          <button id="show-server-logs" aria-expanded="false" aria-controls="server-logs" data-i18n="diagnostics.showLogs">Show recent server logs</button>
+        </div>
+        <pre id="server-logs" aria-live="polite" hidden></pre>
+        <p id="save-details" class="small" role="status" aria-live="polite" hidden></p>
+      </details>
     </div>
   </section>
   <noscript><p class="fatal">This game needs JavaScript. / Ta gra wymaga JavaScript. <a href="../index.html">Games menu / Menu gier</a></p></noscript>
@@ -112,9 +138,9 @@
         'Start the repository server and open http://localhost:8765/klocki-podlasia-0.3/ — modules need HTTP.',
         'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.3/ — moduły wymagają HTTP.');
     } else {
-      import('./i18n.js?v=1').then(i18n => {
+      import('./i18n.js?v=2').then(i18n => {
         i18n.initLanguage();
-        return import('./game.js?v=23');
+        return import('./game.js?v=27');
       }).catch(error => {
         console.error('Minecraft: cannot start the game.', error);
         status.textContent = pick(

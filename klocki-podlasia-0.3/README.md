@@ -31,15 +31,26 @@ pasku zmienia język od razu, bez przeładowania i bez utraty niezapisanej pracy
 Świat, ziarno, pozycja i kierunek gracza, materiał oraz ustawienia zapisują się
 automatycznie co kilka sekund w IndexedDB. Przycisk **Zapisz** wymusza zapis
 od razu; pasek u góry pokazuje jego rzeczywisty stan. Po ponownym otwarciu
-świat wraca do ekranu pauzy — wybierz sposób sterowania, aby wznowić.
+wybierz świat z listy albo użyj **Kontynuuj**, aby wrócić do ostatnio używanego;
+następnie wybierz sposób sterowania.
 
 Po kliknięciu **Zapisz** komunikat pokazuje wynik operacji, nazwę świata,
-miejsce zapisu (adres strony → IndexedDB → `minecraft-0.3` → `worlds` →
-`current`) oraz szacowany rozmiar danych w MiB i bajtach. Szczegóły pozostają
-w panelu pauzy; są też aktualizowane po autozapisie i wczytaniu. Sukces jest
-pokazywany dopiero po zakończeniu transakcji. Błąd nie pokazuje nowego rozmiaru.
-To nie jest plik na dysku ani eksport: rozmiar obejmuje tablice bloków i wody
-oraz metadane w JSON UTF-8, bez narzutu IndexedDB i poprzedniej kopii.
+miejsce zapisu (adres strony → IndexedDB → `minecraft-0.3` → `world-records` →
+identyfikator świata) oraz szacowany rozmiar danych w MiB i bajtach. Szczegóły
+pozostają w panelu pauzy; są też aktualizowane po autozapisie i wczytaniu.
+Sukces jest pokazywany dopiero po zakończeniu transakcji. Błąd nie pokazuje
+nowego rozmiaru. Świat jest rekordem IndexedDB, nie osobnym plikiem ani eksportem:
+rozmiar obejmuje
+tablice bloków i wody oraz metadane w JSON UTF-8, bez narzutu IndexedDB i
+poprzedniej kopii.
+
+Diagnostyka odróżnia adres rekordu w przeglądarce od lokalnej ścieżki na dysku.
+Strona nie ma dostępu do fizycznej ścieżki plików IndexedDB, więc pokazuje ją
+jako niedostępną, zamiast zgadywać. Folder profilu można sprawdzić ręcznie:
+w Chrome otwórz `chrome://version` i odczytaj **Profile Path**, w Edge
+`edge://version`, a w Firefox `about:profiles` (katalog główny profilu).
+To folder profilu, nie ścieżka do osobnego pliku świata; układem plików bazy
+zarządza przeglądarka.
 
 Zapis jest lokalny dla profilu Chrome i adresu strony. Nie synchronizuje się
 między urządzeniami ani między localhost a wersją hostowaną; wyczyszczenie lub
@@ -51,21 +62,27 @@ jest niedostępna, świat pozostaje grywalny jako sesja tymczasowa, a gra wyraź
 informuje, że zmiany nie są zapisane. Wykryty konflikt między kartami wymaga
 wczytania aktualnej wersji, zamiast cichego nadpisania.
 
-To jeden lokalny slot. Przy tworzeniu **nowej łąki** możesz wpisać jej nazwę
-(maksymalnie 32 znaki); nazwa jest zapisywana i wyświetlana w świecie.
-Utworzenie wymaga potwierdzenia; anulowanie niczego nie zmienia, a poprzedni
-zapis zostaje zachowany jako kopia odzyskiwania. Nie ma
+Na ekranie startowym możesz wybrać zapisany świat albo kontynuować ostatnio
+używany. Każdy świat ma osobny zapis i kopię odzyskiwania. **Utwórz nowy
+świat** pozwala wpisać nazwę (maksymalnie 32 znaki); nazwy nie muszą być
+unikalne. Możesz zapisać maksymalnie 10 światów w profilu przeglądarki dla tego
+adresu strony; usuń jeden, aby zrobić miejsce na kolejny. Utworzenie nie
+zastępuje istniejącego świata. Możesz zmieniać nazwy światów albo je usuwać;
+usunięcie wymaga potwierdzenia i obejmuje kopię
+odzyskiwania. Gdy usuniesz ostatni świat, możesz utworzyć kolejny. Nie ma
 przetrwania, craftingu, multiplayera, sterowania dotykowego, synchronizacji
 chmurowej ani gwarancji działania offline/PWA. Więcej szczegółów i aktualne
 bramki wydania zawiera [backlog](../backlog/voxel-sandbox-backlog.md).
 
 Przy pierwszym uruchomieniu wersja 0.3 może przenieść poprawne rekordy z dawnej
-bazy `minecraft-0.4`, ale tylko jeśli slot 0.3 jest pusty. Zachowuje też
+bazy `minecraft-0.4`, ale tylko jeśli katalog 0.3 jest pusty. Zachowuje też
 informację o uszkodzonym zapisie, aby pokazać odzyskiwanie lub wymagać
-potwierdzenia zastąpienia. Stara baza pozostaje nienaruszona jako kopia. Jeśli
-migracja się nie powiedzie, gra nie zapisuje tymczasowego świata automatycznie;
-pokaże ponowienie migracji albo wymaga osobnego potwierdzenia utworzenia nowego
-świata.
+potwierdzenia utworzenia nowego świata. Przy migracji starszych slotów 0.3
+różne identyfikatory bieżącego i poprzedniego zapisu stają się osobnymi
+światami; przy tym samym identyfikatorze poprzedni zapis zostaje kopią
+odzyskiwania. Stara baza pozostaje nienaruszona. Jeśli migracja się nie
+powiedzie, gra nie zapisuje tymczasowego świata automatycznie; pokaże ponowienie
+migracji albo wymaga osobnego potwierdzenia utworzenia nowego świata.
 
 ## Run
 
@@ -94,8 +111,8 @@ is needed to play. Requires a desktop keyboard/mouse and WebGL2.
 - Follow the roads to the villages and roadside structures. The HUD shows your
   biome and X/Z coordinates; the pause panel lists destinations. Jump up the watchtower steps.
 - **Wróć na start**: find a safe supported position without resetting the world.
-- **Nowa łąka**: choose a name (up to 32 characters) and confirm replacement
-  with a different seed; the previous world remains the recovery copy.
+- **Nowa łąka**: choose a name (up to 32 characters) and confirm creating a
+  world with a different seed; existing worlds remain unchanged.
 - Fullscreen and lower resolution are optional; denied fullscreen leaves windowed play.
 - **Muzyka / Głośność muzyki**: enable or mute the original ambient music and
   adjust its volume in the start/pause panel. It begins after choosing a play mode
@@ -135,6 +152,54 @@ spread.
 
 ## Development and verification
 
+On macOS, install the optional browser-testing tools with:
+
+```sh
+./scripts/bootstrap-browser-tests.sh
+```
+
+The script checks Node.js 20+, npm and Python 3.9+ (including its HTTP/TLS
+standard library), reuses working tools, and installs missing runtimes with
+Homebrew on macOS. Broken Homebrew-managed runtimes are upgraded or reinstalled
+once; other installations are not overwritten. If another installation shadows
+Homebrew, repair it or adjust `PATH` manually. Homebrew must already be installed.
+Playwright and Chromium use local caches, not the game's dependencies. A
+temporary headless screenshot verifies that Chromium launches; broken browser
+files get one forced reinstall attempt.
+
+Output and help are coloured in a terminal; `NO_COLOR=1`, `TERM=dumb` and
+redirected output disable colours. The script prints its version, Git branch,
+commit and worktree status (including untracked files). To check runtimes and
+cached Playwright/Chromium without installing or downloading, enable extra
+diagnostics, or show full help:
+
+```sh
+./scripts/bootstrap-browser-tests.sh --check
+./scripts/bootstrap-browser-tests.sh --check --debug
+./scripts/bootstrap-browser-tests.sh --help
+```
+
+An `ENOTCACHED` result during the offline check means npm could not find
+Playwright in its cache; normal setup then attempts to install it. In `--check`
+mode this is an error and nothing is installed. Other browser errors are shown;
+`--debug` also prints the full offline-check error output. Debug output may
+contain local paths or details from npm, so review it before sharing.
+
+On macOS, the script uses `/etc/ssl/cert.pem` as additional Node.js certificate
+authorities when the file is available and `NODE_EXTRA_CA_CERTS` is not set.
+This only affects the script and its child processes. If npm still reports a TLS
+error, explicitly configure the trusted certificate required by your network:
+
+```sh
+NODE_EXTRA_CA_CERTS=/absolute/path/to/trusted-ca.pem ./scripts/bootstrap-browser-tests.sh
+```
+
+The script respects existing npm proxy/CA settings and never disables TLS
+verification or rewrites npm configuration. Playwright Chromium checks do not
+replace release checks in standalone Google Chrome.
+
+Run the game logic tests with:
+
 ```sh
 env ATOM_LOCK_SKIP_NATIVE_AUDIO=1 ATOM_LOCK_SKIP_NATIVE_UI=1 \
   node --test klocki-podlasia-0.3/tests/*.test.js
@@ -155,8 +220,31 @@ released it and returned to pause. Denied-pointer-lock recovery and hosted
 loading remain unverified. Safari, Firefox, Windows and mobile are not release
 claims.
 
-The pause panel's diagnostics show the seed, frames, draw calls, live geometries,
-first-render time and frame-time median/p95. The original melodic instrumental
+The pause panel's diagnostics show the world dimensions and seed, render-buffer
+resolution and pixel ratio, frames, draw calls, live geometries, first-render
+time and frame-time median/p95. Save details, including the saved world name,
+time, browser storage location and estimated data size, are in the same section.
+
+With the repository game server, this section also shows the current checkout's
+branch, clean/modified working tree (including untracked files), full commit hash,
+relative commit age and timestamp, and page age. Commit age is not a build date:
+uncommitted edits are reported separately, and the checkout can change after the
+page loads. Reload the page to load updated game code.
+
+Server health includes request counts, HTTP errors (4xx/5xx), handler exceptions,
+and the latest error since this server process started. Browser diagnostics count
+uncaught errors, rejected promises, failed resource loads, and WebGL context loss
+observed on this page; this is not a guarantee that every game subsystem is healthy.
+**Show recent server logs** reveals up to 200 lines / 64 KiB from the current log
+file, which may include entries from before the latest server restart. Logs stay
+hidden until requested. **Refresh diagnostics** retries failed checks; checks and
+visible logs refresh every 15 seconds while diagnostics are open in a visible tab.
+Git metadata and logs are read-only, local same-origin endpoints with no caching
+or cross-origin access. Hosted sites and plain static servers explicitly report
+these diagnostics as unavailable. If an older repository server is already
+running, apply the server update with `python3 scripts/game-server.py restart`.
+
+The original melodic instrumental
 soundtrack is generated locally with Web Audio, with soft keys, bass and
 sustained harmonies. It does not contain Minecraft music or require downloads.
 
