@@ -250,9 +250,22 @@ function renderWorldPicker() {
   ui['world-continue'].hidden = !mostRecent;
   ui['world-continue'].disabled = busy;
   if (mostRecent) {
-    ui['world-continue'].textContent = t('worldPicker.continue', {
-      world: displayWorldName(mostRecent.worldName)
-    });
+    const playLabel = t('worldPicker.play');
+    const worldPlaceholder = '{world}';
+    const worldIndex = playLabel.indexOf(worldPlaceholder);
+    if (worldIndex === -1) throw new Error('The world play label must include a {world} placeholder.');
+    const actionText = playLabel.slice(0, worldIndex);
+    const action = document.createElement('span');
+    action.className = 'world-play-action';
+    action.textContent = actionText.trimEnd();
+    const world = document.createElement('span');
+    world.textContent = displayWorldName(mostRecent.worldName);
+    ui['world-continue'].replaceChildren(
+      action,
+      document.createTextNode(actionText.slice(action.textContent.length)),
+      world,
+      document.createTextNode(playLabel.slice(worldIndex + worldPlaceholder.length))
+    );
   }
   ui['world-picker-status'].textContent = worldPickerUnavailable
     ? t('worldPicker.unavailable')
@@ -645,6 +658,7 @@ function renderWorldAction() {
   ui['world-action-name'].setCustomValidity('');
   ui['confirm-world-action'].textContent = t(`worldPicker.${type}`);
   ui['world-action-confirm'].classList.toggle('delete-confirm-active', type === 'delete');
+  ui['confirm-world-action'].classList.remove('delete-confirm-breathe');
   ui['confirm-world-action'].classList.toggle('delete-confirm-flash', type === 'delete');
   ui['world-action-confirm'].hidden = false;
 }
@@ -1062,6 +1076,20 @@ function play(useDrag) {
   }
 }
 
+async function enterFullscreen() {
+  if (document.fullscreenElement) return;
+  try {
+    if (!document.documentElement.requestFullscreen) {
+      notice(t('notice.noFullscreen'));
+      return;
+    }
+    await document.documentElement.requestFullscreen();
+  } catch (error) {
+    console.error('Fullscreen:', error);
+    notice(t('notice.fullscreenFailed'));
+  }
+}
+
 async function requestPlay() {
   setText(ui['load-status'], 'load.allowPrompt');
   try {
@@ -1070,6 +1098,7 @@ async function requestPlay() {
       return;
     }
     prepareMusic();
+    enterFullscreen();
     // r180 controls.lock discards the browser promise, leaving denials unhandled.
     await renderer.domElement.requestPointerLock();
   }
@@ -1168,10 +1197,19 @@ ui['world-import-file'].addEventListener('change', () => {
   if (file) transferWorld(() => importWorldFile(file));
 });
 ui['choose-world'].addEventListener('click', () => openWorldPicker().catch(reportError));
+ui['confirm-world-action'].addEventListener('animationend', event => {
+  if (event.animationName !== 'delete-confirm-flash' || pendingWorldAction?.type !== 'delete') return;
+  ui['confirm-world-action'].classList.remove('delete-confirm-flash');
+  ui['confirm-world-action'].classList.add('delete-confirm-breathe');
+});
 ui['confirm-world-action'].addEventListener('click', () => confirmWorldAction());
 ui['cancel-world-action'].addEventListener('click', closeWorldAction);
 ui.start.addEventListener('click', requestPlay);
-ui['drag-start'].addEventListener('click', () => { prepareMusic(); play(true); });
+ui['drag-start'].addEventListener('click', () => {
+  enterFullscreen();
+  prepareMusic();
+  play(true);
+});
 ui.pause.addEventListener('click', pause);
 ui.recover.addEventListener('click', recover);
 ui['new-world'].addEventListener('click', () => {
@@ -1353,8 +1391,7 @@ for (const link of document.querySelectorAll('a[href="../index.html"]')) {
 async function toggleFullscreen() {
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
-    else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
-    else notice(t('notice.noFullscreen'));
+    else await enterFullscreen();
   } catch (error) {
     console.error('Fullscreen:', error);
     notice(t('notice.fullscreenFailed'));

@@ -39,6 +39,17 @@ test('new-world action and confirmation use consistent localized labels', () => 
   assert.equal(MESSAGES.pl['reset.label'], 'Potwierdzenie nowego świata');
 });
 
+test('play buttons separate the play action from the localized mouse mode', () => {
+  assert.equal(MESSAGES.en['button.start'], 'Play');
+  assert.equal(MESSAGES.en['button.dragStart'], 'Play');
+  assert.equal(MESSAGES.en['button.captureHint'], '(capture mouse)');
+  assert.equal(MESSAGES.en['button.dragHint'], '(without capturing)');
+  assert.equal(MESSAGES.pl['button.start'], 'Graj');
+  assert.equal(MESSAGES.pl['button.dragStart'], 'Graj');
+  assert.equal(MESSAGES.pl['button.captureHint'], '(przechwyć mysz)');
+  assert.equal(MESSAGES.pl['button.dragHint'], '(bez przechwytywania)');
+});
+
 test('world-limit message is localized and includes the configured maximum', () => {
   assert.match(MESSAGES.en['worldPicker.limitReached'], /\{count\}/);
   assert.match(MESSAGES.pl['worldPicker.limitReached'], /\{count\}/);

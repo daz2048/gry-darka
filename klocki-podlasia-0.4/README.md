@@ -64,8 +64,8 @@ session (off by default; this display choice is not stored in world backups).
 Świat, ziarno, pozycja i kierunek gracza, materiał oraz ustawienia zapisują się
 automatycznie co kilka sekund w IndexedDB. Przycisk **Zapisz** wymusza zapis
 od razu; pasek u góry pokazuje jego rzeczywisty stan. Po ponownym otwarciu
-wybierz świat z listy albo użyj **Kontynuuj**, aby wrócić do ostatnio używanego;
-następnie wybierz sposób sterowania.
+wybierz świat z listy albo naciśnij **Graj: [nazwa świata]**, aby wczytać
+ostatnio używany świat i wybrać tryb gry.
 
 Po kliknięciu **Zapisz** krótki komunikat potwierdza wynik operacji. Szczegóły
 w diagnostyce panelu pauzy pokazują nazwę świata,
@@ -113,12 +113,12 @@ bramki wydania zawiera [backlog](../backlog/voxel-sandbox-backlog.md).
 From **Your worlds**, creating or deleting a world keeps the list open and
 shows a confirmation. A newly created world is selected and focused; deleting
 the selected world selects another available world without leaving the list.
-Deleting the last world shows the empty state. Select a world or **Continue**
-to choose a play mode. Creating a world from the pause menu still returns
-directly to the play-mode controls. Conflicting world actions are disabled
-during confirmations and pending operations; failures remain visible and
-can be retried. If a change succeeds but refreshing the list fails, the message
-asks you to reload instead of presenting the change as failed.
+Deleting the last world shows the empty state. Select a world or press
+**Play [world name]** to load it and choose a play mode. Creating a world from
+the pause menu still returns directly to the play-mode controls. Conflicting
+world actions are disabled during confirmations and pending operations; failures
+remain visible and can be retried. If a change succeeds but refreshing the list
+fails, the message asks you to reload instead of presenting the change as failed.
 
 Przy pierwszym uruchomieniu wersja 0.4 może przenieść poprawne starsze sloty z
 bazy `minecraft-0.3`, ale tylko jeśli katalog 0.4 jest pusty. Zachowuje też

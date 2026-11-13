@@ -73,7 +73,7 @@
         <p id="world-picker-status" class="small" role="status" aria-live="polite"></p>
         <div id="world-list" class="world-list" role="list"></div>
         <div class="actions">
-          <button id="world-continue" class="primary" data-i18n="worldPicker.continue">Continue</button>
+          <button id="world-continue" class="primary" data-i18n="worldPicker.play">Play</button>
           <button id="world-create" data-i18n="worldPicker.create">Create a new world</button>
           <button id="world-import" data-i18n="backup.import">Import world</button>
           <input id="world-import-file" type="file" accept=".json,application/json" hidden aria-label="World backup file" data-i18n-attr="aria-label:backup.file">
@@ -89,8 +89,8 @@
         <button id="cancel-world-action" data-i18n="worldPicker.cancel">Cancel</button>
       </div>
       <div id="play-actions" class="actions" hidden>
-        <button id="start" class="primary" disabled data-i18n="button.start">Play — capture mouse</button>
-        <button id="drag-start" disabled data-i18n="button.dragStart">Play without capturing</button>
+        <button id="start" class="primary" disabled><span data-i18n="button.start">Play</span> <small class="mode-hint" data-i18n="button.captureHint">(capture mouse)</small></button>
+        <button id="drag-start" disabled><span data-i18n="button.dragStart">Play</span> <small class="mode-hint" data-i18n="button.dragHint">(without capturing)</small></button>
         <button id="choose-world" data-i18n="worldPicker.choose">Worlds &amp; backups</button>
       </div>
       <p class="small" data-i18n="overlay.dragInfo">No-capture mode: drag across the world to look around; Q / E change blocks. Keyboard computers only.</p>

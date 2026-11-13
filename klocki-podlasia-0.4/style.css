@@ -70,6 +70,19 @@ h1 em { font-style: normal; color: #ad4934; }
 .instructions p { font-size: 12px; margin: 6px 0; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .primary { background: #ffcd53; border: 2px solid #183f36; box-shadow: 0 3px #183f36; font-size: 15px; }
+#play-actions .mode-hint { color: #476358; font: 400 10px Georgia, serif; }
+.world-play-action { color: #07594a; font-family: "Arial Black", Impact, sans-serif; font-size: 1.08em; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; animation: world-play-color 12s ease-in-out infinite; }
+@keyframes world-play-color {
+  0%, 100% { color: #07594a; }
+  33% { color: #793313; }
+  66% { color: #393a89; }
+}
+#world-continue:not(:disabled) { animation: world-play-breathe 8s ease-in-out infinite; }
+@keyframes world-play-breathe {
+  0%, 100% { background-color: #ffcd53; border-color: #183f36; box-shadow: 0 3px #183f36, 0 0 7px #f2b83366; }
+  33% { background-color: #c1e4eb; border-color: #285d68; box-shadow: 0 3px #285d68, 0 0 17px 3px #63b6c488; }
+  66% { background-color: #bfe9a0; border-color: #32623a; box-shadow: 0 3px #32623a, 0 0 17px 3px #78bf5c88; }
+}
 #choose-world {
   color: #172d1c;
   border: 2px solid #59683a;
@@ -138,6 +151,11 @@ h1 em { font-style: normal; color: #ad4934; }
     background: #c83d36; border-color: #922820; color: #fff; box-shadow: 0 0 0 5px #c83d3680;
   }
 }
+.delete-confirm-breathe { animation: delete-confirm-breathe 2.4s ease-in-out infinite; }
+@keyframes delete-confirm-breathe {
+  0%, 100% { background: #b8322b; border-color: #922820; color: #fff; box-shadow: 0 0 0 3px #c83d3640; }
+  50% { background: #e74b43; border-color: #7f1f1a; color: #fff; box-shadow: 0 0 0 7px #c83d3680; }
+}
 .settings { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 14px 0; font-size: 12px; }
 .settings label { display: flex; align-items: center; gap: 6px; }
 .settings select { max-width: 220px; padding: 6px; border: 1px solid #9db19a; border-radius: 6px; font: inherit; color: inherit; background: #f3f6e9; }
@@ -185,4 +203,4 @@ output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: mo
   .slot kbd { top: 0; left: 2px; font-size: 9px; }
 }
 @media (max-height: 480px) { .slot { min-height: 38px; padding: 10px 2px 2px; font-size: 10px; } .swatch { width: 18px; height: 18px; } #palette { padding: 4px; } #target { font-size: 11px; padding: 4px 10px; } #palette-pages button { padding: 4px; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } .tools #save-now:not(:disabled) { animation: none; box-shadow: 0 0 10px 3px #ffc93ccc; } .save-confirmation, .save-confirmation::after, .world-actions .world-export-button, #world-import, #choose-world { animation: none; } .reset-confirm.delete-confirm-active { animation: none; background: #ffed00; border-color: #a77a00; } .delete-confirm-flash { animation: none; outline: 3px solid #c83d36; outline-offset: 3px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } .tools #save-now:not(:disabled) { animation: none; box-shadow: 0 0 10px 3px #ffc93ccc; } .save-confirmation, .save-confirmation::after, .world-actions .world-export-button, #world-import, #choose-world, #world-continue:not(:disabled), .world-play-action { animation: none; } .reset-confirm.delete-confirm-active { animation: none; background: #ffed00; border-color: #a77a00; } .delete-confirm-flash, .delete-confirm-breathe { animation: none; background: #c83d36; border-color: #922820; color: #fff; outline: 3px solid #c83d36; outline-offset: 3px; } }
