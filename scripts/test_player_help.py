@@ -36,11 +36,22 @@ class PlayerHelpTest(unittest.TestCase):
                           f"{source.name}: missing anchor in {href}")
 
     def test_player_pages_have_working_local_links_and_permalinks(self):
-        for name in ("help.html", "updates.html"):
+        for name in ("help.html", "updates.html", "minecraft/index.html",
+                     "minecraft/0.5/index.html"):
             source = ROOT / name
             for link in PageLinks(source).links:
                 with self.subTest(page=name, href=link["href"]):
                     self.assert_local_destination(source, link["href"])
+
+    def test_minecraft_archive_h_shortcut_returns_to_games_home(self):
+        source = ROOT / "minecraft/index.html"
+        games_link = next(link for link in PageLinks(source).links
+                          if link["href"] == "../index.html"
+                          and link.get("aria-keyshortcuts") == "H")
+        self.assert_local_destination(source, games_link["href"])
+        html = source.read_text(encoding="utf-8")
+        self.assertIn("document.addEventListener('keydown'", html)
+        self.assertIn("window.location.href = '../index.html';", html)
 
     def test_portfolio_games_link_to_help_without_replacing_the_game_tab(self):
         cards = [link for link in PageLinks(ROOT / "index.html").links

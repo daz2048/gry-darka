@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <title>Minecraft 0.4: woodland watchtower and campsite</title>
+  <desc>A block-built watchtower beside a lake, with tents and a fox in the foreground.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1">
+      <stop stop-color="#e9b96e"/>
+      <stop offset="1" stop-color="#f8e7b8"/>
+    </linearGradient>
+    <linearGradient id="grass" x2="0" y2="1">
+      <stop stop-color="#699752"/>
+      <stop offset="1" stop-color="#294d3d"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <rect x="465" y="48" width="48" height="48" fill="#fff2ca"/>
+  <path d="M0 160h70v-22h65v18h68v-35h84v20h75v-19h83v30h73v-16h122v224H0Z" fill="#81986b"/>
+  <path d="M0 203h91v-20h77v25h73v-22h72v18h97v-29h79v26h75v-18h76v177H0Z" fill="url(#grass)"/>
+  <path d="M0 217h65v14h73v-8h54v26h-35v20H80v17H0Z" fill="#67b5b0"/>
+  <path d="M0 242h69v11h70v9H0Z" fill="#addbd0"/>
+  <path d="M145 360v-25h59v-26h68v-20h44v-39h26v46h-41v27h-68v37Z" fill="#c5a77b"/>
+  <g fill="#553f32">
+    <path d="M49 165h15v76H49zm506-12h17v95h-17z"/>
+  </g>
+  <g fill="#315f43">
+    <path d="M13 155h28v-34h31v34h28v52H13Z"/>
+    <path d="M515 149h31v-40h34v40h32v60h-97Z"/>
+  </g>
+  <g fill="#4c8050">
+    <path d="M13 155h28v-34h31v34H56v28H13Z"/>
+    <path d="M515 149h31v-40h34v40h-21v32h-44Z"/>
+  </g>
+  <g>
+    <path d="M235 140h128v18H235Z" fill="#c9a76e"/>
+    <path d="m363 140 36-18v18l-36 18Z" fill="#9e754d"/>
+    <path d="M249 155h18v143h-18zm83 0h18v143h-18z" fill="#6d4d36"/>
+    <path d="M371 136h17v143h-17z" fill="#4b392c"/>
+    <path d="M247 184h104v12H247zm0 53h104v12H247Z" fill="#9e754d"/>
+    <path d="m268 198 60 38-6 10-60-38zm0 38 60-38 6 10-60 38Z" fill="#79573b"/>
+    <path d="M237 105h12v35h-12zm38 0h12v35h-12zm39 0h12v35h-12zm38 0h12v35h-12Z" fill="#b88f59"/>
+    <path d="M236 104h128v10H236Z" fill="#e0c38a"/>
+    <path d="m364 104 35-18v11l-35 17Z" fill="#a67d4d"/>
+    <path d="M238 64h12v40h-12zm114 0h12v40h-12z" fill="#79573b"/>
+    <path d="m225 64 76-34 111 21-49 28Z" fill="#42664b"/>
+    <path d="m225 64 138 15v12L225 76Z" fill="#31503f"/>
+    <path d="M351 298v-15h-15v-15h-15v-15h-15v-15h-15v-15h-15v-15h-15v-15h-15" fill="none" stroke="#dfbe84" stroke-width="9"/>
+  </g>
+  <g>
+    <path d="m407 289 40-64 40 64Z" fill="#dbc878"/>
+    <path d="m447 225 67 21 20 55-47-12Z" fill="#b09353"/>
+    <path d="m432 289 15-33 15 33Z" fill="#414338"/>
+    <path d="m111 310 29-49 29 49Z" fill="#d4c27a"/>
+    <path d="m140 261 43 14 17 46-31-11Z" fill="#9f854c"/>
+    <path d="m131 310 9-24 10 24Z" fill="#414338"/>
+  </g>
+  <g transform="translate(402 302)">
+    <path d="M0 0h52v23H0Z" fill="#d6803e"/>
+    <path d="M44-12h24v26H44Z" fill="#e9a45c"/>
+    <path d="M44-20h8v9h-8zm16 0h8v9h-8Z" fill="#704435"/>
+    <path d="M57 3h16v11H57Z" fill="#f2e4c3"/>
+    <path d="M61-5h4v4h-4Z" fill="#263d34"/>
+    <path d="M5 23h8v12H5zm32 0h8v12h-8Z" fill="#573e32"/>
+    <path d="M-25 7H0v15h-25Z" fill="#d6803e"/>
+    <path d="M-35 7h14v15h-14Z" fill="#f2e4c3"/>
+  </g>
+  <rect x="18" y="18" width="200" height="59" rx="7" fill="#263f35" opacity=".96"/>
+  <text x="32" y="43" font-family="Trebuchet MS, sans-serif" font-size="21" font-weight="800" fill="#fff0c9">MINECRAFT 0.4</text>
+  <text x="32" y="62" font-family="Trebuchet MS, sans-serif" font-size="10" font-weight="700" letter-spacing="1" fill="#d4dcb2">WATCHTOWER · CAMP · FOXES</text>
+</svg>

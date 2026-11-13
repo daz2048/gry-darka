@@ -7,12 +7,13 @@
 <title>Pixel Otter Rocket | Gry Ekipy spod Lipy z Hajnówki</title>
 <meta name="description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.4. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <link rel="canonical" href="https://daz2048.github.io/gry-darka/" />
+<link rel="icon" type="image/png" href="favicon.png" sizes="360x360" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="pl_PL" />
 <meta property="og:title" content="Pixel Otter Rocket | Gry Ekipy spod Lipy z Hajnówki" />
 <meta property="og:description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.4. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <meta property="og:url" content="https://daz2048.github.io/gry-darka/" />
-<link rel="stylesheet" href="weather.css?v=7" />
+<link rel="stylesheet" href="weather.css?v=10" />
 <link rel="stylesheet" href="minecraft-news.css?v=1" />
 <script src="weather.js?v=5" defer></script>
 <script src="minecraft-news.js?v=1" defer></script>
@@ -589,7 +590,24 @@
   .version-history-list li + li { margin-top: 4px; }
   .version-history-list a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 4px; color: #b9d8e8; text-underline-offset: 3px; }
   .version-history-list a:hover { color: #fff; }
+  .version-history-list a { gap: 8px; }
+  .version-thumb { flex: none; width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(232, 237, 242, .25); }
   .version-history-list a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 2px; border-radius: 3px; }
+  .voxel-release-actions { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: space-between; gap: 8px; position: relative; z-index: 1; margin-top: 12px; }
+  .voxel-release-actions .version-history { flex: 1; min-width: 0; align-self: auto; margin: 0; }
+  .voxel-release-actions .version-history > ul { width: calc(200% + 8px); text-align: left; }
+  .voxel-release-actions .version-history:last-child > ul { position: relative; left: calc(-100% - 8px); }
+  .voxel-release-actions .version-history-list a { display: flex; width: 100%; }
+  .voxel-release-actions .version-history-list a > span { min-width: 0; overflow-wrap: anywhere; }
+  .voxel-release-actions .version-history-list .special-release-badge { display: inline-block; margin-left: 4px; vertical-align: middle; }
+  .voxel-release-actions .version-history summary { gap: 6px; padding: 6px 8px; font-size: 11px; white-space: nowrap; }
+  .voxel-release-actions .version-history summary::after { font-size: 14px; }
+  .special-release-list { margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid rgba(232, 237, 242, .2); list-style: none; }
+  .special-release-list a { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 8px 4px; color: #b9d8e8; text-decoration: underline; text-underline-offset: 3px; }
+  .special-release-list a:hover { color: #fff; }
+  .special-release-list a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 2px; border-radius: 3px; }
+  .special-release-list p { margin: 0 4px 8px; font: 12px/1.5 "Segoe UI", sans-serif; text-align: left; opacity: .85; }
+  .special-release-badge { flex: 0 0 auto; padding: 3px 6px; border: 1px solid #ffcd53; border-radius: 4px; color: #ffcd53; font-size: 10px; line-height: 1.2; text-transform: uppercase; }
   .card.castle-game { --card-accent: #ff6b35; --card-ink: #000; }
   .card.zombie-vanilla { --card-accent: #7209b7; --card-ink: #fff; }
   .card.zombie-max-one { --card-accent: #00d9ff; --card-ink: #000; }
@@ -661,6 +679,11 @@
     .brand-title { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
     .brand-face { padding: 20px 14px; }
   }
+  @media (max-width: 400px) {
+    .voxel-release-actions { gap: 4px; }
+    .voxel-release-actions .version-history summary { gap: 4px; padding: 4px 5px; font-size: 9px; }
+    .voxel-release-actions .version-history summary::after { font-size: 12px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .brand-face, .brand-face[data-effect]::after,
     .brand-face:not([data-effect])::after, .brand-face .brand-title { animation: none; }
@@ -672,7 +695,46 @@
 </style>
 </head>
 <body id="top">
-  <div class="weather-sky" aria-hidden="true"><div class="weather-daylight"></div><div class="weather-twilight"></div><div class="weather-sun"></div><div class="weather-stars"><div class="weather-shooting-star"></div></div><div class="weather-moon"></div><div class="weather-clouds"></div><div class="weather-particles"></div></div>
+  <div class="weather-sky" aria-hidden="true">
+    <div class="weather-daylight"></div><div class="weather-twilight"></div><div class="weather-sun"></div>
+    <div class="weather-stars"><div class="weather-shooting-star"></div><div class="weather-ufo"></div></div>
+    <div class="weather-moon"></div><div class="weather-clouds"></div><div class="weather-particles"></div>
+    <div class="weather-visitor weather-birds">
+      <svg viewBox="0 0 100 48" focusable="false" fill="none" stroke="#dbefff" stroke-width="3" stroke-linecap="round">
+        <g class="weather-wings"><path d="M4 12Q18 4 28 20Q38 4 52 12M54 30Q64 22 73 36Q82 22 94 30"/></g>
+      </svg>
+    </div>
+    <div class="weather-visitor weather-frog">
+      <svg viewBox="0 0 80 60" focusable="false">
+        <ellipse cx="40" cy="54" rx="32" ry="4" fill="#86ddeb55"/>
+        <path d="M25 35Q2 32 12 49L4 52H28M55 35Q78 32 68 49L76 52H52" fill="#4ba967" stroke="#234e43" stroke-width="2"/>
+        <ellipse cx="40" cy="35" rx="23" ry="18" fill="#71c76e"/>
+        <ellipse cx="40" cy="41" rx="14" ry="10" fill="#c6e992"/>
+        <g fill="#8cda7b" stroke="#234e43" stroke-width="2"><circle cx="26" cy="19" r="10"/><circle cx="54" cy="19" r="10"/></g>
+        <g fill="#f4ffe6"><circle cx="26" cy="18" r="6"/><circle cx="54" cy="18" r="6"/></g>
+        <g fill="#172d32"><circle cx="28" cy="18" r="3"/><circle cx="56" cy="18" r="3"/></g>
+        <path d="M29 32Q40 40 51 32" fill="none" stroke="#234e43" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="weather-visitor weather-butterfly">
+      <svg viewBox="0 0 64 56" focusable="false">
+        <g class="weather-wings" fill="#ffc568" stroke="#d27a66" stroke-width="2"><path d="M31 28C4 -8 0 8 8 28C0 50 22 57 31 31M33 28C60 -8 64 8 56 28C64 50 42 57 33 31"/></g>
+        <path d="M32 18V42M32 20L25 12M32 20L39 12" stroke="#41354e" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="weather-visitor weather-snow-crystal">
+      <svg viewBox="0 0 60 60" focusable="false" fill="none" stroke="#e5faff" stroke-width="2" stroke-linecap="round">
+        <path d="M30 4V56M7 17L53 43M7 43L53 17M23 9L30 16L37 9M23 51L30 44L37 51M8 25L19 24L18 13M42 47L41 36L52 35M8 35L19 36L18 47M42 13L41 24L52 25"/>
+      </svg>
+    </div>
+    <div class="weather-visitor weather-fireflies"></div>
+    <div class="weather-visitor weather-leaf">
+      <svg viewBox="0 0 64 48" focusable="false">
+        <path d="M8 38Q3 4 54 6Q60 40 8 38" fill="#d7a75c" stroke="#90643b" stroke-width="2"/>
+        <path d="M2 44L48 12M16 32L14 20M25 25L24 13M24 25L40 28M34 19L47 20" fill="none" stroke="#90643b" stroke-width="2"/>
+      </svg>
+    </div>
+  </div>
   <div class="wrap">
     <header>
       <h1>
@@ -747,20 +809,34 @@
 
     <main class="grid">
       <article class="card voxel-game">
-        <a class="card-link" href="klocki-podlasia-0.4/">
-          <div class="thumb preview"><img src="klocki-podlasia-0.4/preview.svg?v=1" alt="Minecraft 0.4: jasny świat klocków z podlaskimi wioskami, drogą, górami i zwierzętami" fetchpriority="high"></div>
-          <h2>Minecraft 0.4 · w przygotowaniu</h2>
-          <p>Nowe funkcje, dopracowany wygląd i nowe moby. Rozwój zaczyna się od kreatywnego świata Minecraft 0.3.</p>
+        <a class="card-link" href="minecraft/0.5/">
+          <div class="thumb preview"><img src="minecraft/0.5/preview.svg?v=2" alt="Minecraft 0.5: nawiedzony dom nocą, przy upiornym księżycu, z nietoperzami i dyniami" fetchpriority="high"></div>
+          <h2>Minecraft 0.5 · już dostępny</h2>
+          <p>Specjalne wydanie w klimacie strasznego, nawiedzonego domu — odważysz się wejść?</p>
           <span class="btn">Graj</span>
         </a>
-        <details class="version-history">
-          <summary>Archived versions</summary>
-          <ul class="version-history-list">
-            <li><a href="klocki-podlasia-0.3/">Minecraft 0.3 · archived</a></li>
-            <li><a href="klocki-podlasia-0.2/">Minecraft 0.2</a></li>
-            <li><a href="klocki-podlasia-0.1/">Klocki Podlasia 0.1 · prototyp</a></li>
-          </ul>
-        </details>
+        <div class="voxel-release-actions">
+          <details class="version-history" name="minecraft-releases">
+            <summary>Special releases</summary>
+            <ul class="special-release-list">
+              <li>
+                <a href="minecraft/0.5/"><span>Minecraft 0.5</span><span class="special-release-badge">Special</span></a>
+                <p lang="pl">Specjalne wydanie w klimacie strasznego, nawiedzonego domu — odważysz się wejść?</p>
+              </li>
+            </ul>
+          </details>
+          <details class="version-history" name="minecraft-releases">
+            <summary>Archived versions</summary>
+            <ul class="version-history-list">
+              <li><a href="minecraft/">All Minecraft versions / Wszystkie wersje</a></li>
+              <li><a href="minecraft/0.5/"><img class="version-thumb" src="minecraft/0.5/preview.svg?v=2" alt="" width="40" height="40" loading="lazy"><span>Minecraft 0.5 <span class="special-release-badge">Special</span></span></a></li>
+              <li><a href="klocki-podlasia-0.4/"><img class="version-thumb" src="menu-previews/minecraft-0.4.svg" alt="" width="40" height="40" loading="lazy"><span>Minecraft 0.4 · archived</span></a></li>
+              <li><a href="klocki-podlasia-0.3/"><img class="version-thumb" src="klocki-podlasia-0.3/preview.svg" alt="" width="40" height="40" loading="lazy"><span>Minecraft 0.3 · archived</span></a></li>
+              <li><a href="klocki-podlasia-0.2/"><img class="version-thumb" src="klocki-podlasia-0.2/preview.svg" alt="" width="40" height="40" loading="lazy"><span>Minecraft 0.2</span></a></li>
+              <li><a href="klocki-podlasia-0.1/"><img class="version-thumb" src="klocki-podlasia-0.1/preview.svg" alt="" width="40" height="40" loading="lazy"><span>Klocki Podlasia 0.1 · prototyp</span></a></li>
+            </ul>
+          </details>
+        </div>
       </article>
 
       <article class="card flappy-game">
@@ -1051,8 +1127,14 @@
     }
 
     try {
-      const { loadMusicCatalogue, MusicPlayer } = await import('./klocki-podlasia-0.3/music-player.js?v=2');
-      const tracks = await loadMusicCatalogue();
+      const { loadMusicCatalogue, MusicPlayer } = await import('./klocki-podlasia-0.3/music-player.js?v=3');
+      const bases = [
+        new URL('./music/', import.meta.url),
+        new URL('./music/scary_music/', import.meta.url)
+      ];
+      const catalogues = await Promise.all(bases.map(base => loadMusicCatalogue(base)));
+      const tracks = catalogues.flatMap((catalogue, index) =>
+        catalogue.map(track => ({ ...track, base: bases[index] })));
       if (!tracks.length) throw new Error('The music catalogue is empty.');
 
       player = new MusicPlayer(tracks, {

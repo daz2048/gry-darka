@@ -68,9 +68,16 @@ class MusicCatalogueTest(unittest.TestCase):
 
             created = run()
             self.assertIn("Music catalogue wrapper v1.0 | branch:", created)
+            self.assertIn(">>> Catalogue", created)
+            self.assertIn(f"Scanned directory: {folder.resolve()}", created)
             self.assertIn("(created)", created)
+            self.assertIn(">>> Track changes", created)
             self.assertIn("Track changes: +2 / -0", created)
+            self.assertIn('Added to catalogue:\n  + "a.MP3"\n  + "b.wav"', created)
+            self.assertIn("No songs removed.", created)
+            self.assertIn(">>> Summary", created)
             self.assertIn("2 track(s) | 8 audio bytes | formats: mp3: 1, wav: 1", created)
+            self.assertIn(">>> Next steps", created)
             self.assertIn("Next: review", created)
 
             (folder / "a.MP3").unlink()
@@ -78,9 +85,30 @@ class MusicCatalogueTest(unittest.TestCase):
             updated = run()
             self.assertIn("(updated)", updated)
             self.assertIn("Track changes: +1 / -1", updated)
+            self.assertIn('Added to catalogue:\n  + "c.ogg"', updated)
+            self.assertIn('Removed from catalogue:\n  - "a.MP3"', updated)
             unchanged = run()
             self.assertIn("(unchanged)", unchanged)
             self.assertIn("Track changes: +0 / -0", unchanged)
+            self.assertIn("No new songs added.", unchanged)
+            self.assertIn("No songs removed.", unchanged)
+
+    def test_wrapper_reports_empty_new_catalogue_and_escapes_filenames(self):
+        wrapper = Path(__file__).with_name("generate-music-catalogue.sh")
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+
+            def run():
+                return subprocess.run(
+                    [str(wrapper), str(folder)], capture_output=True, text=True, check=True
+                ).stdout
+
+            empty = run()
+            self.assertIn("Track changes: +0 / -0 (new catalogue)", empty)
+            self.assertIn("No new songs added.", empty)
+            (folder / "Żółty\nsong.mp3").touch()
+            added = run()
+            self.assertIn('  + "Żółty\\nsong.mp3"', added)
 
     def test_wrapper_reports_invalid_previous_catalogue_and_generation_errors(self):
         wrapper = Path(__file__).with_name("generate-music-catalogue.sh")
@@ -91,6 +119,7 @@ class MusicCatalogueTest(unittest.TestCase):
             result = subprocess.run([str(wrapper), str(folder)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0)
             self.assertIn("previous catalogue was invalid", result.stdout)
+            self.assertNotIn("No new songs added.", result.stdout)
             self.assertIn("0 track(s) | 0 audio bytes | formats: none", result.stdout)
 
             (folder / "   .wav").touch()

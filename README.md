@@ -32,8 +32,15 @@ czasu animacji.
 
 The homepage background follows model-based current weather: sunshine, clouds, fog,
 rain, snow, and a dark storm sky (no flashing lightning). Clear and partly cloudy
-nights show gently twinkling stars, an occasional decorative shooting star, and a
-moon; these are illustrative, not astronomical or actual meteor predictions.
+nights show continuously twinkling groups of stars, staggered decorative shooting
+stars every few seconds with visible trails, and a larger, shaded moon with crater
+and surface details. These are illustrative, not astronomical or actual meteor predictions.
+A decorative glowing UFO also crosses clear or partly cloudy night skies for about
+10 seconds every 40 seconds, starting four seconds after night mode becomes active.
+Other decorative visitors match the scene: flapping birds on clear, partly cloudy
+or overcast days, butterflies on sunny days, a hopping frog in rain, a tumbling
+snow crystal in snow, glowing fireflies in fog, and windblown leaves in overcast
+or stormy weather. Visits repeat every 14-30 seconds with quiet gaps between passes.
 The selected location's sunrise and sunset drive dawn, day, sunset, dusk and night,
 with a roughly 45-minute transition on either side of each event. The sun's path is
 illustrative, not astronomical. If sunrise or sunset is unavailable (such as during
@@ -41,7 +48,7 @@ polar day or night), the background uses the current day/night weather instead.
 Sky colors and celestial elements update each minute while visible; cloud and
 precipitation effects remain dependent on the weather. Banner effects remain independent.
 Animations respect reduced motion and pause in hidden tabs; stars remain static and
-shooting stars are hidden when reduced motion is requested.
+shooting stars, the UFO and all moving visitors are hidden when reduced motion is requested.
 The weather/location panel is the last content below the footer. The small weather
 icon in the top navigation shows the selected location, current temperature and
 this hour's rain chance; clicking it jumps to the panel and expands all location
@@ -154,6 +161,12 @@ and `node --test scripts/test_minecraft_news.js`.
 ---
 
 ## Wspólna muzyka
+
+Muzyka na stronie głównej losuje utwory z `music/catalogue.json` oraz
+`music/scary_music/catalogue.json`, w tym straszną muzykę. Każdy utwór ma równą
+szansę przy każdym losowaniu; powtórzenia są możliwe. Minecraft 0.5 również
+udostępnia oba katalogi w wyborze muzyki. Po dodaniu lub usunięciu utworów w folderze strasznej muzyki uruchom
+`scripts/generate-music-catalogue.sh music/scary_music`.
 
 Pliki MP3, WAV, OGG i M4A dla gier znajdują się w katalogu `music/`. Po dodaniu lub usunięciu
 utworów uruchom `scripts/generate-music-catalogue.sh` z katalogu repozytorium
@@ -271,10 +284,20 @@ Na poczatku obie wersje maja ten sam swiat, sterowanie i ograniczenia prototypu.
 - [Zagraj »](klocki-podlasia-0.2/)
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.2/README.md)
 
-### Minecraft 0.4 — wersja rozwojowa
-Punkt wyjścia to kreatywny świat Minecraft 0.3. Wersja 0.4 będzie rozwijana
-o nowe funkcje, dopracowany wygląd i nowe moby; prace prowadzone są niezależnie
-od zachowanego wydania 0.3.
+### Minecraft 0.5 — wersja rozwojowa
+Punkt wyjścia to Minecraft 0.4. Bieżące prace prowadzone są w `minecraft/0.5/`
+na gałęzi `Minecraft-0.5`. Starsze wydania pozostają w dotychczasowych katalogach
+i pod tymi samymi adresami. Nowe wersje trafiają do `minecraft/<wersja>/`;
+niezmienne biblioteki mają przypięte wersje w `minecraft/shared/vendor/`.
+Kod gry i zapisy pozostają niezależne dla każdego wydania. Światy 0.4 można
+przenieść przez eksport i import kopii zapasowej, bez zmieniania oryginału.
+- [Zagraj »](minecraft/0.5/)
+- [Instrukcja, zapisy i testy](minecraft/0.5/README.md)
+- [Wybór wersji](minecraft/)
+- [Struktura i zasady współdzielenia bibliotek](minecraft/README.md)
+
+### Minecraft 0.4 — archiwum
+Zachowane wydanie, niezależne od rozwoju wersji 0.5.
 - [Zagraj »](klocki-podlasia-0.4/)
 - [Instrukcja, zapisy i testy](klocki-podlasia-0.4/README.md)
 
@@ -346,8 +369,8 @@ Oryginalna gra — broń bazę przed falami zombie. Przesuwaj ekipę w pionie, s
 Dotychczasowy wariant Maksa.
 - [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-0.1/)
 
-#### Zombie Max 0.2 (w przygotowaniu)
-Nowa wersja rozwijana jako osobny wariant.
+#### Zombie Max 0.2 (dostępny)
+Nowa wersja dostępna jako osobny wariant.
 - [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-0.2/)
 
 #### Zombie Aleksa

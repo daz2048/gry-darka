@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { access, readFile } from 'node:fs/promises';
+import vm from 'node:vm';
 import { AmbientMusic } from '../music.js';
 import { loadMusicCatalogue, MusicPlayer } from '../music-player.js';
 
@@ -181,6 +183,70 @@ test('random tracks advance, pause resumes, and individual and original choices 
   assert.ok(audio.pauses >= 3);
   player.stop();
   assert.equal(ambient.active, false);
+});
+
+test('homepage combines both catalogues and plays random tracks from their own folders', async () => {
+  const homepage = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
+  const script = [...homepage.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)]
+    .find(match => match[1].includes("const button = document.getElementById('site-music-toggle')"))[1];
+  const base = new URL('https://example.test/games/index.html');
+  const requested = [];
+  const expectedUrls = [];
+  const audio = new MediaAudio();
+  let choice = 0.999;
+  let player;
+  const tooltip = {};
+  const button = {
+    disabled: true, attributes: {},
+    setAttribute(name, value) { this.attributes[name] = value; },
+    querySelector() { return tooltip; },
+    addEventListener(name, callback) { this[name] = callback; }
+  };
+  const status = {};
+  const catalogueFetcher = async url => {
+    requested.push(url.href);
+    const file = new URL(`../../${url.pathname.slice('/games/'.length)}`, import.meta.url);
+    const tracks = JSON.parse(await readFile(file, 'utf8'));
+    await Promise.all(tracks.map(track => access(new URL(encodeURIComponent(track.file), file))));
+    expectedUrls.push(...tracks.map(track => new URL(encodeURIComponent(track.file), url).href));
+    return { ok: true, json: async () => tracks };
+  };
+  const context = vm.createContext({
+    URL, console,
+    document: { getElementById: id => id === 'site-music-toggle' ? button : status },
+    musicModule: {
+      loadMusicCatalogue: folder => loadMusicCatalogue(folder, catalogueFetcher),
+      MusicPlayer: class extends MusicPlayer {
+        constructor(tracks, options) {
+          super(tracks, { ...options, audio, ambient: new AmbientMusic(AudioContext),
+            random: () => choice });
+          player = this;
+        }
+      }
+    },
+    pageUrl: base.href
+  });
+  const source = script
+    .replace(/await import\('[^']+'\)/, 'musicModule')
+    .replaceAll('import.meta.url', 'pageUrl');
+  await vm.runInContext(`(async () => { ${source} })()`, context);
+  assert.deepEqual(requested, [
+    'https://example.test/games/music/catalogue.json',
+    'https://example.test/games/music/scary_music/catalogue.json'
+  ]);
+  assert.equal(button.disabled, false);
+  assert.deepEqual(Array.from(player.tracks, track =>
+    new URL(encodeURIComponent(track.file), track.base).href).sort(), expectedUrls.sort());
+  button.click();
+  assert.equal(audio.src, new URL(encodeURIComponent(player.tracks.at(-1).file),
+    'https://example.test/games/music/scary_music/').href);
+  choice = 0;
+  audio.emit('ended');
+  assert.equal(audio.src, new URL(encodeURIComponent(player.tracks[0].file),
+    'https://example.test/games/music/').href);
+  button.click();
+  assert.equal(player.active, false);
+  assert.equal(button.attributes['aria-pressed'], 'false');
 });
 
 test('playback failures are reported once and stale rejections do not stop a resumed track', async () => {

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1">
+      <stop stop-color="#111526"/>
+      <stop offset=".58" stop-color="#30263f"/>
+      <stop offset="1" stop-color="#59404d"/>
+    </linearGradient>
+    <linearGradient id="fog" x2="0" y2="1">
+      <stop stop-color="#a4a8a0" stop-opacity=".05"/>
+      <stop offset="1" stop-color="#c5b9a2" stop-opacity=".42"/>
+    </linearGradient>
+    <radialGradient id="moon-glow">
+      <stop stop-color="#f8dda0" stop-opacity=".48"/>
+      <stop offset="1" stop-color="#f8dda0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <circle cx="526" cy="79" r="68" fill="url(#moon-glow)"/>
+  <circle cx="526" cy="79" r="31" fill="#ead49c"/>
+  <path d="M512 61q8-8 15 0t15 0M505 87q7-7 14 0t14 0" fill="none" stroke="#c1aa7d" stroke-width="3" opacity=".65"/>
+  <g fill="#e6d9bb" opacity=".75">
+    <circle cx="76" cy="63" r="2"/><circle cx="137" cy="39" r="2"/>
+    <circle cx="187" cy="83" r="1.5"/><circle cx="421" cy="45" r="2"/>
+    <circle cx="593" cy="129" r="1.5"/><circle cx="468" cy="118" r="1"/>
+  </g>
+  <g fill="#181a2b">
+    <path d="M366 82q13-15 26 0 13-15 26 0-13-7-26 5-13-12-26-5z"/>
+    <path d="M449 139q9-11 18 0 9-11 18 0-9-5-18 4-9-9-18-4z"/>
+    <path d="M81 135q11-13 22 0 11-13 22 0-11-6-22 4-11-10-22-4z"/>
+  </g>
+  <path d="M0 224 80 165l54 45 97-91 74 75 78-59 80 72 75-65 102 73v99H0Z" fill="#292638"/>
+  <path d="M0 247q99-31 185 0t180-4q125-39 275 1v116H0Z" fill="#262b34"/>
+
+  <g fill="#171c24" stroke="#11151e" stroke-width="4" stroke-linejoin="round">
+    <path d="M20 250h16v74H20z"/>
+    <path d="m-2 266 30-78 32 78-31 15z"/>
+    <path d="m4 235 24-60 25 60-25 13z"/>
+    <path d="M585 242h17v91h-17z"/>
+    <path d="m557 263 37-94 39 94-38 17z"/>
+    <path d="m565 225 29-72 29 72-29 14z"/>
+  </g>
+  <g fill="#34313b" stroke="#171922" stroke-width="4" stroke-linejoin="round">
+    <path d="M214 177h68v126h-68z"/>
+    <path d="M408 174h56v133h-56z"/>
+    <path d="M243 172 323 108l89 64v138H243z"/>
+    <path d="m227 174 96-79 111 79-19 14-92-64-79 65z" fill="#24232e"/>
+    <path d="M196 177v-50h37v50z"/>
+    <path d="m190 128 25-43 25 43z" fill="#24232e"/>
+    <path d="M427 174v-59h38v59z"/>
+    <path d="m420 117 26-46 27 46z" fill="#24232e"/>
+    <path d="M310 301v-73q0-24 23-24t23 24v73z" fill="#171923"/>
+    <path d="M325 226v75"/>
+  </g>
+  <g fill="#e5a84e" opacity=".95">
+    <path d="M262 191h26v34h-26z"/><path d="M375 191h24v34h-24z"/>
+    <path d="M204 143h21v25h-21z"/><path d="M436 134h21v27h-21z"/>
+    <path d="M318 139h30v35h-30z"/>
+  </g>
+  <g fill="#37313b">
+    <path d="M274 192v11l6-4 6 4v-11zM382 192v11l5-4 6 4v-11z"/>
+    <path d="M209 144v8l5-3 5 3v-8zM441 135v8l5-3 5 3v-8z"/>
+    <path d="M325 140v11l8-5 8 5v-11z"/>
+  </g>
+  <g fill="#211e28" stroke="#13151e" stroke-width="3">
+    <path d="M183 302v-63h18v63zM180 244l12-18 13 18z"/>
+    <path d="M466 301v-68h19v68zM462 235l14-20 14 20z"/>
+  </g>
+  <path d="M0 282q98-23 188 3t197-2q126-29 255 3v74H0Z" fill="url(#fog)"/>
+  <g fill="#a69b83" opacity=".8">
+    <path d="M92 310v-13q0-7 5-7h1q5 0 5 7v13z"/>
+    <path d="M523 316v-17q0-7 6-7h1q6 0 6 7v17z"/>
+    <path d="M139 326v-9q0-5 4-5t4 5v9z"/>
+  </g>
+  <path d="M321 302q-64 25-122 58h246q-55-33-101-58z" fill="#493846"/>
+  <g transform="translate(82 296)">
+    <path d="M0 14h37v24H0z" fill="#cf743c"/>
+    <path d="m4 14 6-10h18l6 10z" fill="#e38e46"/>
+    <path d="M8 21h7v8H8zm15 0h7v8h-7z" fill="#30252b"/>
+    <path d="m17 27 5 4-5 4-5-4z" fill="#30252b"/>
+    <path d="M18 5V-4" fill="none" stroke="#454536" stroke-width="3"/>
+  </g>
+  <g transform="translate(490 303) scale(.8)">
+    <path d="M0 14h37v24H0z" fill="#cf743c"/>
+    <path d="m4 14 6-10h18l6 10z" fill="#e38e46"/>
+    <path d="M8 21h7v8H8zm15 0h7v8h-7z" fill="#30252b"/>
+    <path d="m17 27 5 4-5 4-5-4z" fill="#30252b"/>
+    <path d="M18 5V-5" fill="none" stroke="#454536" stroke-width="3"/>
+  </g>
+  <rect x="18" y="18" width="302" height="62" rx="8" fill="#171923" opacity=".94" stroke="#a98463" stroke-width="2"/>
+  <text x="34" y="46" font-family="Trebuchet MS, sans-serif" font-size="21" font-weight="800" letter-spacing="1" fill="#f3ddb0">MINECRAFT 0.5</text>
+  <text x="35" y="66" font-family="Trebuchet MS, sans-serif" font-size="10" font-weight="700" letter-spacing="1.1" fill="#d49764">HAUNTED HOUSE · SPOOKY NIGHT</text>
+</svg>
