@@ -126,24 +126,32 @@ class MinecraftNewsTests(unittest.TestCase):
     def test_cli_publishes_successful_source_and_reports_failure(self):
         previous = self.previous()
         live_url = "https://example.test/minecraft-news.json"
+        for failed in ({news.NEWS_URL}, {news.NEWS_URL, news.VIDEOS_URL}):
+            with self.subTest(failed=failed), tempfile.TemporaryDirectory() as directory:
+                def fetch(url):
+                    if url == live_url:
+                        return json.dumps(previous).encode()
+                    if url in failed:
+                        raise TimeoutError("unavailable")
+                    return ATOM
 
-        def fetch(url):
-            if url == live_url:
-                return json.dumps(previous).encode()
-            if url == news.NEWS_URL:
-                raise TimeoutError("unavailable")
-            return ATOM
-
-        with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory) / "output.json"
-            report = Path(directory) / "report.json"
-            with patch.object(news, "fetch", side_effect=fetch):
-                with contextlib.redirect_stderr(io.StringIO()):
-                    code = news.main(["--published-url", live_url, "--output", str(output),
-                                      "--report", str(report)])
-            self.assertEqual(code, 1)
-            self.assertEqual(json.loads(output.read_text())["news"], previous["news"])
-            self.assertEqual(json.loads(report.read_text())["refreshed"], 1)
+                output = Path(directory) / "output.json"
+                report = Path(directory) / "report.json"
+                with patch.object(news, "fetch", side_effect=fetch):
+                    with contextlib.redirect_stderr(io.StringIO()):
+                        code = news.main(["--published-url", live_url, "--output", str(output),
+                                          "--report", str(report)])
+                self.assertEqual(code, 1)
+                data = json.loads(output.read_text())
+                self.assertEqual(data["news"], previous["news"])
+                result = json.loads(report.read_text())
+                self.assertEqual(result["refreshed"], 2 - len(failed))
+                if len(failed) == 2:
+                    self.assertEqual(data, previous)
+                    self.assertEqual(result["sources"], {"news": "retained", "videos": "retained"})
+                else:
+                    self.assertNotEqual(data["videos"]["updated"], previous["videos"]["updated"])
+                    self.assertEqual(result["sources"], {"news": "retained", "videos": "refreshed"})
 
     def test_bootstrap_requires_and_uses_a_valid_seed(self):
         previous = self.previous()
@@ -151,15 +159,15 @@ class MinecraftNewsTests(unittest.TestCase):
             seed = Path(directory) / "seed.json"
             output = Path(directory) / "output.json"
             seed.write_text(json.dumps(previous), encoding="utf-8")
-            with patch.object(news, "fetch") as fetch:
-                with patch.object(news, "update_with_report", return_value=(
-                        previous, {"sources": {"news": "refreshed", "videos": "refreshed"}, "refreshed": 2})):
-                    with contextlib.redirect_stderr(io.StringIO()):
-                        code = news.main(["--published-url", "https://example.test/minecraft-news.json",
-                                          "--bootstrap", "--cache", str(seed), "--output", str(output)])
+            with patch.object(news, "fetch", side_effect=lambda url: RSS if url == news.NEWS_URL else ATOM) as fetch:
+                with contextlib.redirect_stderr(io.StringIO()):
+                    code = news.main(["--published-url", "https://example.test/minecraft-news.json",
+                                      "--bootstrap", "--cache", str(seed), "--output", str(output)])
             self.assertEqual(code, 0)
-            fetch.assert_not_called()
-            self.assertEqual(json.loads(output.read_text()), previous)
+            self.assertEqual([call.args[0] for call in fetch.call_args_list], [news.NEWS_URL, news.VIDEOS_URL])
+            data = json.loads(output.read_text())
+            self.assertNotEqual(data["news"]["updated"], previous["news"]["updated"])
+            self.assertEqual(data["videos"]["items"], previous["videos"]["items"])
             seed.write_text("invalid", encoding="utf-8")
             with contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(news.main(["--published-url", "https://example.test/minecraft-news.json",

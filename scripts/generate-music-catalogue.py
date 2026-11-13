@@ -4,13 +4,21 @@
 import argparse
 from collections import Counter
 import json
+import os
 from pathlib import Path
 import subprocess
+import sys
 import time
 
 SUPPORTED_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a"}
 WRAPPER_VERSION = "1.0"
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+
+
+def colorize(text, color):
+    if not sys.stdout.isatty() or "NO_COLOR" in os.environ or os.environ.get("TERM") == "dumb":
+        return text
+    return f"\033[{color}m{text}\033[0m"
 
 
 def generate_catalogue(directory):
@@ -66,8 +74,16 @@ def report_generation(directory):
     else:
         change = "updated"
 
-    print(f"Music catalogue wrapper v{WRAPPER_VERSION} | branch: {branch_name()}")
-    print(f"Catalogue: {destination} ({change})")
+    print(
+        f"{colorize('♫', '1;35')} "
+        f"{colorize(f'Music catalogue wrapper v{WRAPPER_VERSION}', '1;36')} | "
+        f"branch: {colorize(branch_name(), '35')}"
+    )
+    change_color = "32" if change in {"created", "updated"} else "33"
+    print(
+        f"{colorize('Catalogue:', '36')} {destination} "
+        f"{colorize(f'({change})', change_color)}"
+    )
     if previous is not None:
         try:
             old_tracks = json.loads(previous)
@@ -77,20 +93,32 @@ def report_generation(directory):
             ):
                 raise ValueError("unexpected catalogue format")
         except (ValueError, UnicodeDecodeError):
-            print("Track changes: unavailable (previous catalogue was invalid)")
+            print(f"{colorize('Track changes:', '36')} "
+                  f"{colorize('unavailable (previous catalogue was invalid)', '33')}")
         else:
             old_files = {track["file"] for track in old_tracks}
             new_files = {path.name for path in files}
-            print(f"Track changes: +{len(new_files - old_files)} / -{len(old_files - new_files)}")
+            print(
+                f"{colorize('Track changes:', '36')} "
+                f"{colorize(f'+{len(new_files - old_files)}', '32')} / "
+                f"{colorize(f'-{len(old_files - new_files)}', '31')}"
+            )
     else:
-        print(f"Track changes: +{len(files)} / -0 (new catalogue)")
+        print(
+            f"{colorize('Track changes:', '36')} "
+            f"{colorize(f'+{len(files)}', '32')} / {colorize('-0', '31')} "
+            f"{colorize('(new catalogue)', '33')}"
+        )
 
     formats = Counter(path.suffix.lower().lstrip(".") for path in files)
     format_summary = ", ".join(f"{extension}: {count}" for extension, count in sorted(formats.items()))
     total_bytes = sum(path.stat().st_size for path in files)
-    print(f"Stats: {len(files)} track(s) | {total_bytes:,} audio bytes | "
+    print(f"{colorize('Stats:', '36')} {len(files)} track(s) | {total_bytes:,} audio bytes | "
           f"formats: {format_summary or 'none'} | {time.monotonic() - started:.3f}s")
-    print("Next: review the catalogue and audio changes; include both when publishing.")
+    print(colorize(
+        "Next: review the catalogue and audio changes; include both when publishing.",
+        "1;33",
+    ))
 
 
 if __name__ == "__main__":

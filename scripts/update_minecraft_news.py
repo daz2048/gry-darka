@@ -94,7 +94,10 @@ def latest(items, limit):
 
 
 def fetch(url):
-    request = Request(url, headers={"User-Agent": "gry-darka Minecraft news feed"})
+    request = Request(url, headers={
+        "User-Agent": "gry-darka Minecraft news feed",
+        "Cache-Control": "no-cache",
+    })
     with urlopen(request, timeout=20) as response:
         content = response.read(MAX_FEED_BYTES + 1)
     if len(content) > MAX_FEED_BYTES:

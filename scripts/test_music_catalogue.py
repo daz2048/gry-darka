@@ -1,9 +1,13 @@
 import importlib.util
+import io
 import json
+import os
+import re
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 spec = importlib.util.spec_from_file_location(
@@ -95,6 +99,40 @@ class MusicCatalogueTest(unittest.TestCase):
             self.assertIn("Unsupported audio filename", result.stderr)
             self.assertNotIn("Next:", result.stdout)
             self.assertEqual(json.loads(destination.read_text()), [])
+
+    def test_wrapper_colors_terminal_output_and_honors_no_color(self):
+        class Terminal(io.StringIO):
+            def isatty(self):
+                return True
+
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            (folder / "a.mp3").write_bytes(b"audio")
+            with mock.patch.dict(os.environ):
+                os.environ.pop("NO_COLOR", None)
+                os.environ["TERM"] = "xterm-256color"
+                colored = Terminal()
+                with mock.patch.object(catalogue.sys, "stdout", colored):
+                    catalogue.report_generation(folder)
+                output = colored.getvalue()
+                self.assertIn("\033[1;35m♫\033[0m", output)
+                self.assertIn("\033[1;36mMusic catalogue wrapper v1.0", output)
+                self.assertIn("\033[32m+1\033[0m", output)
+                self.assertIn("\033[31m-0\033[0m", output)
+                self.assertIn(
+                    "Music catalogue wrapper v1.0 | branch:",
+                    re.sub(r"\033\[[0-9;]*m", "", output),
+                )
+
+                for overrides in ({"NO_COLOR": "1"}, {"TERM": "dumb"}):
+                    with self.subTest(overrides=overrides):
+                        os.environ.pop("NO_COLOR", None)
+                        os.environ["TERM"] = "xterm-256color"
+                        os.environ.update(overrides)
+                        plain = Terminal()
+                        with mock.patch.object(catalogue.sys, "stdout", plain):
+                            catalogue.report_generation(folder)
+                        self.assertNotIn("\033[", plain.getvalue())
 
 
 if __name__ == "__main__":

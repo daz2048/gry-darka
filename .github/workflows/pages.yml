@@ -83,7 +83,7 @@ jobs:
             args+=(--bootstrap)
           fi
           python3 scripts/update_minecraft_news.py \
-            --published-url "${PAGES_URL%/}/minecraft-news.json" \
+            --published-url "${PAGES_URL%/}/minecraft-news.json?cache=$GITHUB_RUN_ID" \
             --output "$RUNNER_TEMP/site/minecraft-news.json" \
             --report "$RUNNER_TEMP/feed-result.json" \
             "${args[@]}"
@@ -135,10 +135,10 @@ jobs:
           from update_minecraft_news import fetch, validate_previous
 
           expected = json.loads((Path(os.environ["RUNNER_TEMP"]) / "site/minecraft-news.json").read_text())
-          url = os.environ["PAGES_URL"].rstrip("/") + "/minecraft-news.json?run=" + os.environ["GITHUB_RUN_ID"]
+          url = os.environ["PAGES_URL"].rstrip("/") + "/minecraft-news.json?deployment=" + os.environ["GITHUB_RUN_ID"]
           for attempt in range(6):
               try:
-                  actual = validate_previous(json.loads(fetch(url)), strict=True)
+                  actual = validate_previous(json.loads(fetch(url + f"&attempt={attempt}")), strict=True)
                   if actual == expected:
                       break
                   print("Published feed has not reached the expected version yet.")
