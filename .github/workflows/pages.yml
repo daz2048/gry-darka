@@ -1,0 +1,155 @@
+name: Site validation and deployment
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 */4 * * *'
+  workflow_dispatch:
+    inputs:
+      bootstrap:
+        description: Use the committed feed seed instead of the live cache (initial setup or recovery only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.event.pull_request.number) || 'pages-production' }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Site checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test news feeds and Minecraft
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_minecraft_news.py'
+          node --test scripts/test_minecraft_news.js
+          npm test --prefix klocki-podlasia-0.3
+
+  publish:
+    name: Publish Pages
+    needs: validate
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check that this revision is still current
+        id: revision
+        run: |
+          git fetch origin main
+          echo "current=$([ "$(git rev-parse origin/main)" = "$GITHUB_SHA" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: actions/configure-pages@v5
+        if: steps.revision.outputs.current == 'true'
+        id: pages
+      - name: Stage the complete static site
+        if: steps.revision.outputs.current == 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/site"
+          git archive HEAD | tar -xf - -C "$RUNNER_TEMP/site" --exclude='.github'
+      - name: Refresh feeds using the last published data
+        if: steps.revision.outputs.current == 'true'
+        id: refresh
+        continue-on-error: true
+        env:
+          PAGES_URL: ${{ steps.pages.outputs.base_url }}
+          BOOTSTRAP: ${{ inputs.bootstrap == true }}
+        run: |
+          args=()
+          if [ "$BOOTSTRAP" = true ]; then
+            args+=(--bootstrap)
+          fi
+          python3 scripts/update_minecraft_news.py \
+            --published-url "${PAGES_URL%/}/minecraft-news.json" \
+            --output "$RUNNER_TEMP/site/minecraft-news.json" \
+            --report "$RUNNER_TEMP/feed-result.json" \
+            "${args[@]}"
+      - name: Report refresh results and decide whether to publish
+        if: steps.revision.outputs.current == 'true'
+        id: result
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = json.loads((Path(os.environ["RUNNER_TEMP"]) / "feed-result.json").read_text())
+          publish = report["refreshed"] > 0 or os.environ["EVENT_NAME"] != "schedule"
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"publish={str(publish).lower()}\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write("## Minecraft feed refresh\n")
+              for source, status in report["sources"].items():
+                  summary.write(f"- {source}: {status}\n")
+              summary.write(f"- Publish site: {publish}\n")
+          PY
+      - name: Recheck the source revision before deployment
+        if: steps.result.outputs.publish == 'true'
+        id: latest
+        run: |
+          git fetch origin main
+          echo "current=$([ "$(git rev-parse origin/main)" = "$GITHUB_SHA" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.latest.outputs.current == 'true'
+        with:
+          path: ${{ runner.temp }}/site
+      - uses: actions/deploy-pages@v4
+        if: steps.latest.outputs.current == 'true'
+        id: deploy
+      - name: Verify the published feed
+        if: steps.deploy.outcome == 'success'
+        env:
+          PAGES_URL: ${{ steps.deploy.outputs.page_url }}
+          PYTHONPATH: scripts
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import time
+          from update_minecraft_news import fetch, validate_previous
+
+          expected = json.loads((Path(os.environ["RUNNER_TEMP"]) / "site/minecraft-news.json").read_text())
+          url = os.environ["PAGES_URL"].rstrip("/") + "/minecraft-news.json?run=" + os.environ["GITHUB_RUN_ID"]
+          for attempt in range(6):
+              try:
+                  actual = validate_previous(json.loads(fetch(url)), strict=True)
+                  if actual == expected:
+                      break
+                  print("Published feed has not reached the expected version yet.")
+              except (OSError, ValueError) as error:
+                  print(f"Published feed verification failed: {error}")
+              if attempt == 5:
+                  raise SystemExit("Published feed did not match the deployment artifact.")
+              time.sleep(10)
+          PY
+      - name: Fail visibly when a provider refresh failed
+        if: always() && steps.refresh.outcome == 'failure'
+        run: |
+          echo "::error::Minecraft feed refresh did not fully succeed. See the refresh logs and summary for retained data and deployment outcome."
+          exit 1

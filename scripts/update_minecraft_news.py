@@ -102,21 +102,14 @@ def fetch(url):
     return content
 
 
-def load_previous(path):
+def validate_previous(data, strict=False):
     empty = {"news": {"updated": None, "items": []}, "videos": {"updated": None, "items": []}}
-    if not path.exists():
-        return empty
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            raise ValueError("Cache is not an object")
-    except (OSError, ValueError) as error:
-        print(f"Invalid news cache: {error}", file=sys.stderr)
-        return empty
+    if not isinstance(data, dict):
+        raise ValueError("Cache is not an object")
     for key in empty:
         try:
             section = data[key]
-            if not isinstance(section["items"], list):
+            if not isinstance(section, dict) or not isinstance(section["items"], list):
                 raise ValueError(f"Invalid cached {key} items")
             if section["updated"] is None and not section["items"]:
                 continue
@@ -132,29 +125,72 @@ def load_previous(path):
                 raise ValueError(f"Empty cached {key} feed")
             empty[key] = section
         except (ValueError, TypeError, KeyError) as error:
+            if strict:
+                raise ValueError(f"Invalid cached Minecraft {key}: {error}") from error
             print(f"Invalid cached Minecraft {key}: {error}", file=sys.stderr)
     return empty
 
 
-def update(previous, fetch_feed=fetch, now=None):
+def load_previous(path, strict=False):
+    try:
+        return validate_previous(json.loads(path.read_text(encoding="utf-8")), strict=strict)
+    except FileNotFoundError:
+        if strict:
+            raise
+        return {"news": {"updated": None, "items": []}, "videos": {"updated": None, "items": []}}
+    except (OSError, ValueError) as error:
+        if strict:
+            raise
+        print(f"Invalid news cache: {error}", file=sys.stderr)
+        return {"news": {"updated": None, "items": []}, "videos": {"updated": None, "items": []}}
+
+
+def update_with_report(previous, fetch_feed=None, now=None):
+    if fetch_feed is None:
+        fetch_feed = fetch
     data = previous.copy()
+    sources = {}
     now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc).isoformat()
     for key, url, parser in (("news", NEWS_URL, parse_news), ("videos", VIDEOS_URL, parse_videos)):
         try:
             data[key] = {"updated": now, "items": parser(fetch_feed(url))}
+            sources[key] = "refreshed"
         except (OSError, ValueError, ET.ParseError) as error:
             print(f"Could not refresh Minecraft {key}: {error}; keeping last successful data.", file=sys.stderr)
-    return data
+            sources[key] = "retained" if previous[key]["items"] else "unavailable"
+    return data, {"sources": sources, "refreshed": sum(status == "refreshed" for status in sources.values())}
 
 
-def main():
+def update(previous, fetch_feed=None, now=None):
+    return update_with_report(previous, fetch_feed, now)[0]
+
+
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cache", type=Path, default=Path("minecraft-news.json"))
     parser.add_argument("--output", type=Path, default=Path("minecraft-news.json"))
-    args = parser.parse_args()
-    data = update(load_previous(args.cache))
-    args.output.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    parser.add_argument("--published-url", help="Use the validated live JSON as the previous cache; fail if unavailable")
+    parser.add_argument("--bootstrap", action="store_true", help="Explicitly use the committed cache instead of live data")
+    parser.add_argument("--report", type=Path, help="Write per-source refresh results as JSON")
+    args = parser.parse_args(argv)
+    if args.bootstrap and not args.published_url:
+        parser.error("--bootstrap requires --published-url")
+    try:
+        if args.published_url and not args.bootstrap:
+            previous = validate_previous(json.loads(fetch(args.published_url)), strict=True)
+        else:
+            if args.bootstrap:
+                print("Bootstrap requested: using the committed feed seed, not the live cache.", file=sys.stderr)
+            previous = load_previous(args.cache, strict=args.bootstrap)
+        data, report = update_with_report(previous)
+        args.output.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        if args.report:
+            args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    except (OSError, ValueError) as error:
+        print(f"Minecraft feed refresh aborted: {error}; no deployment should proceed.", file=sys.stderr)
+        return 1
+    return 0 if report["refreshed"] == 2 else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -1,0 +1,200 @@
+{
+  "index_scope": "local",
+  "authoritative": false,
+  "download_dir": "/Users/panasid/git/gry-darka/music",
+  "script_version": "2.5.1",
+  "created_at": "2026-11-13T15:10:50Z",
+  "download_count": 27,
+  "downloads": [
+    {
+      "downloaded_at": "2026-11-13T15:10:50Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-001-c418-minecraft.mp3",
+      "file_name": "minecraft-ost-001-c418-minecraft.mp3",
+      "size_bytes": 2423348,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:11:01Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-002-c418-key.mp3",
+      "file_name": "minecraft-ost-002-c418-key.mp3",
+      "size_bytes": 443204,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:11:11Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-003-c418-subwoofer-lullaby.mp3",
+      "file_name": "minecraft-ost-003-c418-subwoofer-lullaby.mp3",
+      "size_bytes": 2268092,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:11:22Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-004-c418-living-mice.mp3",
+      "file_name": "minecraft-ost-004-c418-living-mice.mp3",
+      "size_bytes": 1887812,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:11:34Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-005-c418-haggstrom.mp3",
+      "file_name": "minecraft-ost-005-c418-haggstrom.mp3",
+      "size_bytes": 2469740,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:11:43Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-006-c418-oxygene.mp3",
+      "file_name": "minecraft-ost-006-c418-oxygene.mp3",
+      "size_bytes": 722324,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:11:55Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-007-c418-mice-on-venus.mp3",
+      "file_name": "minecraft-ost-007-c418-mice-on-venus.mp3",
+      "size_bytes": 3208916,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:12:05Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-008-c418-dry-hands.mp3",
+      "file_name": "minecraft-ost-008-c418-dry-hands.mp3",
+      "size_bytes": 593684,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:12:14Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-009-minecraft-music.mp3",
+      "file_name": "minecraft-ost-009-minecraft-music.mp3",
+      "size_bytes": 404348,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:12:24Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-010-c418-wet-hands.mp3",
+      "file_name": "minecraft-ost-010-c418-wet-hands.mp3",
+      "size_bytes": 832916,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:12:34Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-011-c418-clark.mp3",
+      "file_name": "minecraft-ost-011-c418-clark.mp3",
+      "size_bytes": 2201348,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:12:44Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-012-c418-sweden.mp3",
+      "file_name": "minecraft-ost-012-c418-sweden.mp3",
+      "size_bytes": 2141420,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:12:55Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-013-c418-danny.mp3",
+      "file_name": "minecraft-ost-013-c418-danny.mp3",
+      "size_bytes": 2645780,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:13:05Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-014-c418-beginning.mp3",
+      "file_name": "minecraft-ost-014-c418-beginning.mp3",
+      "size_bytes": 969140,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:13:15Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-015-c418-door.mp3",
+      "file_name": "minecraft-ost-015-c418-door.mp3",
+      "size_bytes": 1388204,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:13:25Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-016-c418-death.mp3",
+      "file_name": "minecraft-ost-016-c418-death.mp3",
+      "size_bytes": 582692,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:13:35Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-017-c418-moog-city.mp3",
+      "file_name": "minecraft-ost-017-c418-moog-city.mp3",
+      "size_bytes": 2163500,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:13:45Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-018-c418-equinoxe.mp3",
+      "file_name": "minecraft-ost-018-c418-equinoxe.mp3",
+      "size_bytes": 1403540,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:13:54Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-019-c418-chris.mp3",
+      "file_name": "minecraft-ost-019-c418-chris.mp3",
+      "size_bytes": 1091132,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:14:05Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-020-c418-excuse.mp3",
+      "file_name": "minecraft-ost-020-c418-excuse.mp3",
+      "size_bytes": 987788,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:14:15Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-021-c418-dog.mp3",
+      "file_name": "minecraft-ost-021-c418-dog.mp3",
+      "size_bytes": 1885580,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:14:26Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-022-c418-droopy-likes-ricochet.mp3",
+      "file_name": "minecraft-ost-022-c418-droopy-likes-ricochet.mp3",
+      "size_bytes": 1351508,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:14:36Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-023-c418-droopy-likes-your-face.mp3",
+      "file_name": "minecraft-ost-023-c418-droopy-likes-your-face.mp3",
+      "size_bytes": 1805876,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:14:46Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-024-c418-thirteen.mp3",
+      "file_name": "minecraft-ost-024-c418-thirteen.mp3",
+      "size_bytes": 1753532,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:14:56Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-025-c418-cat.mp3",
+      "file_name": "minecraft-ost-025-c418-cat.mp3",
+      "size_bytes": 2445140,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:15:09Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-026-c418-blocks.mp3",
+      "file_name": "minecraft-ost-026-c418-blocks.mp3",
+      "size_bytes": 5127308,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    },
+    {
+      "downloaded_at": "2026-11-13T15:15:19Z",
+      "path": "/Users/panasid/git/gry-darka/music/minecraft-ost-027-c418-chirp.mp3",
+      "file_name": "minecraft-ost-027-c418-chirp.mp3",
+      "size_bytes": 2935364,
+      "playlist_url": "https://www.youtube.com/playlist?list=PLefKpFQ8Pvy5aCLAGHD8Zmzsdljos-t2l"
+    }
+  ],
+  "updated_at": "2026-11-13T15:15:19Z"
+}

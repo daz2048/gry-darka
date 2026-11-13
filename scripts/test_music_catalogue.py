@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -48,6 +49,52 @@ class MusicCatalogueTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Unsupported audio filename"):
                 catalogue.generate(folder)
             self.assertEqual((folder / "catalogue.json").read_text(), "existing")
+
+    def test_wrapper_reports_created_updated_and_unchanged(self):
+        wrapper = Path(__file__).with_name("generate-music-catalogue.sh")
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            (folder / "a.MP3").write_bytes(b"abc")
+            (folder / "b.wav").write_bytes(b"12345")
+
+            def run():
+                return subprocess.run(
+                    [str(wrapper), str(folder)], capture_output=True, text=True, check=True
+                ).stdout
+
+            created = run()
+            self.assertIn("Music catalogue wrapper v1.0 | branch:", created)
+            self.assertIn("(created)", created)
+            self.assertIn("Track changes: +2 / -0", created)
+            self.assertIn("2 track(s) | 8 audio bytes | formats: mp3: 1, wav: 1", created)
+            self.assertIn("Next: review", created)
+
+            (folder / "a.MP3").unlink()
+            (folder / "c.ogg").touch()
+            updated = run()
+            self.assertIn("(updated)", updated)
+            self.assertIn("Track changes: +1 / -1", updated)
+            unchanged = run()
+            self.assertIn("(unchanged)", unchanged)
+            self.assertIn("Track changes: +0 / -0", unchanged)
+
+    def test_wrapper_reports_invalid_previous_catalogue_and_generation_errors(self):
+        wrapper = Path(__file__).with_name("generate-music-catalogue.sh")
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            destination = folder / "catalogue.json"
+            destination.write_text("invalid", encoding="utf-8")
+            result = subprocess.run([str(wrapper), str(folder)], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("previous catalogue was invalid", result.stdout)
+            self.assertIn("0 track(s) | 0 audio bytes | formats: none", result.stdout)
+
+            (folder / "   .wav").touch()
+            result = subprocess.run([str(wrapper), str(folder)], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Unsupported audio filename", result.stderr)
+            self.assertNotIn("Next:", result.stdout)
+            self.assertEqual(json.loads(destination.read_text()), [])
 
 
 if __name__ == "__main__":
