@@ -79,6 +79,7 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
     transform: translateX(-100%);
     transition: transform .6s;
+    pointer-events: none;
   }
   .card:hover::before { transform: translateX(100%); }
   .card:hover { 
@@ -104,6 +105,8 @@
   .thumb.mario-game img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
   .card h2 { margin: 0 0 8px; font-size: 16px; letter-spacing: 1px; font-family: 'Courier New', monospace; }
   .card p { margin: 0 0 16px; font-size: 12px; line-height: 1.6; opacity: .85; flex: 1; font-family: "Segoe UI", sans-serif; }
+  .card-link { display: flex; flex: 1; flex-direction: column; position: relative; z-index: 1; color: inherit; text-decoration: none; }
+  .card-link:focus-visible { outline: 3px solid #ffcd53; outline-offset: 4px; border-radius: 6px; }
   .btn {
     align-self: flex-start; border-radius: 6px; padding: 10px 20px;
     font-size: 12px; font-weight: 700; border: 2px solid;
@@ -112,6 +115,21 @@
     cursor: pointer;
     font-family: 'Courier New', monospace;
   }
+  .version-history { align-self: flex-end; position: relative; z-index: 1; margin-top: 12px; font: 600 12px/1.4 "Segoe UI", sans-serif; }
+  .version-history summary {
+    display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px;
+    border: 1px solid rgba(232, 237, 242, .35); border-radius: 6px;
+    color: #d7e2ee; background: rgba(255,255,255,.06); cursor: pointer; list-style: none;
+  }
+  .version-history summary::-webkit-details-marker { display: none; }
+  .version-history summary::after { content: '+'; font-size: 16px; }
+  .version-history[open] summary::after { content: '−'; }
+  .version-history summary:focus-visible { outline: 3px solid #ffcd53; outline-offset: 3px; }
+  .version-history-list { margin: 8px 0 0; padding: 8px 0 0; border-top: 1px solid rgba(232, 237, 242, .2); list-style: none; text-align: right; }
+  .version-history-list li + li { margin-top: 4px; }
+  .version-history-list a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 4px; color: #b9d8e8; text-underline-offset: 3px; }
+  .version-history-list a:hover { color: #fff; }
+  .version-history-list a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 2px; border-radius: 3px; }
   .card.castle-game { --card-accent: #ff6b35; --card-ink: #000; }
   .card.zombie-vanilla { --card-accent: #7209b7; --card-ink: #fff; }
   .card.zombie-max-one { --card-accent: #00d9ff; --card-ink: #000; }
@@ -158,40 +176,36 @@
     </header>
 
     <main class="grid">
-      <a class="card voxel-game" href="klocki-podlasia-0.3/">
-        <div class="thumb preview"><img src="klocki-podlasia-0.3/preview.svg?v=4" alt="Minecraft 0.3: jasny świat klocków z podlaskimi wioskami, drogą, górami i zwierzętami" fetchpriority="high"></div>
-        <h2>Minecraft 0.3 · budowanie kreatywne</h2>
-        <p>Świat 256×256, 11 biomów i 17 wiosek. Odkrywaj, buduj z 37 materiałów i zapisuj świat lokalnie w Chrome na Macu.</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card voxel-game">
+        <a class="card-link" href="klocki-podlasia-0.3/">
+          <div class="thumb preview"><img src="klocki-podlasia-0.3/preview.svg?v=4" alt="Minecraft 0.3: jasny świat klocków z podlaskimi wioskami, drogą, górami i zwierzętami" fetchpriority="high"></div>
+          <h2>Minecraft 0.3 · budowanie kreatywne</h2>
+          <p>Świat 256×256, 11 biomów i 17 wiosek. Odkrywaj, buduj z 37 materiałów i zapisuj świat lokalnie w Chrome na Macu.</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Starsze wersje</summary>
+          <ul class="version-history-list">
+            <li><a href="klocki-podlasia-0.2/">Minecraft 0.2</a></li>
+            <li><a href="klocki-podlasia-0.1/">Klocki Podlasia 0.1 · prototyp</a></li>
+          </ul>
+        </details>
+      </article>
 
-      <a class="card voxel-game" href="klocki-podlasia-0.2/">
-        <div class="thumb preview"><img src="klocki-podlasia-0.2/preview.svg?v=3" alt="Minecraft 0.2: trzy podlaskie wioski z domami, studniami, mieszkańcami i zwierzętami" loading="lazy"></div>
-        <h2>Minecraft 0.2</h2>
-        <p>Świat 64×64 z trzema podlaskimi wioskami połączonymi drogami. Poznawaj mieszkańców i zwierzęta, wydobywaj rudy i buduj z 29 materiałów.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card voxel-game" href="klocki-podlasia-0.1/">
-        <div class="thumb preview"><img src="klocki-podlasia-0.1/preview.svg" alt="Klocki Podlasia: drewniany domek i lipa z kolorowych klocków na zielonej łące" loading="lazy"></div>
-        <h2>Klocki Podlasia 0.1 · prototyp</h2>
-        <p>Pierwszy świat 3D Ekipy spod Lipy: odkrywaj podlaską łąkę 64×64, spaceruj, skacz i buduj domek z 8 materiałów. Prototyp na komputer, bez zapisu.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card flappy-game" href="flappy-0.2/">
-        <div class="thumb preview"><img src="flappy-0.2/preview.png" alt="Flappy Bird 0.2: pikselowy zolty ptak pomiedzy zielonymi rurami na tle miasta" fetchpriority="high"></div>
-        <h2>Flappy Bird 0.2</h2>
-        <p>Pikselowy ptak, zielone rury i przewijane miasto. Zlap rytm, przelatuj przez luki i pobij swoj rekord!</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card flappy-game" href="flappy-0.1/">
-        <div class="thumb preview"><img src="flappy-0.1/preview.png" alt="Flappy Podlasie 0.1: zolty ptak leci pomiedzy drewnianymi bramami nad podlaska laka" loading="lazy"></div>
-        <h2>Flappy Podlasie 0.1</h2>
-        <p>Maly ptak, wielka przygoda. Przelatuj przez drewniane bramy nad Podlasiem i pobij swoj rekord!</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card flappy-game">
+        <a class="card-link" href="flappy-0.2/">
+          <div class="thumb preview"><img src="flappy-0.2/preview.png" alt="Flappy Bird 0.2: pikselowy zolty ptak pomiedzy zielonymi rurami na tle miasta" fetchpriority="high"></div>
+          <h2>Flappy Bird 0.2</h2>
+          <p>Pikselowy ptak, zielone rury i przewijane miasto. Zlap rytm, przelatuj przez luki i pobij swoj rekord!</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Starsze wersje</summary>
+          <ul class="version-history-list">
+            <li><a href="flappy-0.1/">Flappy Podlasie 0.1</a></li>
+          </ul>
+        </details>
+      </article>
 
       <a class="card ragdoll-archers-community" href="ragdoll-archers/">
         <div class="thumb preview"><img src="ragdoll-archers/favicon.jpeg" alt="Ragdoll Archers game icon" loading="lazy"></div>
@@ -214,19 +228,20 @@
         <span class="btn">Graj</span>
       </a>
 
-      <a class="card zombie-max-two" href="zombie-max-0.2/">
-        <div class="thumb zombie-max-2 preview"><img src="menu-previews/zombie-max-2.svg" alt="Mroczne miasto i starcie z demonem" loading="lazy"></div>
-        <h2>Zombie Max 0.2</h2>
-        <p>Nowsza odsłona strzelanki Maksa: broń bazy przed falami zombie, rozwijaj ulepszenia i zmierz się z Super Hard Demon.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card zombie-max-one" href="zombie-max-0.1/">
-        <div class="thumb zombie-max-1 preview"><img src="menu-previews/zombie-max-1.svg" alt="Obrona przed zombie pod czerwonym ksiezycem" loading="lazy"></div>
-        <h2>Zombie Max 0.1</h2>
-        <p>Dotychczasowy wariant Maksa. Broń bazy przed falami zombie i rozwijaj swoją ekipę.</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card zombie-max-two">
+        <a class="card-link" href="zombie-max-0.2/">
+          <div class="thumb zombie-max-2 preview"><img src="menu-previews/zombie-max-2.svg" alt="Mroczne miasto i starcie z demonem" loading="lazy"></div>
+          <h2>Zombie Max 0.2</h2>
+          <p>Nowsza odsłona strzelanki Maksa: broń bazy przed falami zombie, rozwijaj ulepszenia i zmierz się z Super Hard Demon.</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Starsze wersje</summary>
+          <ul class="version-history-list">
+            <li><a href="zombie-max-0.1/">Zombie Max 0.1</a></li>
+          </ul>
+        </details>
+      </article>
 
       <a class="card zombie-aleksa" href="zombie-aleksa/">
         <div class="thumb zombie-ax preview"><img src="menu-previews/zombie-ax.svg" alt="Strzelec odpiera zombie na cyfrowym polu bitwy" loading="lazy"></div>
@@ -236,54 +251,38 @@
       </a>
 
 
-      <a class="card mario-game" href="mario-0.3/index.html">
-        <div class="thumb mario-game"><img src="mario-0.3/preview.svg" alt="Poziom 100: Maks biegnie ku złotej mecie przez skarby Złotej Korony" loading="lazy"></div>
-        <h2>Mario 0.3</h2>
-        <p>Najnowsza odsłona przygody Maksa. Odkrywaj 100 etapów z nowymi przeciwnikami i zmiennymi światami.</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card mario-game">
+        <a class="card-link" href="mario-0.3/index.html">
+          <div class="thumb mario-game"><img src="mario-0.3/preview.svg" alt="Poziom 100: Maks biegnie ku złotej mecie przez skarby Złotej Korony" loading="lazy"></div>
+          <h2>Mario 0.3</h2>
+          <p>Najnowsza odsłona przygody Maksa. Odkrywaj 100 etapów z nowymi przeciwnikami i zmiennymi światami.</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Starsze wersje</summary>
+          <ul class="version-history-list">
+            <li><a href="mario-0.2/index.html">Mario 0.2</a></li>
+            <li><a href="mario-0.1/index.html">Mario 0.1</a></li>
+          </ul>
+        </details>
+      </article>
 
-      <a class="card mario-game" href="mario-0.2/index.html">
-        <div class="thumb mario-game"><img src="mario-0.2/preview.svg" alt="Maks skacze między platformami, monetami i przeciwnikami" loading="lazy"></div>
-        <h2>Mario 0.2</h2>
-        <p>Pierwsze wydanie platformowej przygody. Zbieraj monety, odkrywaj sekrety i dotrzyj do bramy na szczycie!</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card mario-game-0-1" href="mario-0.1/index.html">
-        <div class="thumb preview"><img src="mario-0.1/preview.svg" alt="Mario 0.1: platformowy szlak z monetami i brama" loading="lazy"></div>
-        <h2>Mario 0.1</h2>
-        <p>Klasyczny wariant platformowej przygody: skacz po platformach, zbieraj monety i dotrzyj do mety.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card ragdoll-archer ragdoll-archer-03" href="archers-0.4/index.html">
-        <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.4.svg" alt="Archers 0.4: mietowy lucznik strzela do pomaranczowego robota na podestach" loading="lazy"></div>
-        <h2>Archers 0.4 (Praca w toku, wre jak w garncu. poczej Januszku)</h2>
-        <p>Celuj w rywala, przytrzymaj, by naładować strzał, i wypuść strzałę w odpowiednim momencie. Pokonuj kolejne rundy, zdobywaj punkty i ulepszaj strzały oraz pancerz.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card ragdoll-archer ragdoll-archer-03" href="archers-0.3/index.html">
-        <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.3.svg" alt="Lucznik w niebiesko-zlotej zbroi mierzy do rywala w wersji 0.3" loading="lazy"></div>
-        <h2>Archers 0.3</h2>
-        <p>Osobna wersja pojedynku lukiem z robotem, zachowana jako wydanie 0.3.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card ragdoll-archer" href="archers-0.2/index.html">
-        <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.2.svg" alt="Pojedynek lukowy z niebieska strzala SWIFT, paskiem zdrowia i sklepem z bronia" loading="lazy"></div>
-        <h2>Archers 0.2</h2>
-        <p>Pojedynek lukiem z robotem. Celuj, laduj sile strzalu i przechodz kolejne rundy.</p>
-        <span class="btn">Graj</span>
-      </a>
-
-      <a class="card ragdoll-archer" href="archers-0.1/index.html">
-        <div class="thumb preview"><img src="menu-previews/ragdoll-archer.svg" alt="Pojedynek z robotem z paskami zdrowia, ladowaniem strzalu i sklepem z czterema typami strzal" loading="lazy"></div>
-        <h2>Archers 0.1</h2>
-        <p>Pojedynek lukiem z robotem. Celuj, laduj sile strzalu i przechodz kolejne rundy.</p>
-        <span class="btn">Graj</span>
-      </a>
+      <article class="card ragdoll-archer ragdoll-archer-03">
+        <a class="card-link" href="archers-0.4/index.html">
+          <div class="thumb preview"><img src="menu-previews/ragdoll-archer-0.4.svg" alt="Archers 0.4: mietowy lucznik strzela do pomaranczowego robota na podestach" loading="lazy"></div>
+          <h2>Archers 0.4 (Praca w toku, wre jak w garncu. poczej Januszku)</h2>
+          <p>Celuj w rywala, przytrzymaj, by naładować strzał, i wypuść strzałę w odpowiednim momencie. Pokonuj kolejne rundy, zdobywaj punkty i ulepszaj strzały oraz pancerz.</p>
+          <span class="btn">Graj</span>
+        </a>
+        <details class="version-history">
+          <summary>Starsze wersje</summary>
+          <ul class="version-history-list">
+            <li><a href="archers-0.3/index.html">Archers 0.3</a></li>
+            <li><a href="archers-0.2/index.html">Archers 0.2</a></li>
+            <li><a href="archers-0.1/index.html">Archers 0.1</a></li>
+          </ul>
+        </details>
+      </article>
 
     </main>
 
