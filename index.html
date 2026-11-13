@@ -12,7 +12,7 @@
 <meta property="og:title" content="Pixel Otter Rocket | Gry Ekipy spod Lipy z Hajnówki" />
 <meta property="og:description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.3. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <meta property="og:url" content="https://daz2048.github.io/gry-darka/" />
-<link rel="stylesheet" href="weather.css?v=3" />
+<link rel="stylesheet" href="weather.css?v=4" />
 <link rel="stylesheet" href="minecraft-news.css?v=1" />
 <script src="weather.js?v=3" defer></script>
 <script src="minecraft-news.js?v=1" defer></script>
@@ -39,7 +39,6 @@
   .brand-flip:focus-visible { outline: 3px solid #ffcd53; outline-offset: 5px; border-radius: 16px; }
   .brand-flip-inner {
     display: grid; transform-style: preserve-3d;
-    transition: transform .6s cubic-bezier(.2, .7, .2, 1);
   }
   .brand-flip.is-flipped .brand-flip-inner { transform: rotateY(180deg); }
   .brand-face {
@@ -607,12 +606,11 @@
     .brand-face[data-effect="strobe-lights"],
     .brand-face[data-effect="pink"] .brand-title,
     .brand-face[data-effect="orange"] .brand-title { animation: none; }
-    .brand-flip-inner { transition: none; }
   }
 </style>
 </head>
 <body>
-  <div class="weather-sky" aria-hidden="true"><div class="weather-clouds"></div><div class="weather-particles"></div></div>
+  <div class="weather-sky" aria-hidden="true"><div class="weather-stars"></div><div class="weather-moon"></div><div class="weather-clouds"></div><div class="weather-particles"></div></div>
   <div class="wrap">
     <header>
       <h1>
@@ -697,13 +695,6 @@
         <span class="btn">Graj</span>
       </a>
 
-      <a class="card castle-game" href="pojedynek-zamkow-janek-i-baranek/">
-        <div class="thumb castle preview"><img src="menu-previews/castle-duel.svg" alt="Dwa zamki i kula armatnia nad polem bitwy" loading="lazy"></div>
-        <h2>Pojedynek Zamków (Janek i Baranek)</h2>
-        <p>Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.</p>
-        <span class="btn">Graj</span>
-      </a>
-
       <a class="card zombie-vanilla" href="napor-zombie-vanilla/">
         <div class="thumb zombie-v preview"><img src="menu-previews/zombie-vanilla.svg" alt="Druzyna broni bazy przed nadciagajacymi zombie" loading="lazy"></div>
         <h2>Napór Zombie (Vanilla)</h2>
@@ -736,7 +727,7 @@
 
       <article class="card mario-game">
         <a class="card-link" href="mario-0.3/index.html">
-          <div class="thumb mario-game"><img src="mario-0.3/preview.svg" alt="Poziom 100: Maks biegnie ku złotej mecie przez skarby Złotej Korony" loading="lazy"></div>
+          <div class="thumb mario-game"><img src="mario-0.3/preview.svg?v=1" alt="Poziom 100: Maks biegnie ku złotej mecie przez skarby Złotej Korony" loading="lazy"></div>
           <h2>Mario 0.3</h2>
           <p>Najnowsza odsłona przygody Maksa. Odkrywaj 100 etapów z nowymi przeciwnikami i zmiennymi światami.</p>
           <span class="btn">Graj</span>
@@ -766,6 +757,13 @@
           </ul>
         </details>
       </article>
+
+      <a class="card castle-game" href="pojedynek-zamkow-janek-i-baranek/">
+        <div class="thumb castle preview"><img src="menu-previews/castle-duel.svg" alt="Dwa zamki i kula armatnia nad polem bitwy" loading="lazy"></div>
+        <h2>Pojedynek Zamków (Janek i Baranek)</h2>
+        <p>Artyleria turowa dla 2 graczy (hotseat). Ustaw kąt i moc, uwzględnij wiatr i zniszcz zamek przeciwnika.</p>
+        <span class="btn">Graj</span>
+      </a>
 
     </main>
 
@@ -836,7 +834,13 @@
   </div>
   <script>
     const brandFlip = document.querySelector('.brand-flip');
+    const brandFlipInner = brandFlip.querySelector('.brand-flip-inner');
     const brandFaces = brandFlip.querySelectorAll('.brand-face');
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    let flipAnimation;
+    reducedMotion.addEventListener('change', event => {
+      if (event.matches && flipAnimation) flipAnimation.cancel();
+    });
     const brandEffects = ['cloud', 'data', 'stars', 'scan', 'pixel-rain', 'shooting-stars', 'circuits', 'aurora', 'pink', 'orange',
       'otter-rocket', 'block-landscape', 'castle-arrows', 'arcade'];
     const seasonalBrandEffects = {
@@ -912,6 +916,20 @@
     brandFlip.addEventListener('click', () => {
       const currentFace = brandFlip.classList.contains('is-flipped') ? 1 : 0;
       chooseBrandEffect(brandFaces[1 - currentFace], brandFaces[currentFace].dataset.effect);
+      if (flipAnimation) flipAnimation.cancel();
+      if (!reducedMotion.matches) {
+        const variant = Math.floor(Math.random() * 3);
+        const start = currentFace * 180;
+        const end = start + (variant === 1 ? -180 : 180);
+        const keyframes = [
+          { transform: `rotateY(${start}deg) scale(1)` },
+          ...(variant === 2 ? [{ transform: `rotateY(${(start + end) / 2}deg) scale(.85)` }] : []),
+          { transform: `rotateY(${end}deg) scale(1)` },
+        ];
+        flipAnimation = brandFlipInner.animate(keyframes, {
+          duration: 600, easing: 'cubic-bezier(.2, .7, .2, 1)',
+        });
+      }
       const flipped = brandFlip.classList.toggle('is-flipped');
       brandFaces[0].setAttribute('aria-hidden', String(flipped));
       brandFaces[1].setAttribute('aria-hidden', String(!flipped));

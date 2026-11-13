@@ -12,6 +12,8 @@ w listopadzie–lutym śnieg, w grudniu motywy świąteczne, w marcu i maju wios
 a w kwietniu motywy wielkanocne i wiosenne. Po obróceniu banera mogą pojawić
 się bardziej dynamiczne efekty; pierwsze wyświetlenie zawsze jest spokojniejsze.
 Wybór motywów zależy od lokalnego miesiąca odwiedzającego.
+Ruch obrotu również jest losowy (w lewo, w prawo lub z pomniejszeniem);
+przy ustawieniu ograniczonego ruchu baner zmienia stronę bez animacji.
 Łącze „Banner styles” obok pogody otwiera galerię wszystkich stylów, w tym
 różowe i pomarańczowe motywy, fajerwerki oraz spokojne, wolno zmieniające się
 światła sceniczne (bez szybkiego migania). Zmiany wyboru zapisują się automatycznie
@@ -21,9 +23,10 @@ wybór od nowa, zachowując poprzedni wybór do zaznaczenia nowego motywu;
 
 ## Weather background
 
-The homepage background follows model-based current weather: sunshine or stars,
-clouds, fog, rain, snow, and a dark storm sky (no flashing lightning). Banner effects
-remain independent. Animations respect reduced motion and pause in hidden tabs.
+The homepage background follows model-based current weather: sunshine, clouds, fog,
+rain, snow, and a dark storm sky (no flashing lightning). Clear and partly cloudy
+nights show stars and a decorative moon; its position and phase are not astronomical.
+Banner effects remain independent. Animations respect reduced motion and pause in hidden tabs.
 The weather/location panel is the last content below the footer. The small weather
 icon in the top navigation shows the selected location, current temperature and
 this hour's rain chance; clicking it jumps to the panel and expands all location

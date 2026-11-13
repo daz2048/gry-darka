@@ -10,11 +10,32 @@ body[data-weather="partly-cloudy"][data-day="true"] .weather-sky {
   background: radial-gradient(circle at 82% 15%, #fff3ad 0 25px, #ffd66999 28px, transparent 160px),
     linear-gradient(#276d92, #214561 60%, #16213e);
 }
-body[data-weather="clear"][data-day="false"] .weather-sky {
+.weather-stars, .weather-moon { position: absolute; opacity: 0; }
+.weather-stars {
+  inset: 0;
   background:
-    radial-gradient(circle, #e4edff 1px, transparent 2px) 0 0 / 113px 137px,
-    radial-gradient(circle, #8cbfe0 1px, transparent 2px) 39px 27px / 191px 173px,
-    linear-gradient(#070d21, #172440 65%, #111729);
+    radial-gradient(circle, #e4edff 1px, transparent 2px) 13px 19px / 239px 197px,
+    radial-gradient(circle, #b9d8f4 1.5px, transparent 2.5px) 87px 62px / 421px 337px;
+}
+body:is([data-weather="clear"], [data-weather="partly-cloudy"])[data-day="false"] .weather-stars {
+  opacity: .45;
+}
+body[data-weather="clear"][data-day="false"] .weather-stars {
+  opacity: .85;
+  background:
+    radial-gradient(circle, #e4edff 1px, transparent 2px) 13px 19px / 239px 197px,
+    radial-gradient(circle, #b9d8f4 1.5px, transparent 2.5px) 87px 62px / 421px 337px,
+    radial-gradient(circle, #dceaff 1px, transparent 2px) 67px 33px / 167px 251px,
+    radial-gradient(circle, #fff4d2 2px, transparent 3px) 29px 94px / 383px 271px;
+}
+.weather-moon {
+  top: 4px; right: clamp(12px, 4vw, 48px); width: clamp(28px, 4vw, 36px); aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fffef1, #d8e6f4 70%, #b4cbe0);
+  box-shadow: 0 0 32px 8px #d3e6ff33;
+}
+body:is([data-weather="clear"], [data-weather="partly-cloudy"])[data-day="false"] .weather-moon {
+  opacity: .85;
 }
 .weather-clouds {
   position: absolute; inset: 0 -8%; opacity: 0;

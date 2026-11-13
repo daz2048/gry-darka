@@ -30,7 +30,7 @@ const highImpactSeasonal = {
   4: ['spring-storm', 'meadow-burst'],
 };
 
-function createBanner(date, randomValues, savedSelection = null, storageBlocked = false) {
+function createBanner(date, randomValues, savedSelection = null, storageBlocked = false, reduceMotion = true) {
   const faces = [0, 1].map(() => ({
     dataset: {},
     attributes: {},
@@ -38,11 +38,25 @@ function createBanner(date, randomValues, savedSelection = null, storageBlocked 
   }));
   let flipped = false;
   let onClick;
+  const animations = [];
+  const inner = {
+    animate(keyframes, options) {
+      const animation = { keyframes, options, cancelled: false, cancel() { this.cancelled = true; } };
+      animations.push(animation);
+      return animation;
+    },
+  };
+  const motion = {
+    matches: reduceMotion,
+    addEventListener(event, callback) { this.onChange = callback; },
+    setReduced(matches) { this.matches = matches; this.onChange({ matches }); },
+  };
   const button = {
     classList: {
       contains() { return flipped; },
       toggle() { flipped = !flipped; return flipped; },
     },
+    querySelector() { return inner; },
     querySelectorAll() { return faces; },
     addEventListener(event, callback) { onClick = callback; },
   };
@@ -61,10 +75,43 @@ function createBanner(date, randomValues, savedSelection = null, storageBlocked 
       return savedSelection;
     } },
     Date: class { getMonth() { return clock.date.getMonth(); } },
+    matchMedia: () => motion,
     Math: math,
   });
-  return { button, faces, clock, random, status, click: () => onClick() };
+  return { button, faces, clock, random, status, animations, motion, click: () => onClick() };
 }
+
+test('flip animations choose different directions and zoom while preserving both face orientations', () => {
+  for (const [variant, direction] of [[0, 1], [1, -1], [2, 1]]) {
+    const banner = createBanner(new Date(2026, 1, 1), [.5, 0], JSON.stringify(['cloud']), false, false);
+    for (const currentFace of [0, 1]) {
+      banner.random.values.push(0, (variant + .5) / 3);
+      banner.click();
+      const { keyframes, options } = banner.animations[currentFace];
+      assert.equal(keyframes[0].transform, `rotateY(${currentFace * 180}deg) scale(1)`);
+      assert.equal(keyframes.at(-1).transform, `rotateY(${currentFace * 180 + direction * 180}deg) scale(1)`);
+      assert.equal(keyframes.length, variant === 2 ? 3 : 2);
+      if (variant === 2) assert.match(keyframes[1].transform, /scale\(\.85\)/);
+      assert.equal(options.duration, 600);
+      assert.equal(banner.faces[currentFace].attributes['aria-hidden'], 'true');
+      assert.equal(banner.faces[1 - currentFace].attributes['aria-hidden'], 'false');
+    }
+    assert.equal(banner.animations[0].cancelled, true);
+  }
+});
+
+test('reduced motion skips animations and cancels an active flip when enabled', () => {
+  const banner = createBanner(new Date(2026, 1, 1), [.5, 0], JSON.stringify(['cloud']), false, false);
+  banner.random.values.push(0, 0);
+  banner.click();
+  banner.motion.setReduced(true);
+  assert.equal(banner.animations[0].cancelled, true);
+  banner.random.values.push(0);
+  banner.click();
+  assert.equal(banner.animations.length, 1);
+  assert.equal(banner.faces[0].attributes['aria-hidden'], 'false');
+  assert.equal(banner.faces[1].attributes['aria-hidden'], 'true');
+});
 
 test('seasonal pools apply for the entire local month and are equally weighted', () => {
   for (let month = 0; month < 12; month++) {
