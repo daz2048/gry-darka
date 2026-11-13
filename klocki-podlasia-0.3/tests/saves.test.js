@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { World, SIZE } from '../world.js';
 import { createPlayer } from '../player.js';
-import { applySnapshot, createSnapshot, CorruptSaveError, validateSnapshot } from '../saves.js';
+import { applySnapshot, createSnapshot, CorruptSaveError, saveDataSize, validateSnapshot } from '../saves.js';
 
 function makeSnapshot() {
   const world = new World(42);
@@ -22,12 +22,45 @@ test('snapshot copies the full seeded world, water, player, material and setting
   assert.equal(snapshot.water.length, snapshot.blocks.length);
   assert.deepEqual(snapshot.player, { ...snapshot.player, x: 32.5, y: 9, z: 39.5, yaw: -0.5, pitch: 0.2 });
   assert.equal(snapshot.selectedBlock, 7);
+  assert.equal(snapshot.worldName, 'Łąka');
   assert.deepEqual(snapshot.settings, {
     sensitivity: 1,
     lowQuality: false,
     musicEnabled: true,
     musicVolume: 0.35
   });
+});
+
+test('snapshot stores a chosen world name and accepts older saves without one', () => {
+  const world = new World(42);
+  const named = createSnapshot(world, createPlayer(world), 0, 0, 1, {
+    sensitivity: 1, lowQuality: false, musicEnabled: true, musicVolume: 0.35
+  }, 'named-world', 'My Meadow');
+  assert.equal(validateSnapshot(named).worldName, 'My Meadow');
+
+  const olderSave = { ...named };
+  delete olderSave.worldName;
+  assert.equal(validateSnapshot(olderSave), olderSave);
+});
+
+test('snapshot validation rejects blank or oversized world names', () => {
+  const snapshot = makeSnapshot();
+  for (const worldName of ['', '   ', 'x'.repeat(33)]) {
+    assert.throws(() => validateSnapshot({ ...snapshot, worldName }), CorruptSaveError);
+  }
+});
+
+test('save size counts binary world data and UTF-8 metadata without expanding arrays to JSON', () => {
+  const record = {
+    blocks: new Uint8Array([0, 255, 12]),
+    water: new Uint8Array([1, 0]),
+    worldName: 'Łąka 🌳',
+    revision: 3,
+    savedAt: 12345
+  };
+  const metadata = { worldName: record.worldName, revision: 3, savedAt: 12345 };
+  assert.equal(saveDataSize(record), 5 + Buffer.byteLength(JSON.stringify(metadata), 'utf8'));
+  assert.equal(saveDataSize({ ...record, blocks: new Uint8Array(13) }), saveDataSize(record) + 10);
 });
 
 test('snapshot arrays are independent and restore exact block and water bytes', () => {

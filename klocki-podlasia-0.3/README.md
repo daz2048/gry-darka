@@ -12,12 +12,34 @@ rendering, walking/jumping, block picking, placement checks and safe recovery.
 Roadside structures include a climbable watchtower, a campsite, stone ruins and
 a farmhouse with fields.
 
+## Język / Language
+
+The game starts in **English** by default. The **EN / PL** switch in the top
+bar changes the whole interface instantly without reloading, so unsaved work is
+kept. The choice is remembered in this browser (`localStorage` key
+`minecraft-0.3-language`), separately from the world save. Add `?lang=pl` or
+`?lang=en` to the address to override it for one visit without changing the
+remembered choice. Proper names (Klocki Podlasia, Ekipa spod Lipy, village
+names) stay Polish; materials, biomes and structures are translated. An
+unnamed world is shown as Meadow / Łąka in the current language.
+
+Gra domyślnie uruchamia się po angielsku. Przełącznik **EN / PL** na górnym
+pasku zmienia język od razu, bez przeładowania i bez utraty niezapisanej pracy.
+
 ## Zapisywanie
 
 Świat, ziarno, pozycja i kierunek gracza, materiał oraz ustawienia zapisują się
 automatycznie co kilka sekund w IndexedDB. Przycisk **Zapisz** wymusza zapis
 od razu; pasek u góry pokazuje jego rzeczywisty stan. Po ponownym otwarciu
 świat wraca do ekranu pauzy — wybierz sposób sterowania, aby wznowić.
+
+Po kliknięciu **Zapisz** komunikat pokazuje wynik operacji, nazwę świata,
+miejsce zapisu (adres strony → IndexedDB → `minecraft-0.3` → `worlds` →
+`current`) oraz szacowany rozmiar danych w MiB i bajtach. Szczegóły pozostają
+w panelu pauzy; są też aktualizowane po autozapisie i wczytaniu. Sukces jest
+pokazywany dopiero po zakończeniu transakcji. Błąd nie pokazuje nowego rozmiaru.
+To nie jest plik na dysku ani eksport: rozmiar obejmuje tablice bloków i wody
+oraz metadane w JSON UTF-8, bez narzutu IndexedDB i poprzedniej kopii.
 
 Zapis jest lokalny dla profilu Chrome i adresu strony. Nie synchronizuje się
 między urządzeniami ani między localhost a wersją hostowaną; wyczyszczenie lub
@@ -29,8 +51,10 @@ jest niedostępna, świat pozostaje grywalny jako sesja tymczasowa, a gra wyraź
 informuje, że zmiany nie są zapisane. Wykryty konflikt między kartami wymaga
 wczytania aktualnej wersji, zamiast cichego nadpisania.
 
-To jeden lokalny slot. **Nowa łąka** wymaga potwierdzenia; anulowanie niczego nie
-zmienia, a poprzedni zapis zostaje zachowany jako kopia odzyskiwania. Nie ma
+To jeden lokalny slot. Przy tworzeniu **nowej łąki** możesz wpisać jej nazwę
+(maksymalnie 32 znaki); nazwa jest zapisywana i wyświetlana w świecie.
+Utworzenie wymaga potwierdzenia; anulowanie niczego nie zmienia, a poprzedni
+zapis zostaje zachowany jako kopia odzyskiwania. Nie ma
 przetrwania, craftingu, multiplayera, sterowania dotykowego, synchronizacji
 chmurowej ani gwarancji działania offline/PWA. Więcej szczegółów i aktualne
 bramki wydania zawiera [backlog](../backlog/voxel-sandbox-backlog.md).
@@ -70,7 +94,8 @@ is needed to play. Requires a desktop keyboard/mouse and WebGL2.
 - Follow the roads to the villages and roadside structures. The HUD shows your
   biome and X/Z coordinates; the pause panel lists destinations. Jump up the watchtower steps.
 - **Wróć na start**: find a safe supported position without resetting the world.
-- **Nowa łąka**: confirmed replacement with a different seed, not a saved slot.
+- **Nowa łąka**: choose a name (up to 32 characters) and confirm replacement
+  with a different seed; the previous world remains the recovery copy.
 - Fullscreen and lower resolution are optional; denied fullscreen leaves windowed play.
 - **Muzyka / Głośność muzyki**: enable or mute the original ambient music and
   adjust its volume in the start/pause panel. It begins after choosing a play mode

@@ -18,6 +18,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 #save-status[data-state="error"], #save-status[data-state="conflict"] { color: #7b3726; }
 #save-status[data-state="saving"] { color: #78551a; }
 #save-status[data-state="saved"] { color: #285d38; }
+.language-switch { display: flex; align-self: center; border: 1px solid #9db19a; border-radius: 8px; overflow: hidden; }
+.tools .language-switch button { padding: 8px 9px; font-size: 11px; border: 0; border-radius: 0; box-shadow: none; transform: none; }
+.tools .language-switch button[aria-pressed="true"] { color: #f3f6e9; background: #183f36; }
 .tools #save-now, .tools #reload-save { padding: 8px 10px; font-size: 11px; }
 .tools #save-now:not(:disabled) { color: #4a3200; background: #ffe680; border-color: #e0a91c; animation: save-glow 2.4s ease-in-out infinite; }
 .tools #save-now:not(:disabled):hover { background: #fff1a8; }
@@ -28,6 +31,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .world-label { position: fixed; left: 24px; top: 105px; pointer-events: none; padding: 10px 14px; border: 1px solid #ffffff99; border-radius: 12px; background: #eff5edb8; box-shadow: 0 6px 24px #183f3620; backdrop-filter: blur(8px); }
 .world-label span { font-size: 10px; letter-spacing: 2px; }
 .world-label strong { display: block; margin-top: 6px; font-size: 18px; }
+.world-label small { display: block; margin-top: 4px; font-size: 11px; }
 #crosshair { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); color: white; text-shadow: 0 1px 3px #183f36; font: 28px monospace; pointer-events: none; }
 #hud { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 24px)); padding: 12px; text-align: center; border: 1px solid #ffffffa8; border-radius: 18px; background: #eff5edb8; box-shadow: 0 12px 36px #183f3630; backdrop-filter: blur(10px); }
 #target { display: inline-block; background: #183f36df; color: #fff8df; border-radius: 6px; padding: 7px 16px; margin: 0 0 8px; font-size: 13px; }
@@ -55,14 +59,19 @@ h1 em { font-style: normal; color: #ad4934; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .primary { background: #ffcd53; border: 2px solid #183f36; box-shadow: 0 3px #183f36; font-size: 15px; }
 .panel .small { font-size: 11px; }
+#save-details { white-space: pre-line; overflow-wrap: anywhere; padding: 10px; border: 1px solid #9db19a; border-radius: 8px; background: #eff5ed; }
+#save-details[data-state="saved"] { color: #285d38; }
+#save-details[data-state="error"] { color: #7b3726; background: #fff2ce; }
 .warning { color: #7b3726; }
 .reset-confirm { background: #fff2ce; border: 1px solid #ac653c; border-radius: 8px; padding: 12px; margin-top: 12px; }
+.reset-confirm label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 700; }
+.reset-confirm input { width: min(320px, 100%); margin: 0 8px 8px 0; padding: 9px; border: 1px solid #9db19a; border-radius: 6px; font: inherit; }
 .settings { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 14px 0; font-size: 12px; }
 .settings label { display: flex; align-items: center; gap: 6px; }
 .secondary button, .secondary a { font-size: 11px; padding: 8px; }
 details { border-top: 1px solid #cbd6bd; padding-top: 10px; font-size: 11px; }
 output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: monospace; }
-#notice { position: fixed; top: 80px; right: 24px; max-width: min(390px, 90vw); padding: 12px; background: #fff2ce; color: #67311e; border: 1px solid #ac653c; border-radius: 8px; font-size: 13px; pointer-events: none; z-index: 3; }
+#notice { position: fixed; top: 80px; right: 24px; max-width: min(390px, 90vw); padding: 12px; background: #fff2ce; color: #67311e; border: 1px solid #ac653c; border-radius: 8px; font-size: 13px; pointer-events: none; z-index: 3; white-space: pre-line; overflow-wrap: anywhere; }
 .fatal { position: fixed; top: 10px; background: white; padding: 20px; z-index: 5; }
 @media (max-width: 700px) { .topbar { padding: 12px; } .brand strong { font-size: 17px; } .brand small { display: block; margin: 3px 0 0; font-size: 8px; letter-spacing: 0; } .world-label, .tools a { display: none; } .panel { padding: 22px; } .slot { font-size: 9px; } }
 @media (max-height: 650px) { .overlay { place-items: start center; } .panel { padding: 20px; } h1 { font-size: 32px; } .world-label { display: none; } }

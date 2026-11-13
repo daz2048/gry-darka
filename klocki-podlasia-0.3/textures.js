@@ -142,7 +142,7 @@ export function createBlockAtlas(blocks) {
   canvas.width = ATLAS_COLUMNS * TEXTURE_SIZE;
   canvas.height = ATLAS_ROWS * TEXTURE_SIZE;
   const context = canvas.getContext('2d');
-  if (!context) throw new Error('Nie można utworzyć tekstur klocków.');
+  if (!context) throw new Error('Cannot create block textures.');
   const image = context.createImageData(canvas.width, canvas.height);
   for (let id = 1; id < ATLAS_COLUMNS * ATLAS_ROWS; id++) {
     const tileX = (id % ATLAS_COLUMNS) * TEXTURE_SIZE;
