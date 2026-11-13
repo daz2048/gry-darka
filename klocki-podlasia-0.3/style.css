@@ -19,6 +19,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 #save-status[data-state="saving"] { color: #78551a; }
 #save-status[data-state="saved"] { color: #285d38; }
 .tools #save-now, .tools #reload-save { padding: 8px 10px; font-size: 11px; }
+.tools #save-now:not(:disabled) { color: #4a3200; background: #ffe680; border-color: #e0a91c; animation: save-glow 2.4s ease-in-out infinite; }
+.tools #save-now:not(:disabled):hover { background: #fff1a8; }
+@keyframes save-glow {
+  0%, 100% { box-shadow: 0 0 4px 1px #ffc93c88; }
+  50% { box-shadow: 0 0 16px 5px #ffc93cdd; background-color: #fff3b0; }
+}
 .world-label { position: fixed; left: 24px; top: 105px; pointer-events: none; padding: 10px 14px; border: 1px solid #ffffff99; border-radius: 12px; background: #eff5edb8; box-shadow: 0 6px 24px #183f3620; backdrop-filter: blur(8px); }
 .world-label span { font-size: 10px; letter-spacing: 2px; }
 .world-label strong { display: block; margin-top: 6px; font-size: 18px; }
@@ -74,4 +80,4 @@ output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: mo
   .slot kbd { top: 0; left: 2px; font-size: 9px; }
 }
 @media (max-height: 480px) { .hint, .session-note { display: none; } .slot { min-height: 49px; padding: 4px 2px; font-size: 10px; } .swatch { width: 18px; height: 18px; margin-bottom: 2px; } #palette { padding: 4px; } #target { font-size: 11px; padding: 4px 10px; margin-bottom: 4px; } #palette-pages button { padding: 4px; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } .tools #save-now:not(:disabled) { animation: none; box-shadow: 0 0 10px 3px #ffc93ccc; } }
