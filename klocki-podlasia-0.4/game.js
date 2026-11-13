@@ -6,11 +6,14 @@ import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=2';
 import { createPlayer, collides, stepPlayer } from './player.js?v=2';
 import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
 import { AmbientMusic } from './music.js?v=2';
+import { applySnapshot, CorruptSaveError, createSnapshot, SaveConflictError, WorldSaveStore } from './saves.js?v=2';
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
   'pause', 'recover', 'new-world', 'fullscreen', 'palette', 'palette-pages', 'target', 'notice', 'crosshair',
   'load-status', 'metrics', 'sensitivity', 'low-quality', 'music-on', 'music-volume', 'controls-hint',
-  'reset-confirm', 'confirm-reset', 'cancel-reset', 'coordinates', 'destinations', 'biome-destinations', 'structure-destinations']
+  'reset-confirm', 'reset-message', 'confirm-reset', 'cancel-reset', 'coordinates', 'destinations', 'biome-destinations',
+  'structure-destinations', 'save-status', 'save-now', 'reload-save', 'session-note', 'save-recovery',
+  'save-recovery-message', 'restore-backup', 'leave-confirm', 'stay-in-game', 'leave-unsaved']
   .map(id => [id, document.getElementById(id)]));
 const bootTime = performance.now();
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -153,6 +156,20 @@ let mobs = [];
 let mobModels = [];
 let selected = 7;
 let palettePage = 0;
+const saveStore = new WorldSaveStore();
+let worldId = crypto.randomUUID();
+let saveExpected = { exists: false, revision: null };
+let saveInitialized = false;
+let saveDirty = false;
+let saveGeneration = 0;
+let saveGate = null;
+let saveInProgress = null;
+let autosaveTimer = null;
+let lastSavedAt = 0;
+let lastTrackedState = null;
+let allowUnsavedNavigation = false;
+let pendingHomeHref = null;
+let recoveryRecord = null;
 const PALETTE_STARTS = [1, 9, 17, 25, 32, BLOCKS.length];
 let playing = false;
 let dragMode = false;
@@ -179,6 +196,126 @@ function notice(message) {
   ui.notice.textContent = message;
   ui.notice.hidden = false;
   noticeUntil = performance.now() + 5000;
+}
+
+function updateSaveControls() {
+  const blocked = ['recovery', 'corrupt', 'conflict'].includes(saveGate);
+  ui['save-now'].disabled = !saveInitialized || Boolean(saveInProgress) || blocked ||
+    (!saveDirty && !lastSavedAt);
+  ui['reload-save'].hidden = saveGate !== 'conflict';
+}
+
+function setSaveStatus(message, state = 'normal') {
+  ui['save-status'].textContent = message;
+  ui['save-status'].dataset.state = state;
+  updateSaveControls();
+}
+
+function currentSettings() {
+  return {
+    sensitivity: Number(ui.sensitivity.value),
+    lowQuality: ui['low-quality'].checked,
+    musicEnabled: ui['music-on'].checked,
+    musicVolume: Number(ui['music-volume'].value) / 100
+  };
+}
+
+function applySettings(settings) {
+  ui.sensitivity.value = String(settings.sensitivity);
+  controls.pointerSpeed = settings.sensitivity;
+  ui['low-quality'].checked = settings.lowQuality;
+  ui['music-on'].checked = settings.musicEnabled;
+  ui['music-volume'].value = String(Math.round(settings.musicVolume * 100));
+  ui['music-volume'].disabled = !settings.musicEnabled;
+  music.setVolume(settings.musicVolume);
+  resize();
+}
+
+function currentSnapshot() {
+  return createSnapshot(world, player, camera.rotation.y, camera.rotation.x,
+    selected, currentSettings(), worldId);
+}
+
+function scheduleAutosave() {
+  if (!saveInitialized || !saveDirty || saveInProgress || autosaveTimer ||
+      ['recovery', 'corrupt', 'conflict'].includes(saveGate)) return;
+  autosaveTimer = setTimeout(() => {
+    autosaveTimer = null;
+    saveWorld().catch(error => notice(error.message));
+  }, 3000);
+}
+
+function markDirty() {
+  const wasDirty = saveDirty;
+  saveDirty = true;
+  saveGeneration++;
+  if (!wasDirty) {
+    setSaveStatus(
+      ['recovery', 'corrupt', 'conflict'].includes(saveGate) ?
+        'Zmiany nie zapisane — wybierz odzyskiwanie lub nowy świat.' : 'Niezapisane zmiany',
+      saveGate ? 'error' : 'dirty'
+    );
+  }
+  scheduleAutosave();
+}
+
+function trackPersistentState() {
+  const state = [player.x, player.y, player.z, camera.rotation.y, camera.rotation.x];
+  if (!lastTrackedState || state.some((value, index) => value !== lastTrackedState[index])) {
+    lastTrackedState = state;
+    markDirty();
+  }
+}
+
+function savedLabel(timestamp) {
+  return `Zapisano ${new Intl.DateTimeFormat('pl-PL', {
+    hour: '2-digit', minute: '2-digit'
+  }).format(new Date(timestamp))}`;
+}
+
+async function saveWorld({ snapshot = null, replaceCorrupt = false } = {}) {
+  if (!saveInitialized) throw new Error('Zapis jest jeszcze wczytywany.');
+  if (['recovery', 'corrupt', 'conflict'].includes(saveGate) && !replaceCorrupt) {
+    throw new Error('Najpierw rozwiąż problem z poprzednim zapisem.');
+  }
+  if (saveInProgress) {
+    await saveInProgress;
+    if (!snapshot && !saveDirty) return lastSavedAt ? { savedAt: lastSavedAt } : null;
+    return saveWorld({ snapshot, replaceCorrupt });
+  }
+  const generation = saveGeneration;
+  const payload = snapshot || currentSnapshot();
+  const expected = { ...saveExpected };
+  const attempt = (async () => {
+    setSaveStatus('Zapisywanie…', 'saving');
+    try {
+      const record = await saveStore.save(payload, expected, { replaceCorrupt });
+      saveExpected = { exists: true, revision: record.revision };
+      lastSavedAt = record.savedAt;
+      if (snapshot || generation === saveGeneration) saveDirty = false;
+      saveGate = null;
+      ui['save-recovery'].hidden = true;
+      ui['session-note'].textContent = 'Zapis lokalny w tym profilu Chrome. To nie jest kopia zapasowa.';
+      setSaveStatus(saveDirty ? 'Niezapisane zmiany' : savedLabel(record.savedAt), saveDirty ? 'dirty' : 'saved');
+      if (saveDirty) scheduleAutosave();
+      return record;
+    } catch (error) {
+      if (error instanceof SaveConflictError) {
+        saveGate = 'conflict';
+        setSaveStatus('Konflikt zapisu — wczytaj aktualną wersję.', 'conflict');
+      } else {
+        if (error instanceof CorruptSaveError) saveGate = 'corrupt';
+        setSaveStatus('Nie zapisano — ponów próbę.', 'error');
+      }
+      throw error;
+    } finally {
+      saveInProgress = null;
+      updateSaveControls();
+    }
+  })();
+  saveInProgress = attempt;
+  updateSaveControls();
+  return attempt;
 }
 
 function prepareMusic() {
@@ -285,7 +422,7 @@ function syncCamera() {
   camera.position.set(player.x, player.y + 1.6, player.z);
 }
 
-function select(id) {
+function select(id, persist = true) {
   if (!Number.isInteger(id) || id < 1 || id >= BLOCKS.length) return;
   selected = id;
   palettePage = PALETTE_STARTS.findIndex((first, page) => id >= first && id < PALETTE_STARTS[page + 1]);
@@ -293,6 +430,7 @@ function select(id) {
   for (const button of ui['palette-pages'].children) {
     button.setAttribute('aria-pressed', String(Number(button.dataset.page) === palettePage));
   }
+  if (persist) markDirty();
 }
 
 function renderPalette() {
@@ -328,7 +466,7 @@ for (const button of ui['palette-pages'].children) {
     button.blur();
   });
 }
-select(selected);
+select(selected, false);
 
 function pause() {
   playing = false;
@@ -343,6 +481,7 @@ function pause() {
   ui.heading.textContent = 'Chwila pod lipą';
   ui.intro.textContent = 'Twoja budowla czeka. Wznów spacer lub wróć bezpiecznie na start.';
   outline.visible = false;
+  if (saveDirty) saveWorld().catch(error => notice(error.message));
 }
 
 function play(useDrag) {
@@ -403,11 +542,12 @@ function edit(place) {
   const error = world.edit(...cell, place ? selected : 0, player);
   if (error) { notice(error); return; }
   edits++;
+  markDirty();
   rebuild();
   updateTarget();
 }
 
-function recover() {
+function findSafePlayer(targetWorld) {
   let found = null;
   for (let radius = 0; radius <= 30 && !found; radius++) {
     for (let x = 32 - radius; x <= 32 + radius && !found; x++) {
@@ -415,16 +555,39 @@ function recover() {
         if (x < 1 || x >= SIZE[0] - 1 || z < 1 || z >= SIZE[2] - 1) continue;
         for (let y = 1; y < SIZE[1] - 2; y++) {
           const candidate = { x: x + 0.5, y, z: z + 0.5, vy: 0, grounded: false };
-          if (world.get(x, y - 1, z) && !collides(world, candidate)) { found = candidate; break; }
+          if (targetWorld.get(x, y - 1, z) && !collides(targetWorld, candidate)) { found = candidate; break; }
         }
       }
     }
   }
+  return found;
+}
+
+function installWorld(nextWorld, nextPlayer, yaw, pitch) {
+  for (const mesh of chunks.values()) { scene.remove(mesh); mesh.geometry.dispose(); }
+  chunks.clear();
+  for (const mesh of waterChunks.values()) { scene.remove(mesh); mesh.geometry.dispose(); }
+  waterChunks.clear();
+  loadedChunks.clear();
+  visibleChunks = new Set();
+  chunkCenter = '';
+  world = nextWorld;
+  player = nextPlayer;
+  camera.rotation.set(pitch, yaw, 0);
+  resetMobs();
+  syncCamera();
+  updateChunks();
+  lastTrackedState = [player.x, player.y, player.z, camera.rotation.y, camera.rotation.x];
+}
+
+function recover() {
+  const found = findSafePlayer(world);
   if (!found) { notice('Brak bezpiecznego miejsca. Usuń przeszkody lub utwórz nową łąkę.'); return; }
   player = found;
   camera.rotation.set(-0.13, 0, 0);
   syncCamera();
   updateChunks();
+  markDirty();
   notice('Jesteś w bezpiecznym miejscu. Świat pozostał bez zmian.');
 }
 
@@ -433,6 +596,11 @@ ui['drag-start'].addEventListener('click', () => { prepareMusic(); play(true); }
 ui.pause.addEventListener('click', pause);
 ui.recover.addEventListener('click', recover);
 ui['new-world'].addEventListener('click', () => {
+  ui['reset-message'].textContent = saveGate === 'recovery' ?
+    'Uszkodzony bieżący zapis zostanie zastąpiony; odzyskana kopia pozostanie zachowana. Kontynuować?' :
+    saveGate === 'corrupt' ?
+      'Nie można odzyskać poprzedniego świata. Potwierdź, aby zastąpić uszkodzony zapis nowym światem.' :
+      'Bieżący świat zostanie zachowany jako poprzedni zapis, a nowa łąka zastąpi bieżącą. Kontynuować?';
   ui['reset-confirm'].hidden = false;
   ui['cancel-reset'].focus();
 });
@@ -440,24 +608,94 @@ ui['cancel-reset'].addEventListener('click', () => {
   ui['reset-confirm'].hidden = true;
   ui['new-world'].focus();
 });
-ui['confirm-reset'].addEventListener('click', () => {
-  ui['reset-confirm'].hidden = true;
-  for (const mesh of chunks.values()) { scene.remove(mesh); mesh.geometry.dispose(); }
-  chunks.clear();
-  for (const mesh of waterChunks.values()) { scene.remove(mesh); mesh.geometry.dispose(); }
-  waterChunks.clear();
-  loadedChunks.clear();
-  chunkCenter = '';
-  world = new World(crypto.getRandomValues(new Uint32Array(1))[0]);
-  player = createPlayer(world);
-  resetMobs();
-  camera.rotation.set(-0.13, 0, 0);
-  edits = 0;
-  syncCamera();
-  updateChunks();
-  ui['load-status'].textContent = 'Nowa łąka gotowa. Wybierz sposób sterowania.';
-  ui['drag-start'].focus();
+ui['confirm-reset'].addEventListener('click', async () => {
+  ui['confirm-reset'].disabled = true;
+  const replaceDamaged = ['recovery', 'corrupt'].includes(saveGate);
+  try {
+    if (!replaceDamaged && saveDirty) await saveWorld();
+    const nextWorld = new World(crypto.getRandomValues(new Uint32Array(1))[0]);
+    const nextPlayer = createPlayer(nextWorld);
+    const nextWorldId = crypto.randomUUID();
+    const nextSnapshot = createSnapshot(nextWorld, nextPlayer, -0.13, 0,
+      selected, currentSettings(), nextWorldId);
+    const record = await saveWorld({ snapshot: nextSnapshot, replaceCorrupt: replaceDamaged });
+    ui['reset-confirm'].hidden = true;
+    worldId = nextWorldId;
+    installWorld(nextWorld, nextPlayer, 0, -0.13);
+    saveDirty = false;
+    saveGate = null;
+    saveGeneration++;
+    lastSavedAt = record.savedAt;
+    edits = 0;
+    setSaveStatus(savedLabel(record.savedAt), 'saved');
+    ui['save-recovery'].hidden = true;
+    ui['load-status'].textContent = 'Nowa łąka zapisana. Wybierz sposób sterowania.';
+    ui['drag-start'].focus();
+  } catch (error) {
+    console.error('Nowa łąka:', error);
+    ui['load-status'].textContent = 'Nie udało się bezpiecznie zapisać nowej łąki. Poprzedni świat pozostał aktywny.';
+    notice(error.message);
+  } finally {
+    ui['confirm-reset'].disabled = false;
+  }
 });
+ui['restore-backup'].addEventListener('click', async () => {
+  ui['restore-backup'].disabled = true;
+  try {
+    const record = await saveWorld({ snapshot: recoveryRecord, replaceCorrupt: true });
+    saveGate = null;
+    saveDirty = false;
+    saveGeneration++;
+    lastSavedAt = record.savedAt;
+    ui['save-recovery'].hidden = true;
+    setSaveStatus(savedLabel(record.savedAt), 'saved');
+    ui['start'].disabled = false;
+    ui['drag-start'].disabled = false;
+    ui['load-status'].textContent = 'Poprzedni zapis odzyskany. Wybierz sposób sterowania.';
+    ui['drag-start'].focus();
+  } catch (error) {
+    console.error('Odzyskiwanie zapisu:', error);
+    notice(error.message);
+  } finally {
+    ui['restore-backup'].disabled = false;
+  }
+});
+ui['save-now'].addEventListener('click', () => {
+  saveWorld().catch(error => notice(error.message));
+});
+ui['reload-save'].addEventListener('click', () => {
+  allowUnsavedNavigation = true;
+  location.reload();
+});
+ui['stay-in-game'].addEventListener('click', () => {
+  ui['leave-confirm'].hidden = true;
+  pendingHomeHref = null;
+  ui['save-now'].focus();
+});
+ui['leave-unsaved'].addEventListener('click', () => {
+  allowUnsavedNavigation = true;
+  if (pendingHomeHref) location.href = pendingHomeHref;
+});
+
+async function navigateHome(href) {
+  if (playing) pause();
+  try {
+    if (saveDirty) await saveWorld();
+    location.href = href;
+  } catch (error) {
+    if (playing) pause();
+    pendingHomeHref = href;
+    ui['leave-confirm'].hidden = false;
+    notice(error.message);
+  }
+}
+
+for (const link of document.querySelectorAll('a[href="../index.html"]')) {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    navigateHome(link.href);
+  });
+}
 ui.fullscreen.addEventListener('click', async () => {
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
@@ -468,13 +706,23 @@ ui.fullscreen.addEventListener('click', async () => {
     notice('Pełny ekran niedostępny. Gra nadal działa w oknie.');
   }
 });
-ui.sensitivity.addEventListener('input', () => { controls.pointerSpeed = Number(ui.sensitivity.value); });
-ui['low-quality'].addEventListener('change', resize);
+ui.sensitivity.addEventListener('input', () => {
+  controls.pointerSpeed = Number(ui.sensitivity.value);
+  markDirty();
+});
+ui['low-quality'].addEventListener('change', () => {
+  resize();
+  markDirty();
+});
 ui['music-on'].addEventListener('change', () => {
   ui['music-volume'].disabled = !ui['music-on'].checked;
+  if (playing && ui['music-on'].checked) music.start();
+  else music.stop();
+  markDirty();
 });
 ui['music-volume'].addEventListener('input', () => {
   music.setVolume(Number(ui['music-volume'].value) / 100);
+  markDirty();
 });
 controls.addEventListener('lock', () => play(false));
 controls.addEventListener('unlock', () => { if (playing && !dragMode) pause(); });
@@ -488,7 +736,7 @@ window.addEventListener('resize', resize);
 window.addEventListener('keydown', event => {
   if (event.target instanceof HTMLElement &&
       event.target.closest('input, button, a, summary')) return;
-  if (event.code === 'KeyH') { location.href = '../index.html'; return; }
+  if (event.code === 'KeyH') { navigateHome('../index.html'); return; }
   if ((event.code === 'KeyP' || event.code === 'Escape') && playing) {
     event.preventDefault(); pause(); return;
   }
@@ -503,6 +751,97 @@ window.addEventListener('keydown', event => {
   if (!event.repeat && event.code === 'KeyE') edit(true);
 });
 window.addEventListener('keyup', event => keys.delete(event.code));
+window.addEventListener('beforeunload', event => {
+  if (saveDirty && !allowUnsavedNavigation) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});
+window.addEventListener('pagehide', () => {
+  if (saveDirty && !allowUnsavedNavigation) {
+    saveWorld().catch(error => console.error('Zapis przy zamykaniu strony:', error));
+  }
+});
+
+function installRecord(record) {
+  const nextWorld = applySnapshot(new World(record.seed), record);
+  const savedPlayer = { ...record.player, vy: 0, grounded: false };
+  let nextPlayer = savedPlayer;
+  let recoveredPosition = false;
+  if (collides(nextWorld, savedPlayer)) {
+    nextPlayer = findSafePlayer(nextWorld);
+    if (!nextPlayer) throw new CorruptSaveError('Nie znaleziono bezpiecznego miejsca w zapisanym świecie.');
+    recoveredPosition = true;
+  }
+  installWorld(nextWorld, nextPlayer, record.player.yaw, record.player.pitch);
+  worldId = record.worldId;
+  select(record.selectedBlock, false);
+  applySettings(record.settings);
+  edits = 0;
+  return recoveredPosition;
+}
+
+async function initializeSave() {
+  ui['load-status'].textContent = 'Wczytujemy świat i zapis…';
+  try {
+    const result = await saveStore.load();
+    saveExpected = result.expected;
+    if (result.status === 'current') {
+      const recoveredPosition = installRecord(result.record);
+      lastSavedAt = result.record.savedAt;
+      setSaveStatus(savedLabel(lastSavedAt), 'saved');
+      ui['load-status'].textContent = recoveredPosition ?
+        'Pozycja była zablokowana. Znaleźliśmy bezpieczne miejsce; zapisz, aby zachować ją na przyszłość.' :
+        'Zapisany świat gotowy. Wybierz sposób sterowania.';
+      if (recoveredPosition) markDirty();
+    } else if (result.status === 'recovery') {
+      installRecord(result.record);
+      recoveryRecord = currentSnapshot();
+      lastSavedAt = result.record.savedAt;
+      saveGate = 'recovery';
+      ui['save-recovery'].hidden = false;
+      ui['save-recovery-message'].textContent =
+        'Bieżący zapis jest uszkodzony. Wczytaliśmy poprzednią kopię; potwierdź jej odzyskanie przed dalszą grą.';
+      setSaveStatus('Odzyskano kopię — potwierdź zapis.', 'error');
+      ui['load-status'].textContent = 'Poprzednia kopia jest gotowa do odzyskania.';
+      ui['start'].disabled = true;
+      ui['drag-start'].disabled = true;
+    } else if (result.status === 'corrupt') {
+      saveGate = 'corrupt';
+      saveDirty = true;
+      ui['load-status'].textContent =
+        'Zapis jest uszkodzony. Możesz zagrać w tej sesji bez zapisu albo po potwierdzeniu utworzyć nowy świat.';
+      setSaveStatus('Uszkodzony zapis — nie nadpisujemy go.', 'error');
+      ui['session-note'].textContent = 'Ta tymczasowa sesja nie zapisuje zmian; stary zapis jest chroniony.';
+    } else {
+      saveDirty = true;
+      saveGeneration++;
+      setSaveStatus('Nowy świat — zapisujemy…', 'dirty');
+      ui['load-status'].textContent = 'Nowa łąka gotowa. Zapisujemy pierwszy punkt kontrolny.';
+    }
+  } catch (error) {
+    console.error('Wczytywanie zapisu:', error);
+    if (error instanceof CorruptSaveError && saveExpected.exists) saveGate = 'corrupt';
+    saveDirty = true;
+    saveGeneration++;
+    setSaveStatus(saveGate === 'corrupt' ?
+      'Uszkodzony zapis — nie nadpisujemy go.' : 'Nie można wczytać zapisu — sesja tymczasowa.', 'error');
+    ui['session-note'].textContent = 'Nie można potwierdzić zapisu; zmiany mogą zniknąć po zamknięciu.';
+    ui['load-status'].textContent = 'Gra działa bez zapisu. Sprawdź dostęp do pamięci przeglądarki i spróbuj ponownie.';
+    notice(error.message);
+  } finally {
+    saveInitialized = true;
+    ui['recover'].disabled = saveGate === 'recovery';
+    ui['new-world'].disabled = false;
+    if (saveGate !== 'recovery') {
+      ui['start'].disabled = false;
+      ui['drag-start'].disabled = false;
+    }
+    if (saveDirty && !saveGate) scheduleAutosave();
+    updateSaveControls();
+  }
+}
+
 renderer.domElement.addEventListener('pointerdown', event => {
   if (!playing) return;
   if (dragMode) {
@@ -528,7 +867,7 @@ renderer.domElement.addEventListener('wheel', event => {
 renderer.domElement.addEventListener('webglcontextlost', event => {
   event.preventDefault();
   pause();
-  ui['load-status'].textContent = 'Utracono WebGL. Odśwież stronę, aby uruchomić ponownie (budowla nie jest zapisana).';
+  ui['load-status'].textContent = 'Utracono WebGL. Sprawdź stan zapisu przed odświeżeniem strony.';
   for (const id of ['start', 'drag-start', 'recover', 'new-world']) ui[id].disabled = true;
 });
 
@@ -573,6 +912,7 @@ function frame(now) {
     syncCamera();
     updateChunks();
     updateTarget();
+    trackPersistentState();
   }
   if (!firstFrameMs) firstFrameMs = performance.now() - bootTime;
   frameCount++;
@@ -594,6 +934,5 @@ resize();
 syncCamera();
 updateChunks();
 camera.rotation.x = -0.13;
-ui['load-status'].textContent = 'Łąka gotowa. Buduj bez limitu materiałów. Ten model nie zapisuje postępu.';
-for (const id of ['start', 'drag-start', 'recover', 'new-world']) ui[id].disabled = false;
 renderer.setAnimationLoop(frame);
+await initializeSave();

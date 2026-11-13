@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#183f36">
-  <title>Minecraft 0.4 — prototyp Ekipy spod Lipy</title>
-  <link rel="icon" href="preview.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=7">
+  <title>Minecraft 0.4 — kreatywne budowanie Ekipy spod Lipy</title>
+  <link rel="icon" href="preview.svg?v=3" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=8">
   <script type="importmap">
     {"imports":{"three":"./vendor/three.module.js"}}
   </script>
@@ -14,8 +14,11 @@
 <body>
   <div id="viewport" aria-label="Trójwymiarowy świat klocków"></div>
   <header class="topbar">
-    <a class="brand" href="../index.html">EKIPA SPOD LIPY <strong>Minecraft <small>WERSJA 0.4 · PROTOTYP</small></strong></a>
+    <a class="brand" href="../index.html">EKIPA SPOD LIPY <strong>Minecraft <small>WERSJA 0.4 · TRYB KREATYWNY</small></strong></a>
     <div class="tools">
+      <span id="save-status" role="status" aria-live="polite">Ładowanie zapisu…</span>
+      <button id="save-now" disabled>Zapisz</button>
+      <button id="reload-save" hidden>Wczytaj aktualny zapis</button>
       <button id="pause" disabled>Pauza · P</button>
       <a href="../index.html">Menu gier · H</a>
     </div>
@@ -34,12 +37,12 @@
     </div>
     <div id="palette" aria-label="Wybór materiału"></div>
     <p class="hint" id="controls-hint">WASD · ruch &nbsp; Spacja · skok &nbsp; 1–8 · klocki &nbsp; Q / E · usuń / dodaj</p>
-    <p class="session-note">Prototyp bez zapisu — budowle znikają po odświeżeniu.</p>
+    <p class="session-note" id="session-note">Zapis lokalny w tym profilu Chrome. To nie jest kopia zapasowa.</p>
   </section>
   <p id="notice" role="status" hidden></p>
   <section id="overlay" class="overlay" aria-labelledby="heading">
     <div class="panel">
-      <span class="eyebrow">EKIPA SPOD LIPY · PIERWSZY MODEL 3D</span>
+      <span class="eyebrow">EKIPA SPOD LIPY · WERSJA 0.4</span>
       <h1 id="heading">Klocki <em>Podlasia</em></h1>
       <p id="intro">Domek pod lipą to dopiero początek. Spaceruj po łące, rozbieraj klocki i buduj po swojemu.</p>
       <div class="instructions">
@@ -48,11 +51,20 @@
         <p><b>Esc / P</b> pauza i uwolnienie myszy · <b>H</b> menu gier</p>
       </div>
       <p id="load-status" role="status">Przygotowujemy łąkę…</p>
+      <p class="small">Świat zapisuje się lokalnie w tym profilu Chrome. Pasek u góry pokazuje stan zapisu; awaria pamięci nie blokuje gry, ale pozostawia sesję bez zapisu.</p>
+      <div id="save-recovery" class="reset-confirm" role="group" aria-label="Odzyskiwanie zapisu" hidden>
+        <p id="save-recovery-message"></p>
+        <button id="restore-backup">Odzyskaj poprzedni zapis</button>
+      </div>
       <div class="actions">
         <button id="start" class="primary" disabled>Graj — przechwyć mysz</button>
         <button id="drag-start" disabled>Graj bez przechwytywania</button>
       </div>
       <p class="small">Tryb bez przechwytywania: przeciągaj po świecie, aby się rozglądać; Q / E zmieniają klocki. Tylko komputer z klawiaturą.</p>
+      <details>
+        <summary>Pomysły na budowę (opcjonalne)</summary>
+        <p class="small">Zbuduj domek pod lipą, połącz brzegi mostem albo załóż ogródek. To tylko inspiracje — bez zadań i ograniczeń.</p>
+      </details>
       <details><summary>Biomy, wioski i drogi</summary><p class="small">Podążaj drogami. Biom i współrzędne gracza widać nad paskiem materiałów.</p><p class="small" id="destinations"></p><p class="small" id="biome-destinations"></p><p class="small" id="structure-destinations"></p></details>
       <div class="settings">
         <label>Czułość myszy <input id="sensitivity" type="range" min="0.4" max="2" step="0.1" value="1"></label>
@@ -67,11 +79,16 @@
         <a href="../index.html">Menu gier</a>
       </div>
       <div id="reset-confirm" class="reset-confirm" role="group" aria-label="Potwierdzenie nowej łąki" hidden>
-        <p>Obecna budowla zniknie. Na pewno utworzyć nową łąkę?</p>
+        <p id="reset-message">Bieżący świat zostanie zachowany jako poprzedni zapis, a nowa łąka zastąpi bieżącą. Kontynuować?</p>
         <button id="confirm-reset">Tak, nowa łąka</button>
         <button id="cancel-reset">Nie, zachowaj budowlę</button>
       </div>
-      <p class="small warning">To testowy model: bez zapisu świata, efektów dźwiękowych, przetrwania i sterowania dotykowego.</p>
+      <div id="leave-confirm" class="reset-confirm" role="group" aria-label="Niezapisane zmiany" hidden>
+        <p>Nie udało się zapisać. Jeśli wyjdziesz teraz, zmiany od ostatniego zapisu zostaną utracone.</p>
+        <button id="stay-in-game">Zostań i spróbuj ponownie</button>
+        <button id="leave-unsaved">Wyjdź bez zapisu</button>
+      </div>
+      <p class="small warning">Wersja desktopowa: bez przetrwania, craftingu, multiplayera i sterowania dotykowego.</p>
       <details><summary>Diagnostyka modelu</summary><output id="metrics">Oczekiwanie na renderer.</output></details>
     </div>
   </section>
@@ -81,7 +98,7 @@
     if (location.protocol === 'file:') {
       status.textContent = 'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.4/ — moduły wymagają HTTP.';
     } else {
-      import('./game.js?v=16').catch(error => {
+      import('./game.js?v=18').catch(error => {
         console.error('Minecraft: nie można uruchomić gry.', error);
         status.textContent = 'Nie można wczytać gry. Sprawdź WebGL2 i lokalne pliki; szczegóły w konsoli przeglądarki. Menu gier pozostaje dostępne.';
         document.getElementById('overlay').hidden = false;

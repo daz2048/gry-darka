@@ -113,11 +113,15 @@ Na poczatku obie wersje maja ten sam swiat, sterowanie i ograniczenia prototypu.
 - [Zagraj »](klocki-podlasia-0.2/)
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.2/README.md)
 
-### Minecraft 0.3 — wersja rozwojowa
-Kopia wersji 0.2 do dalszego rozwoju na galezi `Klocki-Podlasia-0.3`.
-Domyslnym katalogiem pracy jest `klocki-podlasia-0.3/`; wersje 0.1 i 0.2 pozostaja zachowane.
-- [Zagraj »](klocki-podlasia-0.3/)
-- [Instrukcja, ograniczenia i testy](klocki-podlasia-0.3/README.md)
+### Minecraft 0.4 — kreatywne budowanie
+Odkrywaj duży świat Podlasia, buduj z 37 nieograniczonych materiałów i wracaj
+do swojej pracy dzięki zapisowi lokalnemu w Chrome. Wydanie koncentruje się na
+komputerach Mac z klawiaturą i myszą; inne przeglądarki nie są jeszcze
+potwierdzonym celem wsparcia. Bez trybu przetrwania, craftingu, multiplayera
+i sterowania dotykowego.
+- [Zagraj »](klocki-podlasia-0.4/)
+- [Instrukcja, zapisy i testy](klocki-podlasia-0.4/README.md)
+- [Plan wydania i wyniki weryfikacji](backlog/voxel-sandbox-backlog.md)
 
 ### Flappy Bird 0.2
 Wersja rozwojowa, skopiowana z 0.1. W menu portfolio wersja 0.1 jest pierwsza, a 0.2 druga. Dalsze zmiany na galezi `archer-0.4-works-starts-n0w` dotycza domyslnie katalogu `flappy-0.2/`.

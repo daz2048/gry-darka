@@ -1,6 +1,8 @@
-# Minecraft 0.4 — development copy
+# Minecraft 0.4 — kreatywne budowanie
 
-Active working version on branch `Minecraft-0.4`, cloned from `../klocki-podlasia-0.3/`. Future Minecraft development on this branch targets this directory by default. Keep versions 0.1, 0.2 and 0.3 preserved unless explicitly asked otherwise. This copy initially retains the same gameplay and prototype limitations as 0.3.
+Desktopowa gra kreatywna: odkrywaj świat, buduj i wracaj do swojej pracy.
+Wersja docelowa do testów wydania to Chrome na macOS z klawiaturą i myszą.
+Pozostałe przeglądarki i platformy nie są obecnie potwierdzonymi celami wsparcia.
 
 Original desktop-first creative voxel sandbox for Ekipa spod Lipy. Explore a
 256 × 32 × 256 world with eleven biomes, three lakes and two streams, visit seventeen linked villages, and build with 37
@@ -10,10 +12,28 @@ rendering, walking/jumping, block picking, placement checks and safe recovery.
 Roadside structures include a climbable watchtower, a campsite, stone ruins and
 a farmhouse with fields.
 
-**Prototype limits:** no world/settings save, sound effects, mobile controls, survival,
-crafting, multiplayer or offline/PWA guarantee. Refreshing or creating a new
-world loses your creation. This is not the complete release described in the
-[backlog](../backlog/voxel-sandbox-backlog.md).
+## Zapisywanie
+
+Świat, ziarno, pozycja i kierunek gracza, materiał oraz ustawienia zapisują się
+automatycznie co kilka sekund w IndexedDB. Przycisk **Zapisz** wymusza zapis
+od razu; pasek u góry pokazuje jego rzeczywisty stan. Po ponownym otwarciu
+świat wraca do ekranu pauzy — wybierz sposób sterowania, aby wznowić.
+
+Zapis jest lokalny dla profilu Chrome i adresu strony. Nie synchronizuje się
+między urządzeniami ani między localhost a wersją hostowaną; wyczyszczenie lub
+utrata danych przeglądarki może go usunąć. Poprzednia poprawna kopia może
+odzyskać uszkodzony zapis po potwierdzeniu, ale nie jest zewnętrzną kopią
+zapasową. Jeśli nie ma poprawnej kopii, uszkodzony zapis pozostaje chroniony;
+zastąpienie go wymaga osobnego potwierdzenia utworzenia nowego świata. Gdy pamięć
+jest niedostępna, świat pozostaje grywalny jako sesja tymczasowa, a gra wyraźnie
+informuje, że zmiany nie są zapisane. Wykryty konflikt między kartami wymaga
+wczytania aktualnej wersji, zamiast cichego nadpisania.
+
+To jeden lokalny slot. **Nowa łąka** wymaga potwierdzenia; anulowanie niczego nie
+zmienia, a poprzedni zapis zostaje zachowany jako kopia odzyskiwania. Nie ma
+przetrwania, craftingu, multiplayera, sterowania dotykowego, synchronizacji
+chmurowej ani gwarancji działania offline/PWA. Więcej szczegółów i aktualne
+bramki wydania zawiera [backlog](../backlog/voxel-sandbox-backlog.md).
 
 ## Run
 
@@ -25,8 +45,8 @@ From the repository root, start the existing server:
 
 Open <http://localhost:8765/klocki-podlasia-0.4/> or select version 0.4 in the
 portfolio. Use HTTP: ES modules do not load by opening this HTML file directly.
-No npm install, compilation, external font, CDN, account or game server is needed.
-Requires a desktop keyboard/mouse and a browser with WebGL2.
+No npm install, compilation, external font, CDN, account or network game server
+is needed to play. Requires a desktop keyboard/mouse and WebGL2.
 
 ## Controls
 
@@ -46,7 +66,7 @@ Requires a desktop keyboard/mouse and a browser with WebGL2.
 - Fullscreen and lower resolution are optional; denied fullscreen leaves windowed play.
 - **Muzyka / Głośność muzyki**: enable or mute the original ambient music and
   adjust its volume in the start/pause panel. It begins after choosing a play mode
-  and stops when the game is paused or loses focus. Settings are not saved.
+  and stops when the game is paused or loses focus. Its setting and volume are saved.
 
 **Navigation exception:** unlike the 2D games, Escape pauses instead of returning
 to the portfolio because browsers use it to release pointer lock. H still goes home.
@@ -68,7 +88,7 @@ listed in the pause menu and connected to the existing road network.
 Animals, residents and golems also use original pixel-textured models, with distinctive coats, clothing and iron details. Their legs and, where applicable, arms animate while walking.
 
 Only nearby chunks are rendered. Leaving an area unloads its meshes, not its
-blocks, so edits remain when you return during the same session.
+blocks; edits are also retained in the saved world.
 
 The watchtower (82, 44), campsite (151, 67), stone ruins (100, 112) and
 farmhouse (154, 180) have paths leading from the main roads. The campsite
@@ -87,16 +107,25 @@ env ATOM_LOCK_SKIP_NATIVE_AUDIO=1 ATOM_LOCK_SKIP_NATIVE_UI=1 \
   node --test klocki-podlasia-0.4/tests/*.test.js
 ```
 
-Pure tests cover generation, exposed faces, cross-chunk edits, picking and player
-collision/movement. Browser checks should include captured and drag look, walking,
-jump, edits/overlap rejection, palette, new-world confirmation, safe recovery,
-pause/background/resume, denied pointer lock, resize, lower resolution and home.
+Pure tests cover generation, exposed faces, cross-chunk edits, picking, player
+collision/movement and save validation. Browser checks should include save/reload,
+recovery from a damaged save, new-world confirmation, editing, pause/resume and
+conflict detection.
+
+The current local reference run used Chrome 157.0.8103.78 on macOS 27.2, Apple M3,
+16 GiB RAM. In headless Chrome, 20 full application saves measured a 23.2 ms
+median and 33.6 ms p95; 20 validated restores measured 25.9 ms median and 42.9 ms
+p95. No long tasks were observed in that save run. These local headless results
+are not hosted-load or frame-rate benchmarks. Native pointer capture was also
+verified in standalone Chrome 157 on this Mac in an Incognito session; Escape
+released it and returned to pause. Denied-pointer-lock recovery and hosted
+loading remain unverified. Safari, Firefox, Windows and mobile are not release
+claims.
+
 The pause panel's diagnostics show the seed, frames, draw calls, live geometries,
-first-render time and frame-time median/p95. Local readings are not network
-load benchmarks or evidence of hosted Safari/Windows/mobile compatibility.
-The original melodic instrumental soundtrack is generated locally with Web
-Audio, with soft keys, bass and sustained harmonies. It does not contain
-Minecraft music or require downloads.
+first-render time and frame-time median/p95. The original melodic instrumental
+soundtrack is generated locally with Web Audio, with soft keys, bass and
+sustained harmonies. It does not contain Minecraft music or require downloads.
 
 ## Dependency
 

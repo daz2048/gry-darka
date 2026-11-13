@@ -1,77 +1,92 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
   <defs>
     <linearGradient id="sky" x2="0" y2="1">
-      <stop stop-color="#29244d"/>
-      <stop offset="1" stop-color="#ef9b79"/>
+      <stop stop-color="#70c8e8"/>
+      <stop offset="1" stop-color="#d7edcf"/>
     </linearGradient>
-    <linearGradient id="meadow" x2="0" y2="1">
-      <stop stop-color="#658b65"/>
-      <stop offset="1" stop-color="#243f47"/>
+    <linearGradient id="field" x2="0" y2="1">
+      <stop stop-color="#83bd65"/>
+      <stop offset="1" stop-color="#397a49"/>
     </linearGradient>
     <linearGradient id="water" x2="0" y2="1">
-      <stop stop-color="#70bfc5"/>
-      <stop offset="1" stop-color="#315d7b"/>
+      <stop stop-color="#71cbd0"/>
+      <stop offset="1" stop-color="#368b9b"/>
     </linearGradient>
   </defs>
   <rect width="640" height="360" fill="url(#sky)"/>
-  <g fill="#fff1d2" opacity=".8">
-    <circle cx="68" cy="58" r="2"/><circle cx="112" cy="105" r="2"/>
-    <circle cx="194" cy="48" r="2"/><circle cx="271" cy="82" r="2"/>
-    <circle cx="402" cy="52" r="2"/><circle cx="485" cy="105" r="2"/>
-    <circle cx="591" cy="48" r="2"/>
-  </g>
-  <circle cx="532" cy="72" r="34" fill="#ffd58d"/>
-  <circle cx="520" cy="64" r="34" fill="#433354"/>
-
-  <path d="m0 216 85-91 46 40 95-108 86 94 78-74 82 92 70-62 98 99v69H0Z" fill="#465266"/>
-  <path d="m181 143 45-86 48 77-30-13-19 18-21-13-15 17Z" fill="#aaa9ac"/>
-  <path d="m311 151 79-74 82 92-28-12-19 17-22-15-20 15-22-14-18 10Z" fill="#92959d"/>
-  <path d="M0 222c105-31 172 8 263-5s215-6 377 22v121H0Z" fill="url(#meadow)"/>
-
-  <path d="M-25 326c111-36 167-86 274-72s166 76 254 38 114-78 167-87v155H-25Z" fill="url(#water)"/>
-  <path d="M-15 320c110-34 165-79 262-66s163 71 251 33 115-73 161-81" fill="none" stroke="#a8d7ce" stroke-width="5" opacity=".8"/>
-  <path d="M-30 339c107-30 169-85 277-68s162 76 251 37 116-74 161-85" fill="none" stroke="#d4c195" stroke-width="13" opacity=".9"/>
-
-  <g>
-    <path d="M378 183h112v87H378Z" fill="#c69a66"/>
-    <path d="m490 183 30-17v86l-30 18Z" fill="#765343"/>
-    <path d="m366 183 67-39 69 39-68 39Z" fill="#aa5551"/>
-    <path d="m434 222 68-39v13l-68 40Z" fill="#743e49"/>
-    <path d="M392 199h17v24h-17zm54 0h17v24h-17Z" fill="#ffd47f"/>
-    <path d="M421 237h27v33h-27Z" fill="#493b40"/>
-    <path d="M398 123h61v67h-61Z" fill="#d2aa70"/>
-    <path d="m459 123 22-13v62l-22 18Z" fill="#806047"/>
-    <path d="m390 123 39-29 40 29-40 24Z" fill="#745253"/>
-    <path d="m429 147 40-24v12l-40 25Z" fill="#543f49"/>
-    <path d="M410 140h12v19h-12zm27 0h12v19h-12Z" fill="#ffe093"/>
-    <path d="M423 173h18v17h-18Z" fill="#584342"/>
-    <path d="M394 120h9v-13h12v13m34 0v-13h12v13" fill="#d2aa70"/>
+  <circle cx="545" cy="68" r="31" fill="#ffe397"/>
+  <g fill="#f7fff0" opacity=".8">
+    <path d="M66 91c3-14 23-19 33-9 10-17 37-10 38 8 18 2 17 20 0 21H78c-17 0-23-10-12-20Z"/>
+    <path d="M416 105c2-10 16-14 24-7 8-12 27-7 28 6 13 1 12 14 0 15h-46c-12 0-16-7-6-14Z"/>
   </g>
 
-  <g transform="translate(78 179)">
-    <path d="M0 47h104v78H0Z" fill="#d9b477"/>
-    <path d="m104 47 28-16v80l-28 14Z" fill="#916448"/>
-    <path d="m-9 47 60-36 62 36-60 35Z" fill="#a14e4a"/>
-    <path d="M16 63h19v23H16zm57 0h19v23H73Z" fill="#ffd88b"/>
-    <path d="M42 94h23v31H42Z" fill="#523f3c"/>
+  <path d="m0 205 92-91 46 37 96-108 80 91 80-78 77 91 78-54 91 96v95H0Z" fill="#718f92"/>
+  <path d="m185 113 49-70 49 56-23-10-18 17-17-12-19 18-21-3Z" fill="#eef2df"/>
+  <path d="m314 134 80-78 77 91-25-10-17 15-19-14-19 15-21-12-18 10Z" fill="#dce8d8"/>
+  <path d="M0 206c103-28 174 8 267-4s201-4 373 17v141H0Z" fill="url(#field)"/>
+  <path d="M0 254c100-22 174-15 263 3s234 11 377-16v119H0Z" fill="#69a955"/>
+  <path d="M-25 335c114-21 149-78 253-71s142 48 229 15 115-75 214-80v161H-25Z" fill="none" stroke="#9e845c" stroke-width="31"/>
+  <path d="M-25 329c114-21 149-78 253-71s142 48 229 15 115-75 214-80" fill="none" stroke="#d7c18a" stroke-width="20"/>
+  <path d="M0 223c50 7 84 1 128-7 33-6 55 2 83 17" fill="none" stroke="#bce6ce" stroke-width="13"/>
+  <path d="M0 222c50 7 84 1 128-7 33-6 55 2 83 17" fill="none" stroke="url(#water)" stroke-width="8"/>
+
+  <g transform="translate(70 153)">
+    <path d="M0 46h101v74H0Z" fill="#d7a866"/>
+    <path d="m101 46 29-15v75l-29 14Z" fill="#9b6848"/>
+    <path d="m-9 46 59-34 61 34-60 34Z" fill="#9e5541"/>
+    <path d="m51 80 60-34v13L51 94Z" fill="#783c36"/>
+    <path d="M18 61h17v20H18zm49 0h17v20H67Z" fill="#c6ece0"/>
+    <path d="M42 92h21v28H42Z" fill="#644335"/>
+    <path d="M12 43V7h16v30m61-1V7h16v36" fill="#d7a866"/>
+    <path d="M7 8h26L20-7zm60 0h27L80-7Z" fill="#9e5541"/>
   </g>
-  <g transform="translate(486 194)" fill="#315e50">
-    <path d="M0 46h13v67H0z"/><path d="m-22 57 28-63 30 63L6 73Z"/>
-    <path d="m-17 34 23-49 25 49L6 49Z"/>
+  <g transform="translate(435 142)">
+    <path d="M0 52h125v83H0Z" fill="#c89b5d"/>
+    <path d="m125 52 34-17v82l-34 18Z" fill="#85543c"/>
+    <path d="m-11 52 72-40 76 40-72 41Z" fill="#604c43"/>
+    <path d="m65 93 72-41v14L65 108Z" fill="#443b37"/>
+    <path d="M20 70h20v23H20zm58 0h20v23H78Z" fill="#b9e8d8"/>
+    <path d="M51 101h27v34H51Z" fill="#543d34"/>
+    <path d="M12 49V8h17v36m92-1V8h17v40" fill="#c89b5d"/>
+    <path d="M6 9h30L21-9zm91 0h31L112-9Z" fill="#604c43"/>
   </g>
-  <g transform="translate(551 212) scale(.8)" fill="#315e50">
-    <path d="M0 46h13v67H0z"/><path d="m-22 57 28-63 30 63L6 73Z"/>
-    <path d="m-17 34 23-49 25 49L6 49Z"/>
+  <g transform="translate(300 188) scale(.62)">
+    <path d="M0 46h101v74H0Z" fill="#d7a866"/>
+    <path d="m101 46 29-15v75l-29 14Z" fill="#9b6848"/>
+    <path d="m-9 46 59-34 61 34-60 34Z" fill="#a14e3e"/>
+    <path d="m51 80 60-34v13L51 94Z" fill="#783c36"/>
+    <path d="M18 61h17v20H18zm49 0h17v20H67Z" fill="#c6ece0"/>
+    <path d="M42 92h21v28H42Z" fill="#644335"/>
   </g>
 
-  <g transform="translate(186 269)" fill="#f3ead4">
+  <g fill="#39704b">
+    <path d="M24 205h12v58H24z"/><path d="m5 220 25-53 27 53-27 14z"/><path d="m10 199 20-42 22 42-22 13z"/>
+    <path d="M573 200h12v64h-12z"/><path d="m552 217 27-57 29 57-29 15z"/><path d="m559 194 20-43 22 43-22 13z"/>
+    <path d="M395 203h10v45h-10z"/><path d="m379 216 21-43 23 43-23 12z"/>
+  </g>
+  <g fill="#6ba66a">
+    <path d="m10 199 20-42 22 42-22 13z"/><path d="m559 194 20-43 22 43-22 13z"/>
+  </g>
+
+  <g transform="translate(212 254)">
+    <path d="M0 14h30v18H0Z" fill="#e6d3ad"/>
+    <path d="M10 3h10v12H10Z" fill="#754d39"/>
+    <path d="M-5 10 15 0l21 10-21 10Z" fill="#b4a07e"/>
+    <path d="M21 7h3v7h-3z" fill="#8b6044"/>
+  </g>
+  <g transform="translate(360 268)">
+    <path d="M0 14h28v17H0Z" fill="#e7e2c6"/>
+    <path d="M9 4h10v11H9Z" fill="#725343"/>
+    <path d="m-5 10 19-9 20 9-20 10Z" fill="#b49e7c"/>
+  </g>
+  <g transform="translate(151 242)" fill="#f3efe0">
     <ellipse cx="16" cy="18" rx="14" ry="9"/><circle cx="29" cy="13" r="7"/>
-    <path d="M9 23v10h4V23m11 0v10h4V22" fill="#51413b"/>
-    <path d="m28 7 2-7 4 7m-12 1-2-6 6 4"/>
-    <circle cx="32" cy="12" r="1" fill="#292c36"/>
+    <path d="M9 23v10h4V23m11 0v10h4V22" fill="#6c513d"/>
+    <path d="m28 7 2-7 4 7m-12 1-2-6 6 4" fill="#f3efe0"/>
+    <circle cx="32" cy="12" r="1" fill="#2f4035"/>
   </g>
 
-  <rect x="22" y="46" width="310" height="58" rx="9" fill="#f5eee0" opacity=".96"/>
-  <text x="40" y="73" font-family="Trebuchet MS, sans-serif" font-size="21" font-weight="800" letter-spacing="1" fill="#35344b">MINECRAFT 0.4</text>
-  <text x="41" y="92" font-family="Trebuchet MS, sans-serif" font-size="10" font-weight="700" letter-spacing="1.1" fill="#765e59">WIOSKI · DROGI · 11 BIOMÓW</text>
+  <rect x="22" y="92" width="310" height="58" rx="9" fill="#f4f4df" opacity=".96"/>
+  <text x="40" y="119" font-family="Trebuchet MS, sans-serif" font-size="21" font-weight="800" letter-spacing="1" fill="#204d3d">MINECRAFT 0.4</text>
+  <text x="41" y="138" font-family="Trebuchet MS, sans-serif" font-size="10" font-weight="700" letter-spacing="1.1" fill="#6c553f">WIOSKI · DROGI · 11 BIOMÓW</text>
 </svg>
