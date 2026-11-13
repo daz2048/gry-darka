@@ -5,13 +5,13 @@ import { World, SIZE, CHUNK, BLOCKS, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTUR
 import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=3';
 import { createPlayer, collides, stepPlayer } from './player.js?v=2';
 import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
-import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=1';
+import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=2';
 import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, WORLD_STORE,
   MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
   suggestUniqueWorldName } from './saves.js?v=10';
 import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=1';
-import { biomeName, blockName, getLanguage, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=7';
-import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=5';
+import { biomeName, blockName, getLanguage, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=8';
+import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=6';
 
 initDiagnostics();
 

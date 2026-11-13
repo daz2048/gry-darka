@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""Generate the shared music catalogue from the MP3 files in a directory."""
+"""Generate the shared music catalogue from supported audio files."""
 
 import argparse
 import json
 from pathlib import Path
 
+SUPPORTED_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a"}
+
 
 def generate(directory):
     files = [
         path for path in directory.iterdir()
-        if path.is_file() and path.suffix.lower() == ".mp3"
+        if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
     ]
     for path in files:
         if "\\" in path.name or not path.stem.strip():
-            raise ValueError(f"Unsupported MP3 filename: {path.name!r}")
+            raise ValueError(f"Unsupported audio filename: {path.name!r}")
     tracks = [
         {"file": path.name, "title": path.stem}
         for path in files

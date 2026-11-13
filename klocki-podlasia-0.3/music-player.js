@@ -10,7 +10,7 @@ export async function loadMusicCatalogue(base = new URL('../music/', import.meta
     if (!response.ok) throw new Error(`Music catalogue HTTP ${response.status}`);
     const tracks = await response.json();
     if (!Array.isArray(tracks) || tracks.some(track =>
-      !track || typeof track.file !== 'string' || !/\.mp3$/i.test(track.file) ||
+      !track || typeof track.file !== 'string' || !/\.(mp3|wav|ogg|m4a)$/i.test(track.file) ||
       /[/\\]/.test(track.file) || typeof track.title !== 'string' || !track.title.trim()) ||
       new Set(tracks.map(track => track.file)).size !== tracks.length) {
       throw new Error('Invalid music catalogue.');

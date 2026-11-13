@@ -96,7 +96,7 @@
         <label><input id="music-on" type="checkbox" checked> <span data-i18n="settings.music">Music</span></label>
         <label><span data-i18n="settings.musicChoice">Soundtrack</span>
           <select id="music-choice" disabled>
-            <option value="random" data-i18n="music.random">Random MP3</option>
+            <option value="random" data-i18n="music.random">Random track</option>
             <option value="original" data-i18n="music.original">Original music</option>
           </select>
         </label>
@@ -149,9 +149,9 @@
         'Start the repository server and open http://localhost:8765/klocki-podlasia-0.3/ — modules need HTTP.',
         'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.3/ — moduły wymagają HTTP.');
     } else {
-      import('./i18n.js?v=7').then(i18n => {
+      import('./i18n.js?v=8').then(i18n => {
         i18n.initLanguage();
-        return import('./game.js?v=31');
+        return import('./game.js?v=32');
       }).catch(error => {
         console.error('Minecraft: cannot start the game.', error);
         status.textContent = pick(

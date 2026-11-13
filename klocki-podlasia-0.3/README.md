@@ -160,7 +160,7 @@ is needed to play. Requires a desktop keyboard/mouse and WebGL2.
 - **Nowa łąka**: choose a name (up to 32 characters) and confirm creating a
   world with a different seed; existing worlds remain unchanged.
 - Fullscreen and lower resolution are optional; denied fullscreen leaves windowed play.
-- **Music / Soundtrack / Music volume**: select a random MP3 (the default), a
+- **Music / Soundtrack / Music volume**: select a random track (the default), a
   named track, or the original generated music, and adjust the volume in the
   start/pause panel. Random mode picks another track when one ends; a named track
   repeats. Playback pauses with the game and resumes at the same position.
@@ -300,10 +300,11 @@ running, apply the server update with `python3 scripts/game-server.py restart`.
 The original melodic instrumental
 soundtrack is generated locally with Web Audio, with soft keys, bass and
 sustained harmonies. It does not contain Minecraft music or require downloads.
-MP3 files are shared through the repository's `music/` directory. After adding
+MP3, WAV, OGG and M4A files are shared through the repository's `music/` directory. After adding
 or removing tracks, run `python3 scripts/generate-music-catalogue.py` from the
-repository root and refresh the game. Commit both the MP3 changes and the
+repository root and refresh the game. Commit both the audio file changes and the
 generated `music/catalogue.json` to publish them on the existing static site.
+Format and codec support varies by browser; an unplayable track reports an error.
 Only publish music you have permission to distribute; files on the site are public.
 
 ## Dependency

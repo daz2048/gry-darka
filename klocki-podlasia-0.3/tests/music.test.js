@@ -136,14 +136,16 @@ class MediaAudio {
 
 test('catalogue loads without caching and rejects invalid or unavailable data', async () => {
   const base = new URL('https://example.test/games/music/');
-  const tracks = [{ file: 'a #1.mp3', title: 'A' }];
+  const tracks = ['mp3', 'WAV', 'ogg', 'm4a'].map(extension => ({
+    file: `a #1.${extension}`, title: extension
+  }));
   const result = await loadMusicCatalogue(base, async (url, options) => {
     assert.equal(url.href, 'https://example.test/games/music/catalogue.json');
     assert.equal(options.cache, 'no-store');
     return { ok: true, json: async () => tracks };
   });
   assert.deepEqual(result, tracks);
-  for (const data of [[{ file: '../a.mp3', title: 'A' }], [...tracks, ...tracks], {}]) {
+  for (const data of [[{ file: '../a.wav', title: 'A' }], [{ file: 'a.flac', title: 'A' }], [...tracks, ...tracks], {}]) {
     await assert.rejects(loadMusicCatalogue(base, async () => ({ ok: true, json: async () => data })), /Invalid/);
   }
   await assert.rejects(loadMusicCatalogue(base, async () => ({ ok: false, status: 404 })), /404/);
@@ -152,7 +154,7 @@ test('catalogue loads without caching and rejects invalid or unavailable data', 
 test('random tracks advance, pause resumes, and individual and original choices are isolated', async () => {
   const audio = new MediaAudio();
   const ambient = new AmbientMusic(AudioContext);
-  const tracks = [{ file: 'first.mp3', title: 'First' }, { file: 'a #1.mp3', title: 'Second' }];
+  const tracks = [{ file: 'first.mp3', title: 'First' }, { file: 'a #1.ogg', title: 'Second' }];
   let choice = 0;
   const player = new MusicPlayer(tracks, {
     audio, ambient, random: () => choice, base: new URL('https://example.test/games/music/')
@@ -166,7 +168,7 @@ test('random tracks advance, pause resumes, and individual and original choices 
   assert.match(audio.src, /first\.mp3$/);
   choice = 0.9;
   audio.emit('ended');
-  assert.equal(audio.src, 'https://example.test/games/music/a%20%231.mp3');
+  assert.equal(audio.src, 'https://example.test/games/music/a%20%231.ogg');
   player.setSelection('track:first.mp3');
   assert.equal(player.active, false);
   player.start();
