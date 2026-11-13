@@ -1,7 +1,359 @@
-# Klocki Podlasia: browser voxel sandbox assessment and backlog
+# Minecraft 0.3: release plan and voxel sandbox backlog
 
-Assessment date: 2026-11-10. Updated: 2026-11-10.
-Status: **phase-one local working model implemented; full feasibility gate pending**.
+Initial assessment: 2026-11-10. Updated: 2026-11-12.
+Status: **Saving, first-session polish and documentation implemented; the 0.4-to-0.3 migration was verified in Chrome Incognito with the original seed, position and material restored. Native pointer capture is verified; denial behavior, hosted-origin and full release-matrix checks remain pending.**
+
+## Minecraft 0.3: active release plan
+
+This section is the current plan for [Minecraft 0.3](../klocki-podlasia-0.3/).
+It supersedes conflicting scope, storage, browser and release assumptions in the
+historical 0.1 assessment below. It does not mark features implemented or authorize
+tool installation, publication or changes to preserved versions.
+
+### 0.3 goal and confirmed boundaries
+
+**Explore, build, save, return.** A player can explore the existing world, build
+with unlimited materials, leave and resume their creation without starting over.
+
+| Area | Release decision |
+|---|---|
+| Supported platform | Desktop Mac with keyboard/mouse and WebGL2 |
+| Supported browser | Standalone Google Chrome stable on macOS; record exact Chrome/macOS versions and hardware during verification |
+| Other browsers | Safari, Firefox, Edge and embedded VS Code Chromium are not release targets; do not claim compatibility from Chrome results |
+| Gameplay | Creative exploration and building; retain the existing world, materials, structures, animals and music |
+| Persistence | One local world slot for 0.3, automatic and manual save, player/view/material/settings restore |
+| Excluded from release blockers | Mobile/touch, survival, health/hunger, crafting, multiplayer, cloud sync, accounts and offline/PWA guarantees |
+| Optional polish | Three dismissible building ideas: house, bridge and garden; no quests, rewards or resource requirements |
+| Isolation | The renamed game lives in `klocki-podlasia-0.3/`; versions 0.1 and 0.2 remain preserved. The earlier tracked 0.3 implementation was intentionally removed with user approval on 2026-11-12; do not restore it over this release. Keep the `Minecraft-0.4` feature branch name and leave the existing `Minecraft-0.3` branch untouched. Preserve unrelated games/data. |
+
+Use the current stable Chrome at the start of release testing and record its full
+version. If Chrome updates before sign-off, repeat the critical smoke tests.
+Select and record a reference Mac, macOS version, RAM, display/DPR and viewport;
+do not infer support for every Mac from one machine. Test 1280x720 and compact
+800x600 windows. Wider device coverage can follow this release.
+
+### Implemented work and remaining gaps
+
+- The [world model](../klocki-podlasia-0.3/world.js) has 2,097,152 cells
+  (256 x 32 x 256), separate block/water byte arrays, seeded generation and
+  validated edits.
+- [Saving](../klocki-podlasia-0.3/saves.js) uses versioned, validated full-world
+  typed-array snapshots in the `minecraft-0.3` IndexedDB database. It keeps one
+  prior valid snapshot, checks revisions within the write transaction, and
+  rejects damaged or incompatible data. It migrates the former
+  `minecraft-0.4` database without deleting or overwriting that legacy copy.
+  [Game integration](../klocki-podlasia-0.3/game.js)
+  restores seed, edits, player/view, material and settings; autosaves, supports
+  manual save, and protects pause/home/new-world flows with visible status.
+- Standalone Chrome smoke checks verified save/reload, material/settings restore,
+  damaged-current recovery from the previous copy, new-world cancel/replacement,
+  block-edit persistence and cross-tab conflict handling. Injecting unavailable
+  IndexedDB leaves the game playable but visibly unsaved and allows a retry.
+- The rename migration was tested against the existing Chrome Incognito save.
+  Version 0.3 restored the same seed, player position and selected material and
+  reported the migration complete; the migration code leaves the old database
+  untouched. Existing-target and damaged-legacy migration cases remain pending.
+- The test suite passes **38/38**. Browser storage checks used temporary Chrome
+  profiles, not the user's normal profile.
+- Reference machine: macOS 27.2, Apple M3, 16 GiB RAM; standalone Chrome
+  157.0.8103.78. Current app-level timings are from headless Chrome: 20 saves
+  median 23.2 ms / p95 33.6 ms / max 36.9 ms, with no observed long tasks; 20
+  validated restores median 25.9 ms / p95 42.9 ms / max 55 ms. These are local
+  save timings, not frame-rate or hosted-load results.
+- The [game README](../klocki-podlasia-0.3/README.md), [portfolio](../index.html),
+  root [README](../README.md) and 0.3 preview now describe local saving and the
+  intended support target. The optional house/bridge/garden ideas are collapsible
+  and have no gameplay requirements.
+- Native pointer capture and Escape-to-pause are verified in standalone Chrome
+  157 on this Mac, using Incognito so the normal profile was untouched. Visible
+  denial recovery, hosted `/gry-darka/klocki-podlasia-0.3/` loading,
+  quota/transaction-abort injection and the full movement/render matrix are still
+  **unverified**. Do not claim release sign-off.
+- Node 26.13.1 is currently available on this Mac for tests; Node/npm are not
+  needed to play the browser game.
+
+### Work packages and execution order
+
+Statuses below distinguish implemented work from the remaining release gates.
+
+| ID | Deliverable | Prerequisites | Status and evidence |
+|---|---|---|---|
+| MC03-01 | Record Chrome/Mac baseline and freeze scope | None | **Recorded**; headless save benchmarks and native capture/Escape smoke test; full UI evidence remains in MC03-07 |
+| MC03-02 | Measure snapshot size and storage feasibility | MC03-01 | **Complete**; full typed-array IndexedDB format selected |
+| MC03-03 | Implement snapshot validation and transactional persistence | MC03-02 | **Implemented**; corruption/revision/storage-denial checks pass; normal migration verified; edge/quota/abort checks pending |
+| MC03-04 | Integrate restore, autosave, manual save and lifecycle UX | MC03-03 | **Implemented and smoke-tested**; migration edge cases and broader lifecycle matrix pending |
+| MC03-05 | Polish onboarding, building controls and destructive actions | MC03-04 | **Implemented**; fresh-player and native-browser playtest pending |
+| MC03-06 | Add optional building ideas, if still useful | MC03-05 | **Complete**; collapsible ideas, no gameplay dependency |
+| MC03-07 | Complete Chrome regression and performance gates | MC03-04, MC03-05 | **Pending**; see release matrix below |
+| MC03-08 | Refresh preview, instructions and portfolio copy | MC03-05 | **Complete**; hosted-content verification remains MC03-09 |
+| MC03-09 | Verify hosted candidate and obtain release approval | MC03-07, MC03-08 | **Pending**; no publish/approval claimed |
+
+MC03-08 can proceed while MC03-07 runs. MC03-06 is not a prerequisite for either.
+Estimate remaining implementation effort after MC03-02 rather than reusing the
+historical full-game estimates below; those assumed a much smaller world.
+
+### MC03-01/02: measured evidence and save-format decision
+
+The current cell count is **2,097,152**. Calculated array payloads, excluding
+metadata/encoding overhead, are:
+
+| Representation | Calculated payload | Consequence |
+|---|---:|---|
+| Raw block bytes | 2 MiB | Already eight times the old 256 KiB whole-save cap |
+| Raw block and water bytes | 4 MiB | Full authoritative snapshot candidate |
+| Base64 block and water bytes | 5,592,408 characters, about 5.33 MiB of ASCII | JSON/string storage adds overhead and synchronous encoding/writing risks |
+
+These array sizes are fixed regardless of edit density. On the reference Mac,
+the current generated world compressed with Node's zlib to about 70 KiB, while a
+synthetic high-entropy 4 MiB payload compressed to about 1.56 MiB and took about
+205 ms. Compression would add CPU and compatibility cost without reducing the
+fixed IndexedDB array payload; seed-plus-edit storage would also depend on
+generator compatibility.
+
+Standalone headless Chrome 157 measured 20 direct 4 MiB IndexedDB writes at
+25.5 ms p95 (8.5 ms median) and a read at 4.4 ms. The full application benchmark
+recorded above includes snapshot creation, validation and transaction completion:
+20 saves at 33.6 ms p95, no observed long tasks; 20 validated restores at 42.9 ms
+p95. The current-plus-previous raw array data uses about 8 MiB, excluding small
+metadata and browser overhead; browser quota is not guaranteed.
+
+**Decision:** use full `Uint8Array` block and water snapshots in IndexedDB, with
+current and previous records. Avoid localStorage, base64, compression and
+generator-dependent deltas for 0.3. The payload is exactly 4,194,304 bytes
+before metadata. These results meet the planned <=50 ms save-task and <=500 ms
+transaction / <=2 s restore targets in this local headless run.
+
+- [x] Measure raw world size and compare generated versus high-entropy compression.
+- [x] Repeat 20 full application saves and validated restores in standalone Chrome.
+- [x] Choose and document the IndexedDB full-snapshot format before integration.
+- [x] Verify visible behavior when IndexedDB is unavailable.
+- [ ] Inject quota failure and transaction abort; verify current/previous records remain safe.
+- [ ] Repeat native GUI input and the complete rendering/network performance gates in MC03-07.
+
+Proposed gates: save-related main-thread tasks <=50 ms; no save-induced >100 ms
+stall; p95 transaction completion <=500 ms and p95 restore/validation <=2 seconds
+for the agreed fixtures. These are targets, not results. If they fail, identify
+copying/encoding/storage costs and revise the approach or explicitly agree revised
+budgets before proceeding. No worker, chunk journal or generic storage framework
+unless a measured problem requires it.
+
+### MC03-03: versioned snapshot and data protection
+
+The persistence implementation checklist is complete. Save migration,
+quota/abort and additional corruption cases remain explicit release-test gates
+in MC03-07.
+
+Keep validation/serialization independent of DOM and Three.js; use a small
+persistence module and extend existing logic tests rather than introducing a
+new engine or build pipeline.
+
+The snapshot contract must include:
+
+| Data | Validation/restore rule |
+|---|---|
+| Schema, world/generator and block-catalog versions | Explicit supported identifiers; reject unknown versions without overwriting |
+| Seed | Integer in the unsigned 32-bit range; do not coerce invalid input into a valid seed |
+| Dimensions | Exactly [256, 32, 256] for this schema |
+| Blocks and water | Exact decoded lengths; known block IDs and valid water values; preserve covered water so removing a block restores it |
+| World invariants | Protected floor intact and valid bounds; reject invalid world payloads before activating them |
+| Player and view | Finite bounded x/y/z, yaw and pitch; restore without held keys or stale velocity; validate collision and recover safely |
+| Material and settings | One of the 37 materials; valid sensitivity, quality, music toggle and volume within existing control ranges |
+| Save metadata | Revision and completion time for status/conflict handling; not a substitute for payload validation |
+
+Palette page follows the restored material. Restore settings before renderer/UI
+initialization where practical, and never autoplay music merely because a saved
+setting enables it. Recreate ambient animals/residents/golems using existing
+creation rules; their transient positions/animation are not saved in 0.3.
+Do not serialize meshes, textures, dirty-render sets, pointer lock or frame counters.
+
+- [x] Use a 0.3-specific database/store namespace; never clear all origin
+  storage. Read the former `minecraft-0.4` database only for safe migration;
+  leave that database intact and never overwrite an existing 0.3 save.
+- [x] Read and fully validate before replacing the active world; load blocks and
+  water before initializing chunk meshes and recreating mobs.
+- [x] Retain the previous committed snapshot as one internal recovery generation,
+  atomically with the new current snapshot where supported. This is not a
+  multiple-world-slot UI; measure its storage cost in MC03-02.
+- [x] Report success only when the storage transaction completes, not when a
+  request is queued. A failed/aborted save retains the last committed version.
+- [x] Serialize writes. Associate snapshots with world identity and revision so
+  edits made during an in-flight save remain dirty and an old-world completion
+  cannot mark a replacement world saved.
+- [x] Prevent two tabs from silently overwriting one slot: check the stored
+  revision in the same write transaction and stop with a visible conflict if it
+  has changed. Offer reload or explicit temporary play, not last-writer-wins.
+- [x] Bound payload lengths before allocation/decompression; validate decoded
+  content as well as schema. Do not log full saves or sensitive browser data.
+- [x] If current data is damaged, offer a validated previous generation where
+  available. Otherwise offer retry or a clearly temporary session; neither
+  overwrites unreadable data. Replacement requires separate explicit confirmation.
+- [x] Verify the normal migration from `minecraft-0.4` in Chrome Incognito:
+  the old world, seed, player position and selected material load in version 0.3.
+- [ ] Verify damaged legacy records, an already-populated target slot and
+  migration failure behavior; keep the old database untouched in all cases.
+- [x] If a restored position is obstructed, recover to a valid supported location
+  without altering blocks. If none exists, preserve the save and show a
+  recoverable paused error; do not silently reset the world.
+
+No cloud backups, file import/export or save-slot browser is required for 0.3.
+Document that local browser data
+can be cleared/evicted and is not a durable external backup.
+
+### MC03-04: save lifecycle and honest status
+
+The lifecycle implementation and targeted browser smoke checks are complete;
+save-migration verification and the broader stress/failure matrix remain in
+MC03-07.
+
+- [x] First visit: generate a world, explain local-only saving, commit the first
+  snapshot and show its actual status. Existing valid save: restore automatically
+  to a paused ready screen with a clear resume action and no automatic capture.
+- [x] Track persistent-state changes separately from rendering dirtiness:
+  successful block edits, player/view changes, material and settings changes.
+  Failed edits do not count as world changes.
+- [x] Coalesce dirty changes into at most one background save every three seconds,
+  including during continuous movement/building; avoid a debounce that never
+  fires while the player keeps editing. Do not copy full arrays every frame.
+- [x] Provide a visible manual **Zapisz** action and persistent status:
+  **Niezapisane zmiany**, **Zapisywanie…**, **Zapisano [czas]**, or
+  **Nie zapisano — ponów próbę** with an actionable explanation.
+- [x] Attempt a save on pause/backgrounding. Flush before in-game home navigation
+  through H and every home/brand link; on failure remain paused and offer retry
+  or an explicit leave-without-saving choice.
+- [x] Use page exit hooks only as best effort. A dirty/in-flight page may request
+  the browser's standard leave warning where permitted; never promise that tab
+  closure, browser crash or forced termination finishes an asynchronous save.
+- [x] Denied/quota storage leaves a playable but clearly unsaved session. Keep
+  the warning visible, preserve dirty state and allow retry without regenerating.
+  Never show "Zapisano" as a fallback for unavailable storage.
+- [x] Handle new world as a destructive transaction: cancel changes nothing;
+  confirm generates/validates a candidate and commits its initial snapshot before
+  replacing the current slot/session. Failure retains the old world and save.
+  Any temporary-new-world alternative must explicitly explain it is not saved.
+- [x] If persistence fails after WebGL loss, explain both the graphics recovery
+  step and actual saved/unsaved status; do not promise a safe refresh.
+
+Acceptance scenario: build a recognizable structure across chunk boundaries,
+place/remove blocks in water, move away, select a different material and settings,
+save and reload. Block/water bytes and seed match exactly; view/settings/material
+match within the agreed numeric tolerance; resume is explicit and movement sane.
+Repeat via in-game home/return and automatic-save/reload paths.
+
+### MC03-05/06: clear first session and comfortable building
+
+The onboarding copy and optional prompts are implemented. Native-input and
+fresh-player usability sign-off remain open.
+
+- [x] Align the start screen/title with Minecraft 0.3 while keeping original
+  Podlasie art/music and Polish UI. Replace old prototype wording only where
+  delivered capabilities justify it.
+- [x] Give a short first-session path: choose play mode, move/look/jump,
+  remove/place, choose materials, pause/save. Keep detailed controls available
+  later rather than forcing a tutorial or blocking exploration.
+- [x] Explain capture mode versus drag-look mode with their actual edit controls.
+- [x] Verify successful native capture in standalone Chrome; embedded-browser
+  fallback is not proof of capture support.
+- [ ] Verify visible recoverable denial when native capture is refused.
+- [x] Preserve keyboard, wheel and clicked palette choices across all five sets,
+  including readable/accessible names and obvious selected state.
+- [ ] Verify all palette inputs in five sets, the shorter furniture set, narrow
+  windows and restored material.
+- [x] Keep target outline, five-block reach and explicit feedback for occupied,
+  protected-floor, player-overlap and out-of-bounds edits.
+- [ ] Verify target/edit feedback and boundaries in the native Chrome playtest.
+- [x] Keep Escape/P as pause, H as home through the save-aware path. Clear input
+  on blur/unlock/pause; avoid accidental edits from play/resume/menu clicks.
+- [x] Keep recovery separate from reset. Recovery changes position, not world
+  bytes; explain its result and mark the restored position dirty for saving.
+- [x] Name new-world replacement clearly, focus cancellation by default, describe
+  what is replaced and preserve the world/save/material/settings on cancel.
+- [ ] Check keyboard focus, readable save/error messages and panel scrolling at
+  both target window sizes. Save progress must not hide controls or capture input.
+- [x] Optionally offer "Zbuduj domek", "Połącz brzegi mostem" and
+  "Załóż ogródek" as dismissible ideas. No scoring, forced objectives, recipes,
+  limited inventory or expansion into survival.
+
+Have a fresh player build a small recognizable structure, switch material sets,
+pause/resume and return to it after reload without developer guidance. Record
+confusion and fix it before sign-off; do not label source review a playtest.
+
+### MC03-07: focused tests and release gates
+
+The existing Node test runner is available on the reference Mac. The current
+logic suite passes 38/38 tests, including the focused save tests. Add no new
+tooling or runtime requirement for players. Mock audio during automation; any
+audible checks require an agreed quiet-work-safe window.
+Real Chrome browser evidence is required for storage and pointer lock.
+
+| Area | Required cases/evidence | Current status |
+|---|---|---|
+| Snapshot round-trip | Whole block/water arrays, seed, all material IDs, settings extremes, camera/player; multiple seeds and heavy-edit fixtures | Save/reload and material/settings restore smoke-tested; exhaustive fixture matrix pending |
+| Invalid saves | Malformed metadata, unsupported versions, wrong lengths/dimensions, invalid IDs/water/floor, nonfinite/out-of-bounds player/settings; bounded decoder failures | Representative invalid snapshots and damaged-current backup recovery checked; exhaustive mutation matrix pending |
+| Storage failure | Unavailable/open failure, quota, abort, read failure, corrupt current/previous, retry; no silent overwrite or false success | Unavailable IndexedDB tested in Chrome; quota/abort/read-failure and damaged-previous cases pending |
+| Race/lifecycle | Edits while saving, queued old-world save, immediate pause/home, rapid manual saves, second-tab conflict, interrupted transaction | Cross-tab revision conflict tested; remaining races/stress pending |
+| Restore safety | Obstructed saved player, no safe recovery location, restored water, distant edits after chunks unload/reload, explicit resume | Restore path implemented; obstructed/no-safe-position and distant-edit cases pending |
+| Editing/movement | 200 mixed edits, boundaries and overlap rejection; walking/jump/ceiling/no tunnelling; no stuck movement after blur/resume | Existing logic tests and a saved block-edit smoke test pass; native movement session pending |
+| Controls/UI | Capture success/denial, drag mode, all palette inputs, resize, quality, music settings, save statuses, keyboard focus | Native capture and Escape-to-pause pass; denial and full UI matrix pending |
+| Destructive actions | New-world cancel byte-identical; confirmed replacement survives reload; replacement failure leaves original recoverable | Cancel, replacement and reload smoke-tested; injected replacement-failure case pending |
+| Lifecycle stress | 20 save/reload and 20 reset/cancel cycles plus a ten-minute walk/build session; no accumulating listeners, loops or monotonically retained geometries/textures | 20 saves and 20 restores benchmarked; page-reload/reset cycles and ten-minute session pending |
+
+Performance gates on the named Mac in standalone Chrome:
+
+- Interactive <=5 seconds with empty cache at 20 Mbps / 50 ms RTT; record initial
+  transferred bytes and investigate any regression from the pre-change baseline.
+- At 1280x720, DPR capped at 1.5: median frame <=16.7 ms and p95 <=33.3 ms over a
+  60-second route covering a village, water and mixed edits, including autosaves.
+  Repeat at low quality/DPR 1.0; disclose if this is required to meet the target.
+- Across 200 edits: p95 input-to-visible change <=100 ms; no edit/save creates a
+  >100 ms main-thread stall. Report save timing separately from rendering.
+- Meet the storage targets agreed at MC03-02 and record draw calls, live
+  geometries/textures and frame timings before/after save support.
+- Historical 0.1 draw-call, payload and device results are not 0.3 evidence.
+  Failing gates require a fix or an explicitly recorded scope/budget decision,
+  not an unsupported "works on Mac" claim.
+
+### MC03-08/09: documentation, hosted check and sign-off
+
+- [x] Update the [0.3 README](../klocki-podlasia-0.3/README.md) with Chrome/Mac
+  support, controls, slot/reset semantics, save states, failure/recovery behavior,
+  local-only/eviction risks and remaining exclusions.
+- [x] Update start/pause/HUD and error wording, including WebGL-loss messaging,
+  to distinguish saved work from temporary/dirty work accurately.
+- [x] Capture a representative final-build view for the
+  [preview](../klocki-podlasia-0.3/preview.svg) or a suitable replacement. Preview,
+  portfolio description and alt text must reflect actual gameplay.
+- [x] Update the 0.3 portfolio card, root README entry and sitemap URL using the
+  repository's confirmed `daz2048.github.io` origin.
+- [x] Verify local HTTP startup, module URLs, vendor dependencies and home links.
+  Node is needed for development tests, not browser play; no npm install/build
+  requirement should be added for players.
+- [ ] Confirm the actual deployment origin rather than assuming either hostname
+  found in repository documentation. Publishing a candidate requires authorization.
+- [ ] In Chrome, test the actual hosted `/gry-darka/klocki-podlasia-0.3/` path:
+  cold load, locally hosted assets/no runtime CDN, capture, build/save/reload,
+  home/return and missing-module failure with a usable home route.
+- [x] Explain that localhost and the hosted origin have separate saves; storage
+  belongs to a Chrome profile/origin, not the repository checkout. Do not imply
+  a development save follows the user to the published site.
+- [x] Record browser/device, fixtures, timing results and remaining limitations
+  in this backlog. Native pointer-lock success is verified; the broader native UI
+  and hosted checks are still pending.
+- [ ] Obtain owner approval of building feel, saving/recovery, support claims and
+  release evidence before marking 0.3 released or publishing the final release.
+
+**Definition of done:** the supported Chrome/Mac build can explore, build, save,
+leave and return; failures never silently discard or overwrite a creation; required
+tests and performance gates pass; hosted loading and local assets are verified;
+documentation/preview are truthful; versions 0.1 and 0.2 and unrelated games remain
+unchanged. The earlier tracked 0.3 implementation was intentionally removed with
+the user's approval; this release uses the renamed newer implementation instead.
+
+---
+
+## Historical 0.1 assessment (retained for context)
+
+The sections below describe the initial 2026-11-10 prototype and original roadmap,
+not the current 0.3 scope, storage contract, test results or remaining-work estimate.
 
 ## Phase-one implementation and evidence
 

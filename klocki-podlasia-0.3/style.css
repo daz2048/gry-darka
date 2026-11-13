@@ -14,6 +14,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .brand strong { display: block; font-size: 22px; letter-spacing: -.5px; margin-top: 3px; }
 .brand small { display: inline-block; font-size: 9px; letter-spacing: 1px; margin-left: 8px; }
 .tools { display: flex; gap: 8px; }
+#save-status { align-self: center; max-width: 240px; color: #183f36; font-size: 11px; font-weight: 700; }
+#save-status[data-state="error"], #save-status[data-state="conflict"] { color: #7b3726; }
+#save-status[data-state="saving"] { color: #78551a; }
+#save-status[data-state="saved"] { color: #285d38; }
+.tools #save-now, .tools #reload-save { padding: 8px 10px; font-size: 11px; }
 .world-label { position: fixed; left: 24px; top: 105px; pointer-events: none; padding: 10px 14px; border: 1px solid #ffffff99; border-radius: 12px; background: #eff5edb8; box-shadow: 0 6px 24px #183f3620; backdrop-filter: blur(8px); }
 .world-label span { font-size: 10px; letter-spacing: 2px; }
 .world-label strong { display: block; margin-top: 6px; font-size: 18px; }

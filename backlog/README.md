@@ -2,18 +2,22 @@
 
 Planning documents and explicitly recorded prototype progress, not release claims.
 
-## Klocki Podlasia: simple browser voxel sandbox
+## Minecraft 0.3: creative voxel sandbox
 
-- [Feasibility, theme, effort, technical design and implementation backlog](./voxel-sandbox-backlog.md)
+- [Active 0.3 release plan and historical voxel assessment](./voxel-sandbox-backlog.md)
 
-Assessment: 2026-11-10. Recommended scope: an original, desktop-first 3D creative
-block-building game that fits the collection's Podlasie identity, not Minecraft
-feature parity. Estimated desktop release: 175-310 person-hours including
-contingency, beginning with a 16-26-hour scope/feasibility gate.
-Phase one was subsequently authorized: a [local working prototype](../klocki-podlasia-0.1/)
-is available from the portfolio. It has walking, building and pause controls,
-but no save or audio. The standalone-browser/hosted feasibility gate remains open;
-later implementation and publication are not authorized by the plan alone.
+Updated 2026-11-12. Confirmed 0.3 scope: desktop Mac, standalone Chrome stable,
+creative exploration/building and reliable local saving. Mobile, survival,
+crafting and multiplayer are later projects, not release blockers. Priorities:
+verify migration edge cases, protect/restore creations, polish core controls
+and complete the local and hosted release checks.
+
+The [0.3 release](../klocki-podlasia-0.3/) has an expanded world, music and local
+saving. Migration of an existing Chrome Incognito save was verified, including
+the seed, position and selected material; migration edge cases and the remaining
+browser/release checks still need verification. Original 0.1 estimates and results
+are historical context, not 0.3 evidence. Implementation, tool installation and
+publication are not authorized by the plan alone.
 
 ## Fully editable ragdoll archery game
 
