@@ -7,6 +7,7 @@ export const LEGACY_SAVE_DATABASE = 'minecraft-0.4';
 export const SAVE_STORE = 'worlds';
 export const WORLD_STORE = 'world-records';
 export const CATALOG_STORE = 'world-catalog';
+export const MAX_WORLDS = 10;
 const WORLD_KEY = id => `world:${id}`;
 const BACKUP_KEY = id => `previous:${id}`;
 const CATALOG_KEY = id => `world:${id}`;
@@ -41,6 +42,14 @@ export class SaveMigrationError extends Error {
 
 function storageError(message, code) {
   return Object.assign(new Error(message), { code });
+}
+
+export class WorldLimitError extends Error {
+  constructor() {
+    super(`The maximum of ${MAX_WORLDS} saved worlds has been reached.`);
+    this.name = 'WorldLimitError';
+    this.code = 'world-limit';
+  }
 }
 
 function assert(condition, message) {
@@ -490,9 +499,11 @@ export class WorldSaveStore {
       const catalog = transaction.objectStore(CATALOG_STORE);
       const currentRequest = records.get(WORLD_KEY(worldId));
       const metadataRequest = catalog.get(CATALOG_KEY(worldId));
+      const worldsRequest = expected.exists ? null : catalog.getAll();
       let current;
       let metadata;
-      let remaining = 2;
+      let worlds;
+      let remaining = worldsRequest ? 3 : 2;
       const complete = () => {
         remaining--;
         if (remaining !== 0) return;
@@ -504,6 +515,10 @@ export class WorldSaveStore {
         if (expectedWorldId !== worldId || exists !== expected.exists ||
             (exists && revision !== expected.revision)) {
           fail(new SaveConflictError());
+          return;
+        }
+        if (!exists && worlds.filter(entry => typeof entry?.worldId === 'string').length >= MAX_WORLDS) {
+          fail(new WorldLimitError());
           return;
         }
         const currentStatus = recordStatus(current);
@@ -533,6 +548,11 @@ export class WorldSaveStore {
       };
       currentRequest.onsuccess = () => { current = currentRequest.result; complete(); };
       metadataRequest.onsuccess = () => { metadata = metadataRequest.result; complete(); };
+      if (worldsRequest) {
+        worldsRequest.onsuccess = () => { worlds = worldsRequest.result; complete(); };
+        worldsRequest.onerror = () => fail(worldsRequest.error ||
+          storageError('Cannot check the world limit.', 'save-failed'));
+      }
       for (const request of [currentRequest, metadataRequest]) {
         request.onerror = () => fail(request.error || storageError('Cannot check the current world revision.', 'save-failed'));
       }

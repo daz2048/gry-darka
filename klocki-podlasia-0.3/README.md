@@ -39,9 +39,18 @@ miejsce zapisu (adres strony → IndexedDB → `minecraft-0.3` → `world-record
 identyfikator świata) oraz szacowany rozmiar danych w MiB i bajtach. Szczegóły
 pozostają w panelu pauzy; są też aktualizowane po autozapisie i wczytaniu.
 Sukces jest pokazywany dopiero po zakończeniu transakcji. Błąd nie pokazuje
-nowego rozmiaru. To nie jest plik na dysku ani eksport: rozmiar obejmuje
+nowego rozmiaru. Świat jest rekordem IndexedDB, nie osobnym plikiem ani eksportem:
+rozmiar obejmuje
 tablice bloków i wody oraz metadane w JSON UTF-8, bez narzutu IndexedDB i
 poprzedniej kopii.
+
+Diagnostyka odróżnia adres rekordu w przeglądarce od lokalnej ścieżki na dysku.
+Strona nie ma dostępu do fizycznej ścieżki plików IndexedDB, więc pokazuje ją
+jako niedostępną, zamiast zgadywać. Folder profilu można sprawdzić ręcznie:
+w Chrome otwórz `chrome://version` i odczytaj **Profile Path**, w Edge
+`edge://version`, a w Firefox `about:profiles` (katalog główny profilu).
+To folder profilu, nie ścieżka do osobnego pliku świata; układem plików bazy
+zarządza przeglądarka.
 
 Zapis jest lokalny dla profilu Chrome i adresu strony. Nie synchronizuje się
 między urządzeniami ani między localhost a wersją hostowaną; wyczyszczenie lub
@@ -56,8 +65,10 @@ wczytania aktualnej wersji, zamiast cichego nadpisania.
 Na ekranie startowym możesz wybrać zapisany świat albo kontynuować ostatnio
 używany. Każdy świat ma osobny zapis i kopię odzyskiwania. **Utwórz nowy
 świat** pozwala wpisać nazwę (maksymalnie 32 znaki); nazwy nie muszą być
-unikalne. Utworzenie nie zastępuje istniejącego świata. Możesz zmieniać nazwy
-światów albo je usuwać; usunięcie wymaga potwierdzenia i obejmuje kopię
+unikalne. Możesz zapisać maksymalnie 10 światów w profilu przeglądarki dla tego
+adresu strony; usuń jeden, aby zrobić miejsce na kolejny. Utworzenie nie
+zastępuje istniejącego świata. Możesz zmieniać nazwy światów albo je usuwać;
+usunięcie wymaga potwierdzenia i obejmuje kopię
 odzyskiwania. Gdy usuniesz ostatni świat, możesz utworzyć kolejny. Nie ma
 przetrwania, craftingu, multiplayera, sterowania dotykowego, synchronizacji
 chmurowej ani gwarancji działania offline/PWA. Więcej szczegółów i aktualne
@@ -209,8 +220,31 @@ released it and returned to pause. Denied-pointer-lock recovery and hosted
 loading remain unverified. Safari, Firefox, Windows and mobile are not release
 claims.
 
-The pause panel's diagnostics show the seed, frames, draw calls, live geometries,
-first-render time and frame-time median/p95. The original melodic instrumental
+The pause panel's diagnostics show the world dimensions and seed, render-buffer
+resolution and pixel ratio, frames, draw calls, live geometries, first-render
+time and frame-time median/p95. Save details, including the saved world name,
+time, browser storage location and estimated data size, are in the same section.
+
+With the repository game server, this section also shows the current checkout's
+branch, clean/modified working tree (including untracked files), full commit hash,
+relative commit age and timestamp, and page age. Commit age is not a build date:
+uncommitted edits are reported separately, and the checkout can change after the
+page loads. Reload the page to load updated game code.
+
+Server health includes request counts, HTTP errors (4xx/5xx), handler exceptions,
+and the latest error since this server process started. Browser diagnostics count
+uncaught errors, rejected promises, failed resource loads, and WebGL context loss
+observed on this page; this is not a guarantee that every game subsystem is healthy.
+**Show recent server logs** reveals up to 200 lines / 64 KiB from the current log
+file, which may include entries from before the latest server restart. Logs stay
+hidden until requested. **Refresh diagnostics** retries failed checks; checks and
+visible logs refresh every 15 seconds while diagnostics are open in a visible tab.
+Git metadata and logs are read-only, local same-origin endpoints with no caching
+or cross-origin access. Hosted sites and plain static servers explicitly report
+these diagnostics as unavailable. If an older repository server is already
+running, apply the server update with `python3 scripts/game-server.py restart`.
+
+The original melodic instrumental
 soundtrack is generated locally with Web Audio, with soft keys, bass and
 sustained harmonies. It does not contain Minecraft music or require downloads.
 

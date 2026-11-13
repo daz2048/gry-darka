@@ -7,8 +7,11 @@ import { createPlayer, collides, stepPlayer } from './player.js?v=2';
 import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
 import { AmbientMusic } from './music.js?v=3';
 import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, WORLD_STORE,
-  SaveConflictError, SaveMigrationError, WorldSaveStore } from './saves.js?v=7';
-import { biomeName, blockName, getLanguage, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=1';
+  MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore } from './saves.js?v=8';
+import { biomeName, blockName, getLanguage, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=3';
+import { initDiagnostics } from './diagnostics.js?v=1';
+
+initDiagnostics();
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
   'pause', 'recover', 'new-world', 'choose-world', 'fullscreen', 'world-picker', 'world-picker-status',
@@ -219,6 +222,7 @@ renderDestinations();
 function renderWorldPicker() {
   const validWorlds = savedWorlds.filter(entry => !entry.corrupt);
   const mostRecent = validWorlds[0];
+  const atWorldLimit = !worldPickerUnavailable && savedWorlds.length >= MAX_WORLDS;
   ui['world-continue'].hidden = !mostRecent;
   ui['world-continue'].disabled = selectingWorld;
   if (mostRecent) {
@@ -228,7 +232,10 @@ function renderWorldPicker() {
   }
   ui['world-picker-status'].textContent = worldPickerUnavailable
     ? t('worldPicker.unavailable')
-    : savedWorlds.length ? t('worldPicker.choosePrompt') : t('worldPicker.empty');
+    : atWorldLimit ? t('worldPicker.limitReached', { count: MAX_WORLDS })
+      : savedWorlds.length ? t('worldPicker.choosePrompt') : t('worldPicker.empty');
+  ui['world-create'].disabled = selectingWorld || atWorldLimit;
+  ui['new-world'].disabled = selectingWorld || atWorldLimit;
   ui['world-list'].replaceChildren();
   for (const entry of savedWorlds) {
     const item = document.createElement('div');
@@ -289,6 +296,7 @@ function errorText(error) {
   if (error instanceof SaveConflictError) return t('error.conflict');
   if (error instanceof SaveMigrationError) return t('error.migration');
   if (error instanceof CorruptSaveError) return t('error.corrupt');
+  if (error instanceof WorldLimitError) return t('worldPicker.limitReached', { count: MAX_WORLDS });
   if (error?.name === 'QuotaExceededError') return t('error.quota');
   if (error?.code && hasMessage(`error.${error.code}`)) return t(`error.${error.code}`);
   return t('error.unexpected');
@@ -1001,7 +1009,7 @@ ui['confirm-reset'].addEventListener('click', async () => {
     ui['drag-start'].disabled = false;
     ui['drag-start'].focus();
   } catch (error) {
-    console.error('New meadow:', error);
+    console.error('New world:', error);
     setText(ui['load-status'], 'load.newFailed');
     notice(errorText(error));
   } finally {
@@ -1329,6 +1337,8 @@ function frame(now) {
       fps,
       calls: renderer.info.render.calls,
       geometries: renderer.info.memory.geometries,
+      resolution: `${renderer.domElement.width} × ${renderer.domElement.height}`,
+      pixelRatio: renderer.getPixelRatio().toFixed(2),
       first: Math.round(firstFrameMs),
       samples: sorted.length,
       median: (sorted[Math.floor(sorted.length / 2)] || 0).toFixed(1),

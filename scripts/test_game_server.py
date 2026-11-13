@@ -1,6 +1,8 @@
 import http.client
 import importlib.util
+import json
 import os
+from functools import partial
 from pathlib import Path
 import select
 import socket
@@ -18,6 +20,140 @@ SCRIPT = Path(__file__).with_name("game-server.py")
 spec = importlib.util.spec_from_file_location("game_server", SCRIPT)
 game_server = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(game_server)
+
+
+class DiagnosticsTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        (self.root / "index.html").write_text("test page")
+        self.log = self.root / "server.log"
+        self.log.write_text("server started\n")
+        patcher = mock.patch.object(game_server, "LOG", self.log)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.metadata = {
+            "branch": "test-branch", "clean": True, "commit": "a" * 40,
+            "committedAt": "2026-11-13T09:00:00Z",
+        }
+        patcher = mock.patch.object(game_server, "git_metadata", return_value=self.metadata)
+        self.git = patcher.start()
+        self.addCleanup(patcher.stop)
+        patcher = mock.patch.object(game_server.GameRequestHandler, "log_message")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        handler = partial(game_server.GameRequestHandler, directory=str(self.root))
+        self.server = game_server.GameHTTPServer(("127.0.0.1", 0), handler)
+        self.thread = threading.Thread(target=self.server.serve_forever, kwargs={"poll_interval": 0.01})
+        self.thread.start()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.thread.join(timeout=3)
+        self.server.server_close()
+
+    def request(self, path, headers=None):
+        connection = http.client.HTTPConnection("127.0.0.1", self.server.server_port, timeout=3)
+        try:
+            connection.request("GET", path, headers=headers or {})
+            response = connection.getresponse()
+            return response.status, dict(response.getheaders()), response.read()
+        finally:
+            connection.close()
+
+    def test_metadata_and_health_count_requests_and_http_errors(self):
+        self.assertEqual(self.request("/")[0], 200)
+        self.assertEqual(self.request("/missing")[0], 404)
+        status, headers, body = self.request("/__diagnostics/status")
+        data = json.loads(body)
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        self.assertNotIn("Access-Control-Allow-Origin", headers)
+        self.assertEqual(data["git"], self.metadata)
+        self.assertEqual(data["server"]["requests"], 2)
+        self.assertEqual(data["server"]["httpErrors"], 1)
+        self.assertEqual(data["server"]["serverErrors"], 0)
+        self.assertEqual(data["server"]["lastError"], "HTTP 404")
+
+    def test_server_exception_is_recorded(self):
+        with mock.patch.object(game_server.http.server.ThreadingHTTPServer, "handle_error"):
+            try:
+                raise RuntimeError("test handler failure")
+            except RuntimeError:
+                self.server.handle_error(None, ("127.0.0.1", 0))
+        data = json.loads(self.request("/__diagnostics/status")[2])
+        self.assertEqual(data["server"]["serverErrors"], 1)
+        self.assertEqual(data["server"]["lastError"], "test handler failure")
+
+    def test_git_failure_keeps_server_health_available(self):
+        self.git.side_effect = subprocess.TimeoutExpired("git", 3)
+        with mock.patch.object(game_server.sys, "stderr"):
+            data = json.loads(self.request("/__diagnostics/status")[2])
+        self.assertIsNone(data["git"])
+        self.assertIn("Git metadata unavailable", data["gitError"])
+        self.assertEqual(data["server"]["serverErrors"], 0)
+
+    def test_diagnostics_reject_foreign_hosts_and_cross_origin_requests(self):
+        for path in ("/__diagnostics/status", "/__diagnostics/logs"):
+            for headers in (
+                {"Host": "foreign.example"},
+                {"Origin": "https://foreign.example"},
+                {"Origin": "null"},
+                {"Sec-Fetch-Site": "cross-site"},
+            ):
+                with self.subTest(path=path, headers=headers):
+                    self.assertEqual(self.request(path, headers)[0], 403)
+        origin = f"http://127.0.0.1:{self.server.server_port}"
+        self.assertEqual(self.request("/__diagnostics/status", {"Origin": origin})[0], 200)
+
+    def test_recent_logs_are_bounded_and_missing_logs_are_explicit(self):
+        self.log.write_text("".join(f"{number}: {'x' * 700}\n" for number in range(400)))
+        status, headers, body = self.request("/__diagnostics/logs")
+        data = json.loads(body)
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        self.assertLessEqual(len(data["text"].encode()), game_server.LOG_TAIL_BYTES)
+        self.assertLessEqual(len(data["text"].splitlines()), game_server.LOG_TAIL_LINES)
+        self.assertIn("399: ", data["text"])
+        self.assertTrue(data["truncated"])
+        self.log.write_text("".join(f"line {number}\n" for number in range(220)))
+        data = json.loads(self.request("/__diagnostics/logs")[2])
+        self.assertEqual(len(data["text"].splitlines()), 200)
+        self.assertTrue(data["text"].startswith("line 20\n"))
+        self.log.write_text("one line\n")
+        data = json.loads(self.request("/__diagnostics/logs")[2])
+        self.assertEqual(data, {"text": "one line\n", "truncated": False})
+        self.log.unlink()
+        status, _, body = self.request("/__diagnostics/logs")
+        self.assertEqual(status, 503)
+        self.assertIn("Cannot read", json.loads(body)["error"])
+
+
+class GitMetadataTests(unittest.TestCase):
+    def test_git_metadata_detects_clean_dirty_and_detached_head(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.run(
+                    ["git", "-C", directory, *args], check=True,
+                    capture_output=True, text=True,
+                ).stdout.strip()
+            git("init", "-b", "diagnostics-test")
+            (root / "game.js").write_text("initial")
+            git("add", "game.js")
+            git("-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+                "commit", "-m", "Test fixture\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>")
+            with mock.patch.object(game_server, "ROOT", root):
+                clean = game_server.git_metadata()
+                self.assertEqual(clean["branch"], "diagnostics-test")
+                self.assertTrue(clean["clean"])
+                self.assertEqual(clean["commit"], git("rev-parse", "HEAD"))
+                self.assertTrue(clean["committedAt"])
+                (root / "game.js").write_text("modified")
+                self.assertFalse(game_server.git_metadata()["clean"])
+                git("checkout", "--detach")
+                self.assertEqual(game_server.git_metadata()["branch"], "HEAD")
 
 
 class LogTests(unittest.TestCase):

@@ -4,7 +4,7 @@ import { World } from '../world.js';
 import { createPlayer } from '../player.js';
 import {
   createSnapshot, WorldSaveStore, SaveConflictError, CorruptSaveError, SaveMigrationError,
-  SAVE_DATABASE, LEGACY_SAVE_DATABASE, WORLD_STORE
+  MAX_WORLDS, SAVE_DATABASE, LEGACY_SAVE_DATABASE, WORLD_STORE
 } from '../saves.js';
 import { FakeIndexedDB } from './fake-indexeddb.js';
 
@@ -195,6 +195,33 @@ test('worlds keep independent snapshots, revisions, backups, and recent selectio
 
   await store.activateWorld('world-b');
   assert.equal((await store.load()).record.worldId, 'world-b');
+});
+
+test('new worlds are capped transactionally and deleting one frees a slot', async () => {
+  const idb = new FakeIndexedDB();
+  const store = new WorldSaveStore(idb);
+  await store.load();
+  const baseSnapshot = snapshot();
+  for (let index = 0; index < MAX_WORLDS; index++) {
+    const worldId = `world-${index}`;
+    await store.save({ ...baseSnapshot, worldId }, {
+      exists: false, revision: null, worldId
+    });
+  }
+  const overflowId = 'world-overflow';
+  await assert.rejects(
+    store.save({ ...baseSnapshot, worldId: overflowId }, {
+      exists: false, revision: null, worldId: overflowId
+    }),
+    error => error.code === 'world-limit'
+  );
+  assert.equal((await store.listWorlds()).length, MAX_WORLDS);
+
+  assert.equal(await store.deleteWorld('world-0'), true);
+  await store.save({ ...baseSnapshot, worldId: overflowId }, {
+    exists: false, revision: null, worldId: overflowId
+  });
+  assert.equal((await store.listWorlds()).length, MAX_WORLDS);
 });
 
 test('rename and delete update only the selected world and its recovery copy', async () => {

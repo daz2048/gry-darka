@@ -7,6 +7,8 @@ from functools import partial
 import hashlib
 import http.client
 import http.server
+import ipaddress
+import json
 import os
 from pathlib import Path
 import plistlib
@@ -17,6 +19,7 @@ import sys
 import threading
 import time
 import traceback
+from urllib.parse import urlsplit
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,6 +36,126 @@ PLIST = STATE_DIR / f"{LABEL}.plist"
 LOG = STATE_DIR / f"{LABEL}.log"
 LOG_SIZE = 1024 * 1024
 LOG_BACKUPS = 3
+LOG_TAIL_BYTES = 64 * 1024
+LOG_TAIL_LINES = 200
+
+
+def git_metadata():
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(ROOT), *args], capture_output=True, text=True,
+            check=True, timeout=3,
+        ).stdout.strip()
+
+    commit, committed_at = git("log", "-1", "--format=%H%n%cI").splitlines()
+    return {
+        "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
+        "clean": not bool(git("status", "--porcelain", "--untracked-files=normal")),
+        "commit": commit,
+        "committedAt": committed_at,
+    }
+
+
+def recent_logs():
+    with LOG.open("rb") as file:
+        size = file.seek(0, os.SEEK_END)
+        offset = max(0, size - LOG_TAIL_BYTES)
+        file.seek(offset)
+        data = file.read(LOG_TAIL_BYTES)
+    if offset:
+        data = data.partition(b"\n")[2]
+    lines = data.splitlines(keepends=True)
+    return {
+        "text": b"".join(lines[-LOG_TAIL_LINES:]).decode("utf-8", errors="replace"),
+        "truncated": bool(offset or len(lines) > LOG_TAIL_LINES),
+    }
+
+
+class GameHTTPServer(http.server.ThreadingHTTPServer):
+    def __init__(self, address, handler):
+        super().__init__(address, handler)
+        self.started_at = time.time()
+        self.health_lock = threading.Lock()
+        self.requests = 0
+        self.http_errors = 0
+        self.server_errors = 0
+        self.last_error = None
+
+    def record_request(self, code):
+        with self.health_lock:
+            self.requests += 1
+            if int(code) >= 400:
+                self.http_errors += 1
+                self.last_error = f"HTTP {code}"
+
+    def handle_error(self, request, client_address):
+        with self.health_lock:
+            self.server_errors += 1
+            self.last_error = str(sys.exc_info()[1])
+        super().handle_error(request, client_address)
+
+    def diagnostics(self):
+        with self.health_lock:
+            health = {
+                "startedAt": self.started_at * 1000,
+                "requests": self.requests,
+                "httpErrors": self.http_errors,
+                "serverErrors": self.server_errors,
+                "lastError": self.last_error,
+            }
+        try:
+            metadata = git_metadata()
+            git_error = None
+        except (OSError, subprocess.SubprocessError, ValueError) as error:
+            metadata = None
+            git_error = f"Git metadata unavailable: {error}"
+            print(git_error, file=sys.stderr, flush=True)
+        return {"git": metadata, "gitError": git_error, "server": health}
+
+
+class GameRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def log_request(self, code="-", size="-"):
+        if code != "-":
+            self.server.record_request(code)
+        super().log_request(code, size)
+
+    def send_json(self, status, payload):
+        data = json.dumps(payload).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        path = urlsplit(self.path).path
+        if not path.startswith("/__diagnostics/"):
+            return super().do_GET()
+        host = self.headers.get("Host", "").lower()
+        allowed_hosts = {
+            f"localhost:{self.server.server_port}",
+            f"127.0.0.1:{self.server.server_port}",
+        }
+        origin = self.headers.get("Origin")
+        if (not ipaddress.ip_address(self.client_address[0]).is_loopback
+                or host not in allowed_hosts
+                or (origin is not None and origin != f"http://{host}")
+                or self.headers.get("Sec-Fetch-Site") == "cross-site"):
+            self.send_json(403, {"error": "Local same-origin access required."})
+        elif path == "/__diagnostics/status":
+            self.send_json(200, self.server.diagnostics())
+        elif path == "/__diagnostics/logs":
+            try:
+                payload = recent_logs()
+            except OSError as error:
+                self.log_error("Cannot read recent logs: %s", error)
+                self.send_json(503, {"error": "Cannot read the game server log."})
+            else:
+                self.send_json(200, payload)
+        else:
+            self.send_json(404, {"error": "Unknown diagnostics endpoint."})
 
 
 def prepare_logs():
@@ -112,8 +235,8 @@ def serve():
     log = RotatingLog(LOG)
     with redirect_stdout(log), redirect_stderr(log):
         try:
-            handler = partial(http.server.SimpleHTTPRequestHandler, directory=str(ROOT))
-            with http.server.ThreadingHTTPServer((HOST, PORT), handler) as server:
+            handler = partial(GameRequestHandler, directory=str(ROOT))
+            with GameHTTPServer((HOST, PORT), handler) as server:
                 print(f"Serving HTTP on {HOST} port {PORT} ({URL}) ...", flush=True)
                 server.serve_forever()
         except Exception:

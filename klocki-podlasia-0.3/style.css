@@ -51,6 +51,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .overlay { position: fixed; inset: 0; display: grid; place-items: center; padding: 18px; background: #183f3644; overflow-y: auto; backdrop-filter: blur(5px); }
 .panel { width: min(620px, 100%); background: linear-gradient(145deg, #f8f8eefa, #eaf1e4f5); padding: 28px 32px; border: 1px solid #fff9db; border-radius: 20px; box-shadow: 0 24px 80px #183f3655, inset 0 1px #ffffff; }
 .eyebrow { font-size: 10px; letter-spacing: 2px; font-weight: bold; }
+.version-highlight { color: #315d18; font-size: 1.2em; text-shadow: 0 0 4px #b5ff5a, 0 0 10px #9ae832, 0 0 18px #76d529; }
 h1 { margin: 12px 0; font-size: clamp(32px, 5vw, 52px); letter-spacing: -2px; line-height: 1; }
 h1 em { font-style: normal; color: #ad4934; }
 .panel p { font-size: 14px; line-height: 1.5; }
@@ -83,6 +84,10 @@ h1 em { font-style: normal; color: #ad4934; }
 .secondary button, .secondary a { font-size: 11px; padding: 8px; }
 details { border-top: 1px solid #cbd6bd; padding-top: 10px; font-size: 11px; }
 output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: monospace; }
+#server-diagnostics { overflow-wrap: anywhere; margin-bottom: 10px; }
+#server-diagnostics[data-state="healthy"] { color: #285d38; }
+#server-diagnostics[data-state="error"] { color: #7b3726; }
+#server-logs { max-height: 260px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px; border: 1px solid #9db19a; border-radius: 8px; background: #eff5ed; }
 #notice { position: fixed; top: 80px; right: 24px; max-width: min(390px, 90vw); padding: 12px; background: #fff2ce; color: #67311e; border: 1px solid #ac653c; border-radius: 8px; font-size: 13px; pointer-events: none; z-index: 3; white-space: pre-line; overflow-wrap: anywhere; }
 .fatal { position: fixed; top: 10px; background: white; padding: 20px; z-index: 5; }
 @media (max-width: 700px) { .topbar { padding: 12px; } .brand strong { font-size: 17px; } .brand small { display: block; margin: 3px 0 0; font-size: 8px; letter-spacing: 0; } .world-label, .tools a { display: none; } .panel { padding: 22px; } .slot { font-size: 9px; } }
