@@ -2,6 +2,10 @@
   'use strict';
 
   const panel = document.querySelector('.weather-panel');
+  const shortcut = document.querySelector('.weather-shortcut');
+  const shortcutLocation = document.querySelector('#weather-shortcut-location');
+  const shortcutConditions = document.querySelector('#weather-shortcut-conditions');
+  const locationOptions = document.querySelector('.weather-location');
   const status = document.querySelector('#weather-status');
   const notice = document.querySelector('#weather-notice');
   const searchForm = document.querySelector('#weather-search');
@@ -98,6 +102,25 @@
     delete document.body.dataset.day;
   }
 
+  function updateShortcut(value, conditions) {
+    shortcutLocation.textContent = value ? value.name : 'Finding city...';
+    shortcutConditions.textContent = conditions;
+    const label = `${value ? locationLabel(value) : 'Finding approximate city'} - ${conditions}. Open weather and location options.`;
+    shortcut.setAttribute('aria-label', label);
+    shortcut.title = label;
+  }
+
+  function rainChance(hourly) {
+    const hour = Math.floor(Date.now() / (60 * 60 * 1000)) * 60 * 60;
+    const index = Array.isArray(hourly?.time) ? hourly.time.indexOf(hour) : -1;
+    const probability = index >= 0 ? hourly.precipitation_probability?.[index] : undefined;
+    if (!Number.isFinite(probability) || probability < 0 || probability > 100) {
+      report(new Error('Rain chance for this hour is unavailable.'));
+      return 'Rain this hour: unavailable';
+    }
+    return `Rain this hour: ${Math.round(probability)}%`;
+  }
+
   async function updateWeather() {
     const value = selectedLocation;
     if (!value) return;
@@ -106,9 +129,11 @@
     weatherController = controller;
     lastAttempt = Date.now();
     status.textContent = `${locationLabel(value)} - loading weather...`;
+    updateShortcut(value, 'Loading weather...');
     const query = new URLSearchParams({
       latitude: value.latitude, longitude: value.longitude,
       current: 'weather_code,is_day,temperature_2m', timeformat: 'unixtime',
+      hourly: 'precipitation_probability', forecast_days: '2',
     });
     try {
       const data = await fetchJson(`https://api.open-meteo.com/v1/forecast?${query}`, controller);
@@ -119,14 +144,18 @@
         throw new Error('Weather data is missing or out of date.');
       }
       const [theme, description] = weatherTheme(current.weather_code);
+      const chance = rainChance(data.hourly);
+      const temperature = `${Math.round(current.temperature_2m)} °C`;
+      updateShortcut(value, `${temperature} · ${chance}`);
       document.body.dataset.weather = theme;
       document.body.dataset.day = String(current.is_day === 1);
       const time = new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit' }).format(new Date(current.time * 1000));
-      status.textContent = `${locationLabel(value)} - ${description}, ${Math.round(current.temperature_2m)} °C - ${current.is_day ? 'day' : 'night'}. Updated ${time} (your time).`;
+      status.textContent = `${locationLabel(value)} - ${description}, ${temperature} - ${current.is_day ? 'day' : 'night'}. ${chance} (precipitation, including snow). Updated ${time} (your time).`;
     } catch (error) {
       if (weatherController !== controller) return;
       report(error);
       clearSky();
+      updateShortcut(value, 'Weather unavailable');
       status.textContent = `${locationLabel(value)} - weather unavailable. Showing the neutral background; retrying in 30 minutes.`;
     }
   }
@@ -148,6 +177,7 @@
     selectedLocation = undefined;
     clearSky();
     status.textContent = 'Finding approximate city...';
+    updateShortcut(null, 'Loading weather...');
     try {
       const data = await fetchJson('https://ipwho.is/?fields=success,message,city,country,latitude,longitude');
       if (revision !== locationRevision) return;
@@ -260,7 +290,12 @@
     if (!document.hidden && Date.now() - lastAttempt >= refreshMs) void updateWeather();
   }
 
+  shortcut.addEventListener('click', () => {
+    locationOptions.open = true;
+    panel.focus({ preventScroll: true });
+  });
   panel.hidden = false;
+  shortcut.hidden = false;
   document.addEventListener('visibilitychange', refreshIfNeeded);
   setInterval(refreshIfNeeded, refreshMs);
   try {

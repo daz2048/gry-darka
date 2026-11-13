@@ -18,6 +18,12 @@ Wybór motywów zależy od lokalnego miesiąca odwiedzającego.
 The homepage background follows model-based current weather: sunshine or stars,
 clouds, fog, rain, snow, and a dark storm sky (no flashing lightning). Banner effects
 remain independent. Animations respect reduced motion and pause in hidden tabs.
+The weather/location panel is the last content below the footer. The small weather
+icon in the top navigation shows the selected location, current temperature and
+this hour's rain chance; clicking it jumps to the panel and expands all location
+options. Rain chance uses Open-Meteo's hourly precipitation probability (including
+snow), matched by UTC timestamp rather than the visitor's timezone. Missing rain
+probability is labelled unavailable without hiding otherwise valid weather.
 
 - On a new visit, [ipwho.is](https://ipwhois.io/documentation) estimates a city from
   the visitor's IP without a device permission prompt. Failed, invalid or rate-limited

@@ -12,8 +12,8 @@
 <meta property="og:title" content="Pixel Otter Rocket | Gry Ekipy spod Lipy z Hajnówki" />
 <meta property="og:description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.3. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <meta property="og:url" content="https://daz2048.github.io/gry-darka/" />
-<link rel="stylesheet" href="weather.css?v=1" />
-<script src="weather.js?v=1" defer></script>
+<link rel="stylesheet" href="weather.css?v=3" />
+<script src="weather.js?v=3" defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   
@@ -530,35 +530,18 @@
         <a href="help.html">How to play</a>
         <a href="updates.html">Updates</a>
         <button id="site-music-toggle" type="button" aria-pressed="false" disabled>Music: Off</button>
+        <a class="weather-shortcut" href="#weather-panel" aria-label="Weather and location" title="Weather and location" lang="en" hidden>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2v2m-7 1 1.5 1.5M2 12h2m15-7-1.5 1.5M20 12h2" />
+            <path d="M8 11a4 4 0 1 1 8 0M7 20a4 4 0 1 1 1-7.9A5 5 0 0 1 17.6 14H18a3 3 0 0 1 0 6Z" />
+          </svg>
+          <span class="weather-shortcut-text">
+            <span id="weather-shortcut-location">Finding city...</span>
+            <span id="weather-shortcut-conditions">Loading weather...</span>
+          </span>
+        </a>
         <span id="site-music-status" class="site-nav-status" role="status" aria-live="polite" hidden></span>
       </nav>
-      <section class="weather-panel" lang="en" aria-label="Weather background and location" hidden>
-        <p id="weather-status" role="status">Finding approximate city...</p>
-        <p id="weather-notice" role="status"></p>
-        <details class="weather-location">
-          <summary>Change location</summary>
-          <p>Choose a city to remember it in a cookie for 180 days. You can change it here anytime.</p>
-          <form id="weather-search">
-            <label for="weather-city">City name</label>
-            <div class="weather-search-row">
-              <input id="weather-city" name="city" type="search" minlength="2" maxlength="100" required autocomplete="off" placeholder="e.g. London">
-              <button type="submit">Search</button>
-            </div>
-          </form>
-          <p id="weather-search-status" role="status"></p>
-          <ul id="weather-results" aria-label="Matching cities"></ul>
-          <div class="weather-actions">
-            <button id="weather-device" type="button">Use my location</button>
-            <button id="weather-auto" type="button">Use automatic estimate</button>
-          </div>
-          <p id="weather-location-status" role="status"></p>
-          <p class="weather-privacy">Automatic estimates use your IP via <a href="https://ipwhois.io/privacy">ipwho.is</a> and can be inaccurate with VPNs.
-            City searches and approximate weather coordinates are sent to <a href="https://open-meteo.com/en/terms">Open-Meteo</a>.
-            Device location is requested only when you click the button; coordinates are rounded before use. No continuous tracking.</p>
-        </details>
-        <p class="weather-credit">Model-based weather by <a href="https://open-meteo.com/">Open-Meteo</a> /
-          <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; conditions simplified into background effects.</p>
-      </section>
     </header>
 
     <main class="grid">
@@ -673,6 +656,33 @@
     </main>
 
     <footer><a href="help.html">How to play</a> · <a href="updates.html">Updates</a><p>github.com/dariusz22p/gry-darka</p></footer>
+    <section id="weather-panel" class="weather-panel" lang="en" aria-label="Weather background and location" tabindex="-1" hidden>
+      <p id="weather-status" role="status">Finding approximate city...</p>
+      <p id="weather-notice" role="status"></p>
+      <details class="weather-location">
+        <summary>Change location</summary>
+        <p>Choose a city to remember it in a cookie for 180 days. You can change it here anytime.</p>
+        <form id="weather-search">
+          <label for="weather-city">City name</label>
+          <div class="weather-search-row">
+            <input id="weather-city" name="city" type="search" minlength="2" maxlength="100" required autocomplete="off" placeholder="e.g. London">
+            <button type="submit">Search</button>
+          </div>
+        </form>
+        <p id="weather-search-status" role="status"></p>
+        <ul id="weather-results" aria-label="Matching cities"></ul>
+        <div class="weather-actions">
+          <button id="weather-device" type="button">Use my location</button>
+          <button id="weather-auto" type="button">Use automatic estimate</button>
+        </div>
+        <p id="weather-location-status" role="status"></p>
+        <p class="weather-privacy">Automatic estimates use your IP via <a href="https://ipwhois.io/privacy">ipwho.is</a> and can be inaccurate with VPNs.
+          City searches and approximate weather coordinates are sent to <a href="https://open-meteo.com/en/terms">Open-Meteo</a>.
+          Device location is requested only when you click the button; coordinates are rounded before use. No continuous tracking.</p>
+      </details>
+      <p class="weather-credit">Model-based weather by <a href="https://open-meteo.com/">Open-Meteo</a> /
+        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; conditions simplified into background effects.</p>
+    </section>
   </div>
   <script>
     const brandFlip = document.querySelector('.brand-flip');

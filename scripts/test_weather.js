@@ -17,6 +17,8 @@ function element() {
     replaceChildren(...children) { this.children = children; },
     append(child) { this.children.push(child); },
     fire(name) { return this.events[name]({ preventDefault() {} }); },
+    focus(options) { this.focused = true; this.focusOptions = options; },
+    setAttribute(name, value) { this[name] = value; },
     classList: { toggle() {} },
   };
 }
@@ -75,7 +77,12 @@ async function createPage(options = {}) {
       data = { results: state.cities };
     } else if (request.hostname === 'api.open-meteo.com') {
       if (state.weatherError) return { ok: false, status: 429 };
-      data = { current: { weather_code: state.code, is_day: state.isDay, temperature_2m: state.temperature, time: now / 1000 } };
+      const hour = Math.floor(now / 3600000) * 3600;
+      data = {
+        current: { weather_code: state.code, is_day: state.isDay, temperature_2m: state.temperature, time: now / 1000 },
+        hourly: { time: [hour - 3600, hour, hour + 3600], precipitation_probability: [90, 35, 75] },
+      };
+      if (Object.hasOwn(state, 'hourly')) data.hourly = state.hourly;
       if (state.weatherData) data = state.weatherData;
     } else {
       throw new Error(`Unexpected request: ${url}`);
@@ -110,6 +117,23 @@ function savedCookie(value = {}) {
   }));
 }
 
+test('weather shortcut expands options and focuses the panel without changing location or requesting permission', async () => {
+  const page = await createPage();
+  const shortcut = page.get('.weather-shortcut');
+  const options = page.get('.weather-location');
+  assert.equal(shortcut.hidden, false);
+  const requestCount = page.requests.length;
+  for (let click = 0; click < 2; click++) {
+    options.open = false;
+    shortcut.fire('click');
+    assert.equal(options.open, true);
+    assert.equal(page.get('.weather-panel').focused, true);
+    assert.equal(page.get('.weather-panel').focusOptions.preventScroll, true);
+  }
+  assert.equal(page.requests.length, requestCount);
+  assert.equal(page.geoCalls.length, 0);
+});
+
 test('IP estimate sets rain background without requesting device permission or saving a cookie', async () => {
   const page = await createPage();
   assert.equal(page.document.body.dataset.weather, 'rain');
@@ -123,6 +147,42 @@ test('IP estimate sets rain background without requesting device permission or s
   for (const { config } of page.requests) {
     assert.equal(config.credentials, 'omit');
     assert.equal(config.referrerPolicy, 'no-referrer');
+  }
+});
+
+test('shortcut shows selected location, temperature and rain probability for the matching hour', async () => {
+  const page = await createPage();
+  assert.equal(page.get('#weather-shortcut-location').textContent, 'Manchester, United Kingdom');
+  assert.equal(page.get('#weather-shortcut-conditions').textContent, '12 °C · Rain this hour: 35%');
+  assert.match(page.get('.weather-shortcut')['aria-label'], /Manchester.*IP estimate.*12 °C.*35%.*Open weather/);
+  const query = new URL(page.requests.at(-1).url).searchParams;
+  assert.equal(query.get('hourly'), 'precipitation_probability');
+  await page.chooseCity();
+  assert.match(page.get('#weather-shortcut-location').textContent, /Paris/);
+  assert.match(page.get('#weather-status').textContent, /Rain this hour: 35%/);
+  page.state.weatherError = true;
+  page.advance(30 * 60 * 1000);
+  page.intervals[0]();
+  await settle();
+  assert.match(page.get('#weather-shortcut-location').textContent, /Paris/);
+  assert.equal(page.get('#weather-shortcut-conditions').textContent, 'Weather unavailable');
+});
+
+test('rain chances of zero and 100 are valid, while missing, invalid or wrong-hour probabilities are unavailable', async () => {
+  const hour = Math.floor(Date.now() / 3600000) * 3600;
+  for (const probability of [0, 100, null, -1, 101, '35']) {
+    const page = await createPage({ hourly: { time: [hour], precipitation_probability: [probability] } });
+    const valid = probability === 0 || probability === 100;
+    assert.equal(page.get('#weather-shortcut-conditions').textContent,
+      `12 °C · Rain this hour: ${valid ? `${probability}%` : 'unavailable'}`);
+    assert.equal(page.document.body.dataset.weather, 'rain');
+    assert.equal(page.warnings.length, valid ? 0 : 1);
+  }
+  for (const hourly of [null, {}, { time: [hour - 3600], precipitation_probability: [90] }]) {
+    const page = await createPage({ hourly });
+    assert.match(page.get('#weather-shortcut-conditions').textContent, /Rain this hour: unavailable/);
+    assert.equal(page.document.body.dataset.weather, 'rain');
+    assert.equal(page.warnings.length, 1);
   }
 });
 
