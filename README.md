@@ -35,6 +35,8 @@ rain, snow, and a dark storm sky (no flashing lightning). Clear and partly cloud
 nights show continuously twinkling groups of stars, staggered decorative shooting
 stars every few seconds with visible trails, and a larger, shaded moon with crater
 and surface details. These are illustrative, not astronomical or actual meteor predictions.
+A decorative glowing UFO also crosses clear or partly cloudy night skies for about
+10 seconds every 40 seconds, starting four seconds after night mode becomes active.
 The selected location's sunrise and sunset drive dawn, day, sunset, dusk and night,
 with a roughly 45-minute transition on either side of each event. The sun's path is
 illustrative, not astronomical. If sunrise or sunset is unavailable (such as during
@@ -42,7 +44,7 @@ polar day or night), the background uses the current day/night weather instead.
 Sky colors and celestial elements update each minute while visible; cloud and
 precipitation effects remain dependent on the weather. Banner effects remain independent.
 Animations respect reduced motion and pause in hidden tabs; stars remain static and
-shooting stars are hidden when reduced motion is requested.
+shooting stars and the UFO are hidden when reduced motion is requested.
 The weather/location panel is the last content below the footer. The small weather
 icon in the top navigation shows the selected location, current temperature and
 this hour's rain chance; clicking it jumps to the panel and expands all location

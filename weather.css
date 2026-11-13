@@ -72,6 +72,26 @@ body:is([data-weather="clear"], [data-weather="partly-cloudy"]) .weather-shootin
 body:is([data-weather="clear"], [data-weather="partly-cloudy"]) .weather-shooting-star::after {
   top: 42%; left: 68%; animation: weather-shooting-star 8s linear -4s infinite;
 }
+.weather-ufo {
+  position: absolute; top: 20%; left: -110px; width: 84px; height: 22px; opacity: 0;
+  border-radius: 50%;
+  background: linear-gradient(#edf6ff, #8496af 45%, #34435e 65%, #a8c2d6);
+  box-shadow: 0 5px 12px #78ffcf66, inset 0 -3px 4px #101b36;
+}
+.weather-ufo::before {
+  content: ""; position: absolute; left: 24px; top: -17px; width: 36px; height: 23px;
+  border-radius: 50% 50% 20% 20%;
+  background: radial-gradient(ellipse at 35% 25%, #e3fffa, #65c9bd 45%, #244d69 80%);
+  border: 1px solid #a5e9e8aa;
+}
+.weather-ufo::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: 4px; height: 4px;
+  background: radial-gradient(circle, #baffdf 0 2px, transparent 3px) 0 0 / 14px 4px;
+  filter: drop-shadow(0 0 3px #78ffcf);
+}
+body:is([data-weather="clear"], [data-weather="partly-cloudy"])[data-sky-stage="night"] .weather-ufo {
+  animation: weather-ufo-flight 40s linear 4s infinite;
+}
 .weather-moon {
   top: 18px; right: clamp(16px, 4vw, 64px); width: clamp(96px, 12vw, 160px); aspect-ratio: 1;
   border-radius: 50%; overflow: hidden;
@@ -150,6 +170,13 @@ body[data-weather="snow"] .weather-particles {
   0% { opacity: 0; transform: translate(0, 0) rotate(-25deg); }
   3%, 17% { opacity: 1; }
   25%, 100% { opacity: 0; transform: translate(-44vw, 20.5vw) rotate(-25deg); }
+}
+@keyframes weather-ufo-flight {
+  0% { opacity: 0; transform: translate(0, 0) rotate(-6deg); }
+  2% { opacity: 1; }
+  12% { opacity: 1; transform: translate(calc(50vw + 110px), -5vh) rotate(6deg); }
+  23% { opacity: 1; }
+  25%, 100% { opacity: 0; transform: translate(calc(100vw + 220px), 3vh) rotate(-6deg); }
 }
 body.weather-paused .weather-sky *,
 body.weather-paused .weather-sky *::before,
