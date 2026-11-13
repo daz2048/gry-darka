@@ -68,8 +68,8 @@ test('incognito play explains that no world or progress will be saved in both la
 });
 
 test('game branding is localized for the launch screen', () => {
-  assert.equal(MESSAGES.en['overlay.eyebrow'], 'Podlasie Blocks · The Lime Tree Crew · <b class="version-highlight">v0.5</b>');
-  assert.equal(MESSAGES.pl['overlay.eyebrow'], 'KLOCKI PODLASIA · EKIPA SPOD LIPY · <b class="version-highlight">v0.5</b>');
+  assert.equal(MESSAGES.en['overlay.eyebrow'], 'Podlasie Blocks · The Lime Tree Crew · <b class="version-highlight">v0.5.1</b>');
+  assert.equal(MESSAGES.pl['overlay.eyebrow'], 'KLOCKI PODLASIA · EKIPA SPOD LIPY · <b class="version-highlight">v0.5.1</b>');
 });
 
 test('world edit results are translatable message keys in both languages', () => {

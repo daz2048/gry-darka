@@ -2,7 +2,7 @@ import { BLOCKS, CHUNK, SIZE, hauntedHouseIdAt } from './world.js';
 
 export const SAVE_SCHEMA_VERSION = 1;
 export const WORLD_GENERATOR_VERSION = 1;
-export const SAVE_DATABASE = 'minecraft-0.5';
+export const SAVE_DATABASE = 'minecraft-0.5.1';
 export const LEGACY_SAVE_DATABASE = 'minecraft-0.3';
 export const SAVE_STORE = 'worlds';
 export const WORLD_STORE = 'world-records';

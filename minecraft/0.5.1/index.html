@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#183f36">
-  <title>Minecraft 0.5 — creative building with Ekipa spod Lipy</title>
+  <title>Minecraft 0.5.1 — creative building with Ekipa spod Lipy</title>
   <link rel="icon" href="preview.svg?v=5" type="image/svg+xml">
   <link rel="stylesheet" href="../../player-links.css">
   <link rel="stylesheet" href="style.css?v=30">
@@ -15,7 +15,7 @@
 <body>
   <div id="viewport" aria-label="3D block world" data-i18n-attr="aria-label:viewport.label"></div>
   <header class="topbar">
-    <a class="brand" href="../../index.html">EKIPA SPOD LIPY <strong>Minecraft <small data-i18n="brand.mode">VERSION 0.5 · CREATIVE MODE</small></strong></a>
+    <a class="brand" href="../../index.html">EKIPA SPOD LIPY <strong>Minecraft <small data-i18n="brand.mode">VERSION 0.5.1 · CREATIVE MODE</small></strong></a>
     <div class="tools">
       <div class="language-switch" role="group" aria-label="Language" data-i18n-attr="aria-label:language.group">
         <button data-language="en" lang="en" aria-label="English" aria-pressed="true">EN</button>
@@ -77,7 +77,7 @@
           <button id="world-import" data-i18n="backup.import">Import world</button>
           <input id="world-import-file" type="file" accept=".json,application/json" hidden aria-label="World backup file" data-i18n-attr="aria-label:backup.file">
         </div>
-        <p class="small" data-i18n="backup.help">Export a world to keep an external backup. Import restores a Minecraft 0.5 backup as a new world, never replacing an existing one.</p>
+        <p class="small" data-i18n="backup.help">Export a world to keep an external backup. Import restores a Minecraft 0.5.1 or 0.5 backup as a new world, never replacing an existing one.</p>
         <p id="world-transfer-status" class="small" role="status" aria-live="polite" tabindex="-1" hidden></p>
       </section>
       <div id="world-action-confirm" class="reset-confirm" role="group" aria-label="Manage world" data-i18n-attr="aria-label:worldPicker.manage" hidden>
@@ -203,13 +203,13 @@
     const status = document.getElementById('load-status');
     const requested = new URLSearchParams(location.search).get('lang');
     let stored = null;
-    try { stored = localStorage.getItem('minecraft-0.5-language'); } catch {}
+    try { stored = localStorage.getItem('minecraft-0.5.1-language'); } catch {}
     const polish = requested ? requested === 'pl' : stored === 'pl';
     const pick = (en, pl) => (polish ? pl : en);
     if (location.protocol === 'file:') {
       status.textContent = pick(
-        'Start the repository server and open http://localhost:8765/minecraft/0.5/ — modules need HTTP.',
-        'Uruchom serwer repozytorium i otwórz http://localhost:8765/minecraft/0.5/ — moduły wymagają HTTP.');
+        'Start the repository server and open http://localhost:8765/minecraft/0.5.1/ — modules need HTTP.',
+        'Uruchom serwer repozytorium i otwórz http://localhost:8765/minecraft/0.5.1/ — moduły wymagają HTTP.');
     } else {
       import('./i18n.js?v=19').then(i18n => {
         i18n.initLanguage();

@@ -14,7 +14,7 @@ const original = createSnapshot(world, createPlayer(world), 0.5, -0.3, 12, {
 }, 'original-id', 'Domek Łąka');
 const encoded = await encodeWorldBackup({ ...original, revision: 42, savedAt: 12345 });
 
-test('0.5 imports a compatible backup exported by 0.4', async () => {
+test('0.5.1 imports a compatible backup exported by 0.4', async () => {
   const previousBackup = await encodePreviousWorldBackup(original);
   assert.deepEqual(await decodeWorldBackup(previousBackup), original);
 });

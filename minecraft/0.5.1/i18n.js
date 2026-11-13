@@ -1,14 +1,14 @@
 export const LANGUAGES = ['en', 'pl'];
 export const DEFAULT_LANGUAGE = 'en';
-export const LANGUAGE_STORAGE_KEY = 'minecraft-0.5-language';
+export const LANGUAGE_STORAGE_KEY = 'minecraft-0.5.1-language';
 const LOCALES = { en: 'en-GB', pl: 'pl-PL' };
 
 export const MESSAGES = {
   en: {
-    'meta.title': 'Minecraft 0.5 — creative building with Ekipa spod Lipy',
+    'meta.title': 'Minecraft 0.5.1 — creative building with Ekipa spod Lipy',
     'language.group': 'Language',
     'viewport.label': '3D block world',
-    'brand.mode': 'VERSION 0.5 · CREATIVE MODE',
+    'brand.mode': 'VERSION 0.5.1 · CREATIVE MODE',
     'status.loading': 'Loading save…',
     'button.save': 'Save',
     'button.reloadSave': 'Load the current save',
@@ -28,7 +28,7 @@ export const MESSAGES = {
     'backup.exportNamed': 'Export {world}',
     'backup.import': 'Import world',
     'backup.file': 'World backup file',
-    'backup.help': 'Export a world to keep an external backup. Import restores a Minecraft 0.5 backup as a new world, never replacing an existing one. Maximum file size: 8 MiB.',
+    'backup.help': 'Export a world to keep an external backup. Import restores a Minecraft 0.5.1 or 0.5 backup as a new world, never replacing an existing one. Maximum file size: 8 MiB.',
     'backup.working': 'Preparing world backup transfer...',
     'backup.download': 'Download requested: {filename}. Keep the file somewhere safe; the browser controls where it is saved.',
     'backup.imported': 'Imported {world} as a new world. Select it from the list to play.',
@@ -37,7 +37,7 @@ export const MESSAGES = {
     'error.backup-crypto': 'World backups require HTTPS or localhost and Web Crypto support.',
     'error.backup-size': 'The backup file exceeds the 8 MiB limit.',
     'error.backup-invalid': 'The backup file is invalid or incomplete.',
-    'error.backup-incompatible': 'This backup format or world version is not supported by Minecraft 0.5.',
+    'error.backup-incompatible': 'This backup format or world version is not supported by Minecraft 0.5.1.',
     'error.backup-checksum': 'The backup checksum does not match. The file may be damaged.',
     'worldPicker.empty': 'No saved worlds yet. Use Incognito or create a new world.',
     'worldPicker.choosePrompt': 'Choose a world, use Incognito, or create a new one.',
@@ -113,7 +113,7 @@ export const MESSAGES = {
     'session.temporary': 'This temporary session does not save changes; the old save is protected.',
     'session.migration': 'The previous world is kept. Retry the migration or confirm a new world.',
     'session.unconfirmed': 'Saving could not be confirmed; changes may disappear when you close the page.',
-    'overlay.eyebrow': 'Podlasie Blocks · The Lime Tree Crew · <b class="version-highlight">v0.5</b>',
+    'overlay.eyebrow': 'Podlasie Blocks · The Lime Tree Crew · <b class="version-highlight">v0.5.1</b>',
     'overlay.intro': 'The house under the linden tree is just the beginning. Wander the meadow, take blocks apart and build your own way.',
     'instructions.move': '<b>WASD / arrows</b> move · <b>Space</b> jump · mouse turns the view',
     'instructions.edit': '<b>LMB / Q</b> remove · <b>RMB / E</b> place · <b>1–8</b> material from the set · <b>wheel</b> all materials',
@@ -256,10 +256,10 @@ export const MESSAGES = {
       'Bookshelf', 'Chest', 'Furnace']
   },
   pl: {
-    'meta.title': 'Minecraft 0.5 — kreatywne budowanie Ekipy spod Lipy',
+    'meta.title': 'Minecraft 0.5.1 — kreatywne budowanie Ekipy spod Lipy',
     'language.group': 'Język',
     'viewport.label': 'Trójwymiarowy świat klocków',
-    'brand.mode': 'WERSJA 0.5 · TRYB KREATYWNY',
+    'brand.mode': 'WERSJA 0.5.1 · TRYB KREATYWNY',
     'status.loading': 'Ładowanie zapisu…',
     'button.save': 'Zapisz',
     'button.reloadSave': 'Wczytaj aktualny zapis',
@@ -279,7 +279,7 @@ export const MESSAGES = {
     'backup.exportNamed': 'Eksportuj: {world}',
     'backup.import': 'Importuj świat',
     'backup.file': 'Plik kopii zapasowej świata',
-    'backup.help': 'Eksportuj świat, aby zachować zewnętrzną kopię zapasową. Import odtwarza kopię Minecraft 0.5 jako nowy świat i nigdy nie zastępuje istniejącego. Maksymalny rozmiar pliku: 8 MiB.',
+    'backup.help': 'Eksportuj świat, aby zachować zewnętrzną kopię zapasową. Import odtwarza kopię Minecraft 0.5.1 lub 0.5 jako nowy świat i nigdy nie zastępuje istniejącego. Maksymalny rozmiar pliku: 8 MiB.',
     'backup.working': 'Przygotowywanie kopii świata...',
     'backup.download': 'Rozpoczęto pobieranie: {filename}. Zachowaj plik w bezpiecznym miejscu; przeglądarka wybiera miejsce zapisu.',
     'backup.imported': 'Zaimportowano {world} jako nowy świat. Wybierz go z listy, aby zagrać.',
@@ -288,7 +288,7 @@ export const MESSAGES = {
     'error.backup-crypto': 'Kopie światów wymagają HTTPS lub localhost oraz obsługi Web Crypto.',
     'error.backup-size': 'Plik kopii zapasowej przekracza limit 8 MiB.',
     'error.backup-invalid': 'Plik kopii zapasowej jest nieprawidłowy lub niekompletny.',
-    'error.backup-incompatible': 'Ten format kopii lub wersja świata nie jest obsługiwana przez Minecraft 0.5.',
+    'error.backup-incompatible': 'Ten format kopii lub wersja świata nie jest obsługiwana przez Minecraft 0.5.1.',
     'error.backup-checksum': 'Suma kontrolna kopii nie zgadza się. Plik może być uszkodzony.',
     'worldPicker.empty': 'Brak zapisanych światów. Użyj trybu Incognito albo utwórz nowy świat.',
     'worldPicker.choosePrompt': 'Wybierz świat, użyj trybu Incognito albo utwórz nowy.',
@@ -364,7 +364,7 @@ export const MESSAGES = {
     'session.temporary': 'Ta tymczasowa sesja nie zapisuje zmian; stary zapis jest chroniony.',
     'session.migration': 'Poprzedni świat jest zachowany. Ponów migrację albo potwierdź utworzenie nowego świata.',
     'session.unconfirmed': 'Nie można potwierdzić zapisu; zmiany mogą zniknąć po zamknięciu.',
-    'overlay.eyebrow': 'KLOCKI PODLASIA · EKIPA SPOD LIPY · <b class="version-highlight">v0.5</b>',
+    'overlay.eyebrow': 'KLOCKI PODLASIA · EKIPA SPOD LIPY · <b class="version-highlight">v0.5.1</b>',
     'overlay.intro': 'Domek pod lipą to dopiero początek. Spaceruj po łące, rozbieraj klocki i buduj po swojemu.',
     'instructions.move': '<b>WASD / strzałki</b> ruch · <b>Spacja</b> skok · mysz obraca widok',
     'instructions.edit': '<b>LPM / Q</b> usuń · <b>PPM / E</b> dodaj · <b>1–8</b> materiał z zestawu · <b>rolka</b> wszystkie materiały',

@@ -1,11 +1,11 @@
-# Minecraft 0.5 — kreatywne budowanie
+# Minecraft 0.5.1 — kreatywne budowanie
 
-Wersja rozwojowa oparta na zachowanym świecie Minecraft 0.4. Nowe funkcje,
-dopracowanie wyglądu i nowe moby będą dodawane w tej kopii; wydanie 0.4
-pozostaje dostępne osobno w archiwum. Zapisy 0.5 używają własnej bazy danych;
-starsze, pojedyncze sloty 0.3 mogą zostać zmigrowane bez zmieniania ich
-oryginalnej bazy. Światy z wersji 0.4 przenoś przez eksport i import kopii
-zapasowej; baza wielu światów 0.4 nie jest kopiowana automatycznie.
+Wersja rozwojowa oparta na niezmienionej kopii Minecraft 0.5. Nowe funkcje będą
+dodawane wyłącznie w tym katalogu; wydanie 0.5 pozostaje bez zmian. Zapisy 0.5.1
+używają własnej bazy danych (`minecraft-0.5.1`), osobnej od 0.5. Światy z wersji
+0.5 przenoś przez eksport i import kopii zapasowej; baza wielu światów 0.5 nie
+jest kopiowana automatycznie. Starsze, pojedyncze sloty 0.3 mogą zostać
+zmigrowane bez zmieniania ich oryginalnej bazy.
 
 Desktopowa gra kreatywna: odkrywaj świat, buduj i wracaj do swojej pracy.
 Wersja docelowa do testów wydania to Chrome na macOS z klawiaturą i myszą.
@@ -24,7 +24,7 @@ a farmhouse with fields.
 The game starts in **English** by default. The **EN / PL** switch in the start/
 pause screen's top bar changes the whole interface instantly without reloading, so unsaved work is
 kept. The choice is remembered in this browser (`localStorage` key
-`minecraft-0.5-language`), separately from the world save. Add `?lang=pl` or
+`minecraft-0.5.1-language`), separately from the world save. Add `?lang=pl` or
 `?lang=en` to the address to override it for one visit without changing the
 remembered choice. Proper names (Klocki Podlasia, Ekipa spod Lipy, village
 names) stay Polish; materials, biomes and structures are translated. An
@@ -75,7 +75,7 @@ ostatnio używany świat i wybrać tryb gry.
 
 Po kliknięciu **Zapisz** krótki komunikat potwierdza wynik operacji. Szczegóły
 w diagnostyce panelu pauzy pokazują nazwę świata,
-miejsce zapisu (adres strony → IndexedDB → `minecraft-0.5` → `world-records` →
+miejsce zapisu (adres strony → IndexedDB → `minecraft-0.5.1` → `world-records` →
 identyfikator świata) oraz szacowany rozmiar danych w MiB i bajtach. Szczegóły
 pozostają w panelu pauzy; są też aktualizowane po autozapisie i wczytaniu.
 Sukces jest pokazywany dopiero po zakończeniu transakcji. Błąd nie pokazuje
@@ -136,8 +136,8 @@ Choose **Incognito** to generate a temporary, unsaved world; it does not create
 a world entry or modify any saved world. Its tooltip explains that progress
 cannot be saved.
 
-Przy pierwszym uruchomieniu wersja 0.5 może przenieść poprawne starsze sloty z
-bazy `minecraft-0.3`, ale tylko jeśli katalog 0.5 jest pusty. Zachowuje też
+Przy pierwszym uruchomieniu wersja 0.5.1 może przenieść poprawne starsze sloty z
+bazy `minecraft-0.3`, ale tylko jeśli katalog 0.5.1 jest pusty. Zachowuje też
 informację o uszkodzonym zapisie, aby pokazać odzyskiwanie lub wymagać
 potwierdzenia utworzenia nowego świata. Przy migracji starszych slotów 0.3
 różne identyfikatory bieżącego i poprzedniego zapisu stają się osobnymi
@@ -174,11 +174,11 @@ and edits, water, player position/view, material and settings; it excludes
 recovery generations and database revisions. Language stays a browser preference;
 roaming creatures are recreated as on a normal load. Typical files are about
 5.33 MiB, with an 8 MiB import limit checked before reading the file.
-Only compatible Minecraft 0.5 schemas, generator versions and dimensions are
+Only compatible Minecraft 0.5.1 and 0.5 schemas, generator versions and dimensions are
 accepted. Corruption, incompatible versions, unavailable storage, and capacity
 errors are reported without replacing existing worlds. SHA-256 detects accidental
 damage, not who created the file. HTTPS or localhost with Web Crypto is required.
-The 0.5 verification plan will be expanded as new features are added.
+The 0.5.1 verification plan will be expanded as new features are added.
 
 ## Run
 
@@ -188,7 +188,7 @@ From the repository root, start the existing server:
 ./scripts/game-server.sh
 ```
 
-Open <http://localhost:8765/minecraft/0.5/> or select version 0.5 in the
+Open <http://localhost:8765/minecraft/0.5.1/> or select version 0.5.1 in the
 portfolio. Use HTTP: ES modules do not load by opening this HTML file directly.
 No npm install, compilation, external font, CDN, account or network game server
 is needed to play. Requires a desktop keyboard/mouse and WebGL2.
@@ -325,8 +325,8 @@ are not hosted-load or frame-rate benchmarks. Native pointer capture was also
 verified in standalone Chrome 157 on this Mac in an Incognito session; Escape
 released it and returned to pause. Denied-pointer-lock recovery and hosted
 loading remain unverified. Safari, Firefox, Windows and mobile are not release
-claims. These inherited results are not a verification of the new 0.5 paths;
-repeat browser checks before publishing 0.5.
+claims. These inherited results are not a verification of the new 0.5.1 paths;
+repeat browser checks before publishing 0.5.1.
 
 The pause panel's diagnostics show the world dimensions and seed, render-buffer
 resolution and pixel ratio, frames, draw calls, live geometries, first-render

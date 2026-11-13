@@ -9,6 +9,7 @@ import {
 import { FakeIndexedDB } from './fake-indexeddb.js';
 import { readSaveStorageStatus } from '../diagnostics.js';
 import { WorldSaveStore as PreviousWorldSaveStore } from '../../../klocki-podlasia-0.4/saves.js';
+import { SAVE_DATABASE as RELEASE_05_DATABASE, WorldSaveStore as Release05WorldSaveStore } from '../../0.5/saves.js';
 
 const world = new World(42);
 const settings = { sensitivity: 1, lowQuality: false, musicEnabled: false, musicVolume: 0.35 };
@@ -23,7 +24,7 @@ function record(material, revision) {
 
 const quota = Object.assign(new Error('Quota exceeded'), { name: 'QuotaExceededError' });
 
-test('0.5 saves never read or overwrite the 0.4 world database', async () => {
+test('0.5.1 saves never read or overwrite the 0.4 world database', async () => {
   const idb = new FakeIndexedDB();
   const previous = new PreviousWorldSaveStore(idb);
   const previousEmpty = await previous.load();
@@ -36,6 +37,25 @@ test('0.5 saves never read or overwrite the 0.4 world database', async () => {
 
   assert.equal((await current.load()).record.selectedBlock, 9);
   const unchanged = await previous.load();
+  assert.equal(unchanged.record.selectedBlock, 6);
+  assert.equal(unchanged.record.revision, 1);
+});
+
+test('0.5.1 uses its own database and never reads or overwrites the 0.5 world database', async () => {
+  assert.equal(SAVE_DATABASE, 'minecraft-0.5.1');
+  assert.notEqual(SAVE_DATABASE, RELEASE_05_DATABASE);
+  const idb = new FakeIndexedDB();
+  const release05 = new Release05WorldSaveStore(idb);
+  const release05Empty = await release05.load();
+  await release05.save(snapshot(6), release05Empty.expected);
+
+  const current = new WorldSaveStore(idb);
+  const empty = await current.load();
+  assert.equal(empty.status, 'empty');
+  await current.save(snapshot(9), empty.expected);
+
+  assert.equal((await current.load()).record.selectedBlock, 9);
+  const unchanged = await release05.load();
   assert.equal(unchanged.record.selectedBlock, 6);
   assert.equal(unchanged.record.revision, 1);
 });
@@ -157,7 +177,7 @@ test('legacy 0.3 save migrates into an empty slot and leaves the legacy database
   assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('previous:test-world').selectedBlock, 5);
 });
 
-test('legacy migration never overwrites an already populated 0.5 slot', async () => {
+test('legacy migration never overwrites an already populated 0.5.1 slot', async () => {
   const idb = new FakeIndexedDB();
   idb.seed(LEGACY_SAVE_DATABASE, { current: record(6, 3) });
   idb.seed(SAVE_DATABASE, { current: record(2, 8) });

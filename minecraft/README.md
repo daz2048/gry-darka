@@ -14,6 +14,9 @@ The [version chooser](index.html) also links to older releases.
 - Audio and its generated catalogue remain in the repository's [music](../music/)
   directory.
 
+To start a new version, follow the
+[new release runbook](../runbooks/minecraft-new-release.md).
+
 New versions belong in `minecraft/<version>/`. Keep gameplay, world generation,
 save logic and translations version-local. Review potential shared helpers in
 each new-version PR; identical code alone is not a reason to extract it.
