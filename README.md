@@ -14,8 +14,9 @@ się bardziej dynamiczne efekty; pierwsze wyświetlenie zawsze jest spokojniejsz
 Wybór motywów zależy od lokalnego miesiąca odwiedzającego.
 Łącze „Banner styles” obok pogody otwiera galerię wszystkich stylów, w tym
 różowe i pomarańczowe motywy, fajerwerki oraz spokojne, wolno zmieniające się
-światła sceniczne (bez szybkiego migania). Można je podejrzeć, wybrać i zapisać
-lokalnie w przeglądarce do losowania przy obrocie;
+światła sceniczne (bez szybkiego migania). Zmiany wyboru zapisują się automatycznie
+lokalnie w przeglądarce i obowiązują przy następnym obrocie. „Clear” pozwala zacząć
+wybór od nowa, zachowując poprzedni wybór do zaznaczenia nowego motywu;
 „Restore defaults” przywraca domyślny wybór sezonowy.
 
 ## Weather background

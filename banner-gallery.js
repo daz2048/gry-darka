@@ -23,6 +23,22 @@ function bannerCheckboxes() {
   return [...bannerGalleryGroups.querySelectorAll('input[type="checkbox"]')];
 }
 
+function saveBannerSelection() {
+  const selected = bannerCheckboxes().filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+  if (!selected.length) {
+    bannerGalleryStatus.textContent = 'Choose at least one style. Your previous selection or defaults remain active.';
+    return;
+  }
+  try {
+    localStorage.setItem(bannerStorageKey, JSON.stringify(selected));
+  } catch (error) {
+    bannerGalleryStatus.textContent = 'Could not save banner styles. Check your browser storage settings.';
+    return;
+  }
+  reportBannerStorageError('');
+  bannerGalleryStatus.textContent = `Saved ${selected.length} styles. They will be used on the next flip.`;
+}
+
 function initializeBannerGallery() {
   if (bannerGalleryInitialized) return;
   const saved = readBannerSelection();
@@ -40,6 +56,7 @@ function initializeBannerGallery() {
       checkbox.type = 'checkbox';
       checkbox.value = effect;
       checkbox.checked = saved ? saved.includes(effect) : true;
+      checkbox.addEventListener('change', saveBannerSelection);
       label.append(checkbox, document.createTextNode(name));
 
       const preview = document.createElement('div');
@@ -68,7 +85,7 @@ function initializeBannerGallery() {
   }
   bannerGalleryStatus.textContent = saved
     ? 'Your saved selection is active.'
-    : 'Default seasonal random selection is active. Save to use the checked styles instead.';
+    : 'Default seasonal random selection is active. Changing the checked styles saves your selection.';
   const storageStatus = document.getElementById('banner-storage-status');
   if (!storageStatus.hidden) bannerGalleryStatus.textContent = storageStatus.textContent;
   bannerGalleryInitialized = true;
@@ -84,26 +101,11 @@ document.querySelector('.banner-gallery-link').addEventListener('click', () => {
 });
 document.getElementById('banner-select-all').addEventListener('click', () => {
   bannerCheckboxes().forEach(checkbox => { checkbox.checked = true; });
-  bannerGalleryStatus.textContent = 'All styles selected. Save to apply.';
+  saveBannerSelection();
 });
 document.getElementById('banner-clear').addEventListener('click', () => {
   bannerCheckboxes().forEach(checkbox => { checkbox.checked = false; });
-  bannerGalleryStatus.textContent = 'Selection cleared. Choose at least one style before saving.';
-});
-document.getElementById('banner-save').addEventListener('click', () => {
-  const selected = bannerCheckboxes().filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
-  if (!selected.length) {
-    bannerGalleryStatus.textContent = 'Choose at least one style before saving.';
-    return;
-  }
-  try {
-    localStorage.setItem(bannerStorageKey, JSON.stringify(selected));
-  } catch (error) {
-    bannerGalleryStatus.textContent = 'Could not save banner styles. Check your browser storage settings.';
-    return;
-  }
-  reportBannerStorageError('');
-  bannerGalleryStatus.textContent = `Saved ${selected.length} styles. They will be used on the next flip.`;
+  saveBannerSelection();
 });
 document.getElementById('banner-reset').addEventListener('click', () => {
   try {

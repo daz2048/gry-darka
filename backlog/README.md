@@ -2,6 +2,22 @@
 
 Planning documents and explicitly recorded prototype progress, not release claims.
 
+## Homepage Minecraft news
+
+- [ ] Automate refresh and publication of the Minecraft news and video feeds.
+  The panel and [feed generator](../scripts/update_minecraft_news.py) exist, but
+  the data currently requires manual refresh and publication.
+  - **Blocked:** organization content policy denied access to the GitHub Actions
+    workflow path. Resolve the access restriction before adding a workflow.
+  - Schedule refreshes approximately every four hours and ensure the generated
+    JSON is actually deployed to GitHub Pages; a commit made with `GITHUB_TOKEN`
+    does not itself trigger a Pages build. Confirm the publishing source and any
+    required settings change before deploying.
+  - Preserve the last successful data and timestamp independently for each feed,
+    report refresh failures, and retain the panel's stale/unavailable states.
+  - Verify a scheduled run updates the live site, and test that a failed feed
+    retains its previous data while the other can still refresh.
+
 ## Minecraft 0.3: creative voxel sandbox
 
 - [Active 0.3 release plan and historical voxel assessment](./voxel-sandbox-backlog.md)
