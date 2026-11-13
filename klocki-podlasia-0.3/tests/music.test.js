@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AmbientMusic } from '../music.js';
+import { loadMusicCatalogue, MusicPlayer } from '../music-player.js';
 
 class AudioParam {
   constructor() { this.value = 0; this.targets = []; }
@@ -123,4 +124,83 @@ test('audio failures propagate without pretending that music started', async () 
   assert.throws(() => music.setVolume(1.1), RangeError);
   const unavailable = new AmbientMusic(null);
   await assert.rejects(unavailable.prepare(), /Web Audio/);
+});
+
+class MediaAudio {
+  constructor() { this.listeners = {}; this.plays = 0; this.pauses = 0; this.src = ''; }
+  addEventListener(name, callback) { this.listeners[name] = callback; }
+  play() { this.plays++; return this.nextPlay || Promise.resolve(); }
+  pause() { this.pauses++; }
+  emit(name) { this.listeners[name](); }
+}
+
+test('catalogue loads without caching and rejects invalid or unavailable data', async () => {
+  const base = new URL('https://example.test/games/music/');
+  const tracks = ['mp3', 'WAV', 'ogg', 'm4a'].map(extension => ({
+    file: `a #1.${extension}`, title: extension
+  }));
+  const result = await loadMusicCatalogue(base, async (url, options) => {
+    assert.equal(url.href, 'https://example.test/games/music/catalogue.json');
+    assert.equal(options.cache, 'no-store');
+    return { ok: true, json: async () => tracks };
+  });
+  assert.deepEqual(result, tracks);
+  for (const data of [[{ file: '../a.wav', title: 'A' }], [{ file: 'a.flac', title: 'A' }], [...tracks, ...tracks], {}]) {
+    await assert.rejects(loadMusicCatalogue(base, async () => ({ ok: true, json: async () => data })), /Invalid/);
+  }
+  await assert.rejects(loadMusicCatalogue(base, async () => ({ ok: false, status: 404 })), /404/);
+});
+
+test('random tracks advance, pause resumes, and individual and original choices are isolated', async () => {
+  const audio = new MediaAudio();
+  const ambient = new AmbientMusic(AudioContext);
+  const tracks = [{ file: 'first.mp3', title: 'First' }, { file: 'a #1.ogg', title: 'Second' }];
+  let choice = 0;
+  const player = new MusicPlayer(tracks, {
+    audio, ambient, random: () => choice, base: new URL('https://example.test/games/music/')
+  });
+  player.start();
+  assert.match(audio.src, /first\.mp3$/);
+  player.setVolume(0.6);
+  assert.equal(audio.volume, 0.6);
+  player.stop();
+  player.start();
+  assert.match(audio.src, /first\.mp3$/);
+  choice = 0.9;
+  audio.emit('ended');
+  assert.equal(audio.src, 'https://example.test/games/music/a%20%231.ogg');
+  player.setSelection('track:first.mp3');
+  assert.equal(player.active, false);
+  player.start();
+  assert.equal(audio.loop, true);
+  assert.match(audio.src, /first\.mp3$/);
+  player.setSelection('original');
+  player.start();
+  await Promise.resolve();
+  assert.equal(ambient.active, true);
+  assert.ok(audio.pauses >= 3);
+  player.stop();
+  assert.equal(ambient.active, false);
+});
+
+test('playback failures are reported once and stale rejections do not stop a resumed track', async () => {
+  const audio = new MediaAudio();
+  const errors = [];
+  let rejectOld;
+  audio.nextPlay = new Promise((resolve, reject) => { rejectOld = reject; });
+  const player = new MusicPlayer([{ file: 'a.mp3', title: 'A' }], {
+    audio, ambient: new AmbientMusic(AudioContext), onError: error => errors.push(error)
+  });
+  player.start();
+  player.stop();
+  audio.nextPlay = Promise.resolve();
+  player.start();
+  rejectOld(new Error('interrupted'));
+  await Promise.resolve();
+  assert.equal(player.active, true);
+  assert.equal(errors.length, 0);
+  audio.emit('error');
+  audio.emit('error');
+  assert.equal(player.active, false);
+  assert.equal(errors.length, 1);
 });

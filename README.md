@@ -6,6 +6,29 @@ Zbiór małych gier przeglądarowe — **graj od razu, bez instalacji**.
 
 **[👉 OTWÓRZ GRY](https://daz2048.github.io/gry-darka/)**
 
+## Pomoc i aktualizacje dla graczy
+
+- [Jak grać / How to play](help.html): cele, sterowanie według wersji,
+  zapisy i rozwiązywanie problemów, po polsku i angielsku.
+- [Co nowego / Release notes](updates.html): datowana historia zmian dla graczy,
+  od najnowszych. Nie zastępuje planów rozwoju ani dokumentacji technicznej.
+- [Publikowanie pomocy i informacji o wydaniach](runbooks/player-updates.md):
+  aktualizuj obie wersje językowe razem ze zmianą gry; po publikacji sprawdź
+  stronę online. Sam push gałęzi roboczej nie oznacza wdrożenia GitHub Pages.
+
+---
+
+## Wspólna muzyka
+
+Pliki MP3, WAV, OGG i M4A dla gier znajdują się w katalogu `music/`. Po dodaniu lub usunięciu
+utworów uruchom `python3 scripts/generate-music-catalogue.py` z katalogu
+repozytorium i odśwież grę. Do publikacji należy zapisać w Git zarówno zmiany
+plików audio, jak i wygenerowany `music/catalogue.json`. Obsługa formatów i
+kodeków zależy od przeglądarki. Publikuj tylko utwory, które
+masz prawo udostępniać: pliki na stronie są publiczne.
+Szczegóły i wymagania dla przyszłej automatyzacji znajdują się w
+[runbooku katalogu muzyki](runbooks/music-catalogue.md).
+
 ---
 
 ## Google Search Console

@@ -14,8 +14,8 @@ a farmhouse with fields.
 
 ## Język / Language
 
-The game starts in **English** by default. The **EN / PL** switch in the top
-bar changes the whole interface instantly without reloading, so unsaved work is
+The game starts in **English** by default. The **EN / PL** switch in the start/
+pause screen's top bar changes the whole interface instantly without reloading, so unsaved work is
 kept. The choice is remembered in this browser (`localStorage` key
 `minecraft-0.3-language`), separately from the world save. Add `?lang=pl` or
 `?lang=en` to the address to override it for one visit without changing the
@@ -24,7 +24,27 @@ names) stay Polish; materials, biomes and structures are translated. An
 unnamed world is shown as Meadow / Łąka in the current language.
 
 Gra domyślnie uruchamia się po angielsku. Przełącznik **EN / PL** na górnym
-pasku zmienia język od razu, bez przeładowania i bez utraty niezapisanej pracy.
+pasku ekranu startowego i pauzy zmienia język od razu, bez przeładowania
+i bez utraty niezapisanej pracy.
+
+## Gameplay HUD
+
+Windowed and fullscreen play use the same compact HUD in both control modes:
+crosshair, material categories, eight numbered swatches, selected material name,
+and a small save-status/Pause control. A targeted block's name appears only
+when a block is in reach. Control hints appear for eight seconds the first
+time each control mode is used on the page; full instructions remain in pause.
+
+The world name, language/menu controls, manual Save, storage explanation and
+full save details are available while paused, not over the playing view.
+Manual-save success uses a brief confirmation instead of a large details popup.
+Save failures and conflicts remain prominent during play and pause, including
+while editing or retrying, until saving succeeds or a safe world state is loaded.
+Use **P** or the warning's pause button to access save/recovery options.
+
+Biome and coordinates are always available in pause. Enable **Show biome and
+coordinates during play** to add them above the hotbar for the current page
+session (off by default; this display choice is not stored in world backups).
 
 ## Zapisywanie
 
@@ -34,7 +54,8 @@ od razu; pasek u góry pokazuje jego rzeczywisty stan. Po ponownym otwarciu
 wybierz świat z listy albo użyj **Kontynuuj**, aby wrócić do ostatnio używanego;
 następnie wybierz sposób sterowania.
 
-Po kliknięciu **Zapisz** komunikat pokazuje wynik operacji, nazwę świata,
+Po kliknięciu **Zapisz** krótki komunikat potwierdza wynik operacji. Szczegóły
+w diagnostyce panelu pauzy pokazują nazwę świata,
 miejsce zapisu (adres strony → IndexedDB → `minecraft-0.3` → `world-records` →
 identyfikator świata) oraz szacowany rozmiar danych w MiB i bajtach. Szczegóły
 pozostają w panelu pauzy; są też aktualizowane po autozapisie i wczytaniu.
@@ -76,6 +97,16 @@ przetrwania, craftingu, multiplayera, sterowania dotykowego, synchronizacji
 chmurowej ani gwarancji działania offline/PWA. Więcej szczegółów i aktualne
 bramki wydania zawiera [backlog](../backlog/voxel-sandbox-backlog.md).
 
+From **Your worlds**, creating or deleting a world keeps the list open and
+shows a confirmation. A newly created world is selected and focused; deleting
+the selected world selects another available world without leaving the list.
+Deleting the last world shows the empty state. Select a world or **Continue**
+to choose a play mode. Creating a world from the pause menu still returns
+directly to the play-mode controls. Conflicting world actions are disabled
+during confirmations and pending operations; failures remain visible and
+can be retried. If a change succeeds but refreshing the list fails, the message
+asks you to reload instead of presenting the change as failed.
+
 Przy pierwszym uruchomieniu wersja 0.3 może przenieść poprawne rekordy z dawnej
 bazy `minecraft-0.4`, ale tylko jeśli katalog 0.3 jest pusty. Zachowuje też
 informację o uszkodzonym zapisie, aby pokazać odzyskiwanie lub wymagać
@@ -85,6 +116,39 @@ różne identyfikatory bieżącego i poprzedniego zapisu stają się osobnymi
 odzyskiwania. Stara baza pozostaje nienaruszona. Jeśli migracja się nie
 powiedzie, gra nie zapisuje tymczasowego świata automatycznie; pokaże ponowienie
 migracji albo wymaga osobnego potwierdzenia utworzenia nowego świata.
+
+## Kopie zapasowe / World backups
+
+Na ekranie **Twoje światy** wybierz **Eksportuj** przy wybranym świecie.
+W czasie gry użyj pauzy, a następnie **Wybierz świat**. Gra zapisze najnowsze
+zmiany aktywnego świata przed eksportem; błąd zapisu zatrzyma eksport zamiast
+pobrać starszą wersję. Przeglądarka pobierze plik `.minecraft-world.json`.
+Zachowaj go poza danymi przeglądarki, np. na innym dysku. Komunikat potwierdza
+zlecenie pobierania, nie faktyczne zapisanie pliku na dysku.
+
+**Importuj świat** pozwala odtworzyć plik w tym samym lub innym profilu,
+urządzeniu albo pod innym adresem strony. Import zawsze tworzy osobny świat
+z nowym identyfikatorem i zachowuje nazwę; nigdy nie nadpisuje istniejącego.
+Bieżący świat pozostaje wybrany. Po imporcie wybierz nową kopię z listy.
+Anulowanie wyboru pliku niczego nie zmienia. Obowiązuje limit 10 światów;
+eksport pozostaje dostępny przy pełnym katalogu.
+
+From **Your worlds**, choose **Export** beside a world, or **Import world**
+to restore a backup as a new copy. During play, pause and choose **Choose world**
+first. Keep downloaded files somewhere safe: IndexedDB recovery copies still
+are not external backups. Files stay local; there is no upload or cloud sync.
+
+Backup format v1 is UTF-8 JSON with Base64 block/water data and SHA-256 integrity
+checking over the canonical snapshot fields. It includes the seed, full terrain
+and edits, water, player position/view, material and settings; it excludes
+recovery generations and database revisions. Language stays a browser preference;
+roaming creatures are recreated as on a normal load. Typical files are about
+5.33 MiB, with an 8 MiB import limit checked before reading the file.
+Only compatible Minecraft 0.3 schemas, generator versions and dimensions are
+accepted. Corruption, incompatible versions, unavailable storage, and capacity
+errors are reported without replacing existing worlds. SHA-256 detects accidental
+damage, not who created the file. HTTPS or localhost with Web Crypto is required.
+See the [design and verification plan](../backlog/minecraft-0.3-world-backups.md).
 
 ## Run
 
@@ -110,15 +174,21 @@ is needed to play. Requires a desktop keyboard/mouse and WebGL2.
 - On narrow screens the palette uses compact icons; hover an icon to see its
   name. The icons also retain accessible labels.
 - P / Escape: pause; H / **Menu gier**: return to the portfolio.
-- Follow the roads to the villages and roadside structures. The HUD shows your
-  biome and X/Z coordinates; the pause panel lists destinations. Jump up the watchtower steps.
+- F / **Full screen**: toggle browser fullscreen.
+- Follow the roads to the villages and roadside structures. The pause panel
+  shows your biome and X/Z coordinates and lists destinations; coordinates
+  during play are optional. Jump up the watchtower steps.
 - **Wróć na start**: find a safe supported position without resetting the world.
 - **Nowa łąka**: choose a name (up to 32 characters) and confirm creating a
   world with a different seed; existing worlds remain unchanged.
 - Fullscreen and lower resolution are optional; denied fullscreen leaves windowed play.
-- **Muzyka / Głośność muzyki**: enable or mute the original ambient music and
-  adjust its volume in the start/pause panel. It begins after choosing a play mode
-  and stops when the game is paused or loses focus. Its setting and volume are saved.
+- **Music / Soundtrack / Music volume**: select a random track (the default), a
+  named track, or the original generated music, and adjust the volume in the
+  start/pause panel. Random mode picks another track when one ends; a named track
+  repeats. Playback pauses with the game and resumes at the same position.
+  The on/off setting and volume are saved with the world; the soundtrack choice
+  lasts for the current page session only. If the catalogue cannot be loaded
+  or contains no tracks, the original music is selected and a message is shown.
 
 **Navigation exception:** unlike the 2D games, Escape pauses instead of returning
 to the portfolio because browsers use it to release pointer lock. H still goes home.
@@ -252,6 +322,12 @@ running, apply the server update with `python3 scripts/game-server.py restart`.
 The original melodic instrumental
 soundtrack is generated locally with Web Audio, with soft keys, bass and
 sustained harmonies. It does not contain Minecraft music or require downloads.
+MP3, WAV, OGG and M4A files are shared through the repository's `music/` directory. After adding
+or removing tracks, run `python3 scripts/generate-music-catalogue.py` from the
+repository root and refresh the game. Commit both the audio file changes and the
+generated `music/catalogue.json` to publish them on the existing static site.
+Format and codec support varies by browser; an unplayable track reports an error.
+Only publish music you have permission to distribute; files on the site are public.
 
 ## Dependency
 

@@ -105,7 +105,9 @@ class Quest extends Phaser.Scene {
     this.input.keyboard.on('keydown-M', () => toggleSound());
     this.input.keyboard.on('keydown-ESC', () => { location.href = '../index.html'; });
     this.input.keyboard.on('keydown-H', () => { location.href = '../index.html'; });
-    this.input.keyboard.on('keydown-ENTER', () => this.primary());
+    this.input.keyboard.on('keydown-ENTER', () => {
+      if (!document.activeElement?.matches('a.player-guide')) this.primary();
+    });
     this.buildLevel();
     this.scale.on('resize', () => this.resizeCamera());
     this.game.events.on('blur', () => { if (this.phase === 'playing') this.togglePause(); });

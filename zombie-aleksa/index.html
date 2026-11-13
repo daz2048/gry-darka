@@ -102,6 +102,7 @@
     #layout { grid-template-columns: 1fr; grid-template-areas: "stage" "help"; }
   }
 </style>
+<link rel="stylesheet" href="../player-links.css">
 </head>
 <body>
   <div id="wrap">
@@ -139,6 +140,7 @@
       </div>
       <aside id="sidebar">
         <div id="help">
+          <a class="player-guide" href="../help.html#zombie" target="_blank" rel="noopener">Pomoc (nowa karta)</a>
           <a class="back" href="../">← Back</a>
           <span><strong>Controls:</strong></span>
           <span>↑↓ or W/S = Move</span>
@@ -570,6 +572,12 @@
       ensureAudio();
       if (state === 'play') targetY = clamp(targetY + Math.sign(e.deltaY) * 40, minY(), maxY());
     }, { passive: false });
+
+    document.querySelector('a.player-guide').addEventListener('click', () => {
+      if (state === 'play') state = 'pause';
+      steering = false;
+      keys.up = keys.down = false;
+    });
 
     window.addEventListener('keydown', e => {
       ensureAudio();

@@ -73,6 +73,40 @@ do not infer support for every Mac from one machine. Test 1280x720 and compact
 - Node 26.13.1 is currently available on this Mac for tests; Node/npm are not
   needed to play the browser game.
 
+### Gameplay HUD polish (2026-11-13)
+
+- [x] Use gameplay state, not fullscreen, for a compact HUD in captured-mouse
+  and drag-to-look modes. Remove the decorative world card from play; show the
+  world name in pause/world selection instead.
+- [x] Keep crosshair, compact material categories/swatches, selected material
+  name and contextual target name. Hide the target label when nothing is in reach.
+- [x] Move branding/language/navigation/manual-save controls and the local-save
+  explanation out of the playing view. Show control hints for eight seconds
+  on first use of each mode; retain full instructions in pause.
+- [x] Make biome/coordinates optional during play, off by default, with the
+  current location always available in pause. The toggle is page-session only.
+- [x] Keep a quiet save-status indicator and persistent save-failure/conflict
+  warnings with access to pause/recovery. Do not clear warnings on edits or
+  pending retries; clear them after success or loading a safe world state.
+  Keep routine success feedback short and full save details in pause diagnostics.
+- [ ] Fresh-player playtest: tune the eight-second hint duration, short palette
+  category labels and icon-only slots after observing discoverability.
+- [ ] Native Chrome/macOS release verification: both control modes, entering/
+  leaving real fullscreen, 1280x720 and 800x600, EN/PL, and bright/dark terrain.
+  Embedded-browser smoke tests do not replace this release gate.
+- [ ] Consider user-controlled HUD hiding for screenshots and remembering the
+  coordinate display preference between visits. These are follow-up enhancements,
+  not reasons to hide critical save warnings.
+
+Embedded-browser smoke checks verified drag-mode gameplay/pause transitions,
+EN/PL, keyboard and clickable material selection, optional coordinates,
+eight-second hints, and injected save failure/conflict warnings surviving edits
+and transient notices, then clearing after successful save/reload.
+Responsive embedded viewports measured a 116 px HUD at 1280x720 and 800x600
+(coordinates off), and 103 px at 480x400, with all slots inside the viewport.
+Native pointer capture was denied by the embedded document; its recovery screen
+worked, but real captured-mouse/fullscreen verification remains pending above.
+
 ### Work packages and execution order
 
 Statuses below distinguish implemented work from the remaining release gates.

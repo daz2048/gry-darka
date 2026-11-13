@@ -1,11 +1,12 @@
 // Service worker — Pojedynek Zamków (PWA, offline app shell)
-const CACHE = 'pz-v2';
+const CACHE = 'pz-v3';
 const ASSETS = [
   './',
   './index.html',
   './matter.min.js',
   './manifest.webmanifest',
-  './icon.svg'
+  './icon.svg',
+  '../player-links.css'
 ];
 
 self.addEventListener('install', function (e) {

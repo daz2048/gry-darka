@@ -502,7 +502,15 @@ export class WorldSaveStore {
     };
   }
 
-  async save(snapshot, expected, { replaceCorrupt = false } = {}) {
+  async importWorld(snapshot) {
+    validateSnapshot(snapshot);
+    const worldId = crypto.randomUUID();
+    return this.save({ ...snapshot, worldId }, {
+      exists: false, revision: null, worldId
+    }, { activate: false });
+  }
+
+  async save(snapshot, expected, { replaceCorrupt = false, activate = true } = {}) {
     validateSnapshot(snapshot);
     const db = await this.db();
     if (!this.migration) this.migration = this.prepareCatalog(db);
@@ -557,7 +565,7 @@ export class WorldSaveStore {
         };
         records.put(savedRecord, WORLD_KEY(worldId));
         catalog.put(entry, CATALOG_KEY(worldId));
-        catalog.put(worldId, ACTIVE_KEY);
+        if (activate) catalog.put(worldId, ACTIVE_KEY);
         setResult(savedRecord);
       };
       currentRequest.onsuccess = () => { current = currentRequest.result; complete(); };
