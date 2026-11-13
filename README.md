@@ -356,8 +356,8 @@ Oryginalna gra — broń bazę przed falami zombie. Przesuwaj ekipę w pionie, s
 Dotychczasowy wariant Maksa.
 - [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-0.1/)
 
-#### Zombie Max 0.2 (w przygotowaniu)
-Nowa wersja rozwijana jako osobny wariant.
+#### Zombie Max 0.2 (dostępny)
+Nowa wersja dostępna jako osobny wariant.
 - [Zagraj »](https://dariusz22p.github.io/gry-darka/zombie-max-0.2/)
 
 #### Zombie Aleksa

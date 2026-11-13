@@ -11,14 +11,14 @@ import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DAT
   MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
   suggestUniqueWorldName } from './saves.js?v=16';
 import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=7';
-import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=16';
+import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=18';
 import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=13';
 
 initDiagnostics();
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
   'pause', 'recover', 'new-world', 'choose-world', 'fullscreen', 'world-picker', 'world-picker-status',
-  'world-list', 'world-continue', 'world-create', 'world-import', 'world-import-file', 'world-transfer-status',
+  'world-list', 'world-continue', 'world-private', 'world-create', 'world-import', 'world-import-file', 'world-transfer-status',
   'world-bulk-controls', 'world-select-all', 'world-delete-selected',
   'world-action-confirm', 'world-action-message',
   'world-action-name-label', 'world-action-name', 'confirm-world-action', 'cancel-world-action',
@@ -308,6 +308,7 @@ let saveInProgress = null;
 let autosaveTimer = null;
 let lastSavedAt = 0;
 let lastTrackedState = null;
+let privateSession = false;
 let allowUnsavedNavigation = false;
 let pendingHomeHref = null;
 let recoveryRecord = null;
@@ -356,7 +357,7 @@ function renderDestinations() {
 renderDestinations();
 
 function renderWorldPicker() {
-  const busy = selectingWorld || transferringWorld || mutatingWorld ||
+  const busy = selectingWorld || transferringWorld || mutatingWorld || Boolean(saveInProgress) ||
     Boolean(pendingWorldAction) || !ui['reset-confirm'].hidden;
   const validWorlds = savedWorlds.filter(entry => !entry.corrupt);
   const mostRecent = validWorlds[0];
@@ -370,6 +371,7 @@ function renderWorldPicker() {
   ui['world-select-all'].indeterminate = selectedWorldIds.size > 0 && selectedWorldIds.size < savedWorlds.length;
   ui['world-continue'].hidden = !mostRecent;
   ui['world-continue'].disabled = busy;
+  ui['world-private'].disabled = busy;
   if (mostRecent) {
     const playLabel = t('worldPicker.play');
     const worldPlaceholder = '{world}';
@@ -611,10 +613,12 @@ function renderSavedPauseNotice() {
 
 function updateSaveControls() {
   const blocked = ['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate);
-  ui['save-now'].disabled = !saveInitialized || Boolean(saveInProgress) || mutatingWorld || blocked ||
+  ui['save-now'].hidden = privateSession;
+  ui['save-now'].disabled = privateSession || !saveInitialized || Boolean(saveInProgress) || mutatingWorld || blocked ||
     (!saveDirty && !lastSavedAt);
-  ui['reload-save'].hidden = !['conflict', 'migration'].includes(saveGate);
+  ui['reload-save'].hidden = privateSession || !['conflict', 'migration'].includes(saveGate);
   setText(ui['reload-save'], saveGate === 'migration' ? 'button.retryMigration' : 'button.reloadSave');
+  ui['new-world'].hidden = privateSession;
 }
 
 function setSaveStatus(key, state = 'normal', params) {
@@ -671,6 +675,7 @@ function scheduleAutosave() {
 }
 
 function markDirty() {
+  if (privateSession) return;
   const wasDirty = saveDirty;
   saveDirty = true;
   saveGeneration++;
@@ -747,6 +752,7 @@ function showSavedDetails(record, labelKey = 'details.labelSaved') {
 }
 
 async function saveWorld({ snapshot = null, replaceCorrupt = false, expected: expectedOverride = null } = {}) {
+  if (privateSession) return null;
   if (!saveInitialized) throw codedError('save-loading');
   if (['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate) && !replaceCorrupt) {
     throw codedError('save-blocked');
@@ -961,6 +967,7 @@ async function selectSavedWorld(selectedId, { keepPickerOpen = false } = {}) {
     saveExpected = result.expected;
     await saveStore.activateWorld(selectedId);
     if (result.status === 'corrupt') {
+      privateSession = false;
       worldId = selectedId;
       saveGate = 'corrupt';
       saveDirty = false;
@@ -975,6 +982,7 @@ async function selectSavedWorld(selectedId, { keepPickerOpen = false } = {}) {
     }
 
     const recoveredPosition = installRecord(result.record);
+    privateSession = false;
     saveDirty = false;
     saveGate = result.status === 'recovery' ? 'recovery' : null;
     lastSavedAt = result.record.savedAt;
@@ -1017,6 +1025,39 @@ async function openWorldPicker() {
   ui['play-actions'].hidden = true;
   ui['secondary-actions'].hidden = true;
   renderWorldPicker();
+}
+
+function startPrivateSession() {
+  if (selectingWorld || transferringWorld || mutatingWorld || saveInProgress || pendingWorldAction) return;
+  clearTimeout(autosaveTimer);
+  autosaveTimer = null;
+  worldFeedback = null;
+  privateSession = true;
+  saveDirty = false;
+  saveGeneration++;
+  saveGate = null;
+  saveExpected = { exists: false, revision: null, worldId: null };
+  lastSavedAt = 0;
+  recoveryRecord = null;
+  saveDetails = null;
+  renderSaveDetails();
+  ui['save-recovery'].hidden = true;
+  const nextWorld = new World(crypto.getRandomValues(new Uint32Array(1))[0]);
+  worldId = crypto.randomUUID();
+  worldName = t('worldPicker.privateName');
+  ui['world-name'].textContent = displayWorldName(worldName);
+  installWorld(nextWorld, createPlayer(nextWorld), 0, -0.13);
+  edits = 0;
+  setSaveStatus('save.private');
+  setText(ui['session-note'], 'session.private');
+  setText(ui['load-status'], 'load.privateReady');
+  ui['start'].disabled = false;
+  ui['drag-start'].disabled = false;
+  ui['world-picker'].hidden = true;
+  ui['play-actions'].hidden = false;
+  ui['secondary-actions'].hidden = false;
+  updateSaveControls();
+  ui['drag-start'].focus();
 }
 
 function prepareMusic() {
@@ -1359,6 +1400,7 @@ ui['world-continue'].addEventListener('click', () => {
   const recent = savedWorlds.find(entry => !entry.corrupt);
   if (recent) selectSavedWorld(recent.worldId).catch(reportError);
 });
+ui['world-private'].addEventListener('click', startPrivateSession);
 ui['world-create'].addEventListener('click', () => ui['new-world'].click());
 ui['world-import'].addEventListener('click', () => {
   ui['world-import-file'].value = '';
@@ -1779,9 +1821,9 @@ renderer.domElement.addEventListener('webglcontextlost', event => {
 });
 
 function updateCoordinates() {
-  ui.coordinates.textContent =
-    `${biomeName(biomeAt(player.x, player.z))} · X ${Math.floor(player.x)} · Z ${Math.floor(player.z)}`;
-  ui['pause-coordinates'].textContent = ui.coordinates.textContent;
+  const position = `X ${Math.floor(player.x)} · Z ${Math.floor(player.z)}`;
+  ui.coordinates.textContent = `${biomeName(biomeAt(player.x, player.z))} · ${position}`;
+  ui['pause-coordinates'].textContent = ` · ${position}`;
 }
 
 onLanguageChange(() => {
@@ -1791,7 +1833,9 @@ onLanguageChange(() => {
   renderWorldAction();
   renderSaveDetails();
   updateCoordinates();
-  ui['world-name'].textContent = displayWorldName(worldName);
+  ui['world-name'].textContent = displayWorldName(
+    privateSession ? t('worldPicker.privateName') : worldName
+  );
 });
 
 function frame(now) {

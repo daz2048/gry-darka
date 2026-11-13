@@ -98,7 +98,8 @@ informuje, że zmiany nie są zapisane. Wykryty konflikt między kartami wymaga
 wczytania aktualnej wersji, zamiast cichego nadpisania.
 
 Na ekranie startowym możesz wybrać zapisany świat albo kontynuować ostatnio
-używany. Każdy świat ma osobny zapis i kopię odzyskiwania. **Utwórz nowy
+używany. **Incognito** tworzy tymczasowy świat bez zapisu i nie zmienia
+zapisanych światów. Każdy świat ma osobny zapis i kopię odzyskiwania. **Utwórz nowy
 świat** pozwala wpisać nazwę (maksymalnie 32 znaki); nazwy nie muszą być
 unikalne. Proponowana nazwa zawiera datę i godzinę utworzenia (`YYMMDD new
 world HHMM`), jest edytowalna i dostaje kolejny numer, jeśli taka nazwa już
@@ -126,6 +127,9 @@ the pause menu still returns directly to the play-mode controls. Conflicting
 world actions are disabled during confirmations and pending operations; failures
 remain visible and can be retried. If a change succeeds but refreshing the list
 fails, the message asks you to reload instead of presenting the change as failed.
+Choose **Incognito** to generate a temporary, unsaved world; it does not create
+a world entry or modify any saved world. Its tooltip explains that progress
+cannot be saved.
 
 Przy pierwszym uruchomieniu wersja 0.5 może przenieść poprawne starsze sloty z
 bazy `minecraft-0.3`, ale tylko jeśli katalog 0.5 jest pusty. Zachowuje też

@@ -1,4 +1,4 @@
-import { locale, onLanguageChange, t } from './i18n.js?v=16';
+import { locale, onLanguageChange, t } from './i18n.js?v=18';
 
 export async function readSaveStorageStatus(store, worldId, storage = globalThis.navigator?.storage) {
   const [backup, persistence] = await Promise.allSettled([

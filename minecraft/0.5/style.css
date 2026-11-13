@@ -29,6 +29,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   50% { box-shadow: 0 0 16px 5px #ffc93cdd; background-color: #fff3b0; }
 }
 .current-world { overflow-wrap: anywhere; }
+.panel .current-world { font-size: 11px; }
 .playing .topbar { padding: 12px; background: none; }
 .playing .brand, .playing .language-switch, .playing .tools a, .playing #save-now, .playing #reload-save { display: none; }
 .playing .tools { margin-left: auto; align-items: center; }
@@ -129,8 +130,36 @@ h1 em { font-style: normal; color: #ad4934; }
   66% { background: #087b95; border-color: #07556b; box-shadow: 0 3px #07556b, 0 0 12px #14a9c5bb; }
 }
 .world-picker .actions { margin-top: 10px; }
+#world-private {
+  color: #24432b;
+  background: #d3edc4;
+  border: 2px solid #829c74;
+  box-shadow: 0 3px #829c74, 0 0 8px #acd39166;
+  font-size: 14px;
+  font-weight: 800;
+  animation: world-private-pulse 5.5s ease-in-out infinite;
+}
+@keyframes world-private-pulse {
+  0%, 100% { color: #24432b; background: #d3edc4; border-color: #829c74; box-shadow: 0 3px #829c74, 0 0 8px #acd39166; }
+  34% { color: #fff; background: #356f42; border-color: #245a32; box-shadow: 0 3px #245a32, 0 0 11px #4e985a66; }
+  68% { color: #36443a; background: #e1e5e1; border-color: #aab5aa; box-shadow: 0 3px #aab5aa, 0 0 7px #cbd4cb77; }
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 #world-transfer-status { overflow-wrap: anywhere; }
 .panel .small { font-size: 11px; }
+.scope-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; }
+.scope-row p { margin: 0; }
+.panel > p[data-i18n="overlay.dragInfo"] { color: #707873; }
 .panel .player-guide { display: inline; width: auto; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 0; font: inherit; }
 #save-details { white-space: pre-line; overflow-wrap: anywhere; padding: 10px; border: 1px solid #9db19a; border-radius: 8px; background: #eff5ed; }
 #save-details[data-state="saved"] { color: #285d38; }
@@ -205,4 +234,4 @@ output { display: block; white-space: pre-wrap; margin-top: 8px; font-family: mo
   .slot kbd { top: 0; left: 2px; font-size: 9px; }
 }
 @media (max-height: 480px) { .slot { min-height: 38px; padding: 10px 2px 2px; font-size: 10px; } .swatch { width: 18px; height: 18px; } #palette { padding: 4px; } #target { font-size: 11px; padding: 4px 10px; } #palette-pages button { padding: 4px; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } .tools #save-now:not(:disabled) { animation: none; box-shadow: 0 0 10px 3px #ffc93ccc; } .save-confirmation, .save-confirmation::after, .world-actions .world-export-button, #world-import, #choose-world, #world-continue:not(:disabled), .world-play-action { animation: none; } .reset-confirm.delete-confirm-active { animation: none; background: #ffed00; border-color: #a77a00; } .delete-confirm-flash, .delete-confirm-breathe { animation: none; background: #c83d36; border-color: #922820; color: #fff; outline: 3px solid #c83d36; outline-offset: 3px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } .tools #save-now:not(:disabled) { animation: none; box-shadow: 0 0 10px 3px #ffc93ccc; } .save-confirmation, .save-confirmation::after, .world-actions .world-export-button, #world-import, #choose-world, #world-continue:not(:disabled), #world-private, .world-play-action { animation: none; } .reset-confirm.delete-confirm-active { animation: none; background: #ffed00; border-color: #a77a00; } .delete-confirm-flash, .delete-confirm-breathe { animation: none; background: #c83d36; border-color: #922820; color: #fff; outline: 3px solid #c83d36; outline-offset: 3px; } }

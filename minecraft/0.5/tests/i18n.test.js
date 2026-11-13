@@ -56,6 +56,17 @@ test('world-limit message is localized and includes the configured maximum', () 
   assert.match(t('worldPicker.limitReached', { count: 10 }), /10/);
 });
 
+test('incognito play explains that no world or progress will be saved in both languages', () => {
+  assert.equal(MESSAGES.en['worldPicker.private'], 'Incognito');
+  assert.equal(MESSAGES.pl['worldPicker.private'], 'Incognito');
+  assert.match(MESSAGES.en['worldPicker.privateHelp'], /No saved world is created or changed.*cannot be saved/i);
+  assert.match(MESSAGES.pl['worldPicker.privateHelp'], /zapisany świat.*nie można zapisać/);
+  assert.match(MESSAGES.en['session.private'], /not saved.*saved worlds are untouched/i);
+  assert.match(MESSAGES.pl['session.private'], /nie są zapisywane.*pozostają bez zmian/);
+  assert.match(MESSAGES.en['save.private'], /not saving/i);
+  assert.match(MESSAGES.pl['save.private'], /brak zapisu/i);
+});
+
 test('game branding is localized for the launch screen', () => {
   assert.equal(MESSAGES.en['overlay.eyebrow'], 'Podlasie Blocks · The Lime Tree Crew · <b class="version-highlight">v0.5</b>');
   assert.equal(MESSAGES.pl['overlay.eyebrow'], 'KLOCKI PODLASIA · EKIPA SPOD LIPY · <b class="version-highlight">v0.5</b>');

@@ -89,7 +89,7 @@ Jesteś dowódcą zespołu. Twoim zadaniem jest:
 ## 🔀 Inne warianty
 
 - [Napór Zombie (Vanilla)](https://dariusz22p.github.io/gry-darka/napor-zombie-vanilla/) — prototyp bazowy
-- [Max 0.2](https://dariusz22p.github.io/gry-darka/zombie-max-0.2/) — nowa wersja w przygotowaniu
+- [Max 0.2](https://dariusz22p.github.io/gry-darka/zombie-max-0.2/) — nowa wersja już dostępna
 - [Aleksa](https://dariusz22p.github.io/gry-darka/zombie-aleksa/) — wariant Aleksa
 
 ---

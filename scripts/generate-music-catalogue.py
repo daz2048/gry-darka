@@ -79,11 +79,16 @@ def report_generation(directory):
         f"{colorize(f'Music catalogue wrapper v{WRAPPER_VERSION}', '1;36')} | "
         f"branch: {colorize(branch_name(), '35')}"
     )
+    print(f"\n{colorize('>>> Catalogue', '1;36')}")
+    print(f"Scanned directory: {directory.resolve()}")
     change_color = "32" if change in {"created", "updated"} else "33"
     print(
         f"{colorize('Catalogue:', '36')} {destination} "
         f"{colorize(f'({change})', change_color)}"
     )
+    print(f"\n{colorize('>>> Track changes', '1;36')}")
+    new_files = {path.name for path in files}
+    old_files = None
     if previous is not None:
         try:
             old_tracks = json.loads(previous)
@@ -97,24 +102,38 @@ def report_generation(directory):
                   f"{colorize('unavailable (previous catalogue was invalid)', '33')}")
         else:
             old_files = {track["file"] for track in old_tracks}
-            new_files = {path.name for path in files}
-            print(
-                f"{colorize('Track changes:', '36')} "
-                f"{colorize(f'+{len(new_files - old_files)}', '32')} / "
-                f"{colorize(f'-{len(old_files - new_files)}', '31')}"
-            )
     else:
+        old_files = set()
+
+    if old_files is not None:
+        added = sorted(new_files - old_files)
+        removed = sorted(old_files - new_files)
+        suffix = f" {colorize('(new catalogue)', '33')}" if previous is None else ""
         print(
             f"{colorize('Track changes:', '36')} "
-            f"{colorize(f'+{len(files)}', '32')} / {colorize('-0', '31')} "
-            f"{colorize('(new catalogue)', '33')}"
+            f"{colorize(f'+{len(added)}', '32')} / "
+            f"{colorize(f'-{len(removed)}', '31')}{suffix}"
         )
+        if added:
+            print("Added to catalogue:")
+            for name in added:
+                print(f"  + {json.dumps(name, ensure_ascii=False)}")
+        else:
+            print("No new songs added.")
+        if removed:
+            print("Removed from catalogue:")
+            for name in removed:
+                print(f"  - {json.dumps(name, ensure_ascii=False)}")
+        else:
+            print("No songs removed.")
 
     formats = Counter(path.suffix.lower().lstrip(".") for path in files)
     format_summary = ", ".join(f"{extension}: {count}" for extension, count in sorted(formats.items()))
     total_bytes = sum(path.stat().st_size for path in files)
+    print(f"\n{colorize('>>> Summary', '1;36')}")
     print(f"{colorize('Stats:', '36')} {len(files)} track(s) | {total_bytes:,} audio bytes | "
           f"formats: {format_summary or 'none'} | {time.monotonic() - started:.3f}s")
+    print(f"\n{colorize('>>> Next steps', '1;36')}")
     print(colorize(
         "Next: review the catalogue and audio changes; include both when publishing.",
         "1;33",

@@ -23,10 +23,15 @@ catalogue refresh or custom Pages deployment workflow.**
    without the extension. Filenames containing backslashes or with a blank
    name before the extension are rejected; rename them and rerun the command.
    An empty directory produces an empty catalogue.
-   The wrapper reports its version and Git branch, whether the catalogue was
-   created, updated or unchanged, track additions and removals, audio sizes,
-   formats and elapsed time. It also reminds you to review the resulting changes.
-   Pass a directory as an argument to generate a catalogue somewhere else.
+   The wrapper reports the scanned directory and whether the catalogue was
+   created, updated or unchanged. Its track changes section lists added and
+   removed filenames, or explicitly says when there are none. If the previous
+   catalogue was invalid, the changes are unknown. The summary includes audio
+   sizes, formats and elapsed time.
+   The default is always the shared `music/` directory, regardless of the
+   current directory. Pass a directory as an argument to generate a catalogue
+   somewhere else; for example, from `music/scary_music/`, run
+   `../../scripts/generate-music-catalogue.sh .` to scan that directory.
 3. Review both the track changes and catalogue:
 
    ```sh
