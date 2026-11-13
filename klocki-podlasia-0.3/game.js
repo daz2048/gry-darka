@@ -7,9 +7,10 @@ import { createPlayer, collides, stepPlayer } from './player.js?v=2';
 import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
 import { AmbientMusic } from './music.js?v=3';
 import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, WORLD_STORE,
-  MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore } from './saves.js?v=8';
-import { biomeName, blockName, getLanguage, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=3';
-import { initDiagnostics } from './diagnostics.js?v=1';
+  MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
+  suggestUniqueWorldName } from './saves.js?v=9';
+import { biomeName, blockName, getLanguage, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=4';
+import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=2';
 
 initDiagnostics();
 
@@ -413,7 +414,9 @@ function renderSaveDetails() {
       time: savedTime(record.savedAt),
       location,
       size: new Intl.NumberFormat(locale(), { maximumFractionDigits: 2 }).format(bytes / 1024 / 1024),
-      bytes: bytes.toLocaleString(locale())
+      bytes: bytes.toLocaleString(locale()),
+      backup: t(`details.backup.${saveDetails.backup}`),
+      persistence: t(`details.persistence.${saveDetails.persistence}`)
     }) + (pending ? `\n${t('details.pending')}` : '');
   }
   element.dataset.state = saveDetails.state;
@@ -421,8 +424,17 @@ function renderSaveDetails() {
 }
 
 function showSavedDetails(record, labelKey = 'details.labelSaved') {
-  saveDetails = { state: 'saved', record, labelKey, pending: saveDirty };
+  const details = {
+    state: 'saved', record, labelKey, pending: saveDirty,
+    backup: 'checking', persistence: 'checking'
+  };
+  saveDetails = details;
   renderSaveDetails();
+  readSaveStorageStatus(saveStore, record.worldId).then(status => {
+    if (saveDetails !== details) return;
+    Object.assign(details, status);
+    renderSaveDetails();
+  });
 }
 
 async function saveWorld({ snapshot = null, replaceCorrupt = false, expected: expectedOverride = null } = {}) {
@@ -952,7 +964,11 @@ ui['new-world'].addEventListener('click', () => {
   setText(ui['reset-message'], ['recovery', 'corrupt', 'migration'].includes(saveGate) ?
     `reset.${saveGate}` : 'reset.normal');
   ui['reset-confirm'].hidden = false;
-  ui['world-name-input'].value = t('world.newDefault');
+  ui['world-name-input'].value = suggestUniqueWorldName(
+    savedWorlds.map(entry => entry.worldName || ''),
+    new Date(),
+    t('world.newDefault').toLocaleLowerCase(locale())
+  );
   ui['world-name-input'].focus();
 });
 ui['cancel-reset'].addEventListener('click', () => {

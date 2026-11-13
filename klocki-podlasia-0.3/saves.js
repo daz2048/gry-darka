@@ -16,6 +16,20 @@ const MIGRATED_KEY = 'meta:migrated';
 const CELL_COUNT = SIZE[0] * SIZE[1] * SIZE[2];
 const MAX_SEED = 0xffffffff;
 
+export function suggestUniqueWorldName(existingNames, date = new Date(), label = 'new world') {
+  const pad = value => String(value).padStart(2, '0');
+  const dateStamp = `${String(date.getFullYear()).slice(-2)}${pad(date.getMonth() + 1)}${pad(date.getDate())}`;
+  const timeStamp = `${pad(date.getHours())}${pad(date.getMinutes())}`;
+  const base = `${dateStamp} ${label} ${timeStamp}`;
+  const existing = new Set(existingNames.map(name => name.trim().toLowerCase()));
+  let candidate = base;
+  for (let suffix = 2; existing.has(candidate.toLowerCase()); suffix++) {
+    const discriminator = ` (${suffix})`;
+    candidate = `${base.slice(0, 32 - discriminator.length)}${discriminator}`;
+  }
+  return candidate;
+}
+
 export class SaveConflictError extends Error {
   constructor() {
     super('The save changed in another tab. Load the latest version before saving.');

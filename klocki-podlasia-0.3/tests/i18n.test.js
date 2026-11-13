@@ -77,6 +77,25 @@ test('translation switches language and fills placeholders', () => {
   assert.equal(t('missing.key'), 'missing.key');
 });
 
+test('save details include localized backup and persistence status instead of a disk path', () => {
+  const params = {
+    label: '', name: 'World', time: '08:26', location: 'IndexedDB',
+    backup: 'BACKUP_STATUS', persistence: 'PERSISTENCE_STATUS', size: '1', bytes: '1024'
+  };
+  for (const language of LANGUAGES) {
+    setLanguage(language, { persist: false });
+    const details = t('details.saved', params);
+    assert.match(details, /BACKUP_STATUS/);
+    assert.match(details, /PERSISTENCE_STATUS/);
+    assert.doesNotMatch(details, /filesystem path|ścieżka na dysku/i);
+    for (const key of ['backup.available', 'backup.missing', 'backup.unavailable',
+      'persistence.persistent', 'persistence.evictable', 'persistence.unavailable']) {
+      assert.notEqual(t(`details.${key}`), `details.${key}`);
+    }
+  }
+  setLanguage('en', { persist: false });
+});
+
 test('model diagnostics include render-buffer resolution in both languages', () => {
   const params = {
     revision: '180',

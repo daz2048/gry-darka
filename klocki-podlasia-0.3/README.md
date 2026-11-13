@@ -65,7 +65,9 @@ wczytania aktualnej wersji, zamiast cichego nadpisania.
 Na ekranie startowym możesz wybrać zapisany świat albo kontynuować ostatnio
 używany. Każdy świat ma osobny zapis i kopię odzyskiwania. **Utwórz nowy
 świat** pozwala wpisać nazwę (maksymalnie 32 znaki); nazwy nie muszą być
-unikalne. Możesz zapisać maksymalnie 10 światów w profilu przeglądarki dla tego
+unikalne. Proponowana nazwa zawiera datę i godzinę utworzenia (`YYMMDD new
+world HHMM`), jest edytowalna i dostaje kolejny numer, jeśli taka nazwa już
+istnieje. Możesz zapisać maksymalnie 10 światów w profilu przeglądarki dla tego
 adresu strony; usuń jeden, aby zrobić miejsce na kolejny. Utworzenie nie
 zastępuje istniejącego świata. Możesz zmieniać nazwy światów albo je usuwać;
 usunięcie wymaga potwierdzenia i obejmuje kopię
@@ -223,7 +225,10 @@ claims.
 The pause panel's diagnostics show the world dimensions and seed, render-buffer
 resolution and pixel ratio, frames, draw calls, live geometries, first-render
 time and frame-time median/p95. Save details, including the saved world name,
-time, browser storage location and estimated data size, are in the same section.
+time, browser storage location, recovery-copy availability, storage persistence
+and estimated data size, are in the same section. The recovery copy is stored in
+the same browser profile, not as an independent backup. Persistent storage can
+still be cleared manually; non-persistent site data may be evicted by the browser.
 
 With the repository game server, this section also shows the current checkout's
 branch, clean/modified working tree (including untracked files), full commit hash,

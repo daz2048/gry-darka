@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { World, SIZE } from '../world.js';
 import { createPlayer } from '../player.js';
-import { applySnapshot, createSnapshot, CorruptSaveError, saveDataSize, validateSnapshot } from '../saves.js';
+import {
+  applySnapshot, createSnapshot, CorruptSaveError, saveDataSize, suggestUniqueWorldName, validateSnapshot
+} from '../saves.js';
 
 function makeSnapshot() {
   const world = new World(42);
@@ -48,6 +50,16 @@ test('snapshot validation rejects blank or oversized world names', () => {
   for (const worldName of ['', '   ', 'x'.repeat(33)]) {
     assert.throws(() => validateSnapshot({ ...snapshot, worldName }), CorruptSaveError);
   }
+});
+
+test('new-world proposals use local date and time and avoid existing names', () => {
+  const date = new Date(2026, 10, 13, 9, 17);
+  const first = suggestUniqueWorldName([], date, 'new world');
+  assert.equal(first, '261113 new world 0917');
+  assert.equal(suggestUniqueWorldName([first], date, 'new world'), `${first} (2)`);
+  assert.equal(suggestUniqueWorldName([first, `${first} (2)`], date, 'new world'), `${first} (3)`);
+  assert.equal(suggestUniqueWorldName([first.toUpperCase()], date, 'new world'), `${first} (2)`);
+  assert.ok(first.length <= 32);
 });
 
 test('save size counts binary world data and UTF-8 metadata without expanding arrays to JSON', () => {

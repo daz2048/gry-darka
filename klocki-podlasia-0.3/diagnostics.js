@@ -1,4 +1,24 @@
-import { locale, onLanguageChange, t } from './i18n.js?v=3';
+import { locale, onLanguageChange, t } from './i18n.js?v=4';
+
+export async function readSaveStorageStatus(store, worldId, storage = globalThis.navigator?.storage) {
+  const [backup, persistence] = await Promise.allSettled([
+    Promise.resolve().then(() => store.loadWorld(worldId)),
+    Promise.resolve().then(() => {
+      if (typeof storage?.persisted !== 'function') return null;
+      return storage.persisted();
+    })
+  ]);
+  if (backup.status === 'rejected') console.error('Cannot check the world recovery copy:', backup.reason);
+  if (persistence.status === 'rejected') console.error('Cannot check storage persistence:', persistence.reason);
+  return {
+    backup: backup.status === 'fulfilled' && typeof backup.value?.previousAvailable === 'boolean'
+      ? backup.value.previousAvailable ? 'available' : 'missing'
+      : 'unavailable',
+    persistence: persistence.status === 'fulfilled' && typeof persistence.value === 'boolean'
+      ? persistence.value ? 'persistent' : 'evictable'
+      : 'unavailable'
+  };
+}
 
 export function relativeAge(timestamp, now = Date.now()) {
   const milliseconds = new Date(timestamp).getTime();
@@ -62,12 +82,13 @@ export function initDiagnostics() {
       t('diagnostics.page', { age: relativeAge(loadedAt), count: runtimeErrorCount }),
       ...runtimeErrors
     ].filter(Boolean).join('\n');
-    output.dataset.state = statusError || runtimeErrorCount || status && (!status.git || status.server.httpErrors || status.server.serverErrors)
+    output.dataset.state = statusError || logError || runtimeErrorCount || status && (!status.git || status.server.httpErrors || status.server.serverErrors)
       ? 'error' : status ? 'healthy' : 'waiting';
     logButton.textContent = t(logs.hidden ? 'diagnostics.showLogs' : 'diagnostics.hideLogs');
     logs.textContent = logError ? t('diagnostics.logsError', { error: logError })
       : logText === null ? t('diagnostics.logsLoading')
       : `${t(logsTruncated ? 'diagnostics.logsTruncated' : 'diagnostics.logsRecent')}\n${logText || t('diagnostics.logsEmpty')}`;
+    logs.dataset.state = logError ? 'error' : 'ready';
   }
 
   async function fetchJSON(path) {
