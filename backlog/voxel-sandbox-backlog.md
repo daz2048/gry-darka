@@ -22,6 +22,7 @@ with unlimited materials, leave and resume their creation without starting over.
 | Other browsers | Safari, Firefox, Edge and embedded VS Code Chromium are not release targets; do not claim compatibility from Chrome results |
 | Gameplay | Creative exploration and building; retain the existing world, materials, structures, animals and music |
 | Persistence | One local world slot for 0.3, automatic and manual save, player/view/material/settings restore |
+| Language | English by default with an EN/PL switch; choice kept in `localStorage`, `?lang=` overrides per visit; proper names stay Polish |
 | Excluded from release blockers | Mobile/touch, survival, health/hunger, crafting, multiplayer, cloud sync, accounts and offline/PWA guarantees |
 | Optional polish | Three dismissible building ideas: house, bridge and garden; no quests, rewards or resource requirements |
 | Isolation | The renamed game lives in `klocki-podlasia-0.3/`; versions 0.1 and 0.2 remain preserved. The earlier tracked 0.3 implementation was intentionally removed with user approval on 2026-11-12; do not restore it over this release. Keep the `Minecraft-0.4` feature branch name and leave the existing `Minecraft-0.3` branch untouched. Preserve unrelated games/data. |
@@ -53,7 +54,7 @@ do not infer support for every Mac from one machine. Test 1280x720 and compact
   Version 0.3 restored the same seed, player position and selected material and
   reported the migration complete; the migration code leaves the old database
   untouched. Existing-target and damaged-legacy migration cases remain pending.
-- The test suite passes **38/38**. Browser storage checks used temporary Chrome
+- The test suite passes **45/45**, including translation coverage in `tests/i18n.test.js`. Browser storage checks used temporary Chrome
   profiles, not the user's normal profile.
 - Reference machine: macOS 27.2, Apple M3, 16 GiB RAM; standalone Chrome
   157.0.8103.78. Current app-level timings are from headless Chrome: 20 saves

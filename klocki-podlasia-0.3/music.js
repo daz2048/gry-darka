@@ -47,7 +47,7 @@ export class AmbientMusic {
   }
 
   async prepare() {
-    if (!this.AudioContextClass) throw new Error('Web Audio jest niedostępne.');
+    if (!this.AudioContextClass) throw new Error('Web Audio is unavailable.');
     if (!this.context) {
       this.context = new this.AudioContextClass();
       this.output = this.context.createGain();
@@ -55,11 +55,11 @@ export class AmbientMusic {
       this.output.connect(this.context.destination);
     }
     if (this.context.state !== 'running') await this.context.resume();
-    if (this.context.state !== 'running') throw new Error('Przeglądarka zablokowała dźwięk.');
+    if (this.context.state !== 'running') throw new Error('The browser blocked audio.');
   }
 
   setVolume(volume) {
-    if (!Number.isFinite(volume) || volume < 0 || volume > 1) throw new RangeError('Nieprawidłowa głośność muzyki.');
+    if (!Number.isFinite(volume) || volume < 0 || volume > 1) throw new RangeError('Invalid music volume.');
     this.volume = volume;
     if (this.active && this.output) {
       this.output.gain.setTargetAtTime(volume, this.context.currentTime, 0.05);

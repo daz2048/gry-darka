@@ -10,14 +10,14 @@ const MAX_SEED = 0xffffffff;
 
 export class SaveConflictError extends Error {
   constructor() {
-    super('Zapis zmienił się w innej karcie. Wczytaj najnowszą wersję przed zapisem.');
+    super('The save changed in another tab. Load the latest version before saving.');
     this.name = 'SaveConflictError';
     this.code = 'conflict';
   }
 }
 
 export class CorruptSaveError extends Error {
-  constructor(message = 'Zapis świata jest uszkodzony lub niezgodny z tą wersją.') {
+  constructor(message = 'The world save is damaged or incompatible with this version.') {
     super(message);
     this.name = 'CorruptSaveError';
     this.code = 'corrupt';
@@ -32,11 +32,15 @@ export class SaveMigrationError extends Error {
   }
 }
 
+function storageError(message, code) {
+  return Object.assign(new Error(message), { code });
+}
+
 function assert(condition, message) {
   if (!condition) throw new CorruptSaveError(message);
 }
 
-export function createSnapshot(world, player, yaw, pitch, selectedBlock, settings, worldId) {
+export function createSnapshot(world, player, yaw, pitch, selectedBlock, settings, worldId, worldName = 'Łąka') {
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
     generatorVersion: WORLD_GENERATOR_VERSION,
@@ -52,42 +56,49 @@ export function createSnapshot(world, player, yaw, pitch, selectedBlock, setting
       musicEnabled: settings.musicEnabled,
       musicVolume: settings.musicVolume
     },
-    worldId
+    worldId,
+    worldName
   };
 }
 
+export function saveDataSize(record) {
+  const { blocks, water, ...metadata } = record;
+  return blocks.byteLength + water.byteLength +
+    new TextEncoder().encode(JSON.stringify(metadata)).byteLength;
+}
+
 export function validateSnapshot(snapshot) {
-  assert(snapshot && typeof snapshot === 'object', 'Zapis nie zawiera danych świata.');
-  assert(snapshot.schemaVersion === SAVE_SCHEMA_VERSION, 'Nieobsługiwana wersja formatu zapisu.');
-  assert(snapshot.generatorVersion === WORLD_GENERATOR_VERSION, 'Nieobsługiwana wersja generatora świata.');
+  assert(snapshot && typeof snapshot === 'object', 'The save contains no world data.');
+  assert(snapshot.schemaVersion === SAVE_SCHEMA_VERSION, 'Unsupported save format version.');
+  assert(snapshot.generatorVersion === WORLD_GENERATOR_VERSION, 'Unsupported world generator version.');
   assert(Array.isArray(snapshot.dimensions) &&
     snapshot.dimensions.length === SIZE.length &&
     snapshot.dimensions.every((size, axis) => size === SIZE[axis]),
-  'Wymiary zapisanego świata są niezgodne.');
+  'Saved world dimensions do not match.');
   assert(Number.isInteger(snapshot.seed) && snapshot.seed >= 0 && snapshot.seed <= MAX_SEED,
-    'Nieprawidłowe ziarno świata.');
+    'Invalid world seed.');
   assert(snapshot.blocks instanceof Uint8Array && snapshot.blocks.length === CELL_COUNT,
-    'Nieprawidłowa długość danych bloków.');
+    'Invalid block data length.');
   assert(snapshot.water instanceof Uint8Array && snapshot.water.length === CELL_COUNT,
-    'Nieprawidłowa długość danych wody.');
+    'Invalid water data length.');
   for (let index = 0; index < CELL_COUNT; index++) {
-    assert(snapshot.blocks[index] < BLOCKS.length, 'Zapis zawiera nieznany materiał.');
-    assert(snapshot.water[index] <= 1, 'Zapis zawiera nieprawidłowe dane wody.');
+    assert(snapshot.blocks[index] < BLOCKS.length, 'The save contains an unknown material.');
+    assert(snapshot.water[index] <= 1, 'The save contains invalid water data.');
   }
   for (let z = 0; z < SIZE[2]; z++) for (let x = 0; x < SIZE[0]; x++) {
-    assert(snapshot.blocks[x + SIZE[0] * z] !== 0, 'Zapis narusza chronioną granicę świata.');
+    assert(snapshot.blocks[x + SIZE[0] * z] !== 0, 'The save breaks the protected world floor.');
   }
   const { player } = snapshot;
   assert(player && [player.x, player.y, player.z, player.yaw, player.pitch].every(Number.isFinite),
-    'Zapis zawiera nieprawidłową pozycję lub kierunek gracza.');
+    'The save contains an invalid player position or direction.');
   assert(player.x >= 0.3 && player.x <= SIZE[0] - 0.3 &&
     player.y >= 0 && player.y <= SIZE[1] - 1.75 &&
     player.z >= 0.3 && player.z <= SIZE[2] - 0.3 &&
     Math.abs(player.yaw) <= 1e6 && player.pitch >= -1.47 && player.pitch <= 1.47,
-  'Pozycja gracza wykracza poza granice świata.');
+  'The player position is outside the world.');
   assert(Number.isInteger(snapshot.selectedBlock) &&
     snapshot.selectedBlock > 0 && snapshot.selectedBlock < BLOCKS.length,
-  'Nieprawidłowy wybrany materiał.');
+  'Invalid selected material.');
   const { settings } = snapshot;
   assert(settings && Number.isFinite(settings.sensitivity) &&
     settings.sensitivity >= 0.4 && settings.sensitivity <= 2 &&
@@ -95,22 +106,26 @@ export function validateSnapshot(snapshot) {
     typeof settings.musicEnabled === 'boolean' &&
     Number.isFinite(settings.musicVolume) &&
     settings.musicVolume >= 0 && settings.musicVolume <= 1,
-  'Zapis zawiera nieprawidłowe ustawienia.');
+  'The save contains invalid settings.');
   assert(typeof snapshot.worldId === 'string' &&
     snapshot.worldId.length > 0 && snapshot.worldId.length <= 128,
-  'Nieprawidłowy identyfikator świata.');
+  'Invalid world identifier.');
+  assert(snapshot.worldName === undefined ||
+    (typeof snapshot.worldName === 'string' && snapshot.worldName.trim().length > 0 &&
+      snapshot.worldName.length <= 32),
+  'Invalid world name.');
   return snapshot;
 }
 
 function validateRecord(record) {
   assert(record && Number.isSafeInteger(record.revision) && record.revision > 0 &&
     Number.isFinite(record.savedAt) && record.savedAt > 0,
-  'Brak prawidłowej wersji lub daty zapisu.');
+  'Missing a valid save revision or date.');
   return validateSnapshot(record);
 }
 
 function openDatabase(factory) {
-  if (!factory) throw new Error('Przeglądarka nie udostępnia IndexedDB.');
+  if (!factory) throw storageError('This browser does not provide IndexedDB.', 'storage-unavailable');
   return new Promise((resolve, reject) => {
     const request = factory.open(SAVE_DATABASE, 1);
     request.onupgradeneeded = () => request.result.createObjectStore(SAVE_STORE);
@@ -118,8 +133,8 @@ function openDatabase(factory) {
       request.result.onversionchange = () => request.result.close();
       resolve(request.result);
     };
-    request.onerror = () => reject(request.error || new Error('Nie można otworzyć bazy zapisów.'));
-    request.onblocked = () => reject(new Error('Baza zapisów jest zajęta przez inną kartę.'));
+    request.onerror = () => reject(request.error || storageError('Cannot open the save database.', 'storage-unavailable'));
+    request.onblocked = () => reject(storageError('The save database is busy in another tab.', 'storage-busy'));
   });
 }
 
@@ -131,15 +146,15 @@ function openExistingDatabase(factory, name) {
       request.result.onversionchange = () => request.result.close();
       resolve(request.result);
     };
-    request.onerror = () => reject(request.error || new Error('Nie można otworzyć poprzedniej bazy zapisów.'));
-    request.onblocked = () => reject(new Error('Poprzednia baza zapisów jest zajęta przez inną kartę.'));
+    request.onerror = () => reject(request.error || new Error('Cannot open the previous save database.'));
+    request.onblocked = () => reject(new Error('The previous save database is busy in another tab.'));
   });
 }
 
 function readRequest(request) {
   return new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error || new Error('Nie można odczytać zapisu.'));
+    request.onerror = () => reject(request.error || storageError('Cannot read the save.', 'save-failed'));
   });
 }
 
@@ -181,22 +196,22 @@ function importLegacyRecords(db, legacyCurrent, legacyPrevious) {
         }
       };
       request.onerror = () => {
-        failure = request.error || new Error('Nie można sprawdzić docelowego zapisu.');
+        failure = request.error || new Error('Cannot check the target save.');
       };
     };
     onTargetRead(currentRequest);
     onTargetRead(previousRequest);
     transaction.oncomplete = () => resolve(imported);
-    transaction.onabort = () => reject(failure || transaction.error || new Error('Import poprzedniego zapisu został przerwany.'));
+    transaction.onabort = () => reject(failure || transaction.error || new Error('Importing the previous save was interrupted.'));
     transaction.onerror = () => {
-      if (!failure) failure = transaction.error || new Error('Nie można przenieść poprzedniego zapisu.');
+      if (!failure) failure = transaction.error || new Error('Cannot move the previous save.');
     };
   });
 }
 
 async function migrateLegacySave(factory, db) {
   if (!factory || typeof factory.databases !== 'function') {
-    throw new SaveMigrationError('Ta przeglądarka nie obsługuje bezpiecznej migracji istniejących zapisów.');
+    throw new SaveMigrationError('This browser cannot safely migrate existing saves.');
   }
   let legacyDatabase;
   try {
@@ -213,7 +228,7 @@ async function migrateLegacySave(factory, db) {
   } catch (error) {
     if (error instanceof SaveMigrationError) throw error;
     throw new SaveMigrationError(
-      'Nie można przenieść poprzedniego zapisu. Jego baza nie została zmieniona; odśwież stronę, aby spróbować ponownie.',
+      'Cannot move the previous save. Its database was not changed; reload the page to try again.',
       error
     );
   } finally {
@@ -296,7 +311,7 @@ export class WorldSaveStore {
         }
         const nextRevision = exists ? (revision ?? 0) + 1 : 1;
         if (!Number.isSafeInteger(nextRevision)) {
-          failure = new Error('Licznik wersji zapisu osiągnął limit.');
+          failure = storageError('The save revision counter reached its limit.', 'save-failed');
           transaction.abort();
           return;
         }
@@ -305,12 +320,12 @@ export class WorldSaveStore {
         store.put(savedRecord, 'current');
       };
       transaction.oncomplete = () => resolve(savedRecord);
-      transaction.onabort = () => reject(failure || transaction.error || new Error('Zapis został przerwany.'));
+      transaction.onabort = () => reject(failure || transaction.error || storageError('Saving was interrupted.', 'save-failed'));
       transaction.onerror = () => {
-        if (!failure) failure = transaction.error || new Error('Nie można zapisać świata.');
+        if (!failure) failure = transaction.error || storageError('Cannot save the world.', 'save-failed');
       };
       request.onerror = () => {
-        failure = request.error || new Error('Nie można sprawdzić aktualnej wersji zapisu.');
+        failure = request.error || storageError('Cannot check the current save revision.', 'save-failed');
       };
     });
   }

@@ -1,4 +1,4 @@
-import { ATLAS_COLUMNS, ATLAS_ROWS, TEXTURE_SIZE, blockTexture } from './textures.js?v=2';
+import { ATLAS_COLUMNS, ATLAS_ROWS, TEXTURE_SIZE, blockTexture } from './textures.js?v=3';
 
 export const SIZE = [256, 32, 256];
 export const CHUNK = 16;
@@ -547,12 +547,13 @@ export class World {
     }
   }
 
+  // Returns null on success, otherwise a message key translated by i18n.js.
   edit(x, y, z, id, player) {
-    if (!this.inside(x, y, z) || y === 0) return 'Nie można zmienić granicy świata.';
-    if (!Number.isInteger(id) || id < 0 || id >= BLOCKS.length) return 'Nieznany materiał.';
-    if (id && this.get(x, y, z)) return 'To miejsce jest już zajęte.';
-    if (!id && !this.get(x, y, z)) return 'Nie ma tu klocka.';
-    if (id && player && overlaps(player, x, y, z, BLOCKS[id].height ?? 1)) return 'Odsuń się: tutaj stoi gracz.';
+    if (!this.inside(x, y, z) || y === 0) return 'edit.boundary';
+    if (!Number.isInteger(id) || id < 0 || id >= BLOCKS.length) return 'edit.unknown';
+    if (id && this.get(x, y, z)) return 'edit.occupied';
+    if (!id && !this.get(x, y, z)) return 'edit.empty';
+    if (id && player && overlaps(player, x, y, z, BLOCKS[id].height ?? 1)) return 'edit.player';
     this.write(x, y, z, id);
     for (const [dx, dy, dz] of [[0, 0, 0], [-1, 0, 0], [1, 0, 0],
       [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]]) {

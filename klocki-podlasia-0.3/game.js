@@ -1,18 +1,20 @@
 import * as THREE from 'three';
 import { PointerLockControls } from './vendor/PointerLockControls.js';
-import { World, SIZE, CHUNK, BLOCKS, BIOMES, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTURES,
-  nearbyChunks, chunkGeometry, waterGeometry, pick } from './world.js?v=3';
-import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=2';
+import { World, SIZE, CHUNK, BLOCKS, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTURES,
+  nearbyChunks, chunkGeometry, waterGeometry, pick } from './world.js?v=4';
+import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=3';
 import { createPlayer, collides, stepPlayer } from './player.js?v=2';
 import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
-import { AmbientMusic } from './music.js?v=2';
-import { applySnapshot, CorruptSaveError, createSnapshot, SaveConflictError, SaveMigrationError, WorldSaveStore } from './saves.js?v=3';
+import { AmbientMusic } from './music.js?v=3';
+import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, SAVE_STORE,
+  SaveConflictError, SaveMigrationError, WorldSaveStore } from './saves.js?v=6';
+import { biomeName, blockName, getLanguage, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=1';
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
   'pause', 'recover', 'new-world', 'fullscreen', 'palette', 'palette-pages', 'target', 'notice', 'crosshair',
   'load-status', 'metrics', 'sensitivity', 'low-quality', 'music-on', 'music-volume', 'controls-hint',
-  'reset-confirm', 'reset-message', 'confirm-reset', 'cancel-reset', 'coordinates', 'destinations', 'biome-destinations',
-  'structure-destinations', 'save-status', 'save-now', 'reload-save', 'session-note', 'save-recovery',
+  'reset-confirm', 'reset-message', 'world-name-input', 'world-name', 'confirm-reset', 'cancel-reset', 'coordinates', 'destinations', 'biome-destinations',
+  'structure-destinations', 'save-status', 'save-details', 'save-now', 'reload-save', 'session-note', 'save-recovery',
   'save-recovery-message', 'restore-backup', 'leave-confirm', 'stay-in-game', 'leave-unsaved']
   .map(id => [id, document.getElementById(id)]));
 const bootTime = performance.now();
@@ -119,7 +121,7 @@ const material = new THREE.MeshLambertMaterial({ vertexColors: true, map: atlas 
 const waterCanvas = document.createElement('canvas');
 waterCanvas.width = waterCanvas.height = 64;
 const waterContext = waterCanvas.getContext('2d');
-if (!waterContext) throw new Error('Nie można utworzyć tekstury wody.');
+if (!waterContext) throw new Error('Cannot create the water texture.');
 waterContext.fillStyle = '#4a9fb0';
 waterContext.fillRect(0, 0, 64, 64);
 for (let y = 0; y < 64; y += 8) for (let x = 0; x < 64; x += 16) {
@@ -156,6 +158,12 @@ let mobs = [];
 let mobModels = [];
 let selected = 7;
 let palettePage = 0;
+// An unnamed world stores no name, so its label follows the chosen language.
+const DEFAULT_WORLD_NAMES = new Set(LANGUAGES.map(language => MESSAGES[language]['world.defaultName']));
+const customWorldName = name => (name && !DEFAULT_WORLD_NAMES.has(name) ? name : undefined);
+const displayWorldName = name => customWorldName(name) ?? t('world.defaultName');
+let worldName;
+let saveDetails = null;
 const saveStore = new WorldSaveStore();
 let worldId = crypto.randomUUID();
 let saveExpected = { exists: false, revision: null };
@@ -187,15 +195,39 @@ const direction = new THREE.Vector3();
 let target = null;
 const frames = [];
 const music = new AmbientMusic();
-ui.destinations.textContent = VILLAGES.map(village => `${village.name}: X ${village.x}, Z ${village.z}`).join(' · ');
-ui['biome-destinations'].textContent = BIOME_VILLAGES.map(village =>
-  `${BIOMES[village.biome].name} — ${village.name}: X ${village.x}, Z ${village.z}`).join(' · ');
-ui['structure-destinations'].textContent = STRUCTURES.map(site => `${site.name}: X ${site.x}, Z ${site.z}`).join(' · ');
+ui['world-name'].textContent = displayWorldName(worldName);
 
-function notice(message) {
+function renderDestinations() {
+  ui.destinations.textContent = VILLAGES.map(village => `${village.name}: X ${village.x}, Z ${village.z}`).join(' · ');
+  ui['biome-destinations'].textContent = BIOME_VILLAGES.map(village =>
+    `${biomeName(village.biome)} — ${village.name}: X ${village.x}, Z ${village.z}`).join(' · ');
+  ui['structure-destinations'].textContent = STRUCTURES.map((site, index) =>
+    `${structureName(index)}: X ${site.x}, Z ${site.z}`).join(' · ');
+}
+renderDestinations();
+
+function codedError(code) {
+  return Object.assign(new Error(code), { code });
+}
+
+function errorText(error) {
+  if (error instanceof SaveConflictError) return t('error.conflict');
+  if (error instanceof SaveMigrationError) return t('error.migration');
+  if (error instanceof CorruptSaveError) return t('error.corrupt');
+  if (error?.name === 'QuotaExceededError') return t('error.quota');
+  if (error?.code && hasMessage(`error.${error.code}`)) return t(`error.${error.code}`);
+  return t('error.unexpected');
+}
+
+function reportError(error) {
+  console.error(error);
+  notice(errorText(error));
+}
+
+function notice(message, duration = 5000) {
   ui.notice.textContent = message;
   ui.notice.hidden = false;
-  noticeUntil = performance.now() + 5000;
+  noticeUntil = performance.now() + duration;
 }
 
 function updateSaveControls() {
@@ -203,11 +235,11 @@ function updateSaveControls() {
   ui['save-now'].disabled = !saveInitialized || Boolean(saveInProgress) || blocked ||
     (!saveDirty && !lastSavedAt);
   ui['reload-save'].hidden = !['conflict', 'migration'].includes(saveGate);
-  ui['reload-save'].textContent = saveGate === 'migration' ? 'Ponów migrację zapisu' : 'Wczytaj aktualny zapis';
+  setText(ui['reload-save'], saveGate === 'migration' ? 'button.retryMigration' : 'button.reloadSave');
 }
 
-function setSaveStatus(message, state = 'normal') {
-  ui['save-status'].textContent = message;
+function setSaveStatus(key, state = 'normal', params) {
+  setText(ui['save-status'], key, params);
   ui['save-status'].dataset.state = state;
   updateSaveControls();
 }
@@ -234,7 +266,7 @@ function applySettings(settings) {
 
 function currentSnapshot() {
   return createSnapshot(world, player, camera.rotation.y, camera.rotation.x,
-    selected, currentSettings(), worldId);
+    selected, currentSettings(), worldId, worldName);
 }
 
 function scheduleAutosave() {
@@ -242,7 +274,7 @@ function scheduleAutosave() {
       ['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate)) return;
   autosaveTimer = setTimeout(() => {
     autosaveTimer = null;
-    saveWorld().catch(error => notice(error.message));
+    saveWorld().catch(reportError);
   }, 3000);
 }
 
@@ -253,7 +285,7 @@ function markDirty() {
   if (!wasDirty) {
     setSaveStatus(
       ['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate) ?
-        'Zmiany nie zapisane — wybierz odzyskiwanie lub nowy świat.' : 'Niezapisane zmiany',
+        'save.dirtyBlocked' : 'save.dirty',
       saveGate ? 'error' : 'dirty'
     );
   }
@@ -268,16 +300,52 @@ function trackPersistentState() {
   }
 }
 
-function savedLabel(timestamp) {
-  return `Zapisano ${new Intl.DateTimeFormat('pl-PL', {
-    hour: '2-digit', minute: '2-digit'
-  }).format(new Date(timestamp))}`;
+function savedTime(timestamp) {
+  return new Intl.DateTimeFormat(locale(), { hour: '2-digit', minute: '2-digit', hour12: false })
+    .format(new Date(timestamp));
+}
+
+function setSavedStatus(timestamp) {
+  setSaveStatus('save.saved', 'saved', { time: savedTime(timestamp) });
+}
+
+function saveLocation() {
+  return `${location.origin} → IndexedDB → ${SAVE_DATABASE} → ${SAVE_STORE} → current`;
+}
+
+function renderSaveDetails() {
+  const element = ui['save-details'];
+  if (!saveDetails) { element.hidden = true; return; }
+  const location = saveLocation();
+  if (saveDetails.state === 'saving') {
+    element.textContent = t('details.saving', { location });
+  } else if (saveDetails.state === 'error') {
+    element.textContent = t('details.error', { error: errorText(saveDetails.error), location });
+  } else {
+    const { record, labelKey, pending } = saveDetails;
+    const bytes = saveDataSize(record);
+    element.textContent = t('details.saved', {
+      label: t(labelKey),
+      name: displayWorldName(record.worldName),
+      time: savedTime(record.savedAt),
+      location,
+      size: new Intl.NumberFormat(locale(), { maximumFractionDigits: 2 }).format(bytes / 1024 / 1024),
+      bytes: bytes.toLocaleString(locale())
+    }) + (pending ? `\n${t('details.pending')}` : '');
+  }
+  element.dataset.state = saveDetails.state;
+  element.hidden = false;
+}
+
+function showSavedDetails(record, labelKey = 'details.labelSaved') {
+  saveDetails = { state: 'saved', record, labelKey, pending: saveDirty };
+  renderSaveDetails();
 }
 
 async function saveWorld({ snapshot = null, replaceCorrupt = false } = {}) {
-  if (!saveInitialized) throw new Error('Zapis jest jeszcze wczytywany.');
+  if (!saveInitialized) throw codedError('save-loading');
   if (['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate) && !replaceCorrupt) {
-    throw new Error('Najpierw rozwiąż problem z poprzednim zapisem.');
+    throw codedError('save-blocked');
   }
   if (saveInProgress) {
     await saveInProgress;
@@ -288,7 +356,9 @@ async function saveWorld({ snapshot = null, replaceCorrupt = false } = {}) {
   const payload = snapshot || currentSnapshot();
   const expected = { ...saveExpected };
   const attempt = (async () => {
-    setSaveStatus('Zapisywanie…', 'saving');
+    setSaveStatus('save.saving', 'saving');
+    saveDetails = { state: 'saving' };
+    renderSaveDetails();
     try {
       const record = await saveStore.save(payload, expected, { replaceCorrupt });
       saveExpected = { exists: true, revision: record.revision };
@@ -296,18 +366,22 @@ async function saveWorld({ snapshot = null, replaceCorrupt = false } = {}) {
       if (snapshot || generation === saveGeneration) saveDirty = false;
       saveGate = null;
       ui['save-recovery'].hidden = true;
-      ui['session-note'].textContent = 'Zapis lokalny w tym profilu Chrome. To nie jest kopia zapasowa.';
-      setSaveStatus(saveDirty ? 'Niezapisane zmiany' : savedLabel(record.savedAt), saveDirty ? 'dirty' : 'saved');
+      setText(ui['session-note'], 'session.local');
+      if (saveDirty) setSaveStatus('save.dirty', 'dirty');
+      else setSavedStatus(record.savedAt);
+      showSavedDetails(record);
       if (saveDirty) scheduleAutosave();
       return record;
     } catch (error) {
       if (error instanceof SaveConflictError) {
         saveGate = 'conflict';
-        setSaveStatus('Konflikt zapisu — wczytaj aktualną wersję.', 'conflict');
+        setSaveStatus('save.conflict', 'conflict');
       } else {
         if (error instanceof CorruptSaveError) saveGate = 'corrupt';
-        setSaveStatus('Nie zapisano — ponów próbę.', 'error');
+        setSaveStatus('save.failed', 'error');
       }
+      saveDetails = { state: 'error', error };
+      renderSaveDetails();
       throw error;
     } finally {
       saveInProgress = null;
@@ -322,8 +396,8 @@ async function saveWorld({ snapshot = null, replaceCorrupt = false } = {}) {
 function prepareMusic() {
   if (!ui['music-on'].checked) return;
   music.prepare().catch(error => {
-    console.error('Muzyka:', error);
-    notice('Nie można uruchomić muzyki. Graj bez niej lub spróbuj ponownie.');
+    console.error('Music:', error);
+    notice(t('music.failed'));
   });
 }
 
@@ -442,7 +516,7 @@ function renderPalette() {
     const button = document.createElement('button');
     button.className = 'slot';
     button.dataset.id = id;
-    button.title = `${slot}: ${BLOCKS[id].name}`;
+    button.title = `${slot}: ${blockName(id)}`;
     button.setAttribute('aria-label', button.title);
     button.setAttribute('aria-pressed', String(id === selected));
     const swatch = document.createElement('span');
@@ -455,7 +529,7 @@ function renderPalette() {
     key.textContent = slot;
     const name = document.createElement('span');
     name.className = 'slot-name';
-    name.textContent = BLOCKS[id].name;
+    name.textContent = blockName(id);
     button.append(key, swatch, name);
     button.addEventListener('click', () => { select(id); button.blur(); });
     ui.palette.append(button);
@@ -479,10 +553,10 @@ function pause() {
   ui.overlay.hidden = false;
   ui.crosshair.hidden = true;
   ui.pause.disabled = true;
-  ui.heading.textContent = 'Chwila pod lipą';
-  ui.intro.textContent = 'Twoja budowla czeka. Wznów spacer lub wróć bezpiecznie na start.';
+  setText(ui.heading, 'pause.heading');
+  setText(ui.intro, 'pause.intro');
   outline.visible = false;
-  if (saveDirty) saveWorld().catch(error => notice(error.message));
+  if (saveDirty) saveWorld().catch(reportError);
 }
 
 function play(useDrag) {
@@ -497,16 +571,14 @@ function play(useDrag) {
   ui.pause.disabled = false;
   ui['reset-confirm'].hidden = true;
   renderer.domElement.focus({ preventScroll: true });
-  ui['controls-hint'].textContent = useDrag ?
-    'Przeciągaj myszą · widok | WASD · ruch | Spacja · skok | Q / E · usuń / dodaj | P · pauza' :
-    'WASD · ruch | Spacja · skok | LPM / Q · usuń | PPM / E · dodaj | Esc · pauza';
+  setText(ui['controls-hint'], useDrag ? 'hint.drag' : 'hint.pointer');
 }
 
 async function requestPlay() {
-  ui['load-status'].textContent = 'Kliknij „Zezwól”, jeśli przeglądarka pyta o przechwycenie myszy.';
+  setText(ui['load-status'], 'load.allowPrompt');
   try {
     if (!renderer.domElement.requestPointerLock) {
-      ui['load-status'].textContent = 'Przechwytywanie myszy niedostępne. Wybierz tryb bez przechwytywania.';
+      setText(ui['load-status'], 'load.lockUnavailable');
       return;
     }
     prepareMusic();
@@ -516,7 +588,7 @@ async function requestPlay() {
   catch (error) {
     console.error('Pointer lock:', error);
     pause();
-    ui['load-status'].textContent = 'Nie można przechwycić myszy. Wybierz tryb bez przechwytywania.';
+    setText(ui['load-status'], 'load.lockFailed');
   }
 }
 
@@ -525,12 +597,15 @@ function updateTarget() {
   target = pick(world, camera.position, direction);
   outline.visible = playing && Boolean(target);
   if (target) {
-    const block = BLOCKS[world.get(...target.cell)];
+    const blockId = world.get(...target.cell);
+    const block = BLOCKS[blockId];
     const height = block.height ?? 1;
     outline.scale.y = height;
     outline.position.set(target.cell[0] + 0.5, target.cell[1] + height / 2, target.cell[2] + 0.5);
-    ui.target.textContent = `${block.name} · Q usuń / E dodaj ${BLOCKS[selected].name.toLowerCase()}`;
-  } else ui.target.textContent = 'Podejdź bliżej — zasięg budowania: 5 klocków.';
+    ui.target.textContent = t('target.block', {
+      block: blockName(blockId), selected: blockName(selected).toLocaleLowerCase(getLanguage())
+    });
+  } else ui.target.textContent = t('target.far');
 }
 
 let lastEdit = -Infinity;
@@ -538,10 +613,10 @@ function edit(place) {
   if (!playing || performance.now() - lastEdit < 140) return;
   lastEdit = performance.now();
   updateTarget();
-  if (!target) { notice('Podejdź bliżej klocka (zasięg: 5).'); return; }
+  if (!target) { notice(t('notice.tooFar')); return; }
   const cell = target.cell.map((n, axis) => n + (place ? target.normal[axis] : 0));
   const error = world.edit(...cell, place ? selected : 0, player);
-  if (error) { notice(error); return; }
+  if (error) { notice(t(error)); return; }
   edits++;
   markDirty();
   rebuild();
@@ -583,13 +658,13 @@ function installWorld(nextWorld, nextPlayer, yaw, pitch) {
 
 function recover() {
   const found = findSafePlayer(world);
-  if (!found) { notice('Brak bezpiecznego miejsca. Usuń przeszkody lub utwórz nową łąkę.'); return; }
+  if (!found) { notice(t('notice.noSafeSpot')); return; }
   player = found;
   camera.rotation.set(-0.13, 0, 0);
   syncCamera();
   updateChunks();
   markDirty();
-  notice('Jesteś w bezpiecznym miejscu. Świat pozostał bez zmian.');
+  notice(t('notice.safe'));
 }
 
 ui.start.addEventListener('click', requestPlay);
@@ -597,21 +672,24 @@ ui['drag-start'].addEventListener('click', () => { prepareMusic(); play(true); }
 ui.pause.addEventListener('click', pause);
 ui.recover.addEventListener('click', recover);
 ui['new-world'].addEventListener('click', () => {
-  ui['reset-message'].textContent = saveGate === 'recovery' ?
-    'Uszkodzony bieżący zapis zostanie zastąpiony; odzyskana kopia pozostanie zachowana. Kontynuować?' :
-    saveGate === 'corrupt' ?
-      'Nie można odzyskać poprzedniego świata. Potwierdź, aby zastąpić uszkodzony zapis nowym światem.' :
-      saveGate === 'migration' ?
-        'Nie można przenieść poprzedniego świata. Jego baza pozostanie zachowana. Potwierdź, aby rozpocząć nowy świat.' :
-      'Bieżący świat zostanie zachowany jako poprzedni zapis, a nowa łąka zastąpi bieżącą. Kontynuować?';
+  setText(ui['reset-message'], ['recovery', 'corrupt', 'migration'].includes(saveGate) ?
+    `reset.${saveGate}` : 'reset.normal');
   ui['reset-confirm'].hidden = false;
-  ui['cancel-reset'].focus();
+  ui['world-name-input'].value = t('world.newDefault');
+  ui['world-name-input'].focus();
 });
 ui['cancel-reset'].addEventListener('click', () => {
   ui['reset-confirm'].hidden = true;
   ui['new-world'].focus();
 });
 ui['confirm-reset'].addEventListener('click', async () => {
+  const nextWorldName = ui['world-name-input'].value.trim();
+  if (!nextWorldName) {
+    ui['world-name-input'].setCustomValidity(t('world.nameRequired'));
+    ui['world-name-input'].reportValidity();
+    return;
+  }
+  ui['world-name-input'].setCustomValidity('');
   ui['confirm-reset'].disabled = true;
   const replaceDamaged = ['recovery', 'corrupt', 'migration'].includes(saveGate);
   try {
@@ -620,24 +698,26 @@ ui['confirm-reset'].addEventListener('click', async () => {
     const nextPlayer = createPlayer(nextWorld);
     const nextWorldId = crypto.randomUUID();
     const nextSnapshot = createSnapshot(nextWorld, nextPlayer, -0.13, 0,
-      selected, currentSettings(), nextWorldId);
+      selected, currentSettings(), nextWorldId, customWorldName(nextWorldName));
     const record = await saveWorld({ snapshot: nextSnapshot, replaceCorrupt: replaceDamaged });
     ui['reset-confirm'].hidden = true;
     worldId = nextWorldId;
+    worldName = customWorldName(nextWorldName);
+    ui['world-name'].textContent = displayWorldName(worldName);
     installWorld(nextWorld, nextPlayer, 0, -0.13);
     saveDirty = false;
     saveGate = null;
     saveGeneration++;
     lastSavedAt = record.savedAt;
     edits = 0;
-    setSaveStatus(savedLabel(record.savedAt), 'saved');
+    setSavedStatus(record.savedAt);
     ui['save-recovery'].hidden = true;
-    ui['load-status'].textContent = 'Nowa łąka zapisana. Wybierz sposób sterowania.';
+    setText(ui['load-status'], 'load.newSaved');
     ui['drag-start'].focus();
   } catch (error) {
-    console.error('Nowa łąka:', error);
-    ui['load-status'].textContent = 'Nie udało się bezpiecznie zapisać nowej łąki. Poprzedni świat pozostał aktywny.';
-    notice(error.message);
+    console.error('New meadow:', error);
+    setText(ui['load-status'], 'load.newFailed');
+    notice(errorText(error));
   } finally {
     ui['confirm-reset'].disabled = false;
   }
@@ -651,20 +731,25 @@ ui['restore-backup'].addEventListener('click', async () => {
     saveGeneration++;
     lastSavedAt = record.savedAt;
     ui['save-recovery'].hidden = true;
-    setSaveStatus(savedLabel(record.savedAt), 'saved');
+    setSavedStatus(record.savedAt);
     ui['start'].disabled = false;
     ui['drag-start'].disabled = false;
-    ui['load-status'].textContent = 'Poprzedni zapis odzyskany. Wybierz sposób sterowania.';
+    setText(ui['load-status'], 'load.restored');
     ui['drag-start'].focus();
   } catch (error) {
-    console.error('Odzyskiwanie zapisu:', error);
-    notice(error.message);
+    console.error('Save recovery:', error);
+    notice(errorText(error));
   } finally {
     ui['restore-backup'].disabled = false;
   }
 });
 ui['save-now'].addEventListener('click', () => {
-  saveWorld().catch(error => notice(error.message));
+  saveWorld()
+    .then(() => notice(ui['save-details'].textContent, 12000))
+    .catch(error => {
+      console.error(error);
+      notice(t('notice.saveFailed', { error: errorText(error) }), 12000);
+    });
 });
 ui['reload-save'].addEventListener('click', () => {
   allowUnsavedNavigation = true;
@@ -689,7 +774,7 @@ async function navigateHome(href) {
     if (playing) pause();
     pendingHomeHref = href;
     ui['leave-confirm'].hidden = false;
-    notice(error.message);
+    reportError(error);
   }
 }
 
@@ -703,10 +788,10 @@ ui.fullscreen.addEventListener('click', async () => {
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
     else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
-    else notice('Ta przeglądarka nie udostępnia pełnego ekranu. Graj w oknie.');
+    else notice(t('notice.noFullscreen'));
   } catch (error) {
     console.error('Fullscreen:', error);
-    notice('Pełny ekran niedostępny. Gra nadal działa w oknie.');
+    notice(t('notice.fullscreenFailed'));
   }
 });
 ui.sensitivity.addEventListener('input', () => {
@@ -731,7 +816,7 @@ controls.addEventListener('lock', () => play(false));
 controls.addEventListener('unlock', () => { if (playing && !dragMode) pause(); });
 document.addEventListener('pointerlockerror', () => {
   pause();
-  ui['load-status'].textContent = 'Przeglądarka odmówiła przechwycenia. Spróbuj ponownie lub wybierz tryb bez przechwytywania.';
+  setText(ui['load-status'], 'load.lockDenied');
 });
 window.addEventListener('blur', () => { if (playing) pause(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && playing) pause(); });
@@ -762,7 +847,7 @@ window.addEventListener('beforeunload', event => {
 });
 window.addEventListener('pagehide', () => {
   if (saveDirty && !allowUnsavedNavigation) {
-    saveWorld().catch(error => console.error('Zapis przy zamykaniu strony:', error));
+    saveWorld().catch(error => console.error('Save on page close:', error));
   }
 });
 
@@ -773,11 +858,13 @@ function installRecord(record) {
   let recoveredPosition = false;
   if (collides(nextWorld, savedPlayer)) {
     nextPlayer = findSafePlayer(nextWorld);
-    if (!nextPlayer) throw new CorruptSaveError('Nie znaleziono bezpiecznego miejsca w zapisanym świecie.');
+    if (!nextPlayer) throw new CorruptSaveError('No safe place was found in the saved world.');
     recoveredPosition = true;
   }
   installWorld(nextWorld, nextPlayer, record.player.yaw, record.player.pitch);
   worldId = record.worldId;
+  worldName = customWorldName(record.worldName);
+  ui['world-name'].textContent = displayWorldName(worldName);
   select(record.selectedBlock, false);
   applySettings(record.settings);
   edits = 0;
@@ -785,19 +872,17 @@ function installRecord(record) {
 }
 
 async function initializeSave() {
-  ui['load-status'].textContent = 'Wczytujemy świat i zapis…';
+  setText(ui['load-status'], 'load.loading');
   try {
     const result = await saveStore.load();
     saveExpected = result.expected;
     if (result.status === 'current') {
       const recoveredPosition = installRecord(result.record);
       lastSavedAt = result.record.savedAt;
-      setSaveStatus(savedLabel(lastSavedAt), 'saved');
-      ui['load-status'].textContent = recoveredPosition ?
-        'Pozycja była zablokowana. Znaleźliśmy bezpieczne miejsce; zapisz, aby zachować ją na przyszłość.' :
-        result.migrated ?
-          'Poprzedni zapis został bezpiecznie przeniesiony. Wybierz sposób sterowania.' :
-          'Zapisany świat gotowy. Wybierz sposób sterowania.';
+      setSavedStatus(lastSavedAt);
+      showSavedDetails(result.record, 'details.labelLoaded');
+      setText(ui['load-status'], recoveredPosition ? 'load.recoveredPosition' :
+        result.migrated ? 'load.migrated' : 'load.ready');
       if (recoveredPosition) markDirty();
     } else if (result.status === 'recovery') {
       installRecord(result.record);
@@ -805,42 +890,34 @@ async function initializeSave() {
       lastSavedAt = result.record.savedAt;
       saveGate = 'recovery';
       ui['save-recovery'].hidden = false;
-      ui['save-recovery-message'].textContent = result.migrated ?
-        'Poprzedni zapis został przeniesiony. Bieżące dane są uszkodzone; potwierdź odzyskanie poprzedniej kopii przed dalszą grą.' :
-        'Bieżący zapis jest uszkodzony. Wczytaliśmy poprzednią kopię; potwierdź jej odzyskanie przed dalszą grą.';
-      setSaveStatus('Odzyskano kopię — potwierdź zapis.', 'error');
-      ui['load-status'].textContent = 'Poprzednia kopia jest gotowa do odzyskania.';
+      setText(ui['save-recovery-message'], result.migrated ? 'recovery.migrated' : 'recovery.current');
+      setSaveStatus('save.recoveryPending', 'error');
+      setText(ui['load-status'], 'load.recoveryReady');
       ui['start'].disabled = true;
       ui['drag-start'].disabled = true;
     } else if (result.status === 'corrupt') {
       saveGate = 'corrupt';
       saveDirty = true;
-      ui['load-status'].textContent =
-        'Zapis jest uszkodzony. Możesz zagrać w tej sesji bez zapisu albo po potwierdzeniu utworzyć nowy świat.';
-      setSaveStatus('Uszkodzony zapis — nie nadpisujemy go.', 'error');
-      ui['session-note'].textContent = 'Ta tymczasowa sesja nie zapisuje zmian; stary zapis jest chroniony.';
+      setText(ui['load-status'], 'load.corrupt');
+      setSaveStatus('save.corrupt', 'error');
+      setText(ui['session-note'], 'session.temporary');
     } else {
       saveDirty = true;
       saveGeneration++;
-      setSaveStatus('Nowy świat — zapisujemy…', 'dirty');
-      ui['load-status'].textContent = 'Nowa łąka gotowa. Zapisujemy pierwszy punkt kontrolny.';
+      setSaveStatus('save.newWorld', 'dirty');
+      setText(ui['load-status'], 'load.newWorld');
     }
   } catch (error) {
-    console.error('Wczytywanie zapisu:', error);
+    console.error('Loading save:', error);
     if (error instanceof SaveMigrationError) saveGate = 'migration';
     else if (error instanceof CorruptSaveError && saveExpected.exists) saveGate = 'corrupt';
     saveDirty = true;
     saveGeneration++;
-    setSaveStatus(saveGate === 'migration' ?
-      'Nie można przenieść zapisu — stara kopia jest zachowana.' : saveGate === 'corrupt' ?
-      'Uszkodzony zapis — nie nadpisujemy go.' : 'Nie można wczytać zapisu — sesja tymczasowa.', 'error');
-    ui['session-note'].textContent = saveGate === 'migration' ?
-      'Poprzedni świat jest zachowany. Ponów migrację albo potwierdź utworzenie nowego świata.' :
-      'Nie można potwierdzić zapisu; zmiany mogą zniknąć po zamknięciu.';
-    ui['load-status'].textContent = saveGate === 'migration' ?
-      'Nie udało się przenieść poprzedniego zapisu. Możesz ponowić próbę lub potwierdzić rozpoczęcie nowego świata.' :
-      'Gra działa bez zapisu. Sprawdź dostęp do pamięci przeglądarki i spróbuj ponownie.';
-    notice(error.message);
+    setSaveStatus(saveGate === 'migration' ? 'save.migrationFailed' :
+      saveGate === 'corrupt' ? 'save.corrupt' : 'save.loadFailed', 'error');
+    setText(ui['session-note'], saveGate === 'migration' ? 'session.migration' : 'session.unconfirmed');
+    setText(ui['load-status'], saveGate === 'migration' ? 'load.migrationFailed' : 'load.saveUnavailable');
+    notice(errorText(error));
   } finally {
     saveInitialized = true;
     ui['recover'].disabled = saveGate === 'recovery';
@@ -879,8 +956,21 @@ renderer.domElement.addEventListener('wheel', event => {
 renderer.domElement.addEventListener('webglcontextlost', event => {
   event.preventDefault();
   pause();
-  ui['load-status'].textContent = 'Utracono WebGL. Sprawdź stan zapisu przed odświeżeniem strony.';
+  setText(ui['load-status'], 'load.webglLost');
   for (const id of ['start', 'drag-start', 'recover', 'new-world']) ui[id].disabled = true;
+});
+
+function updateCoordinates() {
+  ui.coordinates.textContent =
+    `${biomeName(biomeAt(player.x, player.z))} · X ${Math.floor(player.x)} · Z ${Math.floor(player.z)}`;
+}
+
+onLanguageChange(() => {
+  renderPalette();
+  renderDestinations();
+  renderSaveDetails();
+  updateCoordinates();
+  ui['world-name'].textContent = displayWorldName(worldName);
 });
 
 function frame(now) {
@@ -904,9 +994,9 @@ function frame(now) {
     try {
       music.tick();
     } catch (error) {
-      console.error('Muzyka:', error);
+      console.error('Music:', error);
       music.stop();
-      notice('Muzyka została zatrzymana z powodu błędu. Gra działa dalej.');
+      notice(t('music.stopped'));
     }
     frames.push(elapsed);
     if (frames.length > 3600) frames.shift();
@@ -933,8 +1023,21 @@ function frame(now) {
     frameCount = 0;
     frameStart = now;
     const sorted = [...frames].sort((a, b) => a - b);
-    ui.metrics.textContent = `Three.js r${THREE.REVISION} · WebGL2\nŚwiat: ${SIZE.join(' × ')} · seed: ${world.seed}\nFPS: ${fps} · draw calls: ${renderer.info.render.calls} · geometrie: ${renderer.info.memory.geometries}\nPierwsza klatka (lokalnie): ${Math.round(firstFrameMs)} ms\nPróbki gry: ${sorted.length} · mediana: ${(sorted[Math.floor(sorted.length / 2)] || 0).toFixed(1)} ms · p95: ${(sorted[Math.floor(sorted.length * 0.95)] || 0).toFixed(1)} ms\nEdycje: ${edits} · pozycja: ${player.x.toFixed(1)}, ${player.y.toFixed(1)}, ${player.z.toFixed(1)}`;
-    ui.coordinates.textContent = `${BIOMES[biomeAt(player.x, player.z)].name} · X ${Math.floor(player.x)} · Z ${Math.floor(player.z)}`;
+    ui.metrics.textContent = t('metrics.text', {
+      revision: THREE.REVISION,
+      size: SIZE.join(' × '),
+      seed: world.seed,
+      fps,
+      calls: renderer.info.render.calls,
+      geometries: renderer.info.memory.geometries,
+      first: Math.round(firstFrameMs),
+      samples: sorted.length,
+      median: (sorted[Math.floor(sorted.length / 2)] || 0).toFixed(1),
+      p95: (sorted[Math.floor(sorted.length * 0.95)] || 0).toFixed(1),
+      edits,
+      position: `${player.x.toFixed(1)}, ${player.y.toFixed(1)}, ${player.z.toFixed(1)}`
+    });
+    updateCoordinates();
   }
   if (!ui.notice.hidden && now > noticeUntil) ui.notice.hidden = true;
   waterTexture.offset.set(now * 0.000006 % 1, now * 0.000002 % 1);
