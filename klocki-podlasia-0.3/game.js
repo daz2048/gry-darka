@@ -6,7 +6,7 @@ import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=2';
 import { createPlayer, collides, stepPlayer } from './player.js?v=2';
 import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
 import { AmbientMusic } from './music.js?v=2';
-import { applySnapshot, CorruptSaveError, createSnapshot, SaveConflictError, WorldSaveStore } from './saves.js?v=2';
+import { applySnapshot, CorruptSaveError, createSnapshot, SaveConflictError, SaveMigrationError, WorldSaveStore } from './saves.js?v=3';
 
 const ui = Object.fromEntries(['viewport', 'overlay', 'heading', 'intro', 'start', 'drag-start',
   'pause', 'recover', 'new-world', 'fullscreen', 'palette', 'palette-pages', 'target', 'notice', 'crosshair',
@@ -199,10 +199,11 @@ function notice(message) {
 }
 
 function updateSaveControls() {
-  const blocked = ['recovery', 'corrupt', 'conflict'].includes(saveGate);
+  const blocked = ['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate);
   ui['save-now'].disabled = !saveInitialized || Boolean(saveInProgress) || blocked ||
     (!saveDirty && !lastSavedAt);
-  ui['reload-save'].hidden = saveGate !== 'conflict';
+  ui['reload-save'].hidden = !['conflict', 'migration'].includes(saveGate);
+  ui['reload-save'].textContent = saveGate === 'migration' ? 'Ponów migrację zapisu' : 'Wczytaj aktualny zapis';
 }
 
 function setSaveStatus(message, state = 'normal') {
@@ -238,7 +239,7 @@ function currentSnapshot() {
 
 function scheduleAutosave() {
   if (!saveInitialized || !saveDirty || saveInProgress || autosaveTimer ||
-      ['recovery', 'corrupt', 'conflict'].includes(saveGate)) return;
+      ['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate)) return;
   autosaveTimer = setTimeout(() => {
     autosaveTimer = null;
     saveWorld().catch(error => notice(error.message));
@@ -251,7 +252,7 @@ function markDirty() {
   saveGeneration++;
   if (!wasDirty) {
     setSaveStatus(
-      ['recovery', 'corrupt', 'conflict'].includes(saveGate) ?
+      ['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate) ?
         'Zmiany nie zapisane — wybierz odzyskiwanie lub nowy świat.' : 'Niezapisane zmiany',
       saveGate ? 'error' : 'dirty'
     );
@@ -275,7 +276,7 @@ function savedLabel(timestamp) {
 
 async function saveWorld({ snapshot = null, replaceCorrupt = false } = {}) {
   if (!saveInitialized) throw new Error('Zapis jest jeszcze wczytywany.');
-  if (['recovery', 'corrupt', 'conflict'].includes(saveGate) && !replaceCorrupt) {
+  if (['recovery', 'corrupt', 'conflict', 'migration'].includes(saveGate) && !replaceCorrupt) {
     throw new Error('Najpierw rozwiąż problem z poprzednim zapisem.');
   }
   if (saveInProgress) {
@@ -600,6 +601,8 @@ ui['new-world'].addEventListener('click', () => {
     'Uszkodzony bieżący zapis zostanie zastąpiony; odzyskana kopia pozostanie zachowana. Kontynuować?' :
     saveGate === 'corrupt' ?
       'Nie można odzyskać poprzedniego świata. Potwierdź, aby zastąpić uszkodzony zapis nowym światem.' :
+      saveGate === 'migration' ?
+        'Nie można przenieść poprzedniego świata. Jego baza pozostanie zachowana. Potwierdź, aby rozpocząć nowy świat.' :
       'Bieżący świat zostanie zachowany jako poprzedni zapis, a nowa łąka zastąpi bieżącą. Kontynuować?';
   ui['reset-confirm'].hidden = false;
   ui['cancel-reset'].focus();
@@ -610,7 +613,7 @@ ui['cancel-reset'].addEventListener('click', () => {
 });
 ui['confirm-reset'].addEventListener('click', async () => {
   ui['confirm-reset'].disabled = true;
-  const replaceDamaged = ['recovery', 'corrupt'].includes(saveGate);
+  const replaceDamaged = ['recovery', 'corrupt', 'migration'].includes(saveGate);
   try {
     if (!replaceDamaged && saveDirty) await saveWorld();
     const nextWorld = new World(crypto.getRandomValues(new Uint32Array(1))[0]);
@@ -792,7 +795,9 @@ async function initializeSave() {
       setSaveStatus(savedLabel(lastSavedAt), 'saved');
       ui['load-status'].textContent = recoveredPosition ?
         'Pozycja była zablokowana. Znaleźliśmy bezpieczne miejsce; zapisz, aby zachować ją na przyszłość.' :
-        'Zapisany świat gotowy. Wybierz sposób sterowania.';
+        result.migrated ?
+          'Poprzedni zapis został bezpiecznie przeniesiony. Wybierz sposób sterowania.' :
+          'Zapisany świat gotowy. Wybierz sposób sterowania.';
       if (recoveredPosition) markDirty();
     } else if (result.status === 'recovery') {
       installRecord(result.record);
@@ -800,7 +805,8 @@ async function initializeSave() {
       lastSavedAt = result.record.savedAt;
       saveGate = 'recovery';
       ui['save-recovery'].hidden = false;
-      ui['save-recovery-message'].textContent =
+      ui['save-recovery-message'].textContent = result.migrated ?
+        'Poprzedni zapis został przeniesiony. Bieżące dane są uszkodzone; potwierdź odzyskanie poprzedniej kopii przed dalszą grą.' :
         'Bieżący zapis jest uszkodzony. Wczytaliśmy poprzednią kopię; potwierdź jej odzyskanie przed dalszą grą.';
       setSaveStatus('Odzyskano kopię — potwierdź zapis.', 'error');
       ui['load-status'].textContent = 'Poprzednia kopia jest gotowa do odzyskania.';
@@ -821,13 +827,19 @@ async function initializeSave() {
     }
   } catch (error) {
     console.error('Wczytywanie zapisu:', error);
-    if (error instanceof CorruptSaveError && saveExpected.exists) saveGate = 'corrupt';
+    if (error instanceof SaveMigrationError) saveGate = 'migration';
+    else if (error instanceof CorruptSaveError && saveExpected.exists) saveGate = 'corrupt';
     saveDirty = true;
     saveGeneration++;
-    setSaveStatus(saveGate === 'corrupt' ?
+    setSaveStatus(saveGate === 'migration' ?
+      'Nie można przenieść zapisu — stara kopia jest zachowana.' : saveGate === 'corrupt' ?
       'Uszkodzony zapis — nie nadpisujemy go.' : 'Nie można wczytać zapisu — sesja tymczasowa.', 'error');
-    ui['session-note'].textContent = 'Nie można potwierdzić zapisu; zmiany mogą zniknąć po zamknięciu.';
-    ui['load-status'].textContent = 'Gra działa bez zapisu. Sprawdź dostęp do pamięci przeglądarki i spróbuj ponownie.';
+    ui['session-note'].textContent = saveGate === 'migration' ?
+      'Poprzedni świat jest zachowany. Ponów migrację albo potwierdź utworzenie nowego świata.' :
+      'Nie można potwierdzić zapisu; zmiany mogą zniknąć po zamknięciu.';
+    ui['load-status'].textContent = saveGate === 'migration' ?
+      'Nie udało się przenieść poprzedniego zapisu. Możesz ponowić próbę lub potwierdzić rozpoczęcie nowego świata.' :
+      'Gra działa bez zapisu. Sprawdź dostęp do pamięci przeglądarki i spróbuj ponownie.';
     notice(error.message);
   } finally {
     saveInitialized = true;

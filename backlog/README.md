@@ -2,21 +2,22 @@
 
 Planning documents and explicitly recorded prototype progress, not release claims.
 
-## Minecraft 0.4: creative voxel sandbox
+## Minecraft 0.3: creative voxel sandbox
 
-- [Active 0.4 release plan and historical voxel assessment](./voxel-sandbox-backlog.md)
+- [Active 0.3 release plan and historical voxel assessment](./voxel-sandbox-backlog.md)
 
-Updated 2026-11-12. Confirmed 0.4 scope: desktop Mac, standalone Chrome stable,
+Updated 2026-11-12. Confirmed 0.3 scope: desktop Mac, standalone Chrome stable,
 creative exploration/building and reliable local saving. Mobile, survival,
 crafting and multiplayer are later projects, not release blockers. Priorities:
-measure the current world's save format, protect/restore creations, polish core
-controls and verify the local and hosted release.
+verify migration edge cases, protect/restore creations, polish core controls
+and complete the local and hosted release checks.
 
-The [0.4 development copy](../klocki-podlasia-0.4/) has an expanded world and music,
-but saving and release verification remain pending. The plan includes dependencies,
-failure handling and measurable acceptance gates. Original 0.1 estimates and
-results are preserved as historical context, not 0.4 evidence. Implementation,
-tool installation and publication are not authorized by the plan alone.
+The [0.3 release](../klocki-podlasia-0.3/) has an expanded world, music and local
+saving. Migration of an existing Chrome Incognito save was verified, including
+the seed, position and selected material; migration edge cases and the remaining
+browser/release checks still need verification. Original 0.1 estimates and results
+are historical context, not 0.3 evidence. Implementation, tool installation and
+publication are not authorized by the plan alone.
 
 ## Fully editable ragdoll archery game
 

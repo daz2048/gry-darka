@@ -1,4 +1,4 @@
-# Minecraft 0.4 — kreatywne budowanie
+# Minecraft 0.3 — kreatywne budowanie
 
 Desktopowa gra kreatywna: odkrywaj świat, buduj i wracaj do swojej pracy.
 Wersja docelowa do testów wydania to Chrome na macOS z klawiaturą i myszą.
@@ -35,6 +35,14 @@ przetrwania, craftingu, multiplayera, sterowania dotykowego, synchronizacji
 chmurowej ani gwarancji działania offline/PWA. Więcej szczegółów i aktualne
 bramki wydania zawiera [backlog](../backlog/voxel-sandbox-backlog.md).
 
+Przy pierwszym uruchomieniu wersja 0.3 może przenieść poprawne rekordy z dawnej
+bazy `minecraft-0.4`, ale tylko jeśli slot 0.3 jest pusty. Zachowuje też
+informację o uszkodzonym zapisie, aby pokazać odzyskiwanie lub wymagać
+potwierdzenia zastąpienia. Stara baza pozostaje nienaruszona jako kopia. Jeśli
+migracja się nie powiedzie, gra nie zapisuje tymczasowego świata automatycznie;
+pokaże ponowienie migracji albo wymaga osobnego potwierdzenia utworzenia nowego
+świata.
+
 ## Run
 
 From the repository root, start the existing server:
@@ -43,7 +51,7 @@ From the repository root, start the existing server:
 ./scripts/game-server.sh
 ```
 
-Open <http://localhost:8765/klocki-podlasia-0.4/> or select version 0.4 in the
+Open <http://localhost:8765/klocki-podlasia-0.3/> or select version 0.3 in the
 portfolio. Use HTTP: ES modules do not load by opening this HTML file directly.
 No npm install, compilation, external font, CDN, account or network game server
 is needed to play. Requires a desktop keyboard/mouse and WebGL2.
@@ -104,7 +112,7 @@ spread.
 
 ```sh
 env ATOM_LOCK_SKIP_NATIVE_AUDIO=1 ATOM_LOCK_SKIP_NATIVE_UI=1 \
-  node --test klocki-podlasia-0.4/tests/*.test.js
+  node --test klocki-podlasia-0.3/tests/*.test.js
 ```
 
 Pure tests cover generation, exposed faces, cross-chunk edits, picking, player

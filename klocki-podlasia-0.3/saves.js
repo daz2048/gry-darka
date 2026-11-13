@@ -2,7 +2,8 @@ import { BLOCKS, CHUNK, SIZE } from './world.js';
 
 export const SAVE_SCHEMA_VERSION = 1;
 export const WORLD_GENERATOR_VERSION = 1;
-export const SAVE_DATABASE = 'minecraft-0.4';
+export const SAVE_DATABASE = 'minecraft-0.3';
+export const LEGACY_SAVE_DATABASE = 'minecraft-0.4';
 export const SAVE_STORE = 'worlds';
 const CELL_COUNT = SIZE[0] * SIZE[1] * SIZE[2];
 const MAX_SEED = 0xffffffff;
@@ -20,6 +21,14 @@ export class CorruptSaveError extends Error {
     super(message);
     this.name = 'CorruptSaveError';
     this.code = 'corrupt';
+  }
+}
+
+export class SaveMigrationError extends Error {
+  constructor(message, cause) {
+    super(message, { cause });
+    this.name = 'SaveMigrationError';
+    this.code = 'migration';
   }
 }
 
@@ -114,11 +123,102 @@ function openDatabase(factory) {
   });
 }
 
+function openExistingDatabase(factory, name) {
+  return new Promise((resolve, reject) => {
+    const request = factory.open(name);
+    request.onupgradeneeded = () => request.transaction.abort();
+    request.onsuccess = () => {
+      request.result.onversionchange = () => request.result.close();
+      resolve(request.result);
+    };
+    request.onerror = () => reject(request.error || new Error('Nie można otworzyć poprzedniej bazy zapisów.'));
+    request.onblocked = () => reject(new Error('Poprzednia baza zapisów jest zajęta przez inną kartę.'));
+  });
+}
+
 function readRequest(request) {
   return new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error || new Error('Nie można odczytać zapisu.'));
   });
+}
+
+function migrationMarker(record) {
+  return {
+    revision: Number.isSafeInteger(record?.revision) && record.revision > 0 ? record.revision : 0,
+    savedAt: Number.isFinite(record?.savedAt) && record.savedAt > 0 ? record.savedAt : 1,
+    schemaVersion: 0
+  };
+}
+
+function importLegacyRecords(db, legacyCurrent, legacyPrevious) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(SAVE_STORE, 'readwrite');
+    const store = transaction.objectStore(SAVE_STORE);
+    const currentRequest = store.get('current');
+    const previousRequest = store.get('previous');
+    let remaining = 2;
+    let targetHasRecords = false;
+    let imported = false;
+    let failure = null;
+    const onTargetRead = request => {
+      request.onsuccess = () => {
+        targetHasRecords ||= request.result !== undefined;
+        remaining--;
+        if (remaining !== 0 || targetHasRecords) return;
+        const currentStatus = recordStatus(legacyCurrent);
+        const previousStatus = recordStatus(legacyPrevious);
+        if (legacyCurrent !== undefined) {
+          store.put(currentStatus.valid ? legacyCurrent : migrationMarker(legacyCurrent), 'current');
+          imported = true;
+        } else if (legacyPrevious !== undefined && !previousStatus.valid) {
+          store.put(migrationMarker(legacyPrevious), 'previous');
+          imported = true;
+        }
+        if (previousStatus.valid) {
+          store.put(legacyPrevious, 'previous');
+          imported = true;
+        }
+      };
+      request.onerror = () => {
+        failure = request.error || new Error('Nie można sprawdzić docelowego zapisu.');
+      };
+    };
+    onTargetRead(currentRequest);
+    onTargetRead(previousRequest);
+    transaction.oncomplete = () => resolve(imported);
+    transaction.onabort = () => reject(failure || transaction.error || new Error('Import poprzedniego zapisu został przerwany.'));
+    transaction.onerror = () => {
+      if (!failure) failure = transaction.error || new Error('Nie można przenieść poprzedniego zapisu.');
+    };
+  });
+}
+
+async function migrateLegacySave(factory, db) {
+  if (!factory || typeof factory.databases !== 'function') {
+    throw new SaveMigrationError('Ta przeglądarka nie obsługuje bezpiecznej migracji istniejących zapisów.');
+  }
+  let legacyDatabase;
+  try {
+    const databases = await factory.databases();
+    if (!databases.some(database => database.name === LEGACY_SAVE_DATABASE)) return false;
+    legacyDatabase = await openExistingDatabase(factory, LEGACY_SAVE_DATABASE);
+    const transaction = legacyDatabase.transaction(SAVE_STORE, 'readonly');
+    const store = transaction.objectStore(SAVE_STORE);
+    const [current, previous] = await Promise.all([
+      readRequest(store.get('current')),
+      readRequest(store.get('previous'))
+    ]);
+    return await importLegacyRecords(db, current, previous);
+  } catch (error) {
+    if (error instanceof SaveMigrationError) throw error;
+    throw new SaveMigrationError(
+      'Nie można przenieść poprzedniego zapisu. Jego baza nie została zmieniona; odśwież stronę, aby spróbować ponownie.',
+      error
+    );
+  } finally {
+    legacyDatabase?.close();
+  }
 }
 
 function recordStatus(record) {
@@ -135,6 +235,7 @@ export class WorldSaveStore {
   constructor(factory = globalThis.indexedDB) {
     this.factory = factory;
     this.database = null;
+    this.migration = null;
   }
 
   async db() {
@@ -144,6 +245,8 @@ export class WorldSaveStore {
 
   async load() {
     const db = await this.db();
+    if (!this.migration) this.migration = migrateLegacySave(this.factory, db);
+    const migrated = await this.migration;
     const transaction = db.transaction(SAVE_STORE, 'readonly');
     const store = transaction.objectStore(SAVE_STORE);
     const [current, previous] = await Promise.all([
@@ -156,15 +259,15 @@ export class WorldSaveStore {
       revision: Number.isSafeInteger(current?.revision) ? current.revision : null
     };
     if (currentStatus.valid) {
-      return { status: 'current', record: currentStatus.value, expected, previousAvailable: previousStatus.valid };
+      return { status: 'current', record: currentStatus.value, expected, previousAvailable: previousStatus.valid, migrated };
     }
     if (previousStatus.valid) {
-      return { status: 'recovery', record: previousStatus.value, expected, previousAvailable: true };
+      return { status: 'recovery', record: previousStatus.value, expected, previousAvailable: true, migrated };
     }
     if (current !== undefined || previous !== undefined) {
-      return { status: 'corrupt', record: null, expected, previousAvailable: false };
+      return { status: 'corrupt', record: null, expected, previousAvailable: false, migrated };
     }
-    return { status: 'empty', record: null, expected, previousAvailable: false };
+    return { status: 'empty', record: null, expected, previousAvailable: false, migrated };
   }
 
   async save(snapshot, expected, { replaceCorrupt = false } = {}) {

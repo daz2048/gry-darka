@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#183f36">
-  <title>Minecraft 0.4 — kreatywne budowanie Ekipy spod Lipy</title>
-  <link rel="icon" href="preview.svg?v=3" type="image/svg+xml">
+  <title>Minecraft 0.3 — kreatywne budowanie Ekipy spod Lipy</title>
+  <link rel="icon" href="preview.svg?v=4" type="image/svg+xml">
   <link rel="stylesheet" href="style.css?v=8">
   <script type="importmap">
     {"imports":{"three":"./vendor/three.module.js"}}
@@ -14,7 +14,7 @@
 <body>
   <div id="viewport" aria-label="Trójwymiarowy świat klocków"></div>
   <header class="topbar">
-    <a class="brand" href="../index.html">EKIPA SPOD LIPY <strong>Minecraft <small>WERSJA 0.4 · TRYB KREATYWNY</small></strong></a>
+    <a class="brand" href="../index.html">EKIPA SPOD LIPY <strong>Minecraft <small>WERSJA 0.3 · TRYB KREATYWNY</small></strong></a>
     <div class="tools">
       <span id="save-status" role="status" aria-live="polite">Ładowanie zapisu…</span>
       <button id="save-now" disabled>Zapisz</button>
@@ -42,7 +42,7 @@
   <p id="notice" role="status" hidden></p>
   <section id="overlay" class="overlay" aria-labelledby="heading">
     <div class="panel">
-      <span class="eyebrow">EKIPA SPOD LIPY · WERSJA 0.4</span>
+      <span class="eyebrow">EKIPA SPOD LIPY · WERSJA 0.3</span>
       <h1 id="heading">Klocki <em>Podlasia</em></h1>
       <p id="intro">Domek pod lipą to dopiero początek. Spaceruj po łące, rozbieraj klocki i buduj po swojemu.</p>
       <div class="instructions">
@@ -96,9 +96,9 @@
   <script type="module">
     const status = document.getElementById('load-status');
     if (location.protocol === 'file:') {
-      status.textContent = 'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.4/ — moduły wymagają HTTP.';
+      status.textContent = 'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.3/ — moduły wymagają HTTP.';
     } else {
-      import('./game.js?v=18').catch(error => {
+      import('./game.js?v=19').catch(error => {
         console.error('Minecraft: nie można uruchomić gry.', error);
         status.textContent = 'Nie można wczytać gry. Sprawdź WebGL2 i lokalne pliki; szczegóły w konsoli przeglądarki. Menu gier pozostaje dostępne.';
         document.getElementById('overlay').hidden = false;
