@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#183f36">
   <title>Minecraft 0.3 — creative building with Ekipa spod Lipy</title>
   <link rel="icon" href="preview.svg?v=4" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
   <script type="importmap">
     {"imports":{"three":"./vendor/three.module.js"}}
   </script>
@@ -67,7 +67,11 @@
         <div class="actions">
           <button id="world-continue" class="primary" data-i18n="worldPicker.continue">Continue</button>
           <button id="world-create" data-i18n="worldPicker.create">Create a new world</button>
+          <button id="world-import" data-i18n="backup.import">Import world</button>
+          <input id="world-import-file" type="file" accept=".json,application/json" hidden aria-label="World backup file" data-i18n-attr="aria-label:backup.file">
         </div>
+        <p class="small" data-i18n="backup.help">Export a world to keep an external backup. Import restores a Minecraft 0.3 backup as a new world, never replacing an existing one.</p>
+        <p id="world-transfer-status" class="small" role="status" aria-live="polite" tabindex="-1" hidden></p>
       </section>
       <div id="world-action-confirm" class="reset-confirm" role="group" aria-label="Manage world" data-i18n-attr="aria-label:worldPicker.manage" hidden>
         <p id="world-action-message"></p>
@@ -138,9 +142,9 @@
         'Start the repository server and open http://localhost:8765/klocki-podlasia-0.3/ — modules need HTTP.',
         'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.3/ — moduły wymagają HTTP.');
     } else {
-      import('./i18n.js?v=4').then(i18n => {
+      import('./i18n.js?v=5').then(i18n => {
         i18n.initLanguage();
-        return import('./game.js?v=28');
+        return import('./game.js?v=29');
       }).catch(error => {
         console.error('Minecraft: cannot start the game.', error);
         status.textContent = pick(

@@ -71,6 +71,7 @@ h1 em { font-style: normal; color: #ad4934; }
 .world-actions { display: flex; gap: 4px; align-items: center; }
 .world-actions button { padding: 7px; font-size: 10px; }
 .world-picker .actions { margin-top: 10px; }
+#world-transfer-status { overflow-wrap: anywhere; }
 .panel .small { font-size: 11px; }
 #save-details { white-space: pre-line; overflow-wrap: anywhere; padding: 10px; border: 1px solid #9db19a; border-radius: 8px; background: #eff5ed; }
 #save-details[data-state="saved"] { color: #285d38; }

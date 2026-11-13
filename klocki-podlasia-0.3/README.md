@@ -86,6 +86,39 @@ odzyskiwania. Stara baza pozostaje nienaruszona. Jeśli migracja się nie
 powiedzie, gra nie zapisuje tymczasowego świata automatycznie; pokaże ponowienie
 migracji albo wymaga osobnego potwierdzenia utworzenia nowego świata.
 
+## Kopie zapasowe / World backups
+
+Na ekranie **Twoje światy** wybierz **Eksportuj** przy wybranym świecie.
+W czasie gry użyj pauzy, a następnie **Wybierz świat**. Gra zapisze najnowsze
+zmiany aktywnego świata przed eksportem; błąd zapisu zatrzyma eksport zamiast
+pobrać starszą wersję. Przeglądarka pobierze plik `.minecraft-world.json`.
+Zachowaj go poza danymi przeglądarki, np. na innym dysku. Komunikat potwierdza
+zlecenie pobierania, nie faktyczne zapisanie pliku na dysku.
+
+**Importuj świat** pozwala odtworzyć plik w tym samym lub innym profilu,
+urządzeniu albo pod innym adresem strony. Import zawsze tworzy osobny świat
+z nowym identyfikatorem i zachowuje nazwę; nigdy nie nadpisuje istniejącego.
+Bieżący świat pozostaje wybrany. Po imporcie wybierz nową kopię z listy.
+Anulowanie wyboru pliku niczego nie zmienia. Obowiązuje limit 10 światów;
+eksport pozostaje dostępny przy pełnym katalogu.
+
+From **Your worlds**, choose **Export** beside a world, or **Import world**
+to restore a backup as a new copy. During play, pause and choose **Choose world**
+first. Keep downloaded files somewhere safe: IndexedDB recovery copies still
+are not external backups. Files stay local; there is no upload or cloud sync.
+
+Backup format v1 is UTF-8 JSON with Base64 block/water data and SHA-256 integrity
+checking over the canonical snapshot fields. It includes the seed, full terrain
+and edits, water, player position/view, material and settings; it excludes
+recovery generations and database revisions. Language stays a browser preference;
+roaming creatures are recreated as on a normal load. Typical files are about
+5.33 MiB, with an 8 MiB import limit checked before reading the file.
+Only compatible Minecraft 0.3 schemas, generator versions and dimensions are
+accepted. Corruption, incompatible versions, unavailable storage, and capacity
+errors are reported without replacing existing worlds. SHA-256 detects accidental
+damage, not who created the file. HTTPS or localhost with Web Crypto is required.
+See the [design and verification plan](../backlog/minecraft-0.3-world-backups.md).
+
 ## Run
 
 From the repository root, start the existing server:

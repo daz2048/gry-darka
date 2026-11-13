@@ -56,11 +56,37 @@ all-world archive, or compatibility promises for other game versions.
 | Step | Work | Evidence required | Status |
 | --- | --- | --- | --- |
 | 1 | Branch, plan, initial PR | Clean starting tree; baseline tests; PR links plan | Complete |
-| 2 | Codec and import storage operation | Exact snapshot round trip; rejection of malformed/incompatible/checksum-invalid files; fresh IDs/revisions; atomic quota/capacity failure | Pending |
-| 3 | Picker integration and localization | Latest active edits exported; repeat import never overwrites; cancel is harmless; no false disk-save success; controls serialize work | Pending |
-| 4 | Docs and verification | Full logic suite, syntax/whitespace checks, browser download/upload/reload, EN/PL and failure paths; update PR | Pending |
+| 2 | Codec and import storage operation | Exact snapshot round trip; rejection of malformed/incompatible/checksum-invalid files; fresh IDs/revisions; atomic quota/capacity failure | Complete |
+| 3 | Picker integration and localization | Latest active edits exported; repeat import never overwrites; cancel is harmless; no false disk-save success; controls serialize work | Complete |
+| 4 | Docs and verification | Full logic suite, syntax/whitespace checks, browser download/upload/reload, EN/PL and failure paths; update PR | Complete |
 
 ## Verification log
 
 - Baseline: all 77 Minecraft 0.3 Node tests pass on 2026-11-13.
-- Implementation and browser evidence will be recorded here before completion.
+- 2026-11-13: Implemented the codec in `backups.js`, new-ID import through the
+  existing atomic storage transaction, and EN/PL picker controls. Existing save
+  behavior remains the default; only imports suppress active-world selection.
+  Import errors distinguish file size, incompatible format, invalid data,
+  checksum mismatch, and missing Web Crypto. Post-commit list-refresh failures
+  explicitly report that import succeeded and a reload is needed.
+- Final `npm test --prefix klocki-podlasia-0.3`: all **87 tests pass** (77 baseline,
+  8 codec/file tests, 2 storage-import tests). JavaScript syntax checks and
+  `git diff --check` pass. No compilation or dependency installation is needed.
+- Headless Chromium **158.0.8127.18**, isolated temporary browser contexts:
+  actual download (5,592,936 bytes in the final run), file-picker upload, repeated
+  import with fresh IDs/revision 1, exact block/water/player/settings restoration,
+  retained active world, reload persistence, and restore into a separate empty
+  browser profile all passed. Restored world selection enables play.
+- Browser failure checks passed for cancellation, malformed JSON, incompatible
+  format, checksum corruption, files above 8 MiB, missing Web Crypto, and a
+  post-commit list refresh failure. Failed saves and cross-tab conflicts prevent
+  stale downloads. A suspended in-progress save followed by another setting
+  change is fully flushed before export; competing picker controls stay disabled.
+  The 10-world cap disables import while leaving export available.
+- EN/PL controls and persistent error text update correctly when switching
+  language; the error detail originally remained in English and was fixed during
+  browser verification. Updated all shared i18n imports, including the diagnostics
+  test, together. The picker has no horizontal overflow at 480 px.
+- Limits: verification was local headless Chromium, not a hosted/standalone Chrome
+  release certification. Checksum is integrity detection, not authentication.
+  No ZIP/bulk backup, cloud sync, or cross-version converter was added.

@@ -229,6 +229,46 @@ test('new worlds are capped transactionally and deleting one frees a slot', asyn
   assert.equal((await store.listWorlds()).length, MAX_WORLDS);
 });
 
+test('repeated imports create independent revision-one worlds without changing the active save', async () => {
+  const idb = new FakeIndexedDB();
+  const store = new WorldSaveStore(idb);
+  const source = snapshot(3);
+  await store.save(source, { exists: false, revision: null });
+  await store.save(snapshot(4), { exists: true, revision: 1 });
+  const first = await store.importWorld(source);
+  const second = await store.importWorld(source);
+  assert.equal(first.revision, 1);
+  assert.equal(second.revision, 1);
+  assert.notEqual(first.worldId, source.worldId);
+  assert.notEqual(first.worldId, second.worldId);
+  assert.deepEqual(first.blocks, source.blocks);
+  assert.deepEqual(first.water, source.water);
+  assert.equal(first.worldName, source.worldName);
+  assert.equal((await store.load()).record.worldId, source.worldId);
+  assert.equal((await store.load(source.worldId)).record.revision, 2);
+  assert.equal((await store.load(source.worldId)).record.selectedBlock, 4);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('previous:test-world').selectedBlock, 3);
+  assert.equal((await store.listWorlds()).length, 3);
+});
+
+test('failed imports leave catalog, active world, and recovery generation untouched', async () => {
+  const idb = new FakeIndexedDB();
+  const store = new WorldSaveStore(idb);
+  const source = snapshot();
+  await store.save(source, { exists: false, revision: null });
+  await store.save(snapshot(4), { exists: true, revision: 1 });
+  idb.faults.commit = quota;
+  await assert.rejects(store.importWorld(source), error => error.name === 'QuotaExceededError');
+  delete idb.faults.commit;
+  assert.equal((await store.listWorlds()).length, 1);
+  for (let index = 1; index < MAX_WORLDS; index++) await store.importWorld(source);
+  await assert.rejects(store.importWorld(source), error => error.code === 'world-limit');
+  assert.equal((await store.listWorlds()).length, MAX_WORLDS);
+  assert.equal((await store.load()).record.worldId, source.worldId);
+  assert.equal((await store.load()).record.revision, 2);
+  assert.equal(idb.records(SAVE_DATABASE, WORLD_STORE).get('previous:test-world').selectedBlock, 7);
+});
+
 test('rename and delete update only the selected world and its recovery copy', async () => {
   const idb = new FakeIndexedDB();
   const store = new WorldSaveStore(idb);
