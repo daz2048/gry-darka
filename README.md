@@ -271,10 +271,20 @@ Na poczatku obie wersje maja ten sam swiat, sterowanie i ograniczenia prototypu.
 - [Zagraj »](klocki-podlasia-0.2/)
 - [Instrukcja, ograniczenia i testy](klocki-podlasia-0.2/README.md)
 
-### Minecraft 0.4 — wersja rozwojowa
-Punkt wyjścia to kreatywny świat Minecraft 0.3. Wersja 0.4 będzie rozwijana
-o nowe funkcje, dopracowany wygląd i nowe moby; prace prowadzone są niezależnie
-od zachowanego wydania 0.3.
+### Minecraft 0.5 — wersja rozwojowa
+Punkt wyjścia to Minecraft 0.4. Bieżące prace prowadzone są w `minecraft/0.5/`
+na gałęzi `Minecraft-0.5`. Starsze wydania pozostają w dotychczasowych katalogach
+i pod tymi samymi adresami. Nowe wersje trafiają do `minecraft/<wersja>/`;
+niezmienne biblioteki mają przypięte wersje w `minecraft/shared/vendor/`.
+Kod gry i zapisy pozostają niezależne dla każdego wydania. Światy 0.4 można
+przenieść przez eksport i import kopii zapasowej, bez zmieniania oryginału.
+- [Zagraj »](minecraft/0.5/)
+- [Instrukcja, zapisy i testy](minecraft/0.5/README.md)
+- [Wybór wersji](minecraft/)
+- [Struktura i zasady współdzielenia bibliotek](minecraft/README.md)
+
+### Minecraft 0.4 — archiwum
+Zachowane wydanie, niezależne od rozwoju wersji 0.5.
 - [Zagraj »](klocki-podlasia-0.4/)
 - [Instrukcja, zapisy i testy](klocki-podlasia-0.4/README.md)
 

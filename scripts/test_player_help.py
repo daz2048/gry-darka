@@ -36,7 +36,8 @@ class PlayerHelpTest(unittest.TestCase):
                           f"{source.name}: missing anchor in {href}")
 
     def test_player_pages_have_working_local_links_and_permalinks(self):
-        for name in ("help.html", "updates.html"):
+        for name in ("help.html", "updates.html", "minecraft/index.html",
+                     "minecraft/0.5/index.html"):
             source = ROOT / name
             for link in PageLinks(source).links:
                 with self.subTest(page=name, href=link["href"]):

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183f36">
+  <title>Minecraft 0.5 — creative building with Ekipa spod Lipy</title>
+  <link rel="icon" href="preview.svg?v=4" type="image/svg+xml">
+  <link rel="stylesheet" href="../../player-links.css">
+  <link rel="stylesheet" href="style.css?v=23">
+  <script type="importmap">
+    {"imports":{"three":"../shared/vendor/three/0.180.0/three.module.js"}}
+  </script>
+</head>
+<body>
+  <div id="viewport" aria-label="3D block world" data-i18n-attr="aria-label:viewport.label"></div>
+  <header class="topbar">
+    <a class="brand" href="../../index.html">EKIPA SPOD LIPY <strong>Minecraft <small data-i18n="brand.mode">VERSION 0.5 · CREATIVE MODE</small></strong></a>
+    <div class="tools">
+      <div class="language-switch" role="group" aria-label="Language" data-i18n-attr="aria-label:language.group">
+        <button data-language="en" lang="en" aria-label="English" aria-pressed="true">EN</button>
+        <button data-language="pl" lang="pl" aria-label="Polski" aria-pressed="false">PL</button>
+      </div>
+      <span id="save-status" role="status" aria-live="polite" data-i18n="status.loading">Loading save…</span>
+      <button id="save-now" disabled data-i18n="button.save">Save</button>
+      <button id="reload-save" hidden data-i18n="button.reloadSave">Load the current save</button>
+      <button id="pause" disabled data-i18n="button.pause">Pause · P</button>
+      <a href="../../index.html" data-i18n="link.menuHotkey">Games menu · H</a>
+    </div>
+  </header>
+  <aside id="save-warning" hidden>
+    <p id="save-warning-text" role="status" aria-live="polite"></p>
+    <button id="save-warning-pause" data-i18n="button.saveOptions">Pause for save options · P</button>
+  </aside>
+  <div id="crosshair" hidden aria-hidden="true">+</div>
+  <section id="hud" aria-label="Materials and game status" data-i18n-attr="aria-label:hud.label">
+    <p id="target" hidden></p>
+    <span id="coordinates">Meadow · X 32 · Z 39</span>
+    <div id="palette-pages" role="group" aria-label="Material sets" data-i18n-attr="aria-label:palette.group">
+      <button data-page="0" aria-label="Basic" data-i18n-attr="aria-label:palette.basic" aria-pressed="true"><span class="palette-full" data-i18n="palette.basic">Basic</span><span class="palette-short" aria-hidden="true" data-i18n="palette.basicShort">Basic</span></button>
+      <button data-page="1" aria-label="Building" data-i18n-attr="aria-label:palette.building" aria-pressed="false"><span class="palette-full" data-i18n="palette.building">Building</span><span class="palette-short" aria-hidden="true" data-i18n="palette.buildingShort">Build</span></button>
+      <button data-page="2" aria-label="Decorative" data-i18n-attr="aria-label:palette.decor" aria-pressed="false"><span class="palette-full" data-i18n="palette.decor">Decorative</span><span class="palette-short" aria-hidden="true" data-i18n="palette.decorShort">Decor</span></button>
+      <button data-page="3" aria-label="Ores and nature" data-i18n-attr="aria-label:palette.nature" aria-pressed="false"><span class="palette-full" data-i18n="palette.nature">Ores and nature</span><span class="palette-short" aria-hidden="true" data-i18n="palette.natureShort">Ores+</span></button>
+      <button data-page="4" aria-label="Furniture" data-i18n-attr="aria-label:palette.furniture" aria-pressed="false"><span class="palette-full" data-i18n="palette.furniture">Furniture</span><span class="palette-short" aria-hidden="true" data-i18n="palette.furnitureShort">Furn.</span></button>
+    </div>
+    <div id="palette" aria-label="Material picker" data-i18n-attr="aria-label:palette.picker"></div>
+    <p id="selected-material"></p>
+    <p class="hint" id="controls-hint" data-i18n="hint.initial">WASD · move &nbsp; Space · jump &nbsp; 1–8 · blocks &nbsp; Q / E · remove / place</p>
+  </section>
+  <p id="notice" role="status" hidden></p>
+  <section id="overlay" class="overlay" aria-labelledby="heading">
+    <div class="panel">
+      <span class="eyebrow" data-i18n-html="overlay.eyebrow">EKIPA SPOD LIPY · VERSION <b class="version-highlight">0.3</b></span>
+      <h1 id="heading">Maks <em>Minecraft</em></h1>
+      <p class="current-world"><span data-i18n="worldLabel.eyebrow">YOUR WORLD</span> · <strong id="world-name">Meadow</strong></p>
+      <p class="small" id="pause-coordinates"></p>
+      <p id="intro" data-i18n="overlay.intro">The house under the linden tree is just the beginning. Wander the meadow, take blocks apart and build your own way.</p>
+      <div class="instructions">
+        <p data-i18n-html="instructions.move"><b>WASD / arrows</b> move · <b>Space</b> jump · mouse turns the view</p>
+        <p data-i18n-html="instructions.edit"><b>LMB / Q</b> remove · <b>RMB / E</b> place · <b>1–8</b> material from the set · <b>wheel</b> all materials</p>
+        <p data-i18n-html="instructions.pause"><b>Esc / P</b> pause and release the mouse · <b>H</b> games menu</p>
+      </div>
+      <p id="load-status" role="status" data-i18n="load.preparing">Preparing the meadow…</p>
+      <p id="pause-save-warning" role="status" aria-live="polite" hidden></p>
+      <p class="small" data-i18n="overlay.saveInfo">The world is saved locally in this Chrome profile. The top bar shows the save status; a storage failure does not stop the game, but leaves the session unsaved.</p>
+      <p class="small" id="session-note" data-i18n="session.local">Saved locally in this Chrome profile. This is not a backup.</p>
+      <div id="save-recovery" class="reset-confirm" role="group" aria-label="Save recovery" data-i18n-attr="aria-label:recovery.label" hidden>
+        <p id="save-recovery-message"></p>
+        <button id="restore-backup" data-i18n="button.restoreBackup">Restore the previous save</button>
+      </div>
+      <section id="world-picker" class="world-picker" aria-labelledby="world-picker-heading" hidden>
+        <h2 id="world-picker-heading" data-i18n="worldPicker.label">Your worlds</h2>
+        <p id="world-picker-status" class="small" role="status" aria-live="polite"></p>
+        <div id="world-list" class="world-list" role="list"></div>
+        <div class="actions">
+          <button id="world-continue" class="primary" data-i18n="worldPicker.play">Play</button>
+          <button id="world-create" data-i18n="worldPicker.create">Create a new world</button>
+          <button id="world-import" data-i18n="backup.import">Import world</button>
+          <input id="world-import-file" type="file" accept=".json,application/json" hidden aria-label="World backup file" data-i18n-attr="aria-label:backup.file">
+        </div>
+        <p class="small" data-i18n="backup.help">Export a world to keep an external backup. Import restores a Minecraft 0.5 backup as a new world, never replacing an existing one.</p>
+        <p id="world-transfer-status" class="small" role="status" aria-live="polite" tabindex="-1" hidden></p>
+      </section>
+      <div id="world-action-confirm" class="reset-confirm" role="group" aria-label="Manage world" data-i18n-attr="aria-label:worldPicker.manage" hidden>
+        <p id="world-action-message"></p>
+        <label id="world-action-name-label" for="world-action-name" data-i18n="worldPicker.nameLabel">New world name</label>
+        <input id="world-action-name" type="text" maxlength="32" autocomplete="off">
+        <button id="confirm-world-action" data-i18n="worldPicker.rename">Rename</button>
+        <button id="cancel-world-action" data-i18n="worldPicker.cancel">Cancel</button>
+      </div>
+      <div id="play-actions" class="actions" hidden>
+        <button id="start" class="primary" disabled><span data-i18n="button.start">Play</span> <small class="mode-hint" data-i18n="button.captureHint">(capture mouse)</small></button>
+        <button id="drag-start" disabled><span data-i18n="button.dragStart">Play</span> <small class="mode-hint" data-i18n="button.dragHint">(without capturing)</small></button>
+        <button id="choose-world" data-i18n="worldPicker.choose">Worlds &amp; backups</button>
+      </div>
+      <p class="small" data-i18n="overlay.dragInfo">No-capture mode: drag across the world to look around; Q / E change blocks. Keyboard computers only.</p>
+      <details>
+        <summary data-i18n="ideas.summary">Building ideas (optional)</summary>
+        <p class="small" data-i18n="ideas.text">Build a house under the linden tree, connect the riverbanks with a bridge or plant a garden. These are only ideas — no tasks or limits.</p>
+      </details>
+      <details><summary data-i18n="places.summary">Biomes, villages and roads</summary><p class="small" data-i18n="places.text">Follow the roads. The biome and player coordinates are shown above the material bar.</p><p class="small" id="destinations"></p><p class="small" id="biome-destinations"></p><p class="small" id="structure-destinations"></p></details>
+      <div class="settings">
+        <label><span data-i18n="settings.sensitivity">Mouse sensitivity</span> <input id="sensitivity" type="range" min="0.4" max="2" step="0.1" value="1"></label>
+        <label><input id="low-quality" type="checkbox"> <span data-i18n="settings.lowQuality">Lower resolution</span></label>
+        <label><input id="show-coordinates" type="checkbox"> <span data-i18n="settings.coordinates">Show biome and coordinates during play</span></label>
+        <label><input id="music-on" type="checkbox" checked> <span data-i18n="settings.music">Music</span></label>
+        <label><span data-i18n="settings.musicChoice">Soundtrack</span>
+          <select id="music-choice" disabled>
+            <option value="random" data-i18n="music.random">Random track</option>
+            <option value="original" data-i18n="music.original">Original music</option>
+          </select>
+        </label>
+        <label><span data-i18n="settings.volume">Music volume</span> <input id="music-volume" type="range" min="0" max="100" step="5" value="35"></label>
+      </div>
+      <p id="music-status" class="small" role="status" data-i18n="music.loading">Loading music catalogue…</p>
+      <div id="secondary-actions" class="actions secondary" hidden>
+        <button id="recover" disabled data-i18n="button.recover">Back to start</button>
+        <button id="new-world" disabled data-i18n="button.newWorld">New world</button>
+        <button id="fullscreen" data-i18n="button.fullscreen">Full screen</button>
+        <a href="../../index.html" data-i18n="link.menu">Games menu</a>
+      </div>
+      <div id="reset-confirm" class="reset-confirm" role="group" aria-label="Confirm new world" data-i18n-attr="aria-label:reset.label" hidden>
+        <p id="reset-message" data-i18n="reset.normal">A new world will be created. Your current world will be kept. Continue?</p>
+        <label for="world-name-input" data-i18n="world.nameLabel">World name (max. 32 characters)</label>
+        <input id="world-name-input" type="text" maxlength="32" value="New world" autocomplete="off" required>
+        <button id="confirm-reset" data-i18n="button.confirmReset">Yes, new world</button>
+        <button id="cancel-reset" data-i18n="button.cancelReset">No, keep my build</button>
+      </div>
+      <div id="leave-confirm" class="reset-confirm" role="group" aria-label="Unsaved changes" data-i18n-attr="aria-label:leave.label" hidden>
+        <p data-i18n="leave.text">Saving failed. If you leave now, changes since the last save will be lost.</p>
+        <button id="stay-in-game" data-i18n="button.stay">Stay and try again</button>
+        <button id="leave-unsaved" data-i18n="button.leave">Leave without saving</button>
+      </div>
+      <p class="small warning" data-i18n="overlay.scope">Desktop version: no survival, crafting, multiplayer or touch controls.</p>
+      <p class="small"><a class="player-guide" href="../../help.html#minecraft" target="_blank" rel="noopener" data-i18n="link.help">Help (new tab)</a></p>
+      <details id="diagnostics">
+        <summary data-i18n="metrics.summary">Model diagnostics</summary>
+        <output id="metrics" data-i18n="metrics.waiting">Waiting for the renderer.</output>
+        <output id="server-diagnostics" aria-live="polite"></output>
+        <div class="actions secondary">
+          <button id="refresh-diagnostics" data-i18n="diagnostics.refresh">Refresh diagnostics</button>
+          <button id="show-server-logs" aria-expanded="false" aria-controls="server-logs" data-i18n="diagnostics.showLogs">Show recent server logs</button>
+        </div>
+        <pre id="server-logs" aria-live="polite" hidden></pre>
+        <p id="save-details" class="small" role="status" aria-live="polite" hidden></p>
+      </details>
+    </div>
+  </section>
+  <noscript><p class="fatal">This game needs JavaScript. / Ta gra wymaga JavaScript. <a href="../../index.html">Games menu / Menu gier</a></p></noscript>
+  <script type="module">
+    const status = document.getElementById('load-status');
+    const requested = new URLSearchParams(location.search).get('lang');
+    let stored = null;
+    try { stored = localStorage.getItem('minecraft-0.5-language'); } catch {}
+    const polish = requested ? requested === 'pl' : stored === 'pl';
+    const pick = (en, pl) => (polish ? pl : en);
+    if (location.protocol === 'file:') {
+      status.textContent = pick(
+        'Start the repository server and open http://localhost:8765/minecraft/0.5/ — modules need HTTP.',
+        'Uruchom serwer repozytorium i otwórz http://localhost:8765/minecraft/0.5/ — moduły wymagają HTTP.');
+    } else {
+      import('./i18n.js?v=15').then(i18n => {
+        i18n.initLanguage();
+        return import('./game.js?v=41');
+      }).catch(error => {
+        console.error('Minecraft: cannot start the game.', error);
+        status.textContent = pick(
+          'The game could not load. Check WebGL2 and the local files; details are in the browser console. The games menu is still available.',
+          'Nie można wczytać gry. Sprawdź WebGL2 i lokalne pliki; szczegóły w konsoli przeglądarki. Menu gier pozostaje dostępne.');
+        document.getElementById('overlay').hidden = false;
+        for (const id of ['start', 'drag-start', 'pause']) document.getElementById(id).disabled = true;
+      });
+    }
+  </script>
+</body>
+</html>
