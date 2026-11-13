@@ -1,4 +1,4 @@
-import { CorruptSaveError, SAVE_SCHEMA_VERSION, WORLD_GENERATOR_VERSION, validateSnapshot } from './saves.js?v=10';
+import { CorruptSaveError, SAVE_SCHEMA_VERSION, WORLD_GENERATOR_VERSION, validateSnapshot } from './saves.js?v=11';
 import { SIZE } from './world.js';
 
 export const MAX_BACKUP_BYTES = 8 * 1024 * 1024;
@@ -27,7 +27,10 @@ function snapshotFields(value) {
       sensitivity: value?.settings?.sensitivity,
       lowQuality: value?.settings?.lowQuality,
       musicEnabled: value?.settings?.musicEnabled,
-      musicVolume: value?.settings?.musicVolume
+      musicVolume: value?.settings?.musicVolume,
+      ...(value?.settings?.musicSelection === undefined ? {} : {
+        musicSelection: value.settings.musicSelection
+      })
     },
     worldId: value?.worldId,
     worldName: value?.worldName

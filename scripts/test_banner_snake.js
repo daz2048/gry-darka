@@ -5,6 +5,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const script = fs.readFileSync(path.join(__dirname, '..', 'banner-snake.js'), 'utf8');
+const gameEffects = ['snake', 'zombie-defense', 'platformer', 'flappy', 'archers', 'castle-duel',
+  'minecraft-building', 'space-invaders', 'pong', 'racing', 'breakout'];
 
 function createSimulation() {
   const faces = [0, 1, 2].map(() => {
@@ -38,7 +40,7 @@ function createSimulation() {
   let mutation;
   let timer = null;
   vm.runInNewContext(script, {
-    document,
+    document, gameBannerEffects: gameEffects,
     matchMedia: () => motion,
     IntersectionObserver: class {
       constructor(callback) { intersection = callback; }
@@ -129,7 +131,7 @@ test('only visible selected scenes animate; reduced motion and hidden tabs stop 
 });
 
 test('game scenes render and advance only while active and respect reduced motion', () => {
-  for (const effect of ['zombie-defense', 'platformer', 'flappy']) {
+  for (const effect of gameEffects.filter(effect => effect !== 'snake')) {
     const sim = createSimulation();
     const scene = sim.faces[0];
     scene.dataset.effect = effect;
@@ -155,5 +157,20 @@ test('game scenes render and advance only while active and respect reduced motio
     scene.dataset.effect = 'cloud';
     sim.change();
     assert.equal(sim.running(), false);
+  }
+});
+
+test('building and arcade scenes change their game state over time', () => {
+  for (const effect of ['minecraft-building', 'space-invaders', 'breakout']) {
+    const sim = createSimulation();
+    const scene = sim.faces[0];
+    scene.dataset.effect = effect;
+    sim.change();
+    const initialCount = scene.canvas.current.length;
+    sim.intersect(sim.flip, true);
+    for (let i = 0; i < 48; i++) sim.tick();
+    const laterCount = scene.canvas.current.length;
+    if (effect === 'minecraft-building') assert.ok(laterCount > initialCount);
+    else assert.ok(laterCount < initialCount);
   }
 });

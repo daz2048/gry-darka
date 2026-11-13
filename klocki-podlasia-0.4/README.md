@@ -44,6 +44,13 @@ time each control mode is used on the page; full instructions remain in pause.
 The world name, language/menu controls, manual Save, storage explanation and
 full save details are available while paused, not over the playing view.
 Manual-save success uses a brief confirmation instead of a large details popup.
+Returning to pause with **Esc / P** shows a large, centered confirmation only
+once the current world is saved. It includes the world name, browser database
+location, revision, timestamp, estimated size, recovery-copy and persistence
+status. Three gentle colour pulses lead into an eclipse-style close within
+three seconds; reduced-motion mode disables these animations. Full details
+remain in the pause diagnostics after the popup disappears. There is no separate
+world file: the browser manages the IndexedDB files.
 Save failures and conflicts remain prominent during play and pause, including
 while editing or retrying, until saving succeeds or a safe world state is loaded.
 Use **P** or the warning's pause button to access save/recovery options.
@@ -126,7 +133,8 @@ migracji albo wymaga osobnego potwierdzenia utworzenia nowego świata.
 ## Kopie zapasowe / World backups
 
 Na ekranie **Twoje światy** wybierz **Eksportuj** przy wybranym świecie.
-W czasie gry użyj pauzy, a następnie **Wybierz świat**. Gra zapisze najnowsze
+W czasie gry użyj pauzy, a następnie **Światy i kopie zapasowe** obok przycisków
+gry. Gra zapisze najnowsze
 zmiany aktywnego świata przed eksportem; błąd zapisu zatrzyma eksport zamiast
 pobrać starszą wersję. Przeglądarka pobierze plik `.minecraft-world.json`.
 Zachowaj go poza danymi przeglądarki, np. na innym dysku. Komunikat potwierdza
@@ -140,8 +148,8 @@ Anulowanie wyboru pliku niczego nie zmienia. Obowiązuje limit 10 światów;
 eksport pozostaje dostępny przy pełnym katalogu.
 
 From **Your worlds**, choose **Export** beside a world, or **Import world**
-to restore a backup as a new copy. During play, pause and choose **Choose world**
-first. Keep downloaded files somewhere safe: IndexedDB recovery copies still
+to restore a backup as a new copy. During play, pause and choose **Worlds & backups**
+beside the play buttons first. Keep downloaded files somewhere safe: IndexedDB recovery copies still
 are not external backups. Files stay local; there is no upload or cloud sync.
 
 Backup format v1 is UTF-8 JSON with Base64 block/water data and SHA-256 integrity
@@ -192,9 +200,13 @@ is needed to play. Requires a desktop keyboard/mouse and WebGL2.
   named track, or the original generated music, and adjust the volume in the
   start/pause panel. Random mode picks another track when one ends; a named track
   repeats. Playback pauses with the game and resumes at the same position.
-  The on/off setting and volume are saved with the world; the soundtrack choice
-  lasts for the current page session only. If the catalogue cannot be loaded
-  or contains no tracks, the original music is selected and a message is shown.
+  The on/off setting, volume and soundtrack choice are saved separately for each
+  world and included in exported backups. Older worlds and new worlds default to
+  Random. If a saved track is missing or fails to play, a random available track
+  is selected with a notice. Failed tracks are skipped for the rest of the page
+  session unless explicitly selected again. If no tracks can be played, or the
+  catalogue is empty or unavailable, the original music is used. If the browser
+  blocks playback, a message is shown instead of repeatedly retrying tracks.
 
 **Navigation exception:** unlike the 2D games, Escape pauses instead of returning
 to the portfolio because browsers use it to release pointer lock. H still goes home.

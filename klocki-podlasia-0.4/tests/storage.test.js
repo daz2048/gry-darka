@@ -202,6 +202,25 @@ test('worlds keep independent snapshots, revisions, backups, and recent selectio
   assert.equal((await store.load()).record.worldId, 'world-b');
 });
 
+test('soundtrack assignments survive storage reloads without leaking between worlds', async () => {
+  const idb = new FakeIndexedDB();
+  const store = new WorldSaveStore(idb);
+  await store.load();
+  for (const [worldId, musicSelection] of [
+    ['world-a', 'track:a.mp3'], ['world-b', 'track:b.ogg'],
+    ['world-random', 'random'], ['world-original', 'original']
+  ]) {
+    const saved = createSnapshot(world, createPlayer(world), 0, 0, 1,
+      { ...settings, musicSelection }, worldId);
+    await store.save(saved, { exists: false, revision: null, worldId });
+  }
+  const reloaded = new WorldSaveStore(idb);
+  assert.equal((await reloaded.load('world-a')).record.settings.musicSelection, 'track:a.mp3');
+  assert.equal((await reloaded.load('world-b')).record.settings.musicSelection, 'track:b.ogg');
+  assert.equal((await reloaded.load('world-random')).record.settings.musicSelection, 'random');
+  assert.equal((await reloaded.load('world-original')).record.settings.musicSelection, 'original');
+});
+
 test('new worlds are capped transactionally and deleting one frees a slot', async () => {
   const idb = new FakeIndexedDB();
   const store = new WorldSaveStore(idb);

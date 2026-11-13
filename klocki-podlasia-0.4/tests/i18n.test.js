@@ -77,6 +77,28 @@ test('translation switches language and fills placeholders', () => {
   assert.equal(t('missing.key'), 'missing.key');
 });
 
+test('pause confirmation clearly reports a successful world save in both languages', () => {
+  setLanguage('en', { persist: false });
+  assert.match(t('notice.pauseSaved'), /world was saved successfully/i);
+  setLanguage('pl', { persist: false });
+  assert.match(t('notice.pauseSaved'), /świat został bezpiecznie zapisany/i);
+  setLanguage('en', { persist: false });
+});
+
+test('pause save debug details interpolate the committed world identity and timestamp', () => {
+  for (const language of LANGUAGES) {
+    setLanguage(language, { persist: false });
+    const text = t('notice.saveDebug', {
+      id: 'test-world-id', revision: 42, time: '2026-11-13 16:20:00'
+    });
+    assert.match(text, /test-world-id/);
+    assert.match(text, /42/);
+    assert.match(text, /2026-11-13 16:20:00/);
+    assert.doesNotMatch(text, /\{(?:id|revision|time)\}/);
+  }
+  setLanguage('en', { persist: false });
+});
+
 test('save details include localized backup and persistence status instead of a disk path', () => {
   const params = {
     label: '', name: 'World', time: '08:26', location: 'IndexedDB',

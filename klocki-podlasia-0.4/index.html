@@ -7,7 +7,7 @@
   <title>Minecraft 0.4 — creative building with Ekipa spod Lipy</title>
   <link rel="icon" href="preview.svg?v=4" type="image/svg+xml">
   <link rel="stylesheet" href="../player-links.css">
-  <link rel="stylesheet" href="style.css?v=17">
+  <link rel="stylesheet" href="style.css?v=23">
   <script type="importmap">
     {"imports":{"three":"./vendor/three.module.js"}}
   </script>
@@ -61,7 +61,6 @@
         <p data-i18n-html="instructions.pause"><b>Esc / P</b> pause and release the mouse · <b>H</b> games menu</p>
       </div>
       <p id="load-status" role="status" data-i18n="load.preparing">Preparing the meadow…</p>
-      <a class="player-guide" href="../help.html#minecraft" target="_blank" rel="noopener" data-i18n="link.help">Help (new tab)</a>
       <p id="pause-save-warning" role="status" aria-live="polite" hidden></p>
       <p class="small" data-i18n="overlay.saveInfo">The world is saved locally in this Chrome profile. The top bar shows the save status; a storage failure does not stop the game, but leaves the session unsaved.</p>
       <p class="small" id="session-note" data-i18n="session.local">Saved locally in this Chrome profile. This is not a backup.</p>
@@ -92,6 +91,7 @@
       <div id="play-actions" class="actions" hidden>
         <button id="start" class="primary" disabled data-i18n="button.start">Play — capture mouse</button>
         <button id="drag-start" disabled data-i18n="button.dragStart">Play without capturing</button>
+        <button id="choose-world" data-i18n="worldPicker.choose">Worlds &amp; backups</button>
       </div>
       <p class="small" data-i18n="overlay.dragInfo">No-capture mode: drag across the world to look around; Q / E change blocks. Keyboard computers only.</p>
       <details>
@@ -116,7 +116,6 @@
       <div id="secondary-actions" class="actions secondary" hidden>
         <button id="recover" disabled data-i18n="button.recover">Back to start</button>
         <button id="new-world" disabled data-i18n="button.newWorld">New world</button>
-        <button id="choose-world" data-i18n="worldPicker.choose">Choose world</button>
         <button id="fullscreen" data-i18n="button.fullscreen">Full screen</button>
         <a href="../index.html" data-i18n="link.menu">Games menu</a>
       </div>
@@ -133,6 +132,7 @@
         <button id="leave-unsaved" data-i18n="button.leave">Leave without saving</button>
       </div>
       <p class="small warning" data-i18n="overlay.scope">Desktop version: no survival, crafting, multiplayer or touch controls.</p>
+      <p class="small"><a class="player-guide" href="../help.html#minecraft" target="_blank" rel="noopener" data-i18n="link.help">Help (new tab)</a></p>
       <details id="diagnostics">
         <summary data-i18n="metrics.summary">Model diagnostics</summary>
         <output id="metrics" data-i18n="metrics.waiting">Waiting for the renderer.</output>
@@ -159,9 +159,9 @@
         'Start the repository server and open http://localhost:8765/klocki-podlasia-0.4/ — modules need HTTP.',
         'Uruchom serwer repozytorium i otwórz http://localhost:8765/klocki-podlasia-0.4/ — moduły wymagają HTTP.');
     } else {
-      import('./i18n.js?v=11').then(i18n => {
+      import('./i18n.js?v=15').then(i18n => {
         i18n.initLanguage();
-        return import('./game.js?v=35');
+        return import('./game.js?v=41');
       }).catch(error => {
         console.error('Minecraft: cannot start the game.', error);
         status.textContent = pick(

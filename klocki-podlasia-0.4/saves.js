@@ -84,7 +84,8 @@ export function createSnapshot(world, player, yaw, pitch, selectedBlock, setting
       sensitivity: settings.sensitivity,
       lowQuality: settings.lowQuality,
       musicEnabled: settings.musicEnabled,
-      musicVolume: settings.musicVolume
+      musicVolume: settings.musicVolume,
+      ...(settings.musicSelection === undefined ? {} : { musicSelection: settings.musicSelection })
     },
     worldId,
     worldName

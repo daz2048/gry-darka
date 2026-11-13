@@ -5,13 +5,13 @@ import { World, SIZE, CHUNK, BLOCKS, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTUR
 import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=3';
 import { createPlayer, collides, stepPlayer } from './player.js?v=2';
 import { createMobs, createMobModel, stepMobs } from './mobs.js?v=3';
-import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=2';
+import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=3';
 import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, WORLD_STORE,
   MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
-  suggestUniqueWorldName } from './saves.js?v=10';
-import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=1';
-import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=11';
-import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=9';
+  suggestUniqueWorldName } from './saves.js?v=11';
+import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=2';
+import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=15';
+import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=12';
 
 initDiagnostics();
 
@@ -207,7 +207,7 @@ let frameCount = 0;
 let frameStart = lastTime;
 let fps = 0;
 let edits = 0;
-let noticeUntil = 0;
+let noticeTimer = null;
 let controlsHintUntil = 0;
 const introducedControlModes = new Set();
 let firstFrameMs = 0;
@@ -219,6 +219,15 @@ const music = new MusicPlayer([], {
   onError: error => {
     console.error('Music:', error);
     notice(t('music.failed'));
+  },
+  onFallback: (error, selection) => {
+    console.error('Music fallback:', error);
+    ui['music-choice'].value = selection;
+    const key = selection === 'random' ? 'music.fallbackRandom' : 'music.fallbackOriginal';
+    setText(ui['music-status'], key);
+    ui['music-status'].hidden = false;
+    notice(t(key));
+    if (playing) markDirty();
   }
 });
 ui['world-name'].textContent = displayWorldName(worldName);
@@ -311,6 +320,7 @@ function renderWorldPicker() {
     remove.addEventListener('click', () => openWorldAction('delete', entry));
     const exportButton = document.createElement('button');
     exportButton.type = 'button';
+    exportButton.className = 'world-export-button';
     exportButton.textContent = t('backup.export');
     exportButton.disabled = busy || entry.corrupt;
     exportButton.setAttribute('aria-label', t('backup.exportNamed', {
@@ -401,10 +411,39 @@ function reportError(error) {
   notice(errorText(error));
 }
 
-function notice(message, duration = 5000) {
+function notice(message, duration = 5000, state = 'normal') {
+  clearTimeout(noticeTimer);
   ui.notice.textContent = message;
   ui.notice.hidden = false;
-  noticeUntil = performance.now() + duration;
+  ui.notice.dataset.state = state;
+  noticeTimer = setTimeout(() => { ui.notice.hidden = true; }, duration);
+}
+
+function savedPauseNotice() {
+  notice('', 3000, 'saved');
+  const card = document.createElement('span');
+  card.className = 'save-confirmation';
+  const heading = document.createElement('strong');
+  heading.className = 'save-confirmation-heading';
+  const details = document.createElement('span');
+  details.className = 'save-confirmation-details';
+  card.append(heading, details);
+  ui.notice.replaceChildren(card);
+  renderSavedPauseNotice();
+}
+
+function renderSavedPauseNotice() {
+  if (ui.notice.hidden || ui.notice.dataset.state !== 'saved') return;
+  const heading = ui.notice.querySelector('.save-confirmation-heading');
+  const details = ui.notice.querySelector('.save-confirmation-details');
+  if (!heading || !details || saveDetails?.state !== 'saved') return;
+  const { record } = saveDetails;
+  heading.textContent = t('notice.pauseSaved');
+  details.textContent = `${ui['save-details'].textContent}\n${t('notice.saveDebug', {
+    id: record.worldId,
+    revision: record.revision,
+    time: new Date(record.savedAt).toLocaleString(locale())
+  })}`;
 }
 
 function updateSaveControls() {
@@ -434,7 +473,8 @@ function currentSettings() {
     sensitivity: Number(ui.sensitivity.value),
     lowQuality: ui['low-quality'].checked,
     musicEnabled: ui['music-on'].checked,
-    musicVolume: Number(ui['music-volume'].value) / 100
+    musicVolume: Number(ui['music-volume'].value) / 100,
+    musicSelection: music.selection
   };
 }
 
@@ -447,6 +487,9 @@ function applySettings(settings) {
   ui['music-volume'].disabled = !settings.musicEnabled;
   ui['music-choice'].disabled = !settings.musicEnabled;
   music.setVolume(settings.musicVolume);
+  if (music.tracks.length) ui['music-status'].hidden = true;
+  music.restoreSelection(settings.musicSelection);
+  ui['music-choice'].value = music.selection;
   resize();
 }
 
@@ -523,6 +566,7 @@ function renderSaveDetails() {
   }
   element.dataset.state = saveDetails.state;
   element.hidden = false;
+  renderSavedPauseNotice();
 }
 
 function showSavedDetails(record, labelKey = 'details.labelSaved') {
@@ -600,6 +644,8 @@ function renderWorldAction() {
   ui['world-action-name'].hidden = type !== 'rename';
   ui['world-action-name'].setCustomValidity('');
   ui['confirm-world-action'].textContent = t(`worldPicker.${type}`);
+  ui['world-action-confirm'].classList.toggle('delete-confirm-active', type === 'delete');
+  ui['confirm-world-action'].classList.toggle('delete-confirm-flash', type === 'delete');
   ui['world-action-confirm'].hidden = false;
 }
 
@@ -984,7 +1030,15 @@ function pause() {
   setText(ui.heading, 'pause.heading');
   setText(ui.intro, 'pause.intro');
   outline.visible = false;
-  if (saveDirty) saveWorld().catch(reportError);
+  if (saveDirty) {
+    saveWorld()
+      .then(record => {
+        if (record && !playing && !saveDirty && !saveGate) savedPauseNotice();
+      })
+      .catch(reportError);
+  } else if (saveInitialized && !saveGate && lastSavedAt) {
+    savedPauseNotice();
+  }
 }
 
 function play(useDrag) {
@@ -1178,7 +1232,8 @@ ui['confirm-reset'].addEventListener('click', async () => {
     const nextPlayer = createPlayer(nextWorld);
     const nextWorldId = crypto.randomUUID();
     const nextSnapshot = createSnapshot(nextWorld, nextPlayer, -0.13, 0,
-      selected, currentSettings(), nextWorldId, customWorldName(nextWorldName));
+      selected, { ...currentSettings(), musicSelection: 'random' },
+      nextWorldId, customWorldName(nextWorldName));
     const record = await saveWorld({
       snapshot: nextSnapshot,
       replaceCorrupt: replaceDamaged,
@@ -1188,6 +1243,7 @@ ui['confirm-reset'].addEventListener('click', async () => {
     worldName = customWorldName(nextWorldName);
     ui['world-name'].textContent = displayWorldName(worldName);
     installWorld(nextWorld, nextPlayer, 0, -0.13);
+    applySettings(record.settings);
     created = true;
     saveDirty = false;
     saveGate = null;
@@ -1326,7 +1382,9 @@ ui['music-on'].addEventListener('change', () => {
 });
 ui['music-choice'].addEventListener('change', () => {
   music.setSelection(ui['music-choice'].value);
+  if (music.tracks.length) ui['music-status'].hidden = true;
   if (playing && ui['music-on'].checked) music.start();
+  markDirty();
 });
 ui['music-volume'].addEventListener('input', () => {
   music.setVolume(Number(ui['music-volume'].value) / 100);
@@ -1349,7 +1407,7 @@ window.addEventListener('keydown', event => {
     toggleFullscreen();
     return;
   }
-  if (event.code === 'KeyH') { navigateHome('../index.html'); return; }
+  if (event.code === 'KeyH') { navigateHome('../index.html#top'); return; }
   if ((event.code === 'KeyP' || event.code === 'Escape') && playing) {
     event.preventDefault(); pause(); return;
   }
@@ -1580,7 +1638,6 @@ function frame(now) {
     });
     updateCoordinates();
   }
-  if (!ui.notice.hidden && now > noticeUntil) ui.notice.hidden = true;
   if (!ui['controls-hint'].hidden && now > controlsHintUntil) ui['controls-hint'].hidden = true;
   waterTexture.offset.set(now * 0.000006 % 1, now * 0.000002 % 1);
   sky.position.copy(camera.position);

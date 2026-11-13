@@ -24,6 +24,7 @@
   let weatherController;
   let searchController;
   let lastAttempt = 0;
+  let skyData;
 
   function report(error) {
     console.warn('Homepage weather:', error.message);
@@ -98,8 +99,58 @@
   }
 
   function clearSky() {
+    skyData = undefined;
     delete document.body.dataset.weather;
     delete document.body.dataset.day;
+    delete document.body.dataset.evening;
+    delete document.body.dataset.skyStage;
+    for (const property of ['--weather-light', '--weather-twilight', '--weather-darkness',
+      '--weather-sun', '--weather-sun-x', '--weather-sun-y']) {
+      document.body.style.removeProperty(property);
+    }
+  }
+
+  function updateSky() {
+    if (!skyData) return;
+    const now = Date.now() / 1000;
+    const windowSeconds = 45 * 60;
+    const { periods, isDay } = skyData;
+    const period = periods.find(({ sunrise, sunset }) => now >= sunrise && now <= sunset);
+    const betweenDays = periods.some(({ sunset }) => sunset < now) &&
+      periods.some(({ sunrise }) => sunrise > now);
+    const event = periods.flatMap(({ sunrise, sunset }) => [
+      { time: sunrise, type: 'dawn' }, { time: sunset, type: 'sunset' },
+    ]).find(item => Math.abs(now - item.time) <= windowSeconds);
+    let light = period || (!betweenDays && isDay) ? 1 : 0;
+    let twilight = 0;
+    let stage = light ? 'day' : 'night';
+    if (!periods.length) {
+      light = isDay ? 1 : 0;
+      stage = isDay ? 'day' : 'night';
+    } else if (event) {
+      const progress = (now - event.time + windowSeconds) / (2 * windowSeconds);
+      light = event.type === 'dawn' ? progress : 1 - progress;
+      twilight = Math.sin(Math.PI * progress) * .65;
+      stage = event.type === 'dawn' ? 'dawn' : now < event.time ? 'sunset' : 'dusk';
+    }
+    const style = document.body.style;
+    style.setProperty('--weather-light', light.toFixed(3));
+    style.setProperty('--weather-darkness', (1 - light).toFixed(3));
+    style.setProperty('--weather-twilight', twilight.toFixed(3));
+    style.setProperty('--weather-sun', period || (!betweenDays && isDay && !event) ? '1' : '0');
+    if (period) {
+      const progress = (now - period.sunrise) / (period.sunset - period.sunrise);
+      style.setProperty('--weather-sun-x', `${(18 + 64 * progress).toFixed(2)}%`);
+      style.setProperty('--weather-sun-y', `calc(${(100 - 85 * Math.sin(Math.PI * progress)).toFixed(2)}% + ${Math.max(0, 18 - 180 * Math.min(progress, 1 - progress)).toFixed(2)}px)`);
+    } else if (event) {
+      style.setProperty('--weather-sun-x', event.type === 'dawn' ? '18%' : '82%');
+      style.setProperty('--weather-sun-y', 'calc(100% + 18px)');
+    } else {
+      style.removeProperty('--weather-sun-x');
+      style.removeProperty('--weather-sun-y');
+    }
+    document.body.dataset.skyStage = stage;
+    document.body.dataset.day = String(Boolean(period) || (!betweenDays && isDay));
   }
 
   function updateShortcut(value, conditions) {
@@ -111,8 +162,9 @@
   }
 
   function rainChance(hourly) {
-    const hour = Math.floor(Date.now() / (60 * 60 * 1000)) * 60 * 60;
-    const index = Array.isArray(hourly?.time) ? hourly.time.indexOf(hour) : -1;
+    const now = Date.now() / 1000;
+    const index = Array.isArray(hourly?.time) ?
+      hourly.time.findIndex(time => Number.isFinite(time) && time <= now && now < time + 3600) : -1;
     const probability = index >= 0 ? hourly.precipitation_probability?.[index] : undefined;
     if (!Number.isFinite(probability) || probability < 0 || probability > 100) {
       report(new Error('Rain chance for this hour is unavailable.'));
@@ -133,6 +185,7 @@
     const query = new URLSearchParams({
       latitude: value.latitude, longitude: value.longitude,
       current: 'weather_code,is_day,temperature_2m', timeformat: 'unixtime',
+      daily: 'sunrise,sunset', timezone: 'auto', past_days: '1',
       hourly: 'precipitation_probability', forecast_days: '2',
     });
     try {
@@ -148,7 +201,19 @@
       const temperature = `${Math.round(current.temperature_2m)} °C`;
       updateShortcut(value, `${temperature} · ${chance}`);
       document.body.dataset.weather = theme;
-      document.body.dataset.day = String(current.is_day === 1);
+      const rises = data.daily?.sunrise;
+      const sets = data.daily?.sunset;
+      const periods = [];
+      if (Array.isArray(rises) && Array.isArray(sets)) {
+        for (let i = 0; i < rises.length; i++) {
+          if (Number.isFinite(rises[i]) && Number.isFinite(sets[i]) && rises[i] < sets[i]) {
+            periods.push({ sunrise: rises[i], sunset: sets[i] });
+          }
+        }
+      }
+      if (!periods.length) report(new Error('Sunrise and sunset unavailable; using current day/night conditions.'));
+      skyData = { periods, isDay: current.is_day === 1 };
+      updateSky();
       const time = new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit' }).format(new Date(current.time * 1000));
       status.textContent = `${locationLabel(value)} - ${description}, ${temperature} - ${current.is_day ? 'day' : 'night'}. ${chance} (precipitation, including snow). Updated ${time} (your time).`;
     } catch (error) {
@@ -287,7 +352,10 @@
 
   function refreshIfNeeded() {
     document.body.classList.toggle('weather-paused', document.hidden);
-    if (!document.hidden && Date.now() - lastAttempt >= refreshMs) void updateWeather();
+    if (!document.hidden) {
+      updateSky();
+      if (Date.now() - lastAttempt >= refreshMs) void updateWeather();
+    }
   }
 
   shortcut.addEventListener('click', () => {
@@ -297,7 +365,7 @@
   panel.hidden = false;
   shortcut.hidden = false;
   document.addEventListener('visibilitychange', refreshIfNeeded);
-  setInterval(refreshIfNeeded, refreshMs);
+  setInterval(refreshIfNeeded, 60 * 1000);
   try {
     const saved = readSavedLocation();
     if (saved) applyLocation(saved);

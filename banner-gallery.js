@@ -4,7 +4,6 @@ const bannerGalleryStatus = document.getElementById('banner-gallery-status');
 const bannerPreview = document.getElementById('banner-preview');
 const bannerPreviewContainer = document.querySelector('.banner-gallery-preview');
 const bannerPreviewName = document.getElementById('banner-preview-name');
-const gameBannerEffects = ['snake', 'zombie-defense', 'platformer', 'flappy'];
 const bannerGroups = [
   ['Games', gameBannerEffects],
   ['Year-round', [...brandEffects, ...highImpactBrandEffects].filter(effect => !gameBannerEffects.includes(effect))],
@@ -51,8 +50,32 @@ function initializeBannerGallery() {
   if (bannerGalleryInitialized) return;
   const saved = readBannerSelection();
   for (const [title, effects] of bannerGroups) {
+    const groupHeading = document.createElement('div');
+    groupHeading.className = 'banner-gallery-group-heading';
     const heading = document.createElement('h3');
     heading.textContent = title;
+    const selectAll = document.createElement('button');
+    selectAll.type = 'button';
+    selectAll.textContent = 'Select all in this category';
+    selectAll.setAttribute('aria-label', `Select all banner styles in the ${title} category`);
+    selectAll.addEventListener('click', () => {
+      const groupEffects = new Set(effects);
+      bannerCheckboxes().forEach(checkbox => {
+        if (groupEffects.has(checkbox.value)) checkbox.checked = true;
+      });
+      saveBannerSelection();
+    });
+    const groupActions = document.createElement('div');
+    groupActions.className = 'banner-gallery-group-actions';
+    const scrollToTop = document.createElement('button');
+    scrollToTop.type = 'button';
+    scrollToTop.className = 'banner-gallery-top-button';
+    scrollToTop.setAttribute('aria-label', 'Back to top');
+    scrollToTop.title = 'Back to top';
+    scrollToTop.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 16V8m0 0-3.5 3.5M12 8l3.5 3.5"></path></svg>';
+    scrollToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    groupActions.append(selectAll, scrollToTop);
+    groupHeading.append(heading, groupActions);
     const grid = document.createElement('div');
     grid.className = 'banner-gallery-grid';
     for (const effect of effects) {
@@ -89,7 +112,7 @@ function initializeBannerGallery() {
       card.append(label, preview, button);
       grid.append(card);
     }
-    bannerGalleryGroups.append(heading, grid);
+    bannerGalleryGroups.append(groupHeading, grid);
   }
   bannerGalleryStatus.textContent = saved
     ? 'Your saved selection is active.'

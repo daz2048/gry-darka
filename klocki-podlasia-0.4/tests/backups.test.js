@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { World } from '../world.js';
 import { createPlayer } from '../player.js';
-import { createSnapshot, CorruptSaveError } from '../saves.js?v=10';
+import { createSnapshot, CorruptSaveError } from '../saves.js?v=11';
 import {
   backupFileName, decodeWorldBackup, encodeWorldBackup, MAX_BACKUP_BYTES, readWorldBackup
 } from '../backups.js';
@@ -36,6 +36,16 @@ test('imports support unnamed worlds and ignore unrecognized JSON fields', async
   const restored = await decodeWorldBackup(JSON.stringify(envelope));
   assert.deepEqual(restored, unnamed);
   assert.equal(restored.untrusted, undefined);
+});
+
+test('backup round trips preserve soundtrack assignments and accept backups without a choice', async () => {
+  for (const musicSelection of ['track:a #1.ogg', 'random', 'original']) {
+    const snapshot = { ...original, settings: { ...original.settings, musicSelection } };
+    const restored = await decodeWorldBackup(await encodeWorldBackup(snapshot));
+    assert.equal(restored.settings.musicSelection, musicSelection);
+  }
+  const restored = await decodeWorldBackup(encoded);
+  assert.equal(restored.settings.musicSelection, undefined);
 });
 
 test('malformed, truncated, and unsupported backups are rejected', async () => {

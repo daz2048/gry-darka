@@ -12,12 +12,12 @@
 <meta property="og:title" content="Pixel Otter Rocket | Gry Ekipy spod Lipy z Hajnówki" />
 <meta property="og:description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.4. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <meta property="og:url" content="https://daz2048.github.io/gry-darka/" />
-<link rel="stylesheet" href="weather.css?v=4" />
+<link rel="stylesheet" href="weather.css?v=7" />
 <link rel="stylesheet" href="minecraft-news.css?v=1" />
-<script src="weather.js?v=3" defer></script>
+<script src="weather.js?v=5" defer></script>
 <script src="minecraft-news.js?v=1" defer></script>
-<script src="banner-gallery.js?v=4" defer></script>
-<script src="banner-snake.js?v=2" defer></script>
+<script src="banner-gallery.js?v=6" defer></script>
+<script src="banner-snake.js?v=3" defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   
@@ -225,7 +225,9 @@
   .brand-face[data-effect="spooky-stars"]::after { background-image: url('menu-previews/banner-spooky-stars.svg'), url('menu-previews/banner-spooky-stars.svg'); }
   .brand-face[data-effect="autumn-leaves"]::after { animation: falling-leaves 6s ease-in-out infinite; }
   .brand-face:is([data-effect="snake"], [data-effect="zombie-defense"],
-    [data-effect="platformer"], [data-effect="flappy"])::after {
+    [data-effect="platformer"], [data-effect="flappy"], [data-effect="archers"],
+    [data-effect="castle-duel"], [data-effect="minecraft-building"], [data-effect="space-invaders"],
+    [data-effect="pong"], [data-effect="racing"], [data-effect="breakout"])::after {
     background-position: center; background-size: contain; background-repeat: no-repeat;
     opacity: .6;
   }
@@ -233,14 +235,25 @@
   .brand-face[data-effect="zombie-defense"]::after { background-image: url('menu-previews/banner-zombie-defense.svg'); }
   .brand-face[data-effect="platformer"]::after { background-image: url('menu-previews/banner-platformer.svg'); }
   .brand-face[data-effect="flappy"]::after { background-image: url('menu-previews/banner-flappy.svg'); }
+  .brand-face[data-effect="archers"]::after { background-image: url('menu-previews/banner-archers.svg'); }
+  .brand-face[data-effect="castle-duel"]::after { background-image: url('menu-previews/banner-castle-duel.svg'); }
+  .brand-face[data-effect="minecraft-building"]::after { background-image: url('menu-previews/banner-minecraft-building.svg'); }
+  .brand-face[data-effect="space-invaders"]::after { background-image: url('menu-previews/banner-space-invaders.svg'); }
+  .brand-face[data-effect="pong"]::after { background-image: url('menu-previews/banner-pong.svg'); }
+  .brand-face[data-effect="racing"]::after { background-image: url('menu-previews/banner-racing.svg'); }
+  .brand-face[data-effect="breakout"]::after { background-image: url('menu-previews/banner-breakout.svg'); }
   .brand-face:has(.banner-snake):is([data-effect="snake"], [data-effect="zombie-defense"],
-    [data-effect="platformer"], [data-effect="flappy"])::after { background: none; }
+    [data-effect="platformer"], [data-effect="flappy"], [data-effect="archers"],
+    [data-effect="castle-duel"], [data-effect="minecraft-building"], [data-effect="space-invaders"],
+    [data-effect="pong"], [data-effect="racing"], [data-effect="breakout"])::after { background: none; }
   .banner-snake {
     display: none; position: absolute; inset: 0; width: 100%; height: 100%;
     opacity: .65; pointer-events: none;
   }
   .brand-face:is([data-effect="snake"], [data-effect="zombie-defense"],
-    [data-effect="platformer"], [data-effect="flappy"]) .banner-snake { display: block; }
+    [data-effect="platformer"], [data-effect="flappy"], [data-effect="archers"],
+    [data-effect="castle-duel"], [data-effect="minecraft-building"], [data-effect="space-invaders"],
+    [data-effect="pong"], [data-effect="racing"], [data-effect="breakout"]) .banner-snake { display: block; }
   .brand-face[data-effect="fireworks"]::after,
   .brand-face[data-effect="nebula-burst"]::after,
   .brand-face[data-effect="campfire"]::after,
@@ -474,14 +487,31 @@
     letter-spacing: 1px;
   }
   .brand-face .sub { position: relative; z-index: 1; }
-  .site-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 20px; font: 600 12px/1.4 "Segoe UI", sans-serif; opacity: .8; }
+  .site-nav { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 20px; font: 600 12px/1.4 "Segoe UI", sans-serif; opacity: .8; }
   .site-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; color: #aeb4c0; text-underline-offset: 4px; }
   .site-nav button {
     display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px;
     border: 1px solid rgba(174, 180, 192, .45); border-radius: 999px;
     background: transparent; color: #aeb4c0; font: inherit; cursor: pointer;
   }
+  .site-nav :is(.site-music-toggle, .nav-icon-link) {
+    width: 44px; height: 44px; padding: 8px; justify-content: center;
+    border: 1px solid rgba(174, 180, 192, .45); border-radius: 10px;
+    background: rgba(28, 48, 73, .65);
+  }
+  .site-nav .nav-icon-link { text-decoration: none; }
+  .site-music-toggle svg, .nav-icon-link svg { width: 24px; height: 24px; flex-shrink: 0; }
+  .nav-tooltip {
+    position: absolute; top: 100%; left: 50%; transform: translateX(-50%); z-index: 10;
+    width: max-content; max-width: 100%; padding: 8px 12px;
+    border: 1px solid #7998b5; border-radius: 6px; background: #10192e;
+    color: #e8edf2; font: 600 12px/1.4 "Segoe UI", sans-serif; text-align: center;
+    visibility: hidden;
+  }
+  .site-nav :is(.site-music-toggle, .nav-icon-link):is(:hover, :focus-visible) .nav-tooltip { visibility: visible; }
+  .site-nav .site-music-toggle[aria-pressed="true"] { color: #ffcd53; }
   .site-nav button:hover:not(:disabled) { color: #fff; border-color: #ffcd53; }
+  .site-nav .nav-icon-link:hover { color: #fff; border-color: #ffcd53; }
   .site-nav button:disabled { cursor: wait; opacity: .65; }
   .site-nav a:focus-visible, .site-nav button:focus-visible { outline: 3px solid #ffcd53; outline-offset: 4px; }
   .site-nav-status { flex-basis: 100%; color: #ffcd53; text-align: center; }
@@ -594,11 +624,25 @@
   .banner-gallery summary { cursor: pointer; min-height: 44px; padding: 10px 0; font-weight: 600; }
   .banner-gallery h2 { font-size: 18px; }
   .banner-gallery h3 { margin: 24px 0 10px; font-size: 16px; }
+  .banner-gallery-group-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .banner-gallery-group-heading h3 { margin: 24px 0 10px; }
+  .banner-gallery-group-actions { display: flex; align-items: center; gap: 8px; }
   .banner-gallery-actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .banner-gallery button {
     min-height: 44px; padding: 8px 12px; color: #e8edf2; background: #263d58;
     border: 1px solid #89a5bd; border-radius: 6px; cursor: pointer; font: inherit;
   }
+  .banner-gallery .banner-gallery-top-button {
+    display: grid; width: 44px; padding: 8px; place-items: center;
+    background: linear-gradient(145deg, #314d6c, #243650);
+    box-shadow: inset 0 1px 0 #ffffff20, 0 3px 8px #0003;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .banner-gallery .banner-gallery-top-button:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 #ffffff30, 0 5px 12px #0005;
+  }
+  .banner-gallery-top-button svg { width: 24px; height: 24px; fill: none; stroke: #a7e7ff; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
   .banner-gallery :is(button, input, summary):focus-visible { outline: 3px solid #ffcd53; outline-offset: 3px; }
   .banner-gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; }
   .banner-gallery-card { padding: 10px; background: #1b2b43; border-radius: 8px; }
@@ -627,8 +671,8 @@
   }
 </style>
 </head>
-<body>
-  <div class="weather-sky" aria-hidden="true"><div class="weather-stars"></div><div class="weather-moon"></div><div class="weather-clouds"></div><div class="weather-particles"></div></div>
+<body id="top">
+  <div class="weather-sky" aria-hidden="true"><div class="weather-daylight"></div><div class="weather-twilight"></div><div class="weather-sun"></div><div class="weather-stars"><div class="weather-shooting-star"></div></div><div class="weather-moon"></div><div class="weather-clouds"></div><div class="weather-particles"></div></div>
   <div class="wrap">
     <header>
       <h1>
@@ -661,16 +705,41 @@
             <span id="weather-shortcut-conditions">Loading weather...</span>
           </span>
         </a>
-        <button id="site-music-toggle" type="button" aria-pressed="false" disabled>Music: Off</button>
-        <a class="banner-gallery-link" href="#banner-gallery" lang="en">Banner styles</a>
-        <a class="minecraft-news-shortcut" href="#minecraft-news" aria-label="Minecraft news and videos" title="Minecraft news and videos" lang="en">
+        <button id="site-music-toggle" class="site-music-toggle" type="button" aria-label="Music: Off" aria-pressed="false" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
+          </svg>
+          <span class="nav-tooltip" aria-hidden="true">Music is off. Turn music on.</span>
+        </button>
+        <a class="banner-gallery-link nav-icon-link" href="#banner-gallery" aria-label="Banner styles" lang="en">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 3h14v14H7zM3 7v14h14" />
+            <path d="M10 7v10m4-10v10" />
+          </svg>
+          <span class="nav-tooltip" aria-hidden="true">Banner styles: browse and choose a banner.</span>
+        </a>
+        <a class="minecraft-news-shortcut nav-icon-link" href="#minecraft-news" aria-label="Minecraft news and videos" lang="en">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M3 5h18v14H3zM6 8h5v5H6zM14 8h4M14 11h4M6 16h12" />
           </svg>
-          <span>Minecraft news</span>
+          <span class="nav-tooltip" aria-hidden="true">Minecraft news: see the latest news and videos.</span>
         </a>
-        <a href="help.html">How to play</a>
-        <a href="updates.html">Updates</a>
+        <a class="nav-icon-link" href="help.html" aria-label="How to play" lang="en">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M9.6 9a2.5 2.5 0 1 1 4.1 1.9c-1.1.9-1.7 1.2-1.7 2.6M12 17h.01" />
+          </svg>
+          <span class="nav-tooltip" aria-hidden="true">How to play: read the game instructions.</span>
+        </a>
+        <a class="nav-icon-link" href="updates.html" aria-label="Updates" lang="en">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 2.6-6.4L3 8" />
+            <path d="M3 3v5h5m4-1v5l3 2" />
+          </svg>
+          <span class="nav-tooltip" aria-hidden="true">Updates: see what has changed on the site.</span>
+        </a>
         <span id="banner-storage-status" class="site-nav-status" role="status" hidden></span>
         <span id="site-music-status" class="site-nav-status" role="status" aria-live="polite" hidden></span>
       </nav>
@@ -839,7 +908,7 @@
       <p>Choose at least one style. One style stays active; multiple styles change when you flip the banner. Your selection is saved in this browser.</p>
       <div class="banner-gallery-actions">
         <button type="button" id="banner-select-all">Select all</button>
-        <button type="button" id="banner-clear">Clear</button>
+        <button type="button" id="banner-clear">Clear all</button>
         <button type="button" id="banner-reset">Restore defaults</button>
       </div>
       <p id="banner-gallery-status" class="banner-gallery-message" role="status"></p>
@@ -865,6 +934,8 @@
     });
     const brandEffects = ['cloud', 'data', 'stars', 'scan', 'pixel-rain', 'shooting-stars', 'circuits', 'aurora', 'pink', 'orange',
       'otter-rocket', 'block-landscape', 'castle-arrows', 'arcade'];
+    const gameBannerEffects = ['snake', 'zombie-defense', 'platformer', 'flappy', 'archers', 'castle-duel',
+      'minecraft-building', 'space-invaders', 'pong', 'racing', 'breakout'];
     const seasonalBrandEffects = {
       0: ['snow', 'frost'],
       1: ['snow', 'frost'],
@@ -880,7 +951,7 @@
       11: ['festive-lights', 'presents'],
     };
     const highImpactBrandEffects = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge', 'strobe-lights',
-      'snake', 'zombie-defense', 'platformer', 'flappy'];
+      ...gameBannerEffects];
     const highImpactSeasonalBrandEffects = {
       1: ['frost-hearts', 'winter-night'],
       2: ['spring-storm', 'meadow-burst'],
@@ -966,7 +1037,11 @@
     let player;
 
     function setMusicEnabled(enabled) {
-      button.textContent = `Music: ${enabled ? 'On' : 'Off'}`;
+      const label = `Music: ${enabled ? 'On' : 'Off'}`;
+      button.setAttribute('aria-label', label);
+      button.querySelector('.nav-tooltip').textContent = enabled
+        ? 'Music is on. Turn music off.'
+        : 'Music is off. Turn music on.';
       button.setAttribute('aria-pressed', String(enabled));
     }
 
@@ -1003,7 +1078,8 @@
       });
     } catch (error) {
       console.error('Site music could not be initialized.', error);
-      button.textContent = 'Music unavailable';
+      button.setAttribute('aria-label', 'Music unavailable');
+      button.querySelector('.nav-tooltip').textContent = 'Music unavailable. Reload the page to try again.';
       setMusicStatus('Music could not be loaded. Reload the page to try again.');
     }
   </script>

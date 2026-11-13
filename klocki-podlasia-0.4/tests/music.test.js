@@ -128,10 +128,15 @@ test('audio failures propagate without pretending that music started', async () 
 
 class MediaAudio {
   constructor() { this.listeners = {}; this.plays = 0; this.pauses = 0; this.src = ''; }
+  set src(value) { this.source = value; this.error = null; }
+  get src() { return this.source; }
   addEventListener(name, callback) { this.listeners[name] = callback; }
   play() { this.plays++; return this.nextPlay || Promise.resolve(); }
   pause() { this.pauses++; }
-  emit(name) { this.listeners[name](); }
+  emit(name) {
+    if (name === 'error') this.error = new Error('Media error');
+    this.listeners[name]();
+  }
 }
 
 test('catalogue loads without caching and rejects invalid or unavailable data', async () => {
@@ -186,10 +191,12 @@ test('random tracks advance, pause resumes, and individual and original choices 
 test('playback failures are reported once and stale rejections do not stop a resumed track', async () => {
   const audio = new MediaAudio();
   const errors = [];
+  const fallbacks = [];
   let rejectOld;
   audio.nextPlay = new Promise((resolve, reject) => { rejectOld = reject; });
   const player = new MusicPlayer([{ file: 'a.mp3', title: 'A' }], {
-    audio, ambient: new AmbientMusic(AudioContext), onError: error => errors.push(error)
+    audio, ambient: new AmbientMusic(AudioContext), onError: error => errors.push(error),
+    onFallback: (error, selection) => fallbacks.push(selection)
   });
   player.start();
   player.stop();
@@ -201,6 +208,119 @@ test('playback failures are reported once and stale rejections do not stop a res
   assert.equal(errors.length, 0);
   audio.emit('error');
   audio.emit('error');
+  assert.equal(player.active, true);
+  assert.equal(player.selection, 'original');
+  assert.deepEqual(fallbacks, ['original']);
+  assert.equal(errors.length, 0);
+});
+
+test('world soundtrack choices restore independently, with Random for old or missing choices', () => {
+  const audio = new MediaAudio();
+  const fallbacks = [];
+  const player = new MusicPlayer([
+    { file: 'a.mp3', title: 'A' }, { file: 'b.ogg', title: 'B' }
+  ], {
+    audio, ambient: new AmbientMusic(AudioContext),
+    onFallback: (error, selection) => fallbacks.push(selection)
+  });
+  player.restoreSelection('track:a.mp3');
+  player.start();
+  assert.match(audio.src, /a\.mp3$/);
+  player.restoreSelection('track:b.ogg');
+  assert.equal(player.active, false);
+  player.start();
+  assert.match(audio.src, /b\.ogg$/);
+  player.restoreSelection('track:a.mp3');
+  assert.equal(player.selection, 'track:a.mp3');
+  player.restoreSelection('original');
+  assert.equal(player.selection, 'original');
+  player.restoreSelection();
+  assert.equal(player.selection, 'random');
+  assert.deepEqual(fallbacks, []);
+  for (const selection of ['track:removed.mp3', '', null, {}, 42]) {
+    player.restoreSelection(selection);
+    assert.equal(player.selection, 'random');
+  }
+  assert.equal(fallbacks.length, 5);
+  player.tracks = [];
+  player.restoreSelection('track:a.mp3');
+  assert.equal(player.selection, 'original');
+  assert.equal(fallbacks.at(-1), 'original');
+});
+
+test('a failed assigned track falls back to random and is not retried by random mode', async () => {
+  const audio = new MediaAudio();
+  const fallbacks = [];
+  let rejectOld;
+  audio.nextPlay = new Promise((resolve, reject) => { rejectOld = reject; });
+  const player = new MusicPlayer([
+    { file: 'broken.mp3', title: 'Broken' }, { file: 'working.mp3', title: 'Working' }
+  ], {
+    audio, ambient: new AmbientMusic(AudioContext), random: () => 0,
+    onFallback: (error, selection) => fallbacks.push(selection)
+  });
+  player.restoreSelection('track:broken.mp3');
+  player.start();
+  audio.nextPlay = Promise.resolve();
+  audio.emit('error');
+  assert.equal(player.selection, 'random');
+  assert.equal(player.active, true);
+  assert.match(audio.src, /working\.mp3$/);
+  assert.equal(audio.loop, false);
+  rejectOld(new Error('Old play rejection after media error'));
+  await Promise.resolve();
+  assert.deepEqual(fallbacks, ['random']);
+  audio.emit('ended');
+  assert.match(audio.src, /working\.mp3$/);
+  player.restoreSelection('track:broken.mp3');
+  assert.equal(player.selection, 'random');
+  player.setSelection('track:broken.mp3');
+  player.start();
+  assert.match(audio.src, /broken\.mp3$/);
+});
+
+test('failed tracks and original music are tried only once before reporting a terminal error', async () => {
+  const audio = new MediaAudio();
+  audio.play = function () {
+    this.plays++;
+    return Promise.reject(new Error('Unsupported codec'));
+  };
+  class UnavailableAudioContext extends AudioContext {
+    async resume() { throw new Error('Audio unavailable'); }
+  }
+  const errors = [];
+  const fallbacks = [];
+  const player = new MusicPlayer([
+    { file: 'a.mp3', title: 'A' }, { file: 'b.mp3', title: 'B' }
+  ], {
+    audio, ambient: new AmbientMusic(UnavailableAudioContext), random: () => 0,
+    onFallback: (error, selection) => fallbacks.push(selection),
+    onError: error => errors.push(error)
+  });
+  player.setSelection('track:a.mp3');
+  player.start();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(audio.plays, 2);
+  assert.deepEqual(fallbacks, ['random', 'original']);
   assert.equal(player.active, false);
   assert.equal(errors.length, 1);
+});
+
+test('browser playback denial reports an error without cycling through every track', async () => {
+  const audio = new MediaAudio();
+  audio.nextPlay = Promise.reject(Object.assign(new Error('Playback blocked'), { name: 'NotAllowedError' }));
+  const errors = [];
+  const player = new MusicPlayer([
+    { file: 'a.mp3', title: 'A' }, { file: 'b.mp3', title: 'B' }
+  ], {
+    audio, ambient: new AmbientMusic(AudioContext),
+    onError: error => errors.push(error),
+    onFallback: () => assert.fail('Autoplay denial is not a broken track')
+  });
+  player.start();
+  await Promise.resolve();
+  assert.equal(player.active, false);
+  assert.equal(audio.plays, 1);
+  assert.equal(errors.length, 1);
+  assert.equal(player.failedTracks.size, 0);
 });

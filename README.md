@@ -22,21 +22,31 @@ lokalnie w przeglądarce. Wybór jednego motywu działa od razu i po odświeżen
 kilka motywów zmienia się przy następnym obrocie. „Clear” pozwala zacząć
 wybór od nowa, zachowując poprzedni wybór do zaznaczenia nowego motywu;
 „Restore defaults” przywraca domyślny wybór sezonowy.
-Na początku galerii sekcja „Games” zawiera ciche automatyczne symulacje Snake,
-Zombie Defense, Platformer i Flappy. Przy ograniczonym ruchu pokazują nieruchomą
-scenę, a poza widocznym obszarem i w ukrytej karcie nie zużywają czasu animacji.
+Na początku galerii sekcja „Games” zawiera ciche automatyczne symulacje: Snake,
+Zombie Defense, Platformer, Flappy, Archers, Castle Duel, Minecraft Building,
+Space Invaders, Pong, Racing i Breakout. Przy ograniczonym ruchu pokazują
+nieruchomą scenę, a poza widocznym obszarem i w ukrytej karcie nie zużywają
+czasu animacji.
 
 ## Weather background
 
 The homepage background follows model-based current weather: sunshine, clouds, fog,
 rain, snow, and a dark storm sky (no flashing lightning). Clear and partly cloudy
-nights show stars and a decorative moon; its position and phase are not astronomical.
-Banner effects remain independent. Animations respect reduced motion and pause in hidden tabs.
+nights show gently twinkling stars, an occasional decorative shooting star, and a
+moon; these are illustrative, not astronomical or actual meteor predictions.
+The selected location's sunrise and sunset drive dawn, day, sunset, dusk and night,
+with a roughly 45-minute transition on either side of each event. The sun's path is
+illustrative, not astronomical. If sunrise or sunset is unavailable (such as during
+polar day or night), the background uses the current day/night weather instead.
+Sky colors and celestial elements update each minute while visible; cloud and
+precipitation effects remain dependent on the weather. Banner effects remain independent.
+Animations respect reduced motion and pause in hidden tabs; stars remain static and
+shooting stars are hidden when reduced motion is requested.
 The weather/location panel is the last content below the footer. The small weather
 icon in the top navigation shows the selected location, current temperature and
 this hour's rain chance; clicking it jumps to the panel and expands all location
 options. Rain chance uses Open-Meteo's hourly precipitation probability (including
-snow), matched by UTC timestamp rather than the visitor's timezone. Missing rain
+snow), matched by timestamp to the selected location's current hour. Missing rain
 probability is labelled unavailable without hiding otherwise valid weather.
 
 - On a new visit, [ipwho.is](https://ipwhois.io/documentation) estimates a city from

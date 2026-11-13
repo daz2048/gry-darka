@@ -7,6 +7,7 @@ Planning documents and explicitly recorded prototype progress, not release claim
 - [x] Zombie defense: small automatic squad shooting approaching zombies.
 - [x] Original Mario-style platformer: a character runs, jumps and collects coins.
 - [x] Flappy-style scene: a bird automatically flies through scrolling pipes.
+- [x] Archers, Castle Duel, Minecraft Building, Space Invaders, Pong, Racing and Breakout scenes.
 
 Keep these optional decorative banner styles silent and legible, with static
 reduced-motion alternatives and animation paused when not visible.
