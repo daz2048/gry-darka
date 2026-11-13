@@ -52,8 +52,8 @@ test('shortcut and source links exist without JavaScript, and panel follows weat
   assert.match(html, /href="#minecraft-news"/);
   assert.ok(html.indexOf('id="weather-panel"') < html.indexOf('id="minecraft-news"'));
   assert.ok(html.indexOf('id="minecraft-news"') < html.indexOf('id="banner-gallery"'));
-  assert.match(html, /href="https:\/\/www\.minecraft\.net\/en-us\/articles"/);
-  assert.match(html, /href="https:\/\/www\.youtube\.com\/@minecraft"/);
+  assert.match(html, /href="https:\/\/www\.minecraft\.net\/en-us\/articles" target="_blank" rel="noopener"/);
+  assert.match(html, /href="https:\/\/www\.youtube\.com\/@minecraft" target="_blank" rel="noopener"/);
 });
 
 test('renders text safely and marks old data without marking fresh data', async () => {
@@ -63,6 +63,8 @@ test('renders text safely and marks old data without marking fresh data', async 
   const newsLink = result.get('#minecraft-news-items').children[0].children[0];
   assert.equal(newsLink.textContent, '<b>Update</b>');
   assert.equal(newsLink.href, data.news.items[0].url);
+  assert.equal(newsLink.target, '_blank');
+  assert.equal(newsLink.rel, 'noopener');
   assert.equal(result.get('#minecraft-videos-items').children.length, 1);
 });
 
