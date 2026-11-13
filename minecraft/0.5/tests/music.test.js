@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import vm from 'node:vm';
 import { AmbientMusic } from '../music.js';
 import { loadMusicCatalogue, MusicPlayer } from '../music-player.js';
+import { setText } from '../i18n.js';
 
 class AudioParam {
   constructor() { this.value = 0; this.targets = []; }
@@ -186,6 +189,120 @@ test('random tracks advance, pause resumes, and individual and original choices 
   assert.ok(audio.pauses >= 3);
   player.stop();
   assert.equal(ambient.active, false);
+});
+
+test('music chooser includes scary tracks with distinct saved choices and correct playback URLs', async () => {
+  const game = await readFile(new URL('../game.js', import.meta.url), 'utf8');
+  const source = game.match(/async function initializeMusic\(\) \{[\s\S]*?\n\}/)[0];
+  const audio = new MediaAudio();
+  let choice = 0.99;
+  const music = new MusicPlayer([], {
+    audio, ambient: new AmbientMusic(AudioContext), random: () => choice,
+    base: new URL('https://example.test/games/music/')
+  });
+  const select = {
+    options: [{ value: 'random' }, { value: 'original' }],
+    append(option) { this.options.push(option); }
+  };
+  const status = {};
+  const ui = { 'music-choice': select, 'music-status': status, 'music-on': { checked: true } };
+  const context = vm.createContext({
+    music, ui, setText, console,
+    document: { createElement: () => ({ dataset: {} }) },
+    loadMusicCatalogue: (base = music.base) => loadMusicCatalogue(base, async () => ({
+      ok: true, json: async () => [{ file: 'same #1.mp3', title: 'Same song' }]
+    }))
+  });
+  await vm.runInContext(`${source}; initializeMusic()`, context);
+  assert.deepEqual(select.options.map(option => option.value),
+    ['random', 'original', 'track:same #1.mp3', 'track:scary_music/same #1.mp3']);
+  assert.equal(select.options[3].dataset.i18n, 'music.scaryTrack');
+  assert.equal(JSON.parse(select.options[3].dataset.i18nParams).title, 'Same song');
+  assert.equal(select.disabled, false);
+  assert.equal(status.hidden, true);
+  music.start();
+  assert.equal(audio.src, 'https://example.test/games/music/same%20%231.mp3');
+  assert.equal(audio.loop, false);
+  choice = 0;
+  audio.emit('ended');
+  assert.equal(audio.src, 'https://example.test/games/music/same%20%231.mp3');
+  const savedChoice = select.options[3].value;
+  music.restoreSelection(savedChoice);
+  music.start();
+  assert.equal(audio.src, 'https://example.test/games/music/scary_music/same%20%231.mp3');
+  assert.equal(audio.loop, true);
+  music.setScary(true);
+  assert.equal(music.selection, savedChoice);
+  assert.equal(audio.loop, false);
+  music.setScary(false);
+  assert.equal(music.selection, savedChoice);
+  assert.equal(audio.src, 'https://example.test/games/music/scary_music/same%20%231.mp3');
+  assert.equal(audio.loop, true);
+  music.stop();
+});
+
+test('a missing catalogue keeps available music selectable and reports the failure', async t => {
+  const game = await readFile(new URL('../game.js', import.meta.url), 'utf8');
+  const source = game.match(/async function initializeMusic\(\) \{[\s\S]*?\n\}/)[0];
+  for (const missing of ['normal', 'scary', 'both']) {
+    await t.test(missing, async () => {
+      const errors = [];
+      const music = new MusicPlayer([], {
+        audio: new MediaAudio(), ambient: new AmbientMusic(AudioContext),
+        base: new URL('https://example.test/music/')
+      });
+      const select = {
+        options: [{ value: 'random' }, { value: 'original' }],
+        append(option) { this.options.push(option); }
+      };
+      const status = {};
+      const context = vm.createContext({
+        music, setText, ui: {
+          'music-choice': select, 'music-status': status, 'music-on': { checked: false }
+        },
+        console: { error: (...args) => errors.push(args) },
+        document: { createElement: () => ({ dataset: {} }) },
+        loadMusicCatalogue: (base = music.base) => loadMusicCatalogue(base, async url => ({
+          ok: missing !== 'both' && missing !== (url.href.includes('scary_music/') ? 'scary' : 'normal'),
+          status: 404, json: async () => [{ file: 'a.mp3', title: 'A' }]
+        }))
+      });
+      status.dataset = {};
+      await vm.runInContext(`${source}; initializeMusic()`, context);
+      assert.equal(errors.length, missing === 'both' ? 2 : 1);
+      assert.equal(status.dataset.i18n, missing === 'both' ? 'music.catalogueFailed' : 'music.cataloguePartial');
+      assert.equal(music.selection, missing === 'scary' ? 'random' : 'original');
+      assert.equal(select.options[0].disabled, missing !== 'scary');
+      assert.equal(select.options.length, missing === 'both' ? 2 : 3);
+      assert.equal(select.disabled, true);
+    });
+  }
+});
+
+test('random exhaustion never falls back to scary tracks, which remain manually selectable', async () => {
+  const audio = new MediaAudio();
+  const fallbacks = [];
+  const player = new MusicPlayer([
+    { file: 'normal.mp3', title: 'Normal' },
+    { file: 'scary_music/scary.mp3', title: 'Scary' }
+  ], {
+    audio, ambient: new AmbientMusic(AudioContext), random: () => 0.99,
+    onFallback: (error, selection) => fallbacks.push(selection)
+  });
+  player.start();
+  assert.match(audio.src, /\/music\/normal\.mp3$/);
+  audio.emit('error');
+  await Promise.resolve();
+  assert.equal(player.selection, 'original');
+  assert.deepEqual(fallbacks, ['original']);
+  assert.throws(() => player.setSelection('random'), /No music tracks/);
+  player.restoreSelection('track:scary_music/scary.mp3');
+  player.start();
+  assert.match(audio.src, /\/scary_music\/scary\.mp3$/);
+  assert.equal(audio.loop, true);
+  player.restoreSelection('track:removed.mp3');
+  assert.equal(player.selection, 'original');
+  player.stop();
 });
 
 test('scary mode immediately overrides and later restores the selected soundtrack', async () => {

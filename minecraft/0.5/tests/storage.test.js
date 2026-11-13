@@ -226,6 +226,7 @@ test('soundtrack assignments survive storage reloads without leaking between wor
   await store.load();
   for (const [worldId, musicSelection] of [
     ['world-a', 'track:a.mp3'], ['world-b', 'track:b.ogg'],
+    ['world-scary', 'track:scary_music/a #1.ogg'],
     ['world-random', 'random'], ['world-original', 'original']
   ]) {
     const saved = createSnapshot(world, createPlayer(world), 0, 0, 1,
@@ -235,6 +236,7 @@ test('soundtrack assignments survive storage reloads without leaking between wor
   const reloaded = new WorldSaveStore(idb);
   assert.equal((await reloaded.load('world-a')).record.settings.musicSelection, 'track:a.mp3');
   assert.equal((await reloaded.load('world-b')).record.settings.musicSelection, 'track:b.ogg');
+  assert.equal((await reloaded.load('world-scary')).record.settings.musicSelection, 'track:scary_music/a #1.ogg');
   assert.equal((await reloaded.load('world-random')).record.settings.musicSelection, 'random');
   assert.equal((await reloaded.load('world-original')).record.settings.musicSelection, 'original');
 });

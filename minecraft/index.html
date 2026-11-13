@@ -7,6 +7,15 @@
   <meta name="description" content="Play the current Minecraft development version or an archived release.">
   <link rel="canonical" href="https://daz2048.github.io/gry-darka/minecraft/">
   <link rel="stylesheet" href="../player-pages.css">
+  <style>
+    .release-list { list-style: none; padding: 0; }
+    .release-card { display: flex; gap: 16px; align-items: flex-start; margin: 16px 0; }
+    .release-thumb { flex: none; width: min(240px, 40%); }
+    .release-thumb img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid #526079; border-radius: 8px; }
+    .release-card h3 { margin: 0 0 4px; }
+    .release-card p { margin: 4px 0; }
+    @media (max-width: 480px) { .release-card { flex-direction: column; } .release-thumb { width: 100%; } }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -23,17 +32,52 @@
     <main id="main">
       <section aria-labelledby="current-title">
         <h2 id="current-title">Available now / Już dostępna</h2>
-        <p><a href="0.5/">Play Minecraft 0.5 / Zagraj w Minecraft 0.5</a> <span class="special-release-badge">Special release / Wersja specjalna</span></p>
-        <p lang="en">Based on 0.4, with independent saves. To bring a 0.4 world here, export it there and import the backup in 0.5. Your original world stays in 0.4.</p>
-        <p lang="pl">Wersja oparta na 0.4, z osobnymi zapisami. Aby przenieść świat z 0.4, wyeksportuj go tam i zaimportuj kopię w 0.5. Oryginalny świat pozostaje w 0.4.</p>
+        <ul class="release-list">
+        <li class="release-card">
+          <a class="release-thumb" href="0.5/"><img src="0.5/preview.svg?v=2" alt="Minecraft 0.5 preview" width="320" height="180" loading="lazy"></a>
+          <div>
+            <h3><a href="0.5/">Minecraft 0.5</a> <span class="special-release-badge">Special / Specjalna</span></h3>
+            <p lang="en">Spooky haunted-house special release, based on 0.4 with independent saves. To bring a 0.4 world, export it there and import the backup here.</p>
+            <p lang="pl">Specjalne wydanie w klimacie nawiedzonego domu, oparte na 0.4, z osobnymi zapisami. Aby przenieść świat z 0.4, wyeksportuj go tam i zaimportuj kopię tutaj.</p>
+          </div>
+        </li>
+        </ul>
       </section>
       <section aria-labelledby="archive-title">
         <h2 id="archive-title">Archived versions / Archiwum</h2>
-        <ul>
-          <li><a href="../klocki-podlasia-0.4/">Minecraft 0.4</a></li>
-          <li><a href="../klocki-podlasia-0.3/">Minecraft 0.3</a></li>
-          <li><a href="../klocki-podlasia-0.2/">Minecraft 0.2</a></li>
-          <li><a href="../klocki-podlasia-0.1/">Klocki Podlasia 0.1</a></li>
+        <ul class="release-list">
+        <li class="release-card">
+          <a class="release-thumb" href="../klocki-podlasia-0.4/"><img src="../klocki-podlasia-0.4/preview.svg" alt="Minecraft 0.4 preview" width="320" height="180" loading="lazy"></a>
+          <div>
+            <h3><a href="../klocki-podlasia-0.4/">Minecraft 0.4</a> <span class="meta">Archived / Archiwum</span></h3>
+            <p lang="en">Last release before the haunted-house special.</p>
+            <p lang="pl">Ostatnia wersja przed specjalnym wydaniem z nawiedzonym domem.</p>
+          </div>
+        </li>
+        <li class="release-card">
+          <a class="release-thumb" href="../klocki-podlasia-0.3/"><img src="../klocki-podlasia-0.3/preview.svg" alt="Minecraft 0.3 preview" width="320" height="180" loading="lazy"></a>
+          <div>
+            <h3><a href="../klocki-podlasia-0.3/">Minecraft 0.3</a> <span class="meta">Archived / Archiwum</span></h3>
+            <p lang="en">Bright voxel village with saves, backups, music and mobs.</p>
+            <p lang="pl">Jasna wioska z bloków, zapisy, kopie zapasowe, muzyka i moby.</p>
+          </div>
+        </li>
+        <li class="release-card">
+          <a class="release-thumb" href="../klocki-podlasia-0.2/"><img src="../klocki-podlasia-0.2/preview.svg" alt="Minecraft 0.2 preview" width="320" height="180" loading="lazy"></a>
+          <div>
+            <h3><a href="../klocki-podlasia-0.2/">Minecraft 0.2</a> <span class="meta">Archived / Archiwum</span></h3>
+            <p lang="en">First release renamed Minecraft, adding mobs to the sandbox.</p>
+            <p lang="pl">Pierwsza wersja pod nazwą Minecraft, z mobami w piaskownicy.</p>
+          </div>
+        </li>
+        <li class="release-card">
+          <a class="release-thumb" href="../klocki-podlasia-0.1/"><img src="../klocki-podlasia-0.1/preview.svg" alt="Klocki Podlasia 0.1 preview" width="320" height="180" loading="lazy"></a>
+          <div>
+            <h3><a href="../klocki-podlasia-0.1/">Klocki Podlasia 0.1</a> <span class="meta">Prototype / Prototyp</span></h3>
+            <p lang="en">The original block-building prototype.</p>
+            <p lang="pl">Pierwotny prototyp budowania z bloków.</p>
+          </div>
+        </li>
         </ul>
       </section>
     </main>

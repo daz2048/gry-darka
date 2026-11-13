@@ -66,6 +66,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .version-highlight { color: #315d18; font-size: 1.2em; text-shadow: 0 0 4px #b5ff5a, 0 0 10px #9ae832, 0 0 18px #76d529; }
 h1 { margin: 12px 0; font-size: clamp(32px, 5vw, 52px); letter-spacing: -2px; line-height: 1; }
 h1 em { font-style: normal; color: #ad4934; }
+.heading-letter { transition: color 8s ease-in-out; }
 .panel p { font-size: 14px; line-height: 1.5; }
 .instructions { border-block: 1px solid #cbd6bd; padding: 8px 0; }
 .instructions p { font-size: 12px; margin: 6px 0; }
@@ -137,7 +138,7 @@ h1 em { font-style: normal; color: #ad4934; }
   box-shadow: 0 3px #829c74, 0 0 8px #acd39166;
   font-size: 14px;
   font-weight: 800;
-  animation: world-private-pulse 5.5s ease-in-out infinite;
+  animation: world-private-pulse 14s ease-in-out infinite;
 }
 @keyframes world-private-pulse {
   0%, 100% { color: #24432b; background: #d3edc4; border-color: #829c74; box-shadow: 0 3px #829c74, 0 0 8px #acd39166; }

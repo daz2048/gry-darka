@@ -32,8 +32,9 @@ czasu animacji.
 
 The homepage background follows model-based current weather: sunshine, clouds, fog,
 rain, snow, and a dark storm sky (no flashing lightning). Clear and partly cloudy
-nights show gently twinkling stars, an occasional decorative shooting star, and a
-moon; these are illustrative, not astronomical or actual meteor predictions.
+nights show continuously twinkling groups of stars, staggered decorative shooting
+stars every few seconds with visible trails, and a larger, shaded moon with crater
+and surface details. These are illustrative, not astronomical or actual meteor predictions.
 The selected location's sunrise and sunset drive dawn, day, sunset, dusk and night,
 with a roughly 45-minute transition on either side of each event. The sun's path is
 illustrative, not astronomical. If sunrise or sunset is unavailable (such as during
@@ -154,6 +155,12 @@ and `node --test scripts/test_minecraft_news.js`.
 ---
 
 ## Wspólna muzyka
+
+Muzyka na stronie głównej losuje utwory z `music/catalogue.json` oraz
+`music/scary_music/catalogue.json`, w tym straszną muzykę. Każdy utwór ma równą
+szansę przy każdym losowaniu; powtórzenia są możliwe. Minecraft 0.5 również
+udostępnia oba katalogi w wyborze muzyki. Po dodaniu lub usunięciu utworów w folderze strasznej muzyki uruchom
+`scripts/generate-music-catalogue.sh music/scary_music`.
 
 Pliki MP3, WAV, OGG i M4A dla gier znajdują się w katalogu `music/`. Po dodaniu lub usunięciu
 utworów uruchom `scripts/generate-music-catalogue.sh` z katalogu repozytorium

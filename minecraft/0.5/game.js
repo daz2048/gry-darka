@@ -6,13 +6,13 @@ import { World, SIZE, CHUNK, BLOCKS, biomeAt, VILLAGES, BIOME_VILLAGES, STRUCTUR
 import { ATLAS_COLUMNS, ATLAS_ROWS, createBlockAtlas } from './textures.js?v=3';
 import { createPlayer, collides, stepPlayer } from './player.js?v=3';
 import { createMobs, createMobModel, stepMobs } from './mobs.js?v=7';
-import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=4';
+import { loadMusicCatalogue, MusicPlayer } from './music-player.js?v=6';
 import { applySnapshot, CorruptSaveError, createSnapshot, saveDataSize, SAVE_DATABASE, WORLD_STORE,
   MAX_WORLDS, SaveConflictError, SaveMigrationError, WorldLimitError, WorldSaveStore,
   suggestUniqueWorldName } from './saves.js?v=16';
 import { backupFileName, encodeWorldBackup, readWorldBackup } from './backups.js?v=7';
-import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=18';
-import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=13';
+import { biomeName, blockName, hasMessage, LANGUAGES, locale, MESSAGES, onLanguageChange, setText, structureName, t } from './i18n.js?v=19';
+import { initDiagnostics, readSaveStorageStatus } from './diagnostics.js?v=14';
 
 initDiagnostics();
 
@@ -1067,33 +1067,44 @@ function prepareMusic() {
 }
 
 async function initializeMusic() {
-  const scaryCatalogue = loadMusicCatalogue(music.scaryBase)
-    .then(tracks => { music.scaryTracks = tracks; })
-    .catch(error => { console.error('Scary music catalogue:', error); });
-  try {
-    const tracks = await loadMusicCatalogue();
-    music.tracks = tracks;
-    for (const track of tracks) {
-      const option = document.createElement('option');
-      option.value = `track:${track.file}`;
-      option.textContent = track.title;
-      ui['music-choice'].append(option);
+  const catalogues = await Promise.allSettled([
+    loadMusicCatalogue(), loadMusicCatalogue(music.scaryBase)
+  ]);
+  const tracks = [];
+  let catalogueFailed = false;
+  for (const [index, result] of catalogues.entries()) {
+    if (result.status === 'rejected') {
+      console.error(index ? 'Scary music catalogue:' : 'Music catalogue:', result.reason);
+      catalogueFailed = true;
+      continue;
     }
-    ui['music-choice'].options[0].disabled = !tracks.length;
-    if (tracks.length) {
-      music.setSelection('random');
-      ui['music-status'].hidden = true;
+    if (index) music.scaryTracks = result.value;
+    tracks.push(...result.value.map(track =>
+      index ? { ...track, file: `scary_music/${track.file}` } : track));
+  }
+  music.tracks = tracks;
+  for (const track of tracks) {
+    const option = document.createElement('option');
+    option.value = `track:${track.file}`;
+    if (track.file.startsWith('scary_music/')) {
+      setText(option, 'music.scaryTrack', { title: track.title });
     } else {
-      setText(ui['music-status'], 'music.empty');
+      option.textContent = track.title;
     }
-  } catch (error) {
-    console.error('Music catalogue:', error);
-    ui['music-choice'].options[0].disabled = true;
-    setText(ui['music-status'], 'music.catalogueFailed');
+    ui['music-choice'].append(option);
+  }
+  const hasRandom = music.availableRandomTracks().length > 0;
+  ui['music-choice'].options[0].disabled = !hasRandom;
+  music.setSelection(hasRandom ? 'random' : 'original');
+  if (catalogueFailed) {
+    setText(ui['music-status'], tracks.length ? 'music.cataloguePartial' : 'music.catalogueFailed');
+  } else if (tracks.length) {
+    ui['music-status'].hidden = true;
+  } else {
+    setText(ui['music-status'], 'music.empty');
   }
   ui['music-choice'].value = music.selection;
   ui['music-choice'].disabled = !ui['music-on'].checked;
-  await scaryCatalogue;
 }
 
 function resize() {

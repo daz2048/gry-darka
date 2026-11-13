@@ -7,12 +7,13 @@
 <title>Pixel Otter Rocket | Gry Ekipy spod Lipy z Hajnówki</title>
 <meta name="description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.4. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <link rel="canonical" href="https://daz2048.github.io/gry-darka/" />
+<link rel="icon" type="image/png" href="favicon.png" sizes="360x360" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="pl_PL" />
 <meta property="og:title" content="Pixel Otter Rocket | Gry Ekipy spod Lipy z Hajnówki" />
 <meta property="og:description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.4. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <meta property="og:url" content="https://daz2048.github.io/gry-darka/" />
-<link rel="stylesheet" href="weather.css?v=7" />
+<link rel="stylesheet" href="weather.css?v=8" />
 <link rel="stylesheet" href="minecraft-news.css?v=1" />
 <script src="weather.js?v=5" defer></script>
 <script src="minecraft-news.js?v=1" defer></script>
@@ -589,6 +590,8 @@
   .version-history-list li + li { margin-top: 4px; }
   .version-history-list a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 4px; color: #b9d8e8; text-underline-offset: 3px; }
   .version-history-list a:hover { color: #fff; }
+  .version-history-list a { gap: 8px; }
+  .version-thumb { flex: none; width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(232, 237, 242, .25); }
   .version-history-list a:focus-visible { outline: 3px solid #ffcd53; outline-offset: 2px; border-radius: 3px; }
   .voxel-release-actions { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: space-between; gap: 8px; position: relative; z-index: 1; margin-top: 12px; }
   .voxel-release-actions .version-history { align-self: auto; margin: 0; }
@@ -782,11 +785,11 @@
             <summary>Archived versions</summary>
             <ul class="version-history-list">
               <li><a href="minecraft/">All Minecraft versions / Wszystkie wersje</a></li>
-              <li><a href="minecraft/0.5/"><span>Minecraft 0.5</span> <span class="special-release-badge">Special</span></a></li>
-              <li><a href="klocki-podlasia-0.4/">Minecraft 0.4 · archived</a></li>
-              <li><a href="klocki-podlasia-0.3/">Minecraft 0.3 · archived</a></li>
-              <li><a href="klocki-podlasia-0.2/">Minecraft 0.2</a></li>
-              <li><a href="klocki-podlasia-0.1/">Klocki Podlasia 0.1 · prototyp</a></li>
+              <li><a href="minecraft/0.5/"><img class="version-thumb" src="minecraft/0.5/preview.svg?v=2" alt="" width="40" height="40" loading="lazy"><span>Minecraft 0.5</span> <span class="special-release-badge">Special</span></a></li>
+              <li><a href="klocki-podlasia-0.4/"><img class="version-thumb" src="klocki-podlasia-0.4/preview.svg" alt="" width="40" height="40" loading="lazy"><span>Minecraft 0.4 · archived</span></a></li>
+              <li><a href="klocki-podlasia-0.3/"><img class="version-thumb" src="klocki-podlasia-0.3/preview.svg" alt="" width="40" height="40" loading="lazy"><span>Minecraft 0.3 · archived</span></a></li>
+              <li><a href="klocki-podlasia-0.2/"><img class="version-thumb" src="klocki-podlasia-0.2/preview.svg" alt="" width="40" height="40" loading="lazy"><span>Minecraft 0.2</span></a></li>
+              <li><a href="klocki-podlasia-0.1/"><img class="version-thumb" src="klocki-podlasia-0.1/preview.svg" alt="" width="40" height="40" loading="lazy"><span>Klocki Podlasia 0.1 · prototyp</span></a></li>
             </ul>
           </details>
         </div>
@@ -1080,8 +1083,14 @@
     }
 
     try {
-      const { loadMusicCatalogue, MusicPlayer } = await import('./klocki-podlasia-0.3/music-player.js?v=2');
-      const tracks = await loadMusicCatalogue();
+      const { loadMusicCatalogue, MusicPlayer } = await import('./klocki-podlasia-0.3/music-player.js?v=3');
+      const bases = [
+        new URL('./music/', import.meta.url),
+        new URL('./music/scary_music/', import.meta.url)
+      ];
+      const catalogues = await Promise.all(bases.map(base => loadMusicCatalogue(base)));
+      const tracks = catalogues.flatMap((catalogue, index) =>
+        catalogue.map(track => ({ ...track, base: bases[index] })));
       if (!tracks.length) throw new Error('The music catalogue is empty.');
 
       player = new MusicPlayer(tracks, {

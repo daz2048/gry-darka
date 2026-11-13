@@ -85,7 +85,7 @@ export class MusicPlayer {
         ? this.tracks[Math.floor(this.random() * this.tracks.length)]
         : this.tracks.find(item => `track:${item.file}` === this.selection);
       this.current = track.file;
-      this.audio.src = new URL(encodeURIComponent(track.file), this.base).href;
+      this.audio.src = new URL(encodeURIComponent(track.file), track.base ?? this.base).href;
     }
     this.audio.loop = this.selection !== 'random';
     this.audio.play().catch(error => this.fail(error, generation));

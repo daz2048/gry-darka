@@ -36,6 +36,11 @@ i bez utraty niezapisanej pracy.
 
 ## Gameplay HUD
 
+The start-screen “Maks Minecraft” sign uses one shared colour for all letters,
+gently fading to a new random colour every eight seconds without moving the text.
+Colour cycling stops while the tab is hidden or the sign is no longer shown;
+reduced-motion mode keeps the lettering colour static.
+
 Windowed and fullscreen play use the same compact HUD in both control modes:
 crosshair, material categories, eight numbered swatches, selected material name,
 and a small save-status/Pause control. A targeted block's name appears only
@@ -209,14 +214,15 @@ is needed to play. Requires a desktop keyboard/mouse and WebGL2.
 - Fullscreen and lower resolution are optional; denied fullscreen leaves windowed play.
 - **Music / Soundtrack / Music volume**: select a random track (the default), a
   named track, or the original generated music, and adjust the volume in the
-  start/pause panel. Random mode picks another track when one ends; a named track
+  start/pause panel. Random mode picks only non-scary tracks when one ends; a named track
   repeats. Playback pauses with the game and resumes at the same position.
   The on/off setting, volume and soundtrack choice are saved separately for each
   world and included in exported backups. Older worlds and new worlds default to
   Random. If a saved track is missing or fails to play, a random available track
-  is selected with a notice. Failed tracks are skipped for the rest of the page
-  session unless explicitly selected again. If no tracks can be played, or the
-  catalogue is empty or unavailable, the original music is used. If the browser
+  from the non-scary catalogue is selected with a notice. Failed tracks are skipped
+  for the rest of the page session unless explicitly selected again. If no non-scary
+  tracks can be played, the original music is used; available scary tracks remain
+  selectable manually. If the browser
   blocks playback, a message is shown instead of repeatedly retrying tracks.
 
 **Navigation exception:** unlike the 2D games, Escape pauses instead of returning
@@ -356,6 +362,10 @@ MP3, WAV, OGG and M4A files are shared through the repository's `music/` directo
 or removing tracks, run `python3 scripts/generate-music-catalogue.py` from the
 repository root and refresh the game. Commit both the audio file changes and the
 generated `music/catalogue.json` to publish them on the existing static site.
+The music chooser also lists scary tracks with a localized "Scary" prefix.
+Random excludes scary tracks; they play only when selected manually or during
+the haunted-world override. Individual scary
+choices loop and are saved per world, just like other soundtrack choices.
 While a world is cursed or in nightmare mode, music switches immediately to random
 tracks from `music/scary_music/` and returns to the selected soundtrack when the
 scary mode ends. Music off and volume settings still apply. After adding or

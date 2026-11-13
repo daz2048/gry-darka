@@ -45,7 +45,7 @@ test('imports support unnamed worlds and ignore unrecognized JSON fields', async
 });
 
 test('backup round trips preserve soundtrack assignments and accept backups without a choice', async () => {
-  for (const musicSelection of ['track:a #1.ogg', 'random', 'original']) {
+  for (const musicSelection of ['track:a #1.ogg', 'track:scary_music/a #1.ogg', 'random', 'original']) {
     const snapshot = { ...original, settings: { ...original.settings, musicSelection } };
     const restored = await decodeWorldBackup(await encodeWorldBackup(snapshot));
     assert.equal(restored.settings.musicSelection, musicSelection);

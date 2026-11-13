@@ -36,7 +36,7 @@ export class MusicPlayer {
     this.scaryTracks = [];
     this.scary = false;
     this.failedScaryTracks = new Set();
-    this.selection = tracks.length ? 'random' : 'original';
+    this.selection = tracks.some(track => !track.file.startsWith('scary_music/')) ? 'random' : 'original';
     this.active = false;
     this.generation = 0;
     this.current = null;
@@ -60,14 +60,19 @@ export class MusicPlayer {
     return this.tracks.filter(track => !this.failedTracks.has(track.file));
   }
 
+  availableRandomTracks() {
+    return this.availableTracks().filter(track => !track.file.startsWith('scary_music/'));
+  }
+
   restoreSelection(selection = 'random') {
     this.stop();
     this.current = null;
     const available = this.availableTracks();
+    const hasRandom = this.availableRandomTracks().length > 0;
     this.selection = selection === 'original' ||
-      (selection === 'random' && available.length) ||
+      (selection === 'random' && hasRandom) ||
       available.some(track => `track:${track.file}` === selection)
-      ? selection : available.length ? 'random' : 'original';
+      ? selection : hasRandom ? 'random' : 'original';
     if (this.selection !== selection) {
       this.onFallback(new Error('The saved soundtrack is unavailable.'), this.selection);
     }
@@ -78,7 +83,7 @@ export class MusicPlayer {
         !this.tracks.some(track => `track:${track.file}` === selection)) {
       throw new Error('Unknown music selection.');
     }
-    if (selection === 'random' && !this.tracks.length) throw new Error('No music tracks available.');
+    if (selection === 'random' && !this.availableRandomTracks().length) throw new Error('No music tracks available.');
     if (selection === this.selection) return;
     this.stop();
     if (selection.startsWith('track:')) this.failedTracks.delete(selection.slice(6));
@@ -117,7 +122,7 @@ export class MusicPlayer {
     if (!this.current) {
       const available = this.scary
         ? this.scaryTracks.filter(track => !this.failedScaryTracks.has(track.file))
-        : this.availableTracks();
+        : this.availableRandomTracks();
       const track = this.scary || this.selection === 'random'
         ? available[Math.floor(this.random() * available.length)]
         : this.tracks.find(item => `track:${item.file}` === this.selection);
@@ -126,7 +131,8 @@ export class MusicPlayer {
         return;
       }
       this.current = track.file;
-      this.audio.src = new URL(encodeURIComponent(track.file), this.scary ? this.scaryBase : this.base).href;
+      this.audio.src = new URL(track.file.split('/').map(encodeURIComponent).join('/'),
+        this.scary ? this.scaryBase : this.base).href;
     }
     this.audio.loop = !this.scary && this.selection !== 'random';
     this.audio.play().catch(error => this.fail(error, generation));
@@ -152,7 +158,7 @@ export class MusicPlayer {
     if (this.selection === 'original') this.failedOriginal = true;
     else if (this.current) this.failedTracks.add(this.current);
     this.current = null;
-    if (this.availableTracks().length) {
+    if (this.availableRandomTracks().length) {
       this.selection = 'random';
     } else if (!this.failedOriginal) {
       this.selection = 'original';
