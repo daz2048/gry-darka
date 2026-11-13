@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 const yearRound = ['cloud', 'data', 'stars', 'scan', 'pixel-rain', 'shooting-stars', 'circuits', 'aurora',
-  'otter-rocket', 'block-landscape', 'castle-arrows', 'arcade'];
+  'pink', 'orange', 'otter-rocket', 'block-landscape', 'castle-arrows', 'arcade'];
 const seasonal = {
   0: ['snow', 'frost'],
   1: ['snow', 'frost'],
@@ -22,14 +22,14 @@ const seasonal = {
   10: ['snow', 'frost'],
   11: ['festive-lights', 'presents'],
 };
-const highImpact = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge'];
+const highImpact = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge', 'strobe-lights'];
 const highImpactSeasonal = {
   1: ['frost-hearts', 'winter-night'],
   2: ['spring-storm', 'meadow-burst'],
   4: ['spring-storm', 'meadow-burst'],
 };
 
-function createBanner(date, randomValues) {
+function createBanner(date, randomValues, savedSelection = null, storageBlocked = false) {
   const faces = [0, 1].map(() => ({
     dataset: {},
     attributes: {},
@@ -48,16 +48,21 @@ function createBanner(date, randomValues) {
   const clock = { date };
   const random = { values: randomValues.slice() };
   const math = Object.create(Math);
+  const status = { textContent: '', hidden: true };
   math.random = () => {
     assert.ok(random.values.length, 'Unexpected random draw');
     return random.values.shift();
   };
   vm.runInNewContext(script, {
-    document: { querySelector: () => button },
+    document: { querySelector: () => button, getElementById: () => status },
+    localStorage: { getItem: () => {
+      if (storageBlocked) throw new Error('Storage blocked');
+      return savedSelection;
+    } },
     Date: class { getMonth() { return clock.date.getMonth(); } },
     Math: math,
   });
-  return { button, faces, clock, random, click: () => onClick() };
+  return { button, faces, clock, random, status, click: () => onClick() };
 }
 
 test('seasonal pools apply for the entire local month and are equally weighted', () => {
@@ -137,4 +142,38 @@ test('the seasonal pool changes at the next flip when the local month changes', 
   banner.random.values.push(0, 0);
   banner.click();
   assert.equal(banner.faces[1].dataset.effect, 'festive-lights');
+});
+
+test('saved selections only apply on flips, including out-of-season and single styles', () => {
+  const single = createBanner(new Date(2026, 10, 1), [.5, 0], JSON.stringify(['spring-storm']));
+  assert.ok(yearRound.includes(single.faces[0].dataset.effect));
+  single.random.values.push(0, 0);
+  single.click();
+  single.click();
+  assert.equal(single.faces[0].dataset.effect, 'spring-storm');
+  assert.equal(single.faces[1].dataset.effect, 'spring-storm');
+
+  const multiple = createBanner(new Date(2026, 10, 1), [.5, 0], JSON.stringify(['cloud', 'fireworks']));
+  multiple.random.values.push(0, 0);
+  multiple.click();
+  assert.equal(multiple.faces[1].dataset.effect, 'fireworks');
+  multiple.click();
+  assert.equal(multiple.faces[0].dataset.effect, 'cloud');
+});
+
+test('invalid saved selections are reported and default behavior remains available', () => {
+  const banner = createBanner(new Date(2026, 10, 1), [.5, 0], '[]');
+  banner.random.values.push(.5, .5, 0);
+  banner.click();
+  assert.match(banner.status.textContent, /invalid/);
+  assert.equal(banner.status.hidden, false);
+  assert.ok(yearRound.includes(banner.faces[1].dataset.effect));
+});
+
+test('blocked storage is reported without disabling the banner', () => {
+  const banner = createBanner(new Date(2026, 10, 1), [.5, 0], null, true);
+  banner.random.values.push(.5, .5, 0);
+  banner.click();
+  assert.match(banner.status.textContent, /could not be read/);
+  assert.ok(yearRound.includes(banner.faces[1].dataset.effect));
 });

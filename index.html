@@ -13,7 +13,10 @@
 <meta property="og:description" content="Pixel Otter Rocket: darmowe gry przeglądarkowe Ekipy spod Lipy z Hajnówki, w tym Minecraft 0.3. Zombie, pojedynek zamków i platformówki. Graj bez instalacji." />
 <meta property="og:url" content="https://daz2048.github.io/gry-darka/" />
 <link rel="stylesheet" href="weather.css?v=3" />
+<link rel="stylesheet" href="minecraft-news.css?v=1" />
 <script src="weather.js?v=3" defer></script>
+<script src="minecraft-news.js?v=1" defer></script>
+<script src="banner-gallery.js?v=1" defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   
@@ -286,9 +289,81 @@
       linear-gradient(0deg, rgba(6,255,165,.35), transparent) 50% 100% / 100% 30% no-repeat;
     animation: meadow-bloom 6s ease-in-out infinite;
   }
+  .brand-face[data-effect="pink"] {
+    border-color: #ff70b8;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(255, 64, 170, .42), transparent 65%),
+      repeating-linear-gradient(0deg, transparent 0 27px, rgba(255, 150, 220, .12) 28px 29px),
+      repeating-linear-gradient(90deg, transparent 0 27px, rgba(255, 150, 220, .12) 28px 29px),
+      #21102e;
+    animation: pink-glow 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="pink"] .brand-title {
+    background-image: linear-gradient(90deg, #ff70b8, #ffd1ed, #ff8cc8);
+    filter: drop-shadow(0 0 8px rgba(255, 112, 184, .8));
+  }
+  .brand-face[data-effect="pink"]::after {
+    background:
+      radial-gradient(circle, #ffd1ed 0 3px, transparent 4px) 12% 22% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff70b8 0 4px, transparent 5px) 86% 76% / 12px 12px no-repeat,
+      radial-gradient(circle, #ffb8da 0 2px, transparent 3px) 72% 20% / 8px 8px no-repeat,
+      radial-gradient(circle, #ffd1ed 0 2px, transparent 3px) 22% 78% / 8px 8px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="orange"] {
+    border-color: #ff9a3c;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(255, 126, 35, .4), transparent 65%),
+      repeating-linear-gradient(0deg, transparent 0 27px, rgba(255, 190, 90, .12) 28px 29px),
+      repeating-linear-gradient(90deg, transparent 0 27px, rgba(255, 190, 90, .12) 28px 29px),
+      #261522;
+    animation: orange-glow 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="orange"] .brand-title {
+    background-image: linear-gradient(90deg, #ff9a3c, #fff0a8, #ff7043);
+    filter: drop-shadow(0 0 8px rgba(255, 154, 60, .8));
+  }
+  .brand-face[data-effect="orange"]::after {
+    background:
+      radial-gradient(circle, #fff0a8 0 3px, transparent 4px) 12% 22% / 10px 10px no-repeat,
+      radial-gradient(circle, #ff7043 0 4px, transparent 5px) 86% 76% / 12px 12px no-repeat,
+      radial-gradient(circle, #ffcd53 0 2px, transparent 3px) 72% 20% / 8px 8px no-repeat,
+      radial-gradient(circle, #fff0a8 0 2px, transparent 3px) 22% 78% / 8px 8px no-repeat;
+    animation: network-pulse 4s ease-in-out infinite;
+  }
+  .brand-face[data-effect="strobe-lights"] {
+    border-color: #c99cff;
+    background:
+      radial-gradient(ellipse at 15% 50%, rgba(185, 90, 255, .3), transparent 42%),
+      radial-gradient(ellipse at 85% 50%, rgba(70, 180, 255, .3), transparent 42%),
+      #111127;
+    animation: strobe-glow 3s ease-in-out infinite;
+  }
+  .brand-face[data-effect="strobe-lights"]::after {
+    background:
+      linear-gradient(110deg, transparent 25%, rgba(209, 157, 255, .28) 48%, transparent 70%) 0 0 / 55% 100% no-repeat,
+      linear-gradient(250deg, transparent 25%, rgba(104, 190, 255, .28) 48%, transparent 70%) 100% 0 / 55% 100% no-repeat;
+    animation: strobe-sweep 4s ease-in-out infinite alternate;
+  }
   @keyframes network-pulse {
     0%, 100% { opacity: .35; }
     50% { opacity: 1; }
+  }
+  @keyframes pink-glow {
+    0%, 100% { box-shadow: inset 0 0 24px rgba(255, 112, 184, .18), 0 0 14px rgba(255, 112, 184, .3); }
+    50% { box-shadow: inset 0 0 34px rgba(255, 112, 184, .32), 0 0 22px rgba(255, 112, 184, .45); }
+  }
+  @keyframes orange-glow {
+    0%, 100% { box-shadow: inset 0 0 24px rgba(255, 154, 60, .16), 0 0 14px rgba(255, 154, 60, .28); }
+    50% { box-shadow: inset 0 0 34px rgba(255, 154, 60, .3), 0 0 22px rgba(255, 154, 60, .42); }
+  }
+  @keyframes strobe-glow {
+    0%, 100% { box-shadow: inset 0 0 26px rgba(185, 90, 255, .2), 0 0 14px rgba(185, 90, 255, .3); }
+    50% { box-shadow: inset 0 0 30px rgba(70, 180, 255, .24), 0 0 18px rgba(70, 180, 255, .34); }
+  }
+  @keyframes strobe-sweep {
+    from { background-position: -50% 0, 150% 0; opacity: .45; }
+    to { background-position: 50% 0, 50% 0; opacity: .8; }
   }
   @keyframes data-stream {
     from { background-position: 0% 20%, 100% 80%, 50% 20%, 50% 80%; }
@@ -494,6 +569,33 @@
   .card.ragdoll-archers-community .thumb.preview img { object-fit: cover; background: #252525; }
   footer { text-align: center; margin-top: 48px; font-size: 11px; opacity: .5; font-family: "Segoe UI", sans-serif; }
   footer a { color: inherit; }
+  .site-nav .banner-gallery-link { font-size: 11px; color: #aeb4c0; }
+  .banner-gallery {
+    margin-top: 20px; padding: 18px; border: 1px solid #53677d; border-radius: 12px;
+    background: #101b30; color: #e8edf2; font: 14px/1.5 "Segoe UI", sans-serif;
+  }
+  .banner-gallery summary { cursor: pointer; min-height: 44px; padding: 10px 0; font-weight: 600; }
+  .banner-gallery h2 { font-size: 18px; }
+  .banner-gallery h3 { margin: 24px 0 10px; font-size: 16px; }
+  .banner-gallery-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .banner-gallery button {
+    min-height: 44px; padding: 8px 12px; color: #e8edf2; background: #263d58;
+    border: 1px solid #89a5bd; border-radius: 6px; cursor: pointer; font: inherit;
+  }
+  .banner-gallery :is(button, input, summary):focus-visible { outline: 3px solid #ffcd53; outline-offset: 3px; }
+  .banner-gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; }
+  .banner-gallery-card { padding: 10px; background: #1b2b43; border-radius: 8px; }
+  .banner-gallery-card label { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
+  .banner-gallery-card input { width: 20px; height: 20px; flex: none; }
+  .banner-gallery .brand-face {
+    grid-area: auto; display: flex; min-height: 120px; padding: 14px; gap: 6px;
+    font: 14px/1.4 "Segoe UI", sans-serif; text-align: center;
+  }
+  .banner-gallery .brand-title { font-size: 16px; letter-spacing: 0; }
+  .banner-gallery .sub { font-size: 12px; }
+  .banner-gallery-card button { margin-top: 8px; }
+  .banner-gallery-preview { margin: 16px 0; }
+  .banner-gallery-message { color: #fff5a8; min-height: 1.5em; }
   @media (max-width: 600px) {
     .brand-title { font-size: 16px; letter-spacing: 1px; line-height: 1.7; }
     .brand-face { padding: 20px 14px; }
@@ -501,6 +603,10 @@
   @media (prefers-reduced-motion: reduce) {
     .brand-face, .brand-face[data-effect]::after,
     .brand-face:not([data-effect])::after, .brand-face .brand-title { animation: none; }
+    .brand-face[data-effect="pink"], .brand-face[data-effect="orange"],
+    .brand-face[data-effect="strobe-lights"],
+    .brand-face[data-effect="pink"] .brand-title,
+    .brand-face[data-effect="orange"] .brand-title { animation: none; }
     .brand-flip-inner { transition: none; }
   }
 </style>
@@ -526,10 +632,7 @@
         </button>
       </h1>
       <noscript><p class="sub">Gry Ekipy spod Lipy (Hajnówka) — Pixel Otter Rocket — darmowe gry przeglądarkowe z Podlasia. Graj od razu, bez instalacji!</p></noscript>
-      <nav class="site-nav" aria-label="Pomoc, aktualizacje i muzyka">
-        <a href="help.html">How to play</a>
-        <a href="updates.html">Updates</a>
-        <button id="site-music-toggle" type="button" aria-pressed="false" disabled>Music: Off</button>
+      <nav class="site-nav" aria-label="Pomoc, aktualizacje, wiadomości i muzyka">
         <a class="weather-shortcut" href="#weather-panel" aria-label="Weather and location" title="Weather and location" lang="en" hidden>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M12 2v2m-7 1 1.5 1.5M2 12h2m15-7-1.5 1.5M20 12h2" />
@@ -540,6 +643,17 @@
             <span id="weather-shortcut-conditions">Loading weather...</span>
           </span>
         </a>
+        <button id="site-music-toggle" type="button" aria-pressed="false" disabled>Music: Off</button>
+        <a class="banner-gallery-link" href="#banner-gallery" lang="en">Banner styles</a>
+        <a class="minecraft-news-shortcut" href="#minecraft-news" aria-label="Minecraft news and videos" title="Minecraft news and videos" lang="en">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 5h18v14H3zM6 8h5v5H6zM14 8h4M14 11h4M6 16h12" />
+          </svg>
+          <span>Minecraft news</span>
+        </a>
+        <a href="help.html">How to play</a>
+        <a href="updates.html">Updates</a>
+        <span id="banner-storage-status" class="site-nav-status" role="status" hidden></span>
         <span id="site-music-status" class="site-nav-status" role="status" aria-live="polite" hidden></span>
       </nav>
     </header>
@@ -683,11 +797,48 @@
       <p class="weather-credit">Model-based weather by <a href="https://open-meteo.com/">Open-Meteo</a> /
         <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>; conditions simplified into background effects.</p>
     </section>
+    <section id="minecraft-news" class="minecraft-news-panel" lang="en" aria-labelledby="minecraft-news-heading">
+      <h2 id="minecraft-news-heading">Official Minecraft news &amp; videos</h2>
+      <p>News from Minecraft.net and the official Minecraft YouTube channel, not updates to our game.</p>
+      <div class="minecraft-news-sources">
+        <div>
+          <h3>News</h3>
+          <p id="minecraft-news-status" role="status">Loading news; JavaScript is required to show the feed.</p>
+          <ul id="minecraft-news-items"></ul>
+          <a href="https://www.minecraft.net/en-us/articles">More on Minecraft.net</a>
+        </div>
+        <div>
+          <h3>Videos</h3>
+          <p id="minecraft-videos-status" role="status">Loading videos; JavaScript is required to show the feed.</p>
+          <ul id="minecraft-videos-items"></ul>
+          <a href="https://www.youtube.com/@minecraft">Official Minecraft YouTube channel</a>
+        </div>
+      </div>
+    </section>
+    <details id="banner-gallery" class="banner-gallery" lang="en">
+      <summary>Banner styles</summary>
+      <p>Preview and choose the styles used when you flip the banner. Your selection is saved in this browser; the first banner stays calm.</p>
+      <div class="banner-gallery-actions">
+        <button type="button" id="banner-select-all">Select all</button>
+        <button type="button" id="banner-clear">Clear</button>
+        <button type="button" id="banner-save">Save selection</button>
+        <button type="button" id="banner-reset">Restore defaults</button>
+      </div>
+      <p id="banner-gallery-status" class="banner-gallery-message" role="status"></p>
+      <div class="banner-gallery-preview" hidden>
+        <h2 id="banner-preview-name">Preview</h2>
+        <div class="brand-face" id="banner-preview" aria-hidden="true">
+          <span class="brand-title">Pixel Otter Rocket</span>
+          <span class="sub">The Lime Tree Crew · Ekipa spod Lipy</span>
+        </div>
+      </div>
+      <div id="banner-gallery-groups"></div>
+    </details>
   </div>
   <script>
     const brandFlip = document.querySelector('.brand-flip');
     const brandFaces = brandFlip.querySelectorAll('.brand-face');
-    const brandEffects = ['cloud', 'data', 'stars', 'scan', 'pixel-rain', 'shooting-stars', 'circuits', 'aurora',
+    const brandEffects = ['cloud', 'data', 'stars', 'scan', 'pixel-rain', 'shooting-stars', 'circuits', 'aurora', 'pink', 'orange',
       'otter-rocket', 'block-landscape', 'castle-arrows', 'arcade'];
     const seasonalBrandEffects = {
       0: ['snow', 'frost'],
@@ -703,13 +854,52 @@
       10: ['snow', 'frost'],
       11: ['festive-lights', 'presents'],
     };
-    const highImpactBrandEffects = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge'];
+    const highImpactBrandEffects = ['fireworks', 'nebula-burst', 'campfire', 'bubble-surge', 'strobe-lights'];
     const highImpactSeasonalBrandEffects = {
       1: ['frost-hearts', 'winter-night'],
       2: ['spring-storm', 'meadow-burst'],
       4: ['spring-storm', 'meadow-burst'],
     };
+    const bannerStorageKey = 'gry_banner_styles';
+    const allBrandEffects = new Set([...brandEffects, ...Object.values(seasonalBrandEffects).flat(),
+      ...highImpactBrandEffects, ...Object.values(highImpactSeasonalBrandEffects).flat()]);
+    function reportBannerStorageError(message) {
+      const status = document.getElementById('banner-storage-status');
+      status.textContent = message;
+      status.hidden = !message;
+    }
+    function readBannerSelection() {
+      let raw;
+      try {
+        raw = localStorage.getItem(bannerStorageKey);
+      } catch (error) {
+        reportBannerStorageError('Banner styles could not be read from browser storage.');
+        return null;
+      }
+      if (raw === null) return null;
+      let selection;
+      try {
+        selection = JSON.parse(raw);
+      } catch (error) {
+        reportBannerStorageError('Saved banner styles are invalid. Restore defaults in Banner styles.');
+        return null;
+      }
+      if (!Array.isArray(selection) || !selection.length ||
+          selection.some(effect => typeof effect !== 'string' || !allBrandEffects.has(effect))) {
+        reportBannerStorageError('Saved banner styles are invalid. Restore defaults in Banner styles.');
+        return null;
+      }
+      return [...new Set(selection)];
+    }
     function chooseBrandEffect(face, previousEffect) {
+      if (previousEffect) {
+        const selected = readBannerSelection();
+        if (selected) {
+          const choices = selected.length === 1 ? selected : selected.filter(effect => effect !== previousEffect);
+          face.dataset.effect = choices[Math.floor(Math.random() * choices.length)];
+          return;
+        }
+      }
       const month = new Date().getMonth();
       const seasonal = seasonalBrandEffects[month] && Math.random() < .5;
       const calmPool = seasonal ? seasonalBrandEffects[month] : brandEffects;

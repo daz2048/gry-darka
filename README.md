@@ -12,6 +12,11 @@ w listopadzie–lutym śnieg, w grudniu motywy świąteczne, w marcu i maju wios
 a w kwietniu motywy wielkanocne i wiosenne. Po obróceniu banera mogą pojawić
 się bardziej dynamiczne efekty; pierwsze wyświetlenie zawsze jest spokojniejsze.
 Wybór motywów zależy od lokalnego miesiąca odwiedzającego.
+Łącze „Banner styles” obok pogody otwiera galerię wszystkich stylów, w tym
+różowe i pomarańczowe motywy, fajerwerki oraz spokojne, wolno zmieniające się
+światła sceniczne (bez szybkiego migania). Można je podejrzeć, wybrać i zapisać
+lokalnie w przeglądarce do losowania przy obrocie;
+„Restore defaults” przywraca domyślny wybór sezonowy.
 
 ## Weather background
 
@@ -50,6 +55,30 @@ Revisit provider plans before adding advertising or increasing traffic.
 Weather attribution and the CC BY 4.0 link appear beside the controls.
 
 Tests: `node --test scripts/test_weather.js scripts/test_banner.js`.
+
+## Minecraft news and videos
+
+The homepage has a **Minecraft news** shortcut in the top navigation. It jumps
+to a panel below the weather section with official Minecraft.net headlines and
+videos from the official Minecraft YouTube channel. These are not updates to our
+own Minecraft-inspired game. The panel links directly to the sources even when
+JavaScript or the data is unavailable; videos are links, not embedded players.
+
+The panel reads the same-origin `minecraft-news.json` file. To refresh it before
+publishing, run `python3 scripts/update_minecraft_news.py` and publish the resulting
+file with the site. The script needs no API key or third-party packages. It fetches
+the [official Minecraft RSS feed](https://www.minecraft.net/en-us/feeds/community-content/rss)
+and the [official YouTube channel feed](https://www.youtube.com/feeds/videos.xml?channel_id=UC1sELGmy5jp5fQUugmuYlXQ),
+and reports failures on stderr. If either feed fails, that source keeps its last
+successful data and timestamp; an unavailable feed with no earlier data shows a
+source link instead. Data is labelled potentially outdated after 24 hours.
+
+The feed file must be refreshed and republished regularly to remain current;
+there is currently no automated scheduled deployment in this repository.
+The browser does not contact the feed providers until a visitor follows a link.
+
+Tests: `python3 -m unittest discover -s scripts -p 'test_minecraft_news.py'`
+and `node --test scripts/test_minecraft_news.js`.
 
 ## Pomoc i aktualizacje dla graczy
 
